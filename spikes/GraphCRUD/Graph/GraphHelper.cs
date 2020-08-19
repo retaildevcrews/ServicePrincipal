@@ -57,22 +57,36 @@ namespace GraphCrud
         {
              try
              {
-
                  var servicePrincipals = await graphClient.ServicePrincipals
 	            .Request()
 	            .GetAsync();
-            
-
+        
                  return servicePrincipals.CurrentPage;
              }
              catch (ServiceException ex)
              {
                  Console.WriteLine($"Error getting All Owners: {ex.Message}");
                  return null;
-             }
-
-            
+             }    
          }
+
+            public static async Task updateNotes(string servicePrincipalId){
+        
+                var servicePrincipal = new ServicePrincipal
+                {
+                    Notes = "my notes go here{}:$#FSFS#TDGDgusf {}"
+                };
+
+                try{
+                    await graphClient.ServicePrincipals[servicePrincipalId]
+	                .Request()
+	                .UpdateAsync(servicePrincipal);
+                    Console.WriteLine($"\t Notes fields updated for service principal id  {servicePrincipalId}");
+                }
+                catch(Exception ex){
+                    Console.WriteLine($"Error getting Updating notes: {ex.Message}");
+                }
+        }
 
         public static async Task<IEnumerable<User>> GetUsersDeltaAsync()
         {

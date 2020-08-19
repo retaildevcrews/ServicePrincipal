@@ -44,7 +44,7 @@ namespace GraphCrud
                 Console.WriteLine("2. List All Users");
                 Console.WriteLine("3. Add New User");
                 Console.WriteLine("4. List Users (Delta)");
-                Console.WriteLine("5. List Owners");
+                Console.WriteLine("5. List and Update Service Principals Notes");
 
                 try
                 {
@@ -74,7 +74,7 @@ namespace GraphCrud
                         ListUsersDelta();
                         break;
                     case 5:
-                        ListOwners();
+                        ListUpdateServicePrincipals();
                         break;    
                     default:
                         Console.WriteLine("Invalid choice! Please try again.");
@@ -99,13 +99,17 @@ namespace GraphCrud
         }
 
 
-    static void ListOwners()
+    static async void ListUpdateServicePrincipals()
         {
             var servicePrincipals = GraphHelper.GetAllServicePrincipalsAsync().Result;
-        
-             foreach (var sp in servicePrincipals)
+
+            foreach (var sp in servicePrincipals)
+            
              {
                 Console.WriteLine($"Service Principal: {sp.DisplayName}");
+
+
+                 await GraphHelper.updateNotes(sp.Id);
 
                 if (sp.Owners != null)
                 {
@@ -116,8 +120,8 @@ namespace GraphCrud
                 }
                 
              }
-        }
 
+        }
 
         static void ListAllUsers()
         {
