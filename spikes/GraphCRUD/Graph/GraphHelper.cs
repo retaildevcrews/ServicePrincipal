@@ -51,6 +51,29 @@ namespace GraphCrud
             }
         }
 
+
+
+         public static async Task<IEnumerable<ServicePrincipal>> GetAllServicePrincipalsAsync()
+        {
+             try
+             {
+
+                 var servicePrincipals = await graphClient.ServicePrincipals
+	            .Request()
+	            .GetAsync();
+            
+
+                 return servicePrincipals.CurrentPage;
+             }
+             catch (ServiceException ex)
+             {
+                 Console.WriteLine($"Error getting All Owners: {ex.Message}");
+                 return null;
+             }
+
+            
+         }
+
         public static async Task<IEnumerable<User>> GetUsersDeltaAsync()
         {
             IUserDeltaCollectionPage userCollectionPage;
