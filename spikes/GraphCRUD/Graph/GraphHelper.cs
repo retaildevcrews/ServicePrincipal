@@ -121,7 +121,7 @@ namespace GraphCrud
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error Updating Notes for Service Principal Id: {servicePrincipalId}");
+                Console.WriteLine($"Error Updating Notes for Service Principal Id: {servicePrincipalId}  : {ex.Message}" );
                 return;
             }
 
