@@ -53,41 +53,24 @@ namespace GraphCrud
 
 
 
-         public static async Task<IEnumerable<ServicePrincipal>> GetAllServicePrincipalsAsync()
+        public static async Task<IEnumerable<ServicePrincipal>> GetAllServicePrincipalsAsync()
         {
-             try
-             {
-                 var servicePrincipals = await graphClient.ServicePrincipals
-	            .Request()
-	            .GetAsync();
-        
-                 return servicePrincipals.CurrentPage;
-             }
-             catch (ServiceException ex)
-             {
-                 Console.WriteLine($"Error getting All Owners: {ex.Message}");
-                 return null;
-             }    
-         }
+            try
+            {
+                var servicePrincipals = await graphClient.ServicePrincipals
+               .Request()
+               .GetAsync();
 
-            public static async Task updateNotes(string servicePrincipalId){
-        
-                var servicePrincipal = new ServicePrincipal
-                {
-                    Notes = "my notes go here{}:$#FSFS#TDGDgusf {}"
-                };
-
-                try{
-                    await graphClient.ServicePrincipals[servicePrincipalId]
-	                .Request()
-	                .UpdateAsync(servicePrincipal);
-                    Console.WriteLine($"\t Notes fields updated for service principal id  {servicePrincipalId}");
-                }
-                catch(Exception ex){
-                    Console.WriteLine($"Error getting Updating notes: {ex.Message}");
-                }
+                return servicePrincipals.CurrentPage;
+            }
+            catch (ServiceException ex)
+            {
+                Console.WriteLine($"Error getting All Owners: {ex.Message}");
+                return null;
+            }
         }
 
+  
         public static async Task<IEnumerable<User>> GetUsersDeltaAsync()
         {
             IUserDeltaCollectionPage userCollectionPage;
@@ -111,8 +94,8 @@ namespace GraphCrud
 
             while (userCollectionPage.NextPageRequest != null)
             {
-	            userCollectionPage = await userCollectionPage.NextPageRequest.GetAsync();
-	            userList.AddRange(userCollectionPage.CurrentPage);
+                userCollectionPage = await userCollectionPage.NextPageRequest.GetAsync();
+                userList.AddRange(userCollectionPage.CurrentPage);
             }
 
 
@@ -122,6 +105,27 @@ namespace GraphCrud
             }
 
             return userList;
+
+        }
+
+        public static async void createUpdateServicePrincipalNote(string servicePrincipalId, string servicePrincipalNote)
+        {
+            var servicePrincipal = new ServicePrincipal
+            {
+                Notes = servicePrincipalNote
+            };
+
+            try
+            {
+                await graphClient.ServicePrincipals[servicePrincipalId].Request().UpdateAsync(servicePrincipal);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error Updating Notes for Service Principal Id: {servicePrincipalId}");
+                return;
+            }
+
+            Console.WriteLine("Service Principal Notes updated");
 
         }
 
