@@ -1,5 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Graph.Auth;
+using Microsoft.Identity.Client;
 using System;
+using System.Configuration;
+using System.Collections.Specialized;
+
 
 namespace GraphCrud
 {
@@ -7,32 +12,22 @@ namespace GraphCrud
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Graph API Sample CRUD App \n");
+            Console.WriteLine("Service Principal Graph API Spike\n");
 
-            var appConfig = LoadAppSettings();
+            string clientId = ConfigurationManager.AppSettings.Get("clientId");
+            string tenantId = ConfigurationManager.AppSettings.Get("tenantId");
+            string clientSecret = ConfigurationManager.AppSettings.Get("clientSecret");
 
-            if (appConfig == null)
-            {
-                Console.WriteLine("Missing or invalid appsettings.json...exiting");
-                return;
-            }
+            IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
+            .Create(clientId)
+            .WithTenantId(tenantId)
+            .WithClientSecret(clientSecret)
+            .Build();
 
-            var appId = appConfig["appId"];
-            var scopesString = appConfig["scopes"];
-            var scopes = scopesString.Split(';');
-
-            // Initialize the auth provider with values from appsettings.json
-            var authProvider = new DeviceCodeAuthProvider(appId, scopes);
-
-            // Request a token to sign in the user
-            var accessToken = authProvider.GetAccessToken().Result;
+            ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
 
             // Initialize Graph client
             GraphHelper.Initialize(authProvider);
-
-            // Get signed in user
-            var user = GraphHelper.GetMeAsync().Result;
-            Console.WriteLine($"Welcome {user.DisplayName}!\n");
 
             int choice = -1;
 
@@ -40,12 +35,10 @@ namespace GraphCrud
             {
                 Console.WriteLine("Please choose one of the following options:");
                 Console.WriteLine("0. Exit");
-                Console.WriteLine("1. Display access token");
-                Console.WriteLine("2. List All Users");
-                Console.WriteLine("3. Add New User");
-                Console.WriteLine("4. List Users (Delta)");
-                Console.WriteLine("5. List All Service Principals");
-                Console.WriteLine("6. Create/Update Service Principal Note");
+                Console.WriteLine("1. List All Users");
+                Console.WriteLine("2. List Users (Delta)");
+                Console.WriteLine("3. List All Service Principals");
+                Console.WriteLine("4. Create/Update Service Principal Notes");
 
                 try
                 {
@@ -63,21 +56,15 @@ namespace GraphCrud
                         Console.WriteLine("Goodbye...");
                         break;
                     case 1:
-                        Console.WriteLine($"Access token: {accessToken}\n");
-                        break;
-                    case 2:
                         ListAllUsers();
                         break;
-                    case 3:
-                        createNewUser();
-                        break;
-                    case 4:
+                    case 2:
                         ListUsersDelta();
                         break;
-                    case 5:
+                    case 3:
                         ListServicePrincipals();
                         break;
-                    case 6:
+                    case 4:
                         addServicePrincipalNote();
                         break;
                     default:
@@ -87,22 +74,7 @@ namespace GraphCrud
             }
         }
 
-        static IConfigurationRoot LoadAppSettings()
-        {
-            var appConfig = new ConfigurationBuilder()
-                .AddUserSecrets<Program>()
-                .Build();
-
-            // Check for required settings
-            if (string.IsNullOrEmpty(appConfig["appId"]) ||
-                string.IsNullOrEmpty(appConfig["scopes"]))
-            {
-                return null;
-            }
-            return appConfig;
-        }
-
-
+     
         static void ListServicePrincipals()
         {
             var servicePrincipals = GraphHelper.GetAllServicePrincipalsAsync().Result;
@@ -133,15 +105,6 @@ namespace GraphCrud
             {
                 Console.WriteLine($"{user.DisplayName} - {user.Id}");
             }
-        }
-
-        static void createNewUser()
-        {
-            Console.WriteLine("Enter User First Name:");
-            string firstName = Console.ReadLine();
-            Console.WriteLine("Enter User Last Name:");
-            string lastName = Console.ReadLine();
-            GraphHelper.createUser(firstName, lastName);
         }
 
         static void addServicePrincipalNote()

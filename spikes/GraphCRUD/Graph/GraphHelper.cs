@@ -16,20 +16,6 @@ namespace GraphCrud
             graphClient = new GraphServiceClient(authProvider);
         }
 
-        public static async Task<User> GetMeAsync()
-        {
-            try
-            {
-                // GET /me
-                return await graphClient.Me.Request().GetAsync();
-            }
-            catch (ServiceException ex)
-            {
-                Console.WriteLine($"Error getting signed-in user: {ex.Message}");
-                return null;
-            }
-        }
-
         public static async Task<IEnumerable<User>> GetAllUsersAsync()
         {
             try
@@ -129,36 +115,5 @@ namespace GraphCrud
 
         }
 
-
-        public static async void createUser(string firstName, string lastName)
-        {
-            var displayName = firstName + " " + lastName;
-
-            PasswordProfile p = new PasswordProfile();
-            p.Password = "giPA14PKm&3k%PoJ";
-
-            var user = new User
-            {
-                AccountEnabled = true,
-                DisplayName = displayName,
-                MailNickname = firstName + lastName,
-                GivenName = firstName,
-                JobTitle = "Software Engineer",
-                PreferredLanguage = "en-US",
-                UserPrincipalName = firstName.Substring(0, 3) + lastName + "@rdzv.onmicrosoft.com",
-                PasswordProfile = p
-            };
-
-            try
-            {
-                var newUser = await graphClient.Users
-                    .Request()
-                    .AddAsync(user);
-            }
-            catch (ServiceException ex)
-            {
-                Console.WriteLine($"Error creating User {user.UserPrincipalName} : {ex.Message}");
-            }
-        }
     }
 }
