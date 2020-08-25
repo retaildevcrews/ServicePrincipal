@@ -9,7 +9,8 @@ namespace GraphCrud
     {
         private static GraphServiceClient graphClient;
 
-        private static string deltaLinkValue;
+        private static string deltaUserLinkValue;
+        private static string deltaSPLinkValue;
 
         public static void Initialize(IAuthenticationProvider authProvider)
         {
@@ -63,7 +64,7 @@ namespace GraphCrud
 
             var userList = new List<User>();
 
-            if (String.IsNullOrWhiteSpace(deltaLinkValue))
+            if (String.IsNullOrWhiteSpace(deltaUserLinkValue))
             {
                 Console.WriteLine("No deltaLink found. Initializing...");
                 userCollectionPage = await graphClient.Users.Delta().Request().GetAsync(); ;
@@ -71,7 +72,7 @@ namespace GraphCrud
             else
             {
                 userCollectionPage = new UserDeltaCollectionPage();
-                userCollectionPage.InitializeNextPageRequest(graphClient, deltaLinkValue);
+                userCollectionPage.InitializeNextPageRequest(graphClient, deltaUserLinkValue);
                 userCollectionPage = await userCollectionPage.NextPageRequest.GetAsync();
             }
 
@@ -87,10 +88,49 @@ namespace GraphCrud
 
             if (userCollectionPage.AdditionalData.TryGetValue("@odata.deltaLink", out object deltaLink))
             {
-                deltaLinkValue = deltaLink.ToString();
+                deltaUserLinkValue = deltaLink.ToString();
             }
 
             return userList;
+
+        }
+
+
+        public static async Task<IEnumerable<ServicePrincipal>> GetServicePrincipalsDeltaAsync()
+        {
+            IServicePrincipalDeltaCollectionPage servicePrincipalCollectionPage;
+            
+
+            var servicePrincipalList = new List<ServicePrincipal>();
+
+            if (String.IsNullOrWhiteSpace(deltaSPLinkValue))
+            {
+                Console.WriteLine("No deltaLink found for Service Principal. Initializing...");
+                servicePrincipalCollectionPage = await graphClient.ServicePrincipals.Delta().Request().GetAsync(); ;
+            }
+            else
+            {
+                servicePrincipalCollectionPage = new ServicePrincipalDeltaCollectionPage();
+                servicePrincipalCollectionPage.InitializeNextPageRequest(graphClient, deltaSPLinkValue);
+                servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync();
+            }
+
+            // Populate result
+            servicePrincipalList.AddRange(servicePrincipalCollectionPage.CurrentPage);
+
+            while (servicePrincipalCollectionPage.NextPageRequest != null)
+            {
+                servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync();
+                servicePrincipalList.AddRange(servicePrincipalCollectionPage.CurrentPage);
+            }
+
+
+            if (servicePrincipalCollectionPage.AdditionalData.TryGetValue("@odata.deltaLink", out object deltaLink))
+            {
+                deltaSPLinkValue = deltaLink.ToString();
+            }
+
+            return servicePrincipalList;
 
         }
 

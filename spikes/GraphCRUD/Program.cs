@@ -39,6 +39,7 @@ namespace GraphCrud
                 Console.WriteLine("2. List Users (Delta)");
                 Console.WriteLine("3. List All Service Principals");
                 Console.WriteLine("4. Create/Update Service Principal Notes");
+                Console.WriteLine("5. List Service Principal Deltas");
 
                 try
                 {
@@ -66,6 +67,9 @@ namespace GraphCrud
                         break;
                     case 4:
                         addServicePrincipalNote();
+                        break;
+                    case 5:
+                        ListServicePrincipalDelta();
                         break;
                     default:
                         Console.WriteLine("Invalid choice! Please try again.");
@@ -107,6 +111,16 @@ namespace GraphCrud
             }
         }
 
+        static void ListServicePrincipalDelta()
+        {
+            var servicePrincipalDelta = GraphHelper.GetServicePrincipalsDeltaAsync().Result;
+
+            foreach (var sp in servicePrincipalDelta)
+            {
+                Console.WriteLine($"Name: {sp.DisplayName} Id:{sp.Id} Notes: {sp.Notes}");
+            }
+        }
+        //762b2f12-2d01-4625-bca6-b9a175a0985
         static void addServicePrincipalNote()
         {
             Console.WriteLine("Enter Service Principal ID");
