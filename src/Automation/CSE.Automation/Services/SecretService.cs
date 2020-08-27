@@ -2,26 +2,33 @@
 using System.Security;
 using Azure.Security.KeyVault.Secrets;
 using CSE.Automation.Interfaces;
+using CSE.Automation.Utilities;
 
 namespace CSE.Automation.KeyVault 
 {
     public class SecretService : ISecretClient
     {
         private SecretClient secretClient = default;
-        public SecretService(string keyVaultName)
+        private ICredentialService credService = default;
+        
+        public SecretService(string keyVaultName, ICredentialService credService)
         {
+            //build URI
+
+            //construct secret client
+            secretClient = new SecretClient(new Uri(keyVaultName), credService.CurrentCredential);
         }
 
         public Uri Uri { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public KeyVaultSecret GetSecret(string secretName)
         {
-            throw new NotImplementedException();
+            return secretClient.GetSecret(secretName);
         }
 
         public SecureString GetSecretValue(string secretName)
         {
-            throw new NotImplementedException();
+            return SecureStringHelper.ConvertToSecureString(GetSecret(secretName).Value);
         }
     }
 }

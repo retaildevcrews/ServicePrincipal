@@ -1,26 +1,32 @@
 {
   "format": 1,
   "restore": {
-    "/Users/joaquinr/Desktop/ServicePrincipal/src/Automation/CSE.Automation/CSE.Automation.csproj": {}
+    "C:\\Users\\jofultz\\source\\repos\\ServicePrincipal\\src\\Automation\\CSE.Automation\\CSE.Automation.csproj": {}
   },
   "projects": {
-    "/Users/joaquinr/Desktop/ServicePrincipal/src/Automation/CSE.Automation/CSE.Automation.csproj": {
+    "C:\\Users\\jofultz\\source\\repos\\ServicePrincipal\\src\\Automation\\CSE.Automation\\CSE.Automation.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/joaquinr/Desktop/ServicePrincipal/src/Automation/CSE.Automation/CSE.Automation.csproj",
+        "projectUniqueName": "C:\\Users\\jofultz\\source\\repos\\ServicePrincipal\\src\\Automation\\CSE.Automation\\CSE.Automation.csproj",
         "projectName": "CSE.Automation",
-        "projectPath": "/Users/joaquinr/Desktop/ServicePrincipal/src/Automation/CSE.Automation/CSE.Automation.csproj",
-        "packagesPath": "/Users/joaquinr/.nuget/packages/",
-        "outputPath": "/Users/joaquinr/Desktop/ServicePrincipal/src/Automation/CSE.Automation/obj/",
+        "projectPath": "C:\\Users\\jofultz\\source\\repos\\ServicePrincipal\\src\\Automation\\CSE.Automation\\CSE.Automation.csproj",
+        "packagesPath": "C:\\Users\\jofultz\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\jofultz\\source\\repos\\ServicePrincipal\\src\\Automation\\CSE.Automation\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
         "configFilePaths": [
-          "/Users/joaquinr/.config/NuGet/NuGet.Config"
+          "C:\\Users\\jofultz\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "netcoreapp3.1"
         ],
         "sources": {
-          "https://api.nuget.org/v3/index.json": {}
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {},
+          "https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json": {}
         },
         "frameworks": {
           "netcoreapp3.1": {
@@ -36,6 +42,10 @@
       "frameworks": {
         "netcoreapp3.1": {
           "dependencies": {
+            "Azure.Identity": {
+              "target": "Package",
+              "version": "[1.2.2, )"
+            },
             "Azure.Security.KeyVault.Secrets": {
               "target": "Package",
               "version": "[4.1.0, )"
@@ -76,7 +86,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/3.1.401/RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.401\\RuntimeIdentifierGraph.json"
         }
       }
     }
