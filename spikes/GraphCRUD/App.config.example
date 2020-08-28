@@ -1,8 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <configuration>
-    <appSettings>
-        <add key="clientId" value="" />
-        <add key="clientSecret" value="" />
-        <add key="tenantId" value="" />
-    </appSettings>
+  <appSettings>
+    <add key="clientId" value="{Client Id For The App}" />
+    <add key="clientSecret" value="{Client Secret That App Will Use}" />
+    <add key="tenantId" value="{Tenant Id Where App Will Be Hosted}" />
+    <add key="userId" value="{Your User Id}" />
+    <add key="principalName" value="{your-alias}@fourcoatxoutlookcom.onmicrosoft.com}" />
+    <add key="tenantName" value="fourcoatxoutlookcom.onmicrosoft.com" />
+    <add key="userFirstName" value="First Name To Search" />
+    <add key="userLastName" value="Last Name To Search" />
+  </appSettings>
 </configuration>

@@ -155,5 +155,38 @@ namespace GraphCrud
 
         }
 
+        public static async Task<User> GetUser(string userIdentitification)
+        {
+            var user = await graphClient.Users[userIdentitification].Request().GetAsync();
+            Console.WriteLine($"Built request: {graphClient.Users[userIdentitification].RequestUrl}");
+
+            return user;
+        }
+
+        public static async Task<IEnumerable<User>> GetUserOrUsersByFilter(string filter)
+        {
+            //This is just spike code so we'll only get the first page of the query from this request
+
+            List<QueryOption> options = new List<QueryOption>
+            {
+                new QueryOption("$filter", filter)
+            };
+
+            try
+            {
+                //not supported yet
+                //var resultPage = graphClient.Users.Delta().Request().Filter(filter).Select("displayName, id").GetAsync();
+
+                //Alternatively you can do graphClient.Users.Request().Filter(filterString).Select(...
+                var resultPage = await graphClient.Users.Request(options).Select("displayName, id, userPrincipalName").GetAsync();
+
+                return resultPage.CurrentPage;
+            }
+            catch (ServiceException ex)
+            {
+                Console.WriteLine($"Error getting All Users: {ex.Message}");
+                return null;
+            }
+        }
     }
 }

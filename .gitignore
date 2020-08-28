@@ -12,6 +12,8 @@
 
 .vscode/
 
+**/local.settings.json
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
@@ -25,7 +27,6 @@ x86/
 bld/
 [Bb]in/
 [Oo]bj/
-**/[Oo]bj/
 [Ll]og/
 
 # Visual Studio 2015 cache/options directory
