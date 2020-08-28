@@ -5,8 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace GraphCrud
 {
@@ -43,7 +41,8 @@ namespace GraphCrud
                 Console.WriteLine("4. Create/Update Service Principal Notes");
                 Console.WriteLine("5. List Service Principal Deltas");
                 Console.WriteLine("6. List fields for specific user");
-                Console.WriteLine("7. List Filtered User Or Users");
+                Console.WriteLine("7. List Filtered User Or Users Delta");
+                Console.WriteLine("8. Write Service Principal To Cosmos");
 
                 try
                 {
@@ -79,7 +78,10 @@ namespace GraphCrud
                         ListUserData();
                         break;
                     case 7:
-                        ListFilteredUserOrUsers();
+                        ListFilteredUserOrUsersDelta();
+                        break;
+                    case 8:
+                        WriteServicePrincipalToCosmos();
                         break;
                     default:
                         Console.WriteLine("Invalid choice! Please try again.");
@@ -88,7 +90,7 @@ namespace GraphCrud
             }
         }
 
-     
+
         static void ListServicePrincipals()
         {
             var servicePrincipals = GraphHelper.GetAllServicePrincipalsAsync().Result;
@@ -141,25 +143,28 @@ namespace GraphCrud
             GraphHelper.createUpdateServicePrincipalNote(spId, spNote);
         }
 
-        static void ListFilteredUserOrUsers()
+        static void ListFilteredUserOrUsersDelta()
         {
-            string idQueryString = $"fields/Id eq '{ConfigurationManager.AppSettings.Get("userId")}'";
+            //string idQueryString = $"fields/Id eq '{ConfigurationManager.AppSettings.Get("userId")}'";
+            string idQueryString = $"id eq '{ConfigurationManager.AppSettings.Get("userId")}'";
 
             //Straight from the docs: https://docs.microsoft.com/en-us/graph/api/user-list?view=graph-rest-1.0&tabs=csharp, but it's not returning anything
             //string emailTenantQueryString = $"identities/any(c:c/issuerAssignedId eq '{ConfigurationManager.AppSettings.Get("principalName")}' and c/issuer eq '{ConfigurationManager.AppSettings.Get("tenantName")}')";
 
-            //not supported Though it should be
+            //This is also not returning anything
             //string emailQueryString = $"Identities/any(id:id/IssuerAssignedId eq '{ConfigurationManager.AppSettings.Get("principalName")}')";
 
-            string wildCardQueryString = $"startswith(givenName, '{ConfigurationManager.AppSettings.Get("userFirstName")}')";
+            //Works with non .Delta() request builder
+            //string wildCardQueryString = $"startswith(givenName, '{ConfigurationManager.AppSettings.Get("userFirstName")}')";
 
-            string wildCardBoolOpQueryString = $"startswith(givenName, '{ConfigurationManager.AppSettings.Get("userFirstName")}') and startswith(surname, '{ConfigurationManager.AppSettings.Get("userLastName")}')";
+            //Works with non .Delta() request builder
+            //string wildCardBoolOpQueryString = $"startswith(givenName, '{ConfigurationManager.AppSettings.Get("userFirstName")}') and startswith(surname, '{ConfigurationManager.AppSettings.Get("userLastName")}')";
 
             IEnumerable<User> users = null;
 
             try
             {
-                users = GraphHelper.GetUserOrUsersByFilter(wildCardQueryString).Result;
+                users = GraphHelper.GetUserOrUsersDeltaByFilter(idQueryString).Result;
                 foreach (var user in users)
                 {
                     Console.WriteLine($"{user.DisplayName} - {user.Id} - {user.UserPrincipalName}");
@@ -197,6 +202,18 @@ namespace GraphCrud
                 }
 
                 Console.WriteLine();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        static void WriteServicePrincipalToCosmos()
+        {
+            try
+            {
+                GraphHelper.WriteServicePrincipalToCosmosAsync(ConfigurationManager.AppSettings.Get("ServicePrincipalId"));
             }
             catch (Exception ex)
             {
