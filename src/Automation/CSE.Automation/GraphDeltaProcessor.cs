@@ -1,3 +1,4 @@
+using System;
 using System.Configuration;
 using System.Diagnostics;
 using System.Security;
@@ -33,10 +34,17 @@ namespace CSE.Automation
             //    log.LogError("Error: Credentials Missing.");
             //        return;
             //}
-
-            var kvSecret = _secretService.GetSecret("testSecret");
-            SecureString secureValue = _secretService.GetSecretValue("testSecret");
-            Debug.WriteLine(SecureStringHelper.ConvertToUnsecureString(secureValue));
+            try
+            {
+                var kvSecret = _secretService.GetSecret("testSecret");
+                SecureString secureValue = _secretService.GetSecretValue("testSecret");
+                Debug.WriteLine(SecureStringHelper.ConvertToUnsecureString(secureValue));
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex.Message);
+                Debug.WriteLine(ex.Message);
+            }
 
             IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
            .Create(clientId)
