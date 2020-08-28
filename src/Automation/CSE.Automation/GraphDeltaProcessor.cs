@@ -1,4 +1,8 @@
 using System.Configuration;
+using System.Diagnostics;
+using System.Security;
+using CSE.Automation.Interfaces;
+using CSE.Automation.Utilities;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph.Auth;
@@ -6,20 +10,33 @@ using Microsoft.Identity.Client;
 
 namespace CSE.Automation
 {
-    public static class GraphDeltaProcessor
+    public class GraphDeltaProcessor
     {
         private static string clientId = ConfigurationManager.AppSettings.Get("clientId");
         private static string tenantId = ConfigurationManager.AppSettings.Get("tenantId");
         private static string clientSecret = ConfigurationManager.AppSettings.Get("clientSecret");
 
-        [FunctionName("ServicePrincipalDeltas")]
-        public static void Run([TimerTrigger("0 */2 * * * *")] TimerInfo myTimer, ILogger log)
+        private readonly ICredentialService _credService = default;
+        private readonly ISecretClient _secretService = default;
+
+        public GraphDeltaProcessor(ISecretClient secretClient, ICredentialService credService)
         {
-            if(string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(tenantId) || string.IsNullOrEmpty(clientSecret))
-            {
-                log.LogError("Error: Credentials Missing.");
-                    return;
-            }
+            _credService = credService;
+            _secretService = secretClient;
+        }
+
+        [FunctionName("ServicePrincipalDeltas")]
+        public void Run([TimerTrigger("0 */2 * * * *")] TimerInfo myTimer, ILogger log)
+        {
+            //if(string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(tenantId) || string.IsNullOrEmpty(clientSecret))
+            //{
+            //    log.LogError("Error: Credentials Missing.");
+            //        return;
+            //}
+
+            var kvSecret = _secretService.GetSecret("testSecret");
+            SecureString secureValue = _secretService.GetSecretValue("testSecret");
+            Debug.WriteLine(SecureStringHelper.ConvertToUnsecureString(secureValue));
 
             IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
            .Create(clientId)
