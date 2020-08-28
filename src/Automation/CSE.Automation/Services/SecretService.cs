@@ -20,7 +20,7 @@ namespace CSE.Automation.KeyVault
                 throw new Exception("Key vault name not Valid"); //TODO: place holder code ensure error message is good and contains input value
             }
             //construct secret client
-            secretClient = new SecretClient(new Uri(keyVaultName), credService.CurrentCredential);
+            secretClient = new SecretClient(new Uri(keyVaultUri), credService.CurrentCredential);
         }
 
         public Uri Uri { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }

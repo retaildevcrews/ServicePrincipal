@@ -13,17 +13,17 @@ namespace CSE.Automation.Services
     {
         TokenCredential currentCredential = default;
 
-        public CredentialService (AuthenticationType credType)
+        public CredentialService (string credType)
         {
-            if (credType == AuthenticationType.CLI)
+            if (credType == "CLI")
             {
                 currentCredential = new AzureCliCredential();
             }
-            else if(credType == AuthenticationType.MI)
+            else if(credType == "MI")
             {
                 currentCredential = new ManagedIdentityCredential();
             }
-            else if(credType == AuthenticationType.VS)
+            else if(credType == "VS")
             {
                 currentCredential = new VisualStudioCredential();
             }
