@@ -13,27 +13,21 @@ namespace CSE.Automation
 {
     public class GraphDeltaProcessor
     {
-        private static string clientId = ConfigurationManager.AppSettings.Get("clientId");
-        private static string tenantId = ConfigurationManager.AppSettings.Get("tenantId");
-        private static string clientSecret = ConfigurationManager.AppSettings.Get("clientSecret");
-
         private readonly ICredentialService _credService = default;
         private readonly ISecretClient _secretService = default;
 
-        public GraphDeltaProcessor(ISecretClient secretClient, ICredentialService credService)
+        private readonly IGraphHelper _graphHelper;
+
+        public GraphDeltaProcessor(ISecretClient secretClient, ICredentialService credService, IGraphHelper graphHelper)
         {
             _credService = credService;
             _secretService = secretClient;
+            _graphHelper = graphHelper;
         }
 
         [FunctionName("ServicePrincipalDeltas")]
         public void Run([TimerTrigger("0 */2 * * * *")] TimerInfo myTimer, ILogger log)
         {
-            //if(string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(tenantId) || string.IsNullOrEmpty(clientSecret))
-            //{
-            //    log.LogError("Error: Credentials Missing.");
-            //        return;
-            //}
             try
             {
                 var kvSecret = _secretService.GetSecret("testSecret");
@@ -45,22 +39,6 @@ namespace CSE.Automation
                 log.LogError(ex.Message);
                 Debug.WriteLine(ex.Message);
             }
-
-            IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
-           .Create(clientId)
-           .WithTenantId(tenantId)
-           .WithClientSecret(clientSecret)
-           .Build();
-
-            ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
-
-            // Initialize Graph client
-            //GraphHelper.Initialize(authProvider);
-
-
-            
-
-
         }
     }
 }
