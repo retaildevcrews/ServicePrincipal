@@ -2,8 +2,8 @@ name: Docker CI
 
 on:
   push:
-    branches:
-      - master
+    branches-ignore:
+      - '**'
 
     paths:
       - 'src/**'
