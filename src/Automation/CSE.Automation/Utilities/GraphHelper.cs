@@ -1,23 +1,34 @@
 ﻿using Microsoft.Graph;
+using Microsoft.Graph.Auth;
+using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace GraphCrud
+namespace CSE.Automation.Utilities
 {
-    public class GraphHelper
+    public class GraphHelper : IGraphHelper
     {
-        private static GraphServiceClient graphClient;
+        private static GraphServiceClient graphClient = default;
 
         private static string deltaUserLinkValue;
         private static string deltaSPLinkValue;
 
-        public static void Initialize(IAuthenticationProvider authProvider)
+        private IConfidentialClientApplication confidentialClientApplication;
+
+        public GraphHelper(string graphAppClientId, string graphAppTenantId, string graphAppClientSecret)
         {
+            confidentialClientApplication = ConfidentialClientApplicationBuilder
+           .Create(graphAppClientId)
+           .WithTenantId(graphAppTenantId)
+           .WithClientSecret(graphAppClientSecret)
+           .Build();
+
+            ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
             graphClient = new GraphServiceClient(authProvider);
         }
 
-        public static async Task<IEnumerable<User>> GetAllUsersAsync()
+        public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
             try
             {
@@ -40,7 +51,7 @@ namespace GraphCrud
 
 
 
-        public static async Task<IEnumerable<ServicePrincipal>> GetAllServicePrincipalsAsync()
+        public async Task<IEnumerable<ServicePrincipal>> GetAllServicePrincipalsAsync()
         {
             try
             {
@@ -58,7 +69,7 @@ namespace GraphCrud
         }
 
 
-        public static async Task<IEnumerable<User>> GetUsersDeltaAsync()
+        public async Task<IEnumerable<User>> GetUsersDeltaAsync()
         {
             IUserDeltaCollectionPage userCollectionPage;
 
@@ -96,7 +107,7 @@ namespace GraphCrud
         }
 
 
-        public static async Task<IEnumerable<ServicePrincipal>> GetServicePrincipalsDeltaAsync()
+        public async Task<IEnumerable<ServicePrincipal>> GetServicePrincipalsDeltaAsync()
         {
             IServicePrincipalDeltaCollectionPage servicePrincipalCollectionPage;
 
@@ -134,7 +145,7 @@ namespace GraphCrud
 
         }
 
-        public static async void createUpdateServicePrincipalNote(string servicePrincipalId, string servicePrincipalNote)
+        public async void createUpdateServicePrincipalNote(string servicePrincipalId, string servicePrincipalNote)
         {
             var servicePrincipal = new ServicePrincipal
             {

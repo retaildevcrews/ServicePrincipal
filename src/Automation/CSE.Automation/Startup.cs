@@ -22,6 +22,16 @@ namespace CSE.Automation
 
             ISecretClient secretService = new SecretService(Environment.GetEnvironmentVariable("KEYVAULT_NAME"), credService);
             builder.Services.AddSingleton<ISecretClient>((s) => secretService);
+
+            var graphAppClientId = secretService.GetSecretValue(Constants.GraphAppClientIdKey);
+            var graphAppTentantId = secretService.GetSecretValue(Constants.GraphAppTenantIdKey);
+            var graphAppClientSecret = secretService.GetSecretValue(Constants.GraphAppClientSecretKey);
+
+            var graphHelper =  new GraphHelper(SecureStringHelper.ConvertToUnsecureString(graphAppClientId), 
+                                    SecureStringHelper.ConvertToUnsecureString(graphAppTentantId), 
+                                    SecureStringHelper.ConvertToUnsecureString(graphAppClientSecret));
+
+            builder.Services.AddSingleton<IGraphHelper>(graphHelper);
         }
     }
 }
