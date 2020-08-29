@@ -1,19 +1,25 @@
 ﻿using Microsoft.Azure.Cosmos;
+using Microsoft.Graph;
 using System;
 using System.Configuration;
-using Microsoft.Graph;
-using System.Threading.Tasks;
 using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace GraphCrud
 {
-    public sealed class CosmosUtil
+    public sealed class CosmosUtil : ICosmosUtil
     {
         // The Azure Cosmos DB endpoint for running this sample.
         private static readonly string EndpointUri = ConfigurationManager.AppSettings["EndPointUri"];
 
         // The primary key for the Azure Cosmos account.
         private static readonly string PrimaryKey = ConfigurationManager.AppSettings["PrimaryKey"];
+
+        private static CosmosUtil _instance = null;
+
+        //Creating thread-safe singleton via double lock method with semaphore
+        static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
         // The Cosmos client instance
         private CosmosClient _cosmosClient;
@@ -22,27 +28,43 @@ namespace GraphCrud
 
         private Container _container;
 
-        private readonly string _databaseId = "SeanSPDB";
+        private readonly string _databaseId = ConfigurationManager.AppSettings.Get("DatabaseId");
 
-        private readonly string _containerId = "ServicePrincipals";
+        private readonly string _containerId = ConfigurationManager.AppSettings.Get("ContainerId");
 
-        private CosmosUtil(){}
+        private static int _instanceCounter = 0;
 
-        private async Task<CosmosUtil> InitializeAsync()
+        private CosmosUtil() { _instanceCounter++; }
+
+        private async Task InitializeAsync()
         {
             _cosmosClient = new CosmosClient(EndpointUri, PrimaryKey);
             _database = await CreateDatabaseAsync();
             Console.WriteLine("Either Created Or Already Exists Database: {0}\n", _database.Id);
             _container = await CreateContainerAsync();
             Console.WriteLine("Either Created Or Already Exists Container: {0}\n", _container.Id);
-            return this;
         }
 
-        public static Task<CosmosUtil> CreateAsync()
+        public static async Task<CosmosUtil> CreateAsync()
         {
-
-            var cosmosUtil = new CosmosUtil();
-            return cosmosUtil.InitializeAsync();
+            if (_instance == null)
+            {
+                await semaphoreSlim.WaitAsync();
+                try
+                {
+                    if (_instance == null)
+                    {
+                        _instance = new CosmosUtil();
+                        await _instance.InitializeAsync();
+                    }
+                }
+                finally
+                {
+                    semaphoreSlim.Release();
+                }
+            }
+            Console.WriteLine($"instance count: {_instanceCounter}");
+            return _instance;
         }
 
         private async Task<Database> CreateDatabaseAsync()
