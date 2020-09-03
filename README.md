@@ -4,7 +4,7 @@
 
 ## Description
 
-Organizations using AAD often have a challenge with tracking Business Ownership of Service Principals created as part of business solutions deployed in Azure.  While AAD has an `Owner` field as part of it's schema, that field implicitly grants privileges to Users who are added to that list.  Companies need a way to associated non-privileged Business Owners related to the Service Principal to help identify the impacted organization and organizational function in the case that changes must be made that would delete or alter the Service Principal in such a way as to functionally disable the dependent applications.
+Organizations using AAD often have a challenge with tracking Business Ownership of Service Principals created as part of business solutions deployed in Azure.  While AAD has an `Owners` field as part of it's schema, that field implicitly grants privileges to Users who are added to that list.  Companies need a way to associated non-privileged Business Owners related to the Service Principal to help identify the impacted organization and organizational function in the case that changes must be made that would delete or alter the Service Principal in such a way as to functionally disable the dependent applications.
 
 To help address the need describe above, this solution will check values placed in the Notes field of the Service Principal for valid AAD users and flag those that are non-compliant in tracking data store for reporting and alerting.
 
