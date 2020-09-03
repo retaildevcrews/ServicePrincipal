@@ -1,15 +1,21 @@
-# {{Add Your Own Title}}
+# Service Principal Policy Automation
 
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 ## Description
 
-Description of the project ...
+Organizations using AAD often have a challenge with tracking Business Ownership of Service Principals created as part of business solutions deployed in Azure.  While AAD has an `Owner` field as part of it's schema, that field implicitly grants privileges to Users who are added to that list.  Companies need a way to associated non-privileged Business Owners related to the Service Principal to help identify the impacted organization and organizational function in the case that changes must be made that would delete or alter the Service Principal in such a way as to functionally disable the dependent applications.
+
+To help address the need describe above, this solution will check values placed in the Notes field of the Service Principal for valid AAD users and flag those that are non-compliant in tracking data store for reporting and alerting.
 
 ## Features
 
-- Feature
-- Feature
+- Seed/re-seed initial tracking data store
+- Set default business owners based inital owners list
+- Enforce valid structure for data
+- Validate users listed in the Notes field to ensure that they are valid AAD users
+- Flag invalid entries in the tracking store
+- Keep and audit log of all changes detected in the Notes field
 
 ## Prerequisites
 
