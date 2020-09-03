@@ -29,7 +29,7 @@ To help address the need describe above, this solution will check values placed 
 - Azure.Identity 1.2.2
 - Azure.Security.KeyVault.Secrets 4.1.0
 - Microsoft.Azure.Functions.Extensions 1.0.0
-- Microsoft.>NET.Sdk.Functions 3.0.9
+- Microsoft.NET.Sdk.Functions 3.0.9
 - Microsoft.Graph 3.12.0
 - Microsoft.Graph.Auth 1.0.0-preview.5
 - Visual Studio 2019 
