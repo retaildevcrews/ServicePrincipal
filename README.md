@@ -20,13 +20,19 @@ To help address the need describe above, this solution will check values placed 
 ## Prerequisites
 
 - Azure subscription with permissions to create:
-  - Resource Groups, Service Principals, Key Vault, Cosmos DB, Azure Container Registry, Azure Monitor, App Service or AKS
+  - Resource Groups, Service Principals, Key Vault, Cosmos DB, Azure Container Registry, Azure Monitor, App Service, Storage Queues 
 - Bash shell (tested on Mac, Ubuntu, Windows with WSL2)
   - Will not work in Cloud Shell unless you have a remote dockerd
 - Azure CLI 2.0.72+ ([download](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest))
 - Docker CLI ([download](https://docs.docker.com/install/))
-- .NET Core SDK 3.0 ([download](https://dotnet.microsoft.com/download))
-- Visual Studio Code (optional) ([download](https://code.visualstudio.com/download))
+- .NET Core SDK 3.1.0 ([download](https://dotnet.microsoft.com/download))
+- Azure.Identity 1.2.2
+- Azure.Security.KeyVault.Secrets 4.1.0
+- Microsoft.Azure.Functions.Extensions 1.0.0
+- Microsoft.>NET.Sdk.Functions 3.0.9
+- Microsoft.Graph 3.12.0
+- Microsoft.Graph.Auth 1.0.0-preview.5
+- Visual Studio 2019 
 
 ## Documentation
 
