@@ -1,0 +1,7 @@
+LOCATION         = "<<svc_ppl_Location>>"
+NAME             = "<<svc_ppl_Name>>"
+TF_SUB_ID        = "<<svc_ppl_SUB_ID>>"
+TF_CLIENT_ID     = "<<svc_ppl_CLIENT_ID>>"
+TF_CLIENT_SECRET = "<<svc_ppl_CLIENT_SECRET>>"
+TF_TENANT_ID     = "<<svc_ppl_TENANT_ID>>"
+COSMOS_RU           = "1000"
