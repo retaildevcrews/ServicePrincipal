@@ -294,4 +294,6 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
-spikes/GraphCRUD/App.config
+
+# App Config Secrets Files
+**/[Aa]pp.secrets.config
