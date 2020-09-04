@@ -3,10 +3,11 @@ using CSE.Automation.Interfaces;
 using CSE.Automation.Utilities;
 using System;
 using System.Security;
+using CSE.Automation.Base;
 
 namespace CSE.Automation.KeyVault
 {
-    public class SecretService : ISecretClient
+    public class SecretService : KeyVaultBase, ISecretClient
     {
         private SecretClient secretClient = default;
         private ICredentialService credService = default;
