@@ -12,7 +12,7 @@
 
 .vscode/
 
-**/local.settings.json
+local.settings.json
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -291,4 +291,4 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
-spikes/GraphCRUD/App.config
+**/[Aa]pp.secrets.config
