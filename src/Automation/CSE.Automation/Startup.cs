@@ -17,10 +17,10 @@ namespace CSE.Automation
         {
             Debug.WriteLine(Environment.GetEnvironmentVariable("AUTH_TYPE"));
 
-            ICredentialService credService = new CredentialService(Environment.GetEnvironmentVariable("AUTH_TYPE"));
+            ICredentialService credService = new CredentialService(Environment.GetEnvironmentVariable(Constants.AuthType));
             builder.Services.AddSingleton<ICredentialService>((s) => credService);
 
-            ISecretClient secretService = new SecretService(Environment.GetEnvironmentVariable("KEYVAULT_NAME"), credService);
+            ISecretClient secretService = new SecretService(Environment.GetEnvironmentVariable(Constants.KeyVaultName), credService);
             builder.Services.AddSingleton<ISecretClient>((s) => secretService);
 
             var graphAppClientId = secretService.GetSecretValue(Constants.GraphAppClientIdKey);
