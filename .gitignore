@@ -297,4 +297,6 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
+
+# App Config Secrets Files
 **/[Aa]pp.secrets.config
