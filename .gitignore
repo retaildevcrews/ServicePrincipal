@@ -8,8 +8,11 @@
 *.user
 *.userosscache
 *.sln.docstates
+.DS_Store
 
 .vscode/
+
+local.settings.json
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -74,12 +77,6 @@ artifacts/
 *.pidb
 *.svclog
 *.scc
-
-# OS generated files #
-.DS_Store*
-
-# Mac desktop service store files
-.DS_Store
 
 # Chutzpah Test files
 _Chutzpah*
@@ -294,6 +291,4 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
-
-# App Config Secrets Files
 **/[Aa]pp.secrets.config
