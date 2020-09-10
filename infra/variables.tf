@@ -1,3 +1,9 @@
+
+variable "ENV" {
+  type        = string
+  description = "The last suffix which should be used for all resources in this example. Used by all modules"
+}
+
 variable "NAME" {
   type        = string
   description = "The prefix which should be used for all resources in this example. Used by all modules"
@@ -44,4 +50,20 @@ variable "COSMOS_COL" {
 variable "COSMOS_RU" {
   type        = number
   description = "The Number of Resource Units allocated to the CosmosDB. This is used by the DB module"
+}
+
+variable "ACR_SP_ID" {
+  type        = string
+  description = "The ACR Service Principal ID"
+}
+
+variable "ACR_SP_SECRET" {
+  type        = string
+  description = "The ACR Service Principal secret"
+}
+
+variable "REPO" {
+  type        = string
+  description = "The databricks-scim-automation repo"
+  default     = "databricks-scim-automation"
 }

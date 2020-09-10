@@ -3,10 +3,6 @@ variable "NAME" {
   description = "The prefix which should be used for all resources in this example"
 }
 
-# variable "COSMOS_RG_NAME" {
-#   type        = string
-#   description = "The Azure Resource Group the resource should be added to"
-# }
 
 variable "APP_RG_NAME" {
   type        = string
@@ -36,4 +32,13 @@ variable "COSMOS_COL" {
   default     = "Items"
 }
 
+variable "ENV" {
+  type        = string
+  description = "The last suffix which should be used for all resources in this example. Used by all modules"
+}
+
+# variable "REPO" {
+#   type        = string
+#   description = "The Service Principal repo"
+# }
 

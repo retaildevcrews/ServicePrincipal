@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------------
 #  -App Service Plan and App Service  
-
+/*
 resource "azurerm_app_service_plan" "app-plan" {
   name                = "${var.NAME}-plan"
   location            = var.LOCATION
@@ -20,7 +20,7 @@ resource "azurerm_app_service" "web-app" {
 
  depends_on = [
     var.DB_CREATION_DONE,
-    azurerm_application_insights.svc_ppl
+    azurerm_application_insights.svc-ppl
   ]
   
 
@@ -32,10 +32,11 @@ resource "azurerm_app_service" "web-app" {
 
   site_config {
     always_on                 = "true"
-    dotnet_framework_version = "v4.0"
-    scm_type                 = "LocalGit" #GitHub instead ?
+    app_command_line          = ""
+    linux_fx_version          = "DOCKER|${var.NAME}.azurecr.io/${var.REPO}:latest"
+    use_32_bit_worker_process = "true"
   }
-
+  
   identity {
      type = "SystemAssigned"
    } 
@@ -53,7 +54,7 @@ resource "azurerm_app_service" "web-app" {
     "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "true"
     "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "true"
     "KEYVAULT_NAME"                       = "${var.NAME}-kv"
-    "APPINSIGHTS_INSTRUMENTATIONKEY" = "${azurerm_application_insights.svc_ppl.instrumentation_key}"
+    "APPINSIGHTS_INSTRUMENTATIONKEY" = "${azurerm_application_insights.svc-ppl-appi.instrumentation_key}"
   
   }
   tags = {
@@ -61,11 +62,13 @@ resource "azurerm_app_service" "web-app" {
   }
 
 }
+
+
 output "APP_SERVICE_DONE" {
   depends_on  = [azurerm_app_service.web-app]
   value       = true
   description = "App Service setup is complete"
 }
-
+*/
 #---------------------------------------------------------------------------
 

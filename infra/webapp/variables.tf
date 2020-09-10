@@ -16,10 +16,10 @@ variable "LOCATION" {
 
 }
 
-variable "APP_SERVICE_DONE" {
-  description = "App Service dependency complete"
-  type        = bool
-}
+# variable "APP_SERVICE_DONE" {
+#   description = "App Service dependency complete"
+#   type        = bool
+# }
 
 variable "TENANT_ID" {
   type        = string
@@ -49,6 +49,16 @@ variable "COSMOS_COL" {
 variable "DB_CREATION_DONE" {
   description = "Cosmos DB creation done"
   type        = bool
+}
+
+variable "REPO" {
+  type        = string
+  description = "The Service Principal repo"
+}
+
+variable "ENV" {
+  type        = string
+  description = "The last suffix which should be used for all resources in this example. Used by all modules"
 }
 
 

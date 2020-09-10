@@ -4,7 +4,7 @@
 resource "azurerm_cosmosdb_account" "cosmosdb" {
   name                = var.NAME
   location            = var.LOCATION
-  resource_group_name = var.APP_RG_NAME #var.COSMOS_RG_NAME
+  resource_group_name = var.APP_RG_NAME 
   kind                = "GlobalDocumentDB"
   offer_type          = "Standard"
   consistency_policy {
@@ -31,7 +31,7 @@ output "ro_key" {
 # ---->>>>  Create a Database
 resource "azurerm_cosmosdb_sql_database" "cosmosdb-testDB" {
   name                = var.COSMOS_DB
-  resource_group_name = var.APP_RG_NAME #var.COSMOS_RG_NAME
+  resource_group_name = var.APP_RG_NAME 
   account_name        = azurerm_cosmosdb_account.cosmosdb.name
   throughput          = var.COSMOS_RU
 
@@ -41,7 +41,7 @@ resource "azurerm_cosmosdb_sql_database" "cosmosdb-testDB" {
 
 resource "azurerm_cosmosdb_sql_container" "cosmosdb-items" {
   name                = var.COSMOS_COL
-  resource_group_name = var.APP_RG_NAME #var.COSMOS_RG_NAME
+  resource_group_name = var.APP_RG_NAME 
   account_name        = azurerm_cosmosdb_account.cosmosdb.name
   database_name       = azurerm_cosmosdb_sql_database.cosmosdb-testDB.name
   partition_key_path  = "/partitionKey"
