@@ -9,7 +9,6 @@
 *.userosscache
 *.sln.docstates
 .DS_Store
-App.secrets.config
 
 .vscode/
 
