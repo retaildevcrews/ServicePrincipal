@@ -13,4 +13,10 @@
     <ProjectReference Include="..\GraphCRUD\GraphCrud.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="App.secrets.config">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

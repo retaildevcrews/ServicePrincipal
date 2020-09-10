@@ -14,4 +14,9 @@
     <PackageReference Include="Microsoft.Graph.Auth" Version="1.0.0-preview.5" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0-preview.8.20407.11" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="App.secrets.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
