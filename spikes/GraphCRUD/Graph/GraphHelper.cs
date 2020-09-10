@@ -67,7 +67,7 @@ namespace GraphCrud
             if (String.IsNullOrWhiteSpace(deltaUserLinkValue))
             {
                 Console.WriteLine("No deltaLink found. Initializing...");
-                userCollectionPage = await graphClient.Users.Delta().Request().GetAsync(); ;
+                userCollectionPage = await graphClient.Users.Delta().Request().GetAsync();    
             }
             else
             {
@@ -163,7 +163,7 @@ namespace GraphCrud
             return user;
         }
 
-        public static async Task<IEnumerable<User>> GetUserOrUsersByFilter(string filter)
+        public static async Task<IEnumerable<User>> GetUserOrUsersDeltaByFilter(string filter)
         {
             //This is just spike code so we'll only get the first page of the query from this request
 
@@ -174,11 +174,19 @@ namespace GraphCrud
 
             try
             {
-                //not supported yet
-                //var resultPage = graphClient.Users.Delta().Request().Filter(filter).Select("displayName, id").GetAsync();
+                //This works so long as I have the filter for id as 
+                //string idQueryString = $"id eq '{ConfigurationManager.AppSettings.Get("userId")}'";
+                //and not
+                //string idQueryString = $"fields/id eq '{ConfigurationManager.AppSettings.Get("userId")}'";
+                //Without .Delta() it will work either way
+
+                IUserDeltaCollectionPage resultPage = await graphClient.Users.Delta().Request(options).Select("displayName, id, userPrincipalName").GetAsync();
+
+                //alternatively pass filter to .Filter()
+                //IUserDeltaCollectionPage resultPage = await graphClient.Users.Delta().Request().Filter(filter).Select("displayName, id").GetAsync();
 
                 //Alternatively you can do graphClient.Users.Request().Filter(filterString).Select(...
-                var resultPage = await graphClient.Users.Request(options).Select("displayName, id, userPrincipalName").GetAsync();
+                //var resultPage = await graphClient.Users.Request(options).Select("displayName, id, userPrincipalName").GetAsync();
 
                 return resultPage.CurrentPage;
             }
@@ -186,6 +194,39 @@ namespace GraphCrud
             {
                 Console.WriteLine($"Error getting All Users: {ex.Message}");
                 return null;
+            }
+        }
+
+        public static async Task<ServicePrincipal> GetServicePrincipalAsync(string servicePrincipalId)
+        {
+            ServicePrincipal servicePrincipal = null;
+
+            try
+            {
+                servicePrincipal = await graphClient.ServicePrincipals[servicePrincipalId].Request().GetAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting Principal Id: {servicePrincipalId}  : {ex.Message}");
+            }
+
+            return servicePrincipal;
+        }
+
+        public static async void WriteServicePrincipalToCosmosAsync(string servicePrincipalId)
+        {
+            ServicePrincipal servicePrincipal = null;
+            try
+            {
+                servicePrincipal = await GetServicePrincipalAsync(servicePrincipalId);
+                var cosmosDB = await CosmosUtil.CreateAsync();
+                await cosmosDB.AddServicePrincipalToContainerAsync(servicePrincipal);
+                Console.WriteLine("Success writing service principal to Cosmos!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Got the following exception while trying to write service principal: {servicePrincipal.Id} to cosmos");
+                Console.WriteLine(ex.Message);
             }
         }
     }
