@@ -12,7 +12,7 @@
 
 .vscode/
 
-**/local.settings.json
+local.settings.json
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -291,8 +291,8 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
-spikes/GraphCRUD/App.config
 
+spikes/GraphCRUD/App.config
 
 ### Terraform ###
 # Local .terraform directories
@@ -312,3 +312,6 @@ crash.log
 # version control.
 #
 terraform.tfvars
+
+# App Config Secrets Files
+**/[Aa]pp.secrets.config
