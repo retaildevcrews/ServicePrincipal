@@ -2,10 +2,9 @@
 #Use this data source to access the configuration of the AzureRM provider.
 data "azurerm_client_config" "current" {}
 
-
 # Create Key Vault // As of today 8-27-2020 v13.1 has some issues https://github.com/hashicorp/terraform/issues/26011
 resource "azurerm_key_vault" "kv" {
-  name                            = "${var.NAME}-kv"
+  name                            = "${var.NAME}-kv-${var.ENV}"
   location                        = var.LOCATION
   resource_group_name             = var.APP_RG_NAME
   sku_name                        = "standard"

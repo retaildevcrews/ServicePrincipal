@@ -1,12 +1,17 @@
 
 variable "ENV" {
   type        = string
-  description = "The last suffix which should be used for all resources in this example. Used by all modules"
+  description = "The last suffix which should be used for creating Resource Group only in this example."
 }
 
 variable "NAME" {
   type        = string
   description = "The prefix which should be used for all resources in this example. Used by all modules"
+}
+
+variable "SHORTNAME" {
+  type        = string
+  description = "The prefix which should be used for all resources created under Resource Group"
 }
 
 variable "LOCATION" {

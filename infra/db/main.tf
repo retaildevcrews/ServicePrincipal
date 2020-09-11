@@ -1,8 +1,8 @@
 
 #  --------------CosmosDB instance-----------
 
-resource "azurerm_cosmosdb_account" "cosmosdb" {
-  name                = var.NAME
+resource "azurerm_cosmosdb_account" "cosmosacct" {
+  name                = "${var.NAME}-cosmosa-${var.ENV}"
   location            = var.LOCATION
   resource_group_name = var.APP_RG_NAME 
   kind                = "GlobalDocumentDB"
@@ -21,7 +21,7 @@ resource "azurerm_cosmosdb_account" "cosmosdb" {
 
 
 output "ro_key" {
-  value       = azurerm_cosmosdb_account.cosmosdb.primary_readonly_master_key
+  value       = azurerm_cosmosdb_account.cosmosacct.primary_readonly_master_key
   sensitive   = true
   description = "The read Only key for the CosmosDB to be used by the Application. This is used to pass into the webapp module"
 }
@@ -30,9 +30,9 @@ output "ro_key" {
 
 # ---->>>>  Create a Database
 resource "azurerm_cosmosdb_sql_database" "cosmosdb-testDB" {
-  name                = var.COSMOS_DB
+  name                = "${var.COSMOS_DB}-cosmos-${var.ENV}"
   resource_group_name = var.APP_RG_NAME 
-  account_name        = azurerm_cosmosdb_account.cosmosdb.name
+  account_name        = azurerm_cosmosdb_account.cosmosacct.name
   throughput          = var.COSMOS_RU
 
 }
@@ -42,14 +42,14 @@ resource "azurerm_cosmosdb_sql_database" "cosmosdb-testDB" {
 resource "azurerm_cosmosdb_sql_container" "cosmosdb-items" {
   name                = var.COSMOS_COL
   resource_group_name = var.APP_RG_NAME 
-  account_name        = azurerm_cosmosdb_account.cosmosdb.name
+  account_name        = azurerm_cosmosdb_account.cosmosacct.name
   database_name       = azurerm_cosmosdb_sql_database.cosmosdb-testDB.name
   partition_key_path  = "/partitionKey"
 }
 
 
 output "DB_CREATION_DONE" {
-  depends_on  = [azurerm_cosmosdb_account.cosmosdb]
+  depends_on  = [azurerm_cosmosdb_account.cosmosacct]
   value       = true
   description = "Cosmos Db creatiom complete"
 }

@@ -11,15 +11,20 @@ then
   exit 1
 fi
 
+# set enviroment to sp if not set
+if [ -z $svc_ppl_ShortName ]
+then
+  export svc_ppl_ShortName=sp
+fi
 
 
 # set location to centralus if not set
 if [ -z $svc_ppl_Location ]
 then
-  export svc_ppl_Location=centralus
+  export svc_ppl_Location=southcentralus
 fi
 
-# set enviroment to centralus if not set
+# set enviroment to dev if not set
 if [ -z $svc_ppl_Enviroment ]
 then
   export svc_ppl_Enviroment=dev
@@ -40,8 +45,16 @@ cp example.tfvars terraform.tfvars
 # replace name
 ex -s -c "%s/<<svc_ppl_Name>>/$svc_ppl_Name/g|x" terraform.tfvars
 
+# replace short name
+ex -s -c "%s/<<svc_ppl_ShortName>>/$svc_ppl_ShortName/g|x" terraform.tfvars
+
+
 # replace location
 ex -s -c "%s/<<svc_ppl_Location>>/$svc_ppl_Location/g|x" terraform.tfvars
+
+# replace location
+ex -s -c "%s/<<svc_ppl_Enviroment>>/$svc_ppl_Enviroment/g|x" terraform.tfvars
+
 
 # replace repo
 ex -s -c "%s/<<svc_ppl_Repo>>/$svc_ppl_Repo/g|x" terraform.tfvars

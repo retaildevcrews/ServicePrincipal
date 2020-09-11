@@ -9,9 +9,10 @@ provider "azurerm" {
 }
 
 
+
 # Create Resource Group
 resource "azurerm_resource_group" "rg" {
-        name = "${var.NAME}-rg"
+        name = "${var.NAME}-rg-${var.ENV}"
         location = var.LOCATION
 }
 
@@ -19,7 +20,7 @@ resource "azurerm_resource_group" "rg" {
 
 module "acr" {
   source        = "./acr"
-  NAME          = var.NAME
+  NAME          = var.NAME # we are passing the full project name to reduce the chances that the name is already taken 
   LOCATION      = var.LOCATION
   REPO          = var.REPO
   ENV           = var.ENV
@@ -32,7 +33,7 @@ module "acr" {
 
 module "asq" {
   source        = "./asq"
-  NAME          = var.NAME
+  NAME          = var.SHORTNAME
   LOCATION      = var.LOCATION
   ENV           = var.ENV  
   APP_RG_NAME   = azurerm_resource_group.rg.name
@@ -43,7 +44,7 @@ module "asq" {
 # Create Cosmos Database
 module "db" {
   source           = "./db"
-  NAME             = var.NAME
+  NAME             = var.SHORTNAME
   LOCATION         = var.LOCATION
   ENV              = var.ENV
   APP_RG_NAME      = azurerm_resource_group.rg.name
@@ -56,7 +57,8 @@ module "db" {
 
 module "web" {
   source = "./webapp"
-  NAME                = var.NAME
+  NAME                = var.SHORTNAME
+  PROJECT_NAME        = var.NAME
   LOCATION            = var.LOCATION
   APP_RG_NAME         = azurerm_resource_group.rg.name
   TENANT_ID           = var.TF_TENANT_ID

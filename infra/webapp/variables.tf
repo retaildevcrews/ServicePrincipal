@@ -4,6 +4,12 @@ variable "NAME" {
 
 }
 
+variable "PROJECT_NAME" {
+  type        = string
+  description = "The prefix which should be used for Storage Account resource in this example"
+
+}
+
 variable "APP_RG_NAME" {
   type        = string
   description = "The Azure Resource Group the resource should be added to"
