@@ -63,7 +63,6 @@ resource "azurerm_app_service" "web-app" {
 
 }
 
-
 output "APP_SERVICE_DONE" {
   depends_on  = [azurerm_app_service.web-app]
   value       = true
@@ -71,4 +70,3 @@ output "APP_SERVICE_DONE" {
 }
 */
 #---------------------------------------------------------------------------
-

@@ -19,7 +19,6 @@ resource null_resource acr-access {
 #   }
 # }
 
-
 resource "azurerm_container_registry_webhook" "webhook" {
   name                = "${var.NAME}wh${var.ENV}"
   location            = var.LOCATION

@@ -8,7 +8,6 @@ resource azurerm_storage_account svc-ppl-storage-acc {
   account_replication_type  = "LRS"
 }
 
-
 output "STORAGE_ACCOUNT_DONE" {
   depends_on  = [azurerm_storage_account.svc-ppl-storage-acc]
   value       = true
@@ -20,7 +19,6 @@ output "STORAGE_ACCOUNT_NAME" {
   value       = azurerm_storage_account.svc-ppl-storage-acc.name
   description = "Storage Account name"
 }
-
 
 resource "azurerm_app_service_plan" "app-plan" {
     name                = "${var.NAME}-plan-${var.ENV}"
@@ -34,7 +32,6 @@ resource "azurerm_app_service_plan" "app-plan" {
     }
 }
  
-
 resource "azurerm_function_app" "fn-default" {
     
     depends_on = [
@@ -64,13 +61,9 @@ resource "azurerm_function_app" "fn-default" {
   
 }
 
-
-
-
 output "function_defaut_name" {
   value = azurerm_function_app.fn-default.name
 }
-
 
 output "APP_FUNCTION_SERVICE_DONE" {
   depends_on  = [ azurerm_function_app.fn-default

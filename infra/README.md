@@ -4,13 +4,11 @@
 
 az login
 
-
 ###  show your Azure accounts
 az account list -o table
 
 ###  select the Azure subscription if necessary
 az account set -s {subscription name or Id}
-
 ```
 
 >All commands require you to be in svc_ppl-automation/infra
@@ -22,19 +20,21 @@ az account set -s {subscription name or Id}
 #  must be at least 5 characters long
 #  must start with a-z (only lowercase)
 export svc_ppl_Name=[your unique name]
-```
+
 ### if true, change svc_ppl_Name
-```bash
 az cosmosdb check-name-exists -n ${svc_ppl_Name}
 
 ### if nslookup doesn't fail to resolve, change svc_ppl_Name
 nslookup ${svc_ppl_Name}.azurewebsites.net
 nslookup ${svc_ppl_Name}.vault.azure.net
 
-# no CR for this project yet
+# TODO no CR for this project yet
 # nslookup ${svc_ppl_Name}.azurecr.io 
+```
 
-# Set additional values
+### Set additional values
+
+```bash
 # export svc_ppl_Email=replaceWithYourEmail
 
 ### change the location (optional)
@@ -61,7 +61,7 @@ terraform apply -auto-approve
 
 ###  This generally takes about 10 minutes to complete
 
-
+```
 
 ## Verify the deployment
 

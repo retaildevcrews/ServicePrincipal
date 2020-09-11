@@ -28,10 +28,7 @@ variable "ACR_SP_SECRET" {
   description = "The ACR Service Principal Secret"
 }
 
-
 variable "REPO" {
   type        = string
   description = "The Service Principal repo"
 }
-
-

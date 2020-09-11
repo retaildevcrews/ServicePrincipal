@@ -1,6 +1,5 @@
 
 resource azurerm_storage_queue tracking-queue {
-  
    depends_on = [
     var.STORAGE_ACCOUNT_DONE
   ]

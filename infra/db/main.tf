@@ -26,8 +26,6 @@ output "ro_key" {
   description = "The read Only key for the CosmosDB to be used by the Application. This is used to pass into the webapp module"
 }
 
-
-
 # ---->>>>  Create a Database
 resource "azurerm_cosmosdb_sql_database" "cosmosdb-testDB" {
   name                = "${var.COSMOS_DB}-cosmos-${var.ENV}"
@@ -47,11 +45,8 @@ resource "azurerm_cosmosdb_sql_container" "cosmosdb-items" {
   partition_key_path  = "/partitionKey"
 }
 
-
 output "DB_CREATION_DONE" {
   depends_on  = [azurerm_cosmosdb_account.cosmosacct]
   value       = true
   description = "Cosmos Db creatiom complete"
 }
-
-

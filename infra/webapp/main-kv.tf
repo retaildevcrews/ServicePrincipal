@@ -20,7 +20,6 @@ resource "azurerm_key_vault" "kv" {
 # block and by using the azurerm_key_vault_access_policy resource. 
 # However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
 
-
 resource "azurerm_key_vault_access_policy" "terraform-sp" {
   key_vault_id = azurerm_key_vault.kv.id
   tenant_id = data.azurerm_client_config.current.tenant_id
@@ -48,7 +47,6 @@ resource "azurerm_key_vault_access_policy" "terraform-sp" {
 #   ]
 
 # }
-
 
 resource "azurerm_key_vault_secret" "cosmosurl" {
 
@@ -105,7 +103,6 @@ resource "azurerm_key_vault_secret" "appinsights" {
   value        = azurerm_application_insights.svc-ppl-appi.instrumentation_key
   key_vault_id = azurerm_key_vault.kv.id
 }
-
 
 resource "azurerm_key_vault_secret" "storageaccpk" {
   
