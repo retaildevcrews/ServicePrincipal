@@ -7,6 +7,6 @@
         public const string GraphAppClientSecretKey = "graphAppClientSecret";
         public const string AuthType = "AUTH_TYPE";
         public const string KeyVaultName = "KEYVAULT_NAME";
-
+        public enum TypeFilter { all, servicePrincipal, user, application };
     }
 }
