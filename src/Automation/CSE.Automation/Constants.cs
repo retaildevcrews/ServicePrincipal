@@ -10,7 +10,6 @@
         public const string GraphAppClientIdKey = "graphAppClientId";
         public const string GraphAppTenantIdKey = "graphAppTenantId";
         public const string GraphAppClientSecretKey = "graphAppClientSecret";
-        public enum TypeFilter { all, servicePrincipal, user, application };
 
         //CosmosDB Constants
         public const string CosmosDBKeyName = "SPCosmosKey";
