@@ -121,7 +121,9 @@ namespace CSE.Automation.DataAccess
             // open and test a new client / container
             var c = new CosmosClient(cosmosUrl.AbsoluteUri, cosmosKey, cosmosDetails.CosmosClientOptions);
             var con = c.GetContainer(cosmosDatabase, cosmosCollection);
-            await con.ReadItemAsync<dynamic>("action", new PartitionKey("0")).ConfigureAwait(false);
+
+            //TODO: commenting out for the moment.  Need a good way to test that doesn't require a document
+            //await con.ReadItemAsync<dynamic>("action", new PartitionKey("0")).ConfigureAwait(false);
 
             return c;
         }
