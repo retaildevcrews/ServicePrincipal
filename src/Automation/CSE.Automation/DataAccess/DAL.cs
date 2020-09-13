@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using CSE.Automation.Config;
 using CSE.Automation.Interfaces;
 
-namespace CSE.Automation.Base
+namespace CSE.Automation.DataAccess
 {
-    public partial class DALBase : IDAL
+    public partial class DAL : IDAL
     {
         public int DefaultPageSize { get; set; } = 100;
         public int MaxPageSize { get; set; } = 1000;
@@ -24,7 +24,7 @@ namespace CSE.Automation.Base
         /// <param name="cosmosKey">CosmosDB connection key</param>
         /// <param name="cosmosDatabase">CosmosDB Database</param>
         /// <param name="cosmosCollection">CosmosDB Collection</param>
-        public DALBase(Uri cosmosUrl, string cosmosKey, string cosmosDatabase, string cosmosCollection)
+        public DAL(Uri cosmosUrl, string cosmosKey, string cosmosDatabase, string cosmosCollection)
         {
             if (cosmosUrl == null)
             {

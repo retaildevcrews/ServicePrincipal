@@ -16,13 +16,15 @@ namespace CSE.Automation
         private readonly ICredentialService _credService = default;
         private readonly ISecretClient _secretService = default;
 
-        private readonly IGraphHelper _graphHelper;
+        private readonly IGraphHelper _graphHelper = default;
+        private readonly IDALResolver _DALResolver = default;
 
-        public GraphDeltaProcessor(ISecretClient secretClient, ICredentialService credService, IGraphHelper graphHelper)
+        public GraphDeltaProcessor(ISecretClient secretClient, ICredentialService credService, IGraphHelper graphHelper, IDALResolver dalResolver)
         {
             _credService = credService;
             _secretService = secretClient;
             _graphHelper = graphHelper;
+            _DALResolver = dalResolver;
         }
 
         [FunctionName("ServicePrincipalDeltas")]

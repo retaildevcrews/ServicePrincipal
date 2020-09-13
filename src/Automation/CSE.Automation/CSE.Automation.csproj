@@ -27,7 +27,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="DataAccess\" />
     <Folder Include="Graph\" />
   </ItemGroup>
 </Project>
