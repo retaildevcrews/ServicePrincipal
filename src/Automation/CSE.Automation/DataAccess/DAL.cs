@@ -206,12 +206,12 @@ namespace CSE.Automation.DataAccess
             throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync<T>(Constants.TypeFilter filter = Constants.TypeFilter.all)
+        public async Task<IEnumerable<T>> GetAllAsync<T>(TypeFilter filter = TypeFilter.all)
         {
             string sql = "select * from m";
-            if (filter != Constants.TypeFilter.all)
+            if (filter != TypeFilter.all)
             {
-                sql += ($" m.objectType='{0}'", Enum.GetName(typeof(Constants.TypeFilter), filter));
+                sql += ($" m.objectType='{0}'", Enum.GetName(typeof(TypeFilter), filter));
             }
 
             return await InternalCosmosDBSqlQuery<T>(sql).ConfigureAwait(false);
