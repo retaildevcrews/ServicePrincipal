@@ -12,6 +12,9 @@
         public const string GraphAppClientSecretKey = "graphAppClientSecret";
 
         //CosmosDB Constants
+        public const int DefaultPageSize = 100;
+        public const int MaxPageSize = 1000;
+
         public const string CosmosDBKeyName = "SPCosmosKey";
         public const string CosmosDBURLName = "SPCosmosURL";
         public const string CosmosDBDatabaseName = "SPCosmosDatabase";

@@ -10,6 +10,8 @@ namespace CSE.Automation.DataAccess
 {
     public partial class DAL : IDAL
     {
+        const string pagedOffsetString = " offset {0} limit {1}";
+
         public int DefaultPageSize { get; set; } = 100;
         public int MaxPageSize { get; set; } = 1000;
         public int CosmosTimeout { get; set; } = 60;
@@ -208,9 +210,57 @@ namespace CSE.Automation.DataAccess
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<T>> GetPagedAsync<T>(string q, int offset = 0, int limit = 0)
+        public async Task<IEnumerable<T>> GetPagedAsync<T>(string q, int offset = 0, int limit = Constants.DefaultPageSize)
         {
-            throw new NotImplementedException();
+            string sql = q;
+
+
+            if (limit < 1)
+            {
+                limit = Constants.DefaultPageSize;
+            }
+            else if (limit > Constants.MaxPageSize)
+            {
+                limit = Constants.MaxPageSize;
+            }
+
+            string offsetLimit = string.Format(CultureInfo.InvariantCulture, pagedOffsetString, offset, limit);
+
+            if (!string.IsNullOrEmpty(q))
+            {
+                // convert to lower and escape embedded '
+                q = q.Trim().ToLowerInvariant().Replace("'", "''", System.StringComparison.OrdinalIgnoreCase);
+
+                if (!string.IsNullOrEmpty(q))
+                {
+                    // get actors by a "like" search on name
+                    sql += string.Format(CultureInfo.InvariantCulture, $" and contains(m.textSearch, @q) ");
+
+                }
+            }
+
+            sql += offsetLimit;
+
+            QueryDefinition queryDefinition = new QueryDefinition(sql);
+
+            if (!string.IsNullOrEmpty(q))
+            {
+                queryDefinition.WithParameter("@q", q);
+            }
+
+            var query = cosmosDetails.Container.GetItemQueryIterator<T>(queryDefinition, requestOptions: cosmosDetails.QueryRequestOptions);
+
+            List<T> results = new List<T>();
+
+            while (query.HasMoreResults)
+            {
+                foreach (var doc in await query.ReadNextAsync().ConfigureAwait(false))
+                {
+                    results.Add(doc);
+                }
+            }
+
+            return results;
         }
 
         public async Task<IEnumerable<T>> GetAllAsync<T>(TypeFilter filter = TypeFilter.any)
