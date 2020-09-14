@@ -26,11 +26,6 @@ variable "COSMOS_DB" {
   default     = "testDB"
 }
 
-variable "COSMOS_COL" {
-  type        = string
-  description = "The Cosmos DB collection name"
-  default     = "Items"
-}
 
 variable "ENV" {
   type        = string
