@@ -4,9 +4,13 @@ using System.Text;
 
 namespace CSE.Automation.Base
 {
+#pragma warning disable CA1052 // Static holder types should be Static or NotInheritable
     public class KeyVaultBase
+#pragma warning restore CA1052 // Static holder types should be Static or NotInheritable
     {
+#pragma warning disable CA1034 // Nested types should not be visible
         public static class KeyVaultHelper
+#pragma warning restore CA1034 // Nested types should not be visible
         {
             /// <summary>
             /// Build the Key Vault URL from the name
