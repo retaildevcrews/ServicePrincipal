@@ -10,6 +10,8 @@ namespace CSE.Automation.DataAccess
 {
     public partial class DAL : IDAL
     {
+        const string pagedOffsetString = " offset {0} limit {1}";
+
         public int DefaultPageSize { get; set; } = 100;
         public int MaxPageSize { get; set; } = 1000;
         public int CosmosTimeout { get; set; } = 60;
@@ -203,14 +205,53 @@ namespace CSE.Automation.DataAccess
             return results;
         }
 
-        public Task<T> GetById<T>(string Id)
+        public async Task<T> GetById<T>(string Id)
         {
-            throw new NotImplementedException();
+            var response = await cosmosDetails.Container.ReadItemAsync<T>(Id, new PartitionKey(GetPartitionKey(Id))).ConfigureAwait(false);
+            return response;
         }
 
-        public Task<IEnumerable<T>> GetPagedAsync<T>(string q, int offset = 0, int limit = 0)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "Using lower case with cosmos queries as tested.")]
+        public async Task<IEnumerable<T>> GetPagedAsync<T>(string q, int offset = 0, int limit = Constants.DefaultPageSize)
         {
-            throw new NotImplementedException();
+            string sql = q;
+
+
+            if (limit < 1)
+            {
+                limit = Constants.DefaultPageSize;
+            }
+            else if (limit > Constants.MaxPageSize)
+            {
+                limit = Constants.MaxPageSize;
+            }
+
+            string offsetLimit = string.Format(CultureInfo.InvariantCulture, pagedOffsetString, offset, limit);
+
+            if (!string.IsNullOrEmpty(q))
+            {
+                // convert to lower and escape embedded '
+                q = q.Trim().ToLowerInvariant().Replace("'", "''", System.StringComparison.OrdinalIgnoreCase);
+
+                if (!string.IsNullOrEmpty(q))
+                {
+                    // get actors by a "like" search on name
+                    sql += string.Format(CultureInfo.InvariantCulture, $" and contains(m.textSearch, @q) ");
+
+                }
+            }
+
+            sql += offsetLimit;
+
+            QueryDefinition queryDefinition = new QueryDefinition(sql);
+
+            if (!string.IsNullOrEmpty(q))
+            {
+                queryDefinition.WithParameter("@q", q);
+            }
+
+            return await InternalCosmosDBSqlQuery<T>(queryDefinition).ConfigureAwait(false);
+
         }
 
         public async Task<IEnumerable<T>> GetAllAsync<T>(TypeFilter filter = TypeFilter.any)
