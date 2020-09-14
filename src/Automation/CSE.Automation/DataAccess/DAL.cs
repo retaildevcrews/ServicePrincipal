@@ -208,10 +208,10 @@ namespace CSE.Automation.DataAccess
             throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync<T>(TypeFilter filter = TypeFilter.all)
+        public async Task<IEnumerable<T>> GetAllAsync<T>(TypeFilter filter = TypeFilter.any)
         {
             string sql = "select * from m";
-            if (filter != TypeFilter.all)
+            if (filter != TypeFilter.any)
             {
                 sql += ($" m.objectType='{0}'", Enum.GetName(typeof(TypeFilter), filter));
             }

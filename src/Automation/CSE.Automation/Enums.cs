@@ -5,5 +5,5 @@ using System.Text;
 namespace CSE.Automation
 {
     public enum DALCollection { Audit, ObjectTracking, Configuration };
-    public enum TypeFilter { all, servicePrincipal, user, application };
+    public enum TypeFilter { any, servicePrincipal, user, application, configuration, audit };
 }
