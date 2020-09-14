@@ -205,11 +205,13 @@ namespace CSE.Automation.DataAccess
             return results;
         }
 
-        public Task<T> GetById<T>(string Id)
+        public async Task<T> GetById<T>(string Id)
         {
-            throw new NotImplementedException();
+            var response = await cosmosDetails.Container.ReadItemAsync<T>(Id, new PartitionKey(GetPartitionKey(Id))).ConfigureAwait(false);
+            return response;
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "Using lower case with cosmos queries as tested.")]
         public async Task<IEnumerable<T>> GetPagedAsync<T>(string q, int offset = 0, int limit = Constants.DefaultPageSize)
         {
             string sql = q;
@@ -248,19 +250,8 @@ namespace CSE.Automation.DataAccess
                 queryDefinition.WithParameter("@q", q);
             }
 
-            var query = cosmosDetails.Container.GetItemQueryIterator<T>(queryDefinition, requestOptions: cosmosDetails.QueryRequestOptions);
+            return await InternalCosmosDBSqlQuery<T>(queryDefinition).ConfigureAwait(false);
 
-            List<T> results = new List<T>();
-
-            while (query.HasMoreResults)
-            {
-                foreach (var doc in await query.ReadNextAsync().ConfigureAwait(false))
-                {
-                    results.Add(doc);
-                }
-            }
-
-            return results;
         }
 
         public async Task<IEnumerable<T>> GetAllAsync<T>(TypeFilter filter = TypeFilter.any)
