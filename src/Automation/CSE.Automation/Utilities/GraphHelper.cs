@@ -5,11 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+#pragma warning disable CA1031 // Do not catch general exception types
+
 namespace CSE.Automation.Utilities
 {
     public class GraphHelper : IGraphHelper
     {
-        private static GraphServiceClient graphClient = default;
+        private static GraphServiceClient graphClient;
 
         private static string deltaUserLinkValue;
         private static string deltaSPLinkValue;
@@ -32,14 +34,14 @@ namespace CSE.Automation.Utilities
         {
             try
             {
-                var resultPage = await graphClient.Users.Request()
                 // Only return the fields used by the application
-                .Select(e => new
-                {
-                    e.DisplayName,
-                })
+                var resultPage = await graphClient.Users.Request()
+                    .Select(e => new
+                    {
+                        e.DisplayName,
+                    })
+                    .GetAsync().ConfigureAwait(false);
 
-                .GetAsync();
                 return resultPage.CurrentPage;
             }
             catch (ServiceException ex)
@@ -55,9 +57,7 @@ namespace CSE.Automation.Utilities
         {
             try
             {
-                var servicePrincipals = await graphClient.ServicePrincipals
-               .Request()
-               .GetAsync();
+                var servicePrincipals = await graphClient.ServicePrincipals.Request().GetAsync().ConfigureAwait(false);
 
                 return servicePrincipals.CurrentPage;
             }
@@ -77,14 +77,16 @@ namespace CSE.Automation.Utilities
 
             if (String.IsNullOrWhiteSpace(deltaUserLinkValue))
             {
-                Console.WriteLine("No deltaLink found. Initializing...");
-                userCollectionPage = await graphClient.Users.Delta().Request().GetAsync(); ;
+                //TODO: Move this Console.WriteLine to a log entry
+                //Console.WriteLine("No deltaLink found. Initializing...");
+
+                userCollectionPage = await graphClient.Users.Delta().Request().GetAsync().ConfigureAwait(false);
             }
             else
             {
                 userCollectionPage = new UserDeltaCollectionPage();
                 userCollectionPage.InitializeNextPageRequest(graphClient, deltaUserLinkValue);
-                userCollectionPage = await userCollectionPage.NextPageRequest.GetAsync();
+                userCollectionPage = await userCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
             }
 
             // Populate result
@@ -92,7 +94,7 @@ namespace CSE.Automation.Utilities
 
             while (userCollectionPage.NextPageRequest != null)
             {
-                userCollectionPage = await userCollectionPage.NextPageRequest.GetAsync();
+                userCollectionPage = await userCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
                 userList.AddRange(userCollectionPage.CurrentPage);
             }
 
@@ -116,14 +118,15 @@ namespace CSE.Automation.Utilities
 
             if (String.IsNullOrWhiteSpace(deltaSPLinkValue))
             {
-                Console.WriteLine("No deltaLink found for Service Principal. Initializing...");
-                servicePrincipalCollectionPage = await graphClient.ServicePrincipals.Delta().Request().GetAsync(); ;
+                //TODO: Move to log entry
+                //Console.WriteLine("No deltaLink found for Service Principal. Initializing...");
+                servicePrincipalCollectionPage = await graphClient.ServicePrincipals.Delta().Request().GetAsync().ConfigureAwait(false) ;
             }
             else
             {
                 servicePrincipalCollectionPage = new ServicePrincipalDeltaCollectionPage();
                 servicePrincipalCollectionPage.InitializeNextPageRequest(graphClient, deltaSPLinkValue);
-                servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync();
+                servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
             }
 
             // Populate result
@@ -131,7 +134,7 @@ namespace CSE.Automation.Utilities
 
             while (servicePrincipalCollectionPage.NextPageRequest != null)
             {
-                servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync();
+                servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
                 servicePrincipalList.AddRange(servicePrincipalCollectionPage.CurrentPage);
             }
 
@@ -154,7 +157,7 @@ namespace CSE.Automation.Utilities
 
             try
             {
-                await graphClient.ServicePrincipals[servicePrincipalId].Request().UpdateAsync(servicePrincipal);
+                await graphClient.ServicePrincipals[servicePrincipalId].Request().UpdateAsync(servicePrincipal).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -162,7 +165,8 @@ namespace CSE.Automation.Utilities
                 return;
             }
 
-            Console.WriteLine("Service Principal Notes updated");
+            //TODO: Move to log entry
+            //Console.WriteLine("Service Principal Notes updated");
 
         }
 

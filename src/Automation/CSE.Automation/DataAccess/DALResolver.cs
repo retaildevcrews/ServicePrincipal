@@ -11,10 +11,10 @@ namespace CSE.Automation.DataAccess
     public class DALResolver : IDALResolver
     {
         private ConcurrentDictionary<string, IDAL> _registeredDALs = new System.Collections.Concurrent.ConcurrentDictionary<string, IDAL>();
-        private ISecretClient _secretClient = default;
-        private SecureString _cosmosURL = default;
-        private SecureString _cosmosKey = default;
-        private SecureString _cosmosDatabaseName = default;
+        private ISecretClient _secretClient;
+        private SecureString _cosmosURL;
+        private SecureString _cosmosKey;
+        private SecureString _cosmosDatabaseName;
 
         public DALResolver (ISecretClient secretClient)
         {

@@ -16,6 +16,9 @@ namespace CSE.Automation
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
+            if (builder == default)
+                throw new ArgumentNullException(nameof(builder));
+
             Debug.WriteLine(Environment.GetEnvironmentVariable("AUTH_TYPE"));
 
             //setup KV access and register services

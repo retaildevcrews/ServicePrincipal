@@ -15,7 +15,7 @@ namespace CSE.Automation.DataAccess
         public int CosmosTimeout { get; set; } = 60;
         public int CosmosMaxRetries { get; set; } = 10;
 
-        private CosmosConfig cosmosDetails = null;
+        private CosmosConfig cosmosDetails;
 
         /// <summary>
         /// Data Access Layer Constructor
@@ -44,7 +44,7 @@ namespace CSE.Automation.DataAccess
             };
 
             // create the CosmosDB client and container
-            cosmosDetails.Client = OpenAndTestCosmosClient(cosmosUrl, cosmosKey, cosmosDatabase, cosmosCollection).GetAwaiter().GetResult();
+            cosmosDetails.Client = OpenAndTestCosmosClient(cosmosUrl, cosmosKey, cosmosDatabase, cosmosCollection);
             cosmosDetails.Container = cosmosDetails.Client.GetContainer(cosmosDatabase, cosmosCollection);
         }
 
@@ -59,32 +59,35 @@ namespace CSE.Automation.DataAccess
         /// <returns>Task</returns>
         public async Task Reconnect(Uri cosmosUrl, string cosmosKey, string cosmosDatabase, string cosmosCollection, bool force = false)
         {
-            if (cosmosUrl == null)
-            {
-                throw new ArgumentNullException(nameof(cosmosUrl));
-            }
-
-            if (force ||
-                cosmosDetails.CosmosCollection != cosmosCollection ||
-                cosmosDetails.CosmosDatabase != cosmosDatabase ||
-                cosmosDetails.CosmosKey != cosmosKey ||
-                cosmosDetails.CosmosUrl != cosmosUrl.AbsoluteUri)
-            {
-                CosmosConfig d = new CosmosConfig
+            await Task.Run(() =>
                 {
-                    CosmosCollection = cosmosCollection,
-                    CosmosDatabase = cosmosDatabase,
-                    CosmosKey = cosmosKey,
-                    CosmosUrl = cosmosUrl.AbsoluteUri
-                };
+                    if (cosmosUrl == null)
+                    {
+                        throw new ArgumentNullException(nameof(cosmosUrl));
+                    }
 
-                // open and test a new client / container
-                d.Client = await OpenAndTestCosmosClient(cosmosUrl, cosmosKey, cosmosDatabase, cosmosCollection).ConfigureAwait(false);
-                d.Container = d.Client.GetContainer(cosmosDatabase, cosmosCollection);
+                    if (force ||
+                        cosmosDetails.CosmosCollection != cosmosCollection ||
+                        cosmosDetails.CosmosDatabase != cosmosDatabase ||
+                        cosmosDetails.CosmosKey != cosmosKey ||
+                        cosmosDetails.CosmosUrl != cosmosUrl.AbsoluteUri)
+                    {
+                        CosmosConfig d = new CosmosConfig
+                        {
+                            CosmosCollection = cosmosCollection,
+                            CosmosDatabase = cosmosDatabase,
+                            CosmosKey = cosmosKey,
+                            CosmosUrl = cosmosUrl.AbsoluteUri
+                        };
 
-                // set the current CosmosDetail
-                cosmosDetails = d;
-            }
+                        // open and test a new client / container
+                        d.Client = OpenAndTestCosmosClient(cosmosUrl, cosmosKey, cosmosDatabase, cosmosCollection);
+                        d.Container = d.Client.GetContainer(cosmosDatabase, cosmosCollection);
+
+                        // set the current CosmosDetail
+                        cosmosDetails = d;
+                    }
+                }).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -95,7 +98,7 @@ namespace CSE.Automation.DataAccess
         /// <param name="cosmosDatabase">Cosmos Database</param>
         /// <param name="cosmosCollection">Cosmos Collection</param>
         /// <returns>An open and validated CosmosClient</returns>
-        private async Task<CosmosClient> OpenAndTestCosmosClient(Uri cosmosUrl, string cosmosKey, string cosmosDatabase, string cosmosCollection)
+        private CosmosClient OpenAndTestCosmosClient(Uri cosmosUrl, string cosmosKey, string cosmosDatabase, string cosmosCollection)
         {
             // validate required parameters
             if (cosmosUrl == null)
@@ -119,7 +122,9 @@ namespace CSE.Automation.DataAccess
             }
 
             // open and test a new client / container
+#pragma warning disable CA2000 // Dispose objects before losing scope.  Disabling as the container connection remains in scope.
             var c = new CosmosClient(cosmosUrl.AbsoluteUri, cosmosKey, cosmosDetails.CosmosClientOptions);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             var con = c.GetContainer(cosmosDatabase, cosmosCollection);
 
             //TODO: commenting out for the moment.  Need a good way to test that doesn't require a document

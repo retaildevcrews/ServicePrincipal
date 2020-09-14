@@ -13,11 +13,11 @@ namespace CSE.Automation
 {
     public class GraphDeltaProcessor
     {
-        private readonly ICredentialService _credService = default;
-        private readonly ISecretClient _secretService = default;
+        private readonly ICredentialService _credService;
+        private readonly ISecretClient _secretService;
 
-        private readonly IGraphHelper _graphHelper = default;
-        private readonly IDALResolver _DALResolver = default;
+        private readonly IGraphHelper _graphHelper;
+        private readonly IDALResolver _DALResolver;
 
         public GraphDeltaProcessor(ISecretClient secretClient, ICredentialService credService, IGraphHelper graphHelper, IDALResolver dalResolver)
         {
@@ -28,6 +28,8 @@ namespace CSE.Automation
         }
 
         [FunctionName("ServicePrincipalDeltas")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Will add specific error in time.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1801:Review unused parameters", Justification = "Required as part of Trigger declaration.")]
         public void Run([TimerTrigger("0 */2 * * * *")] TimerInfo myTimer, ILogger log)
         {
             try
