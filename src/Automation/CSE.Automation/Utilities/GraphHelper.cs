@@ -5,15 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+#pragma warning disable CA1031 // Do not catch general exception types
+
 namespace CSE.Automation.Utilities
 {
     public class GraphHelper : IGraphHelper
     {
-        private static GraphServiceClient graphClient = default;
-
-        private static string deltaUserLinkValue;
-        private static string deltaSPLinkValue;
-
+        private static GraphServiceClient graphClient;
         private IConfidentialClientApplication confidentialClientApplication;
 
         public GraphHelper(string graphAppClientId, string graphAppTenantId, string graphAppClientSecret)
@@ -28,143 +26,68 @@ namespace CSE.Automation.Utilities
             graphClient = new GraphServiceClient(authProvider);
         }
 
-        public async Task<IEnumerable<User>> GetAllUsersAsync()
-        {
-            try
-            {
-                var resultPage = await graphClient.Users.Request()
-                // Only return the fields used by the application
-                .Select(e => new
-                {
-                    e.DisplayName,
-                })
-
-                .GetAsync();
-                return resultPage.CurrentPage;
-            }
-            catch (ServiceException ex)
-            {
-                Console.WriteLine($"Error getting All Users: {ex.Message}");
-                return null;
-            }
-        }
-
-
-
-        public async Task<IEnumerable<ServicePrincipal>> GetAllServicePrincipalsAsync()
-        {
-            try
-            {
-                var servicePrincipals = await graphClient.ServicePrincipals
-               .Request()
-               .GetAsync();
-
-                return servicePrincipals.CurrentPage;
-            }
-            catch (ServiceException ex)
-            {
-                Console.WriteLine($"Error getting All Owners: {ex.Message}");
-                return null;
-            }
-        }
-
-
-        public async Task<IEnumerable<User>> GetUsersDeltaAsync()
-        {
-            IUserDeltaCollectionPage userCollectionPage;
-
-            var userList = new List<User>();
-
-            if (String.IsNullOrWhiteSpace(deltaUserLinkValue))
-            {
-                Console.WriteLine("No deltaLink found. Initializing...");
-                userCollectionPage = await graphClient.Users.Delta().Request().GetAsync(); ;
-            }
-            else
-            {
-                userCollectionPage = new UserDeltaCollectionPage();
-                userCollectionPage.InitializeNextPageRequest(graphClient, deltaUserLinkValue);
-                userCollectionPage = await userCollectionPage.NextPageRequest.GetAsync();
-            }
-
-            // Populate result
-            userList.AddRange(userCollectionPage.CurrentPage);
-
-            while (userCollectionPage.NextPageRequest != null)
-            {
-                userCollectionPage = await userCollectionPage.NextPageRequest.GetAsync();
-                userList.AddRange(userCollectionPage.CurrentPage);
-            }
-
-
-            if (userCollectionPage.AdditionalData.TryGetValue("@odata.deltaLink", out object deltaLink))
-            {
-                deltaUserLinkValue = deltaLink.ToString();
-            }
-
-            return userList;
-
-        }
-
-
-        public async Task<IEnumerable<ServicePrincipal>> GetServicePrincipalsDeltaAsync()
+        public async Task<IEnumerable<ServicePrincipal>> SeedServicePrincipalDeltaAsync(string selectSPFields)
         {
             IServicePrincipalDeltaCollectionPage servicePrincipalCollectionPage;
 
+            var servicePrincipalSeedList = new List<ServicePrincipal>();
+
+            servicePrincipalCollectionPage = await graphClient.ServicePrincipals
+                .Delta()
+                .Request()
+                .Select(selectSPFields)
+                .GetAsync()
+                .ConfigureAwait(true);
+
+            servicePrincipalSeedList.AddRange(servicePrincipalCollectionPage.CurrentPage);
+
+            while (servicePrincipalCollectionPage.NextPageRequest != null)
+            {
+                servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
+                servicePrincipalSeedList.AddRange(servicePrincipalCollectionPage.CurrentPage);
+            }
+
+            if (servicePrincipalCollectionPage.AdditionalData.TryGetValue("@odata.deltaLink", out object deltaLink))
+            {
+                //TODO save this delta link in cosmosDB when we do a seed
+                Console.WriteLine("Seed Delta Link:" + deltaLink.ToString());
+            }
+
+            return servicePrincipalSeedList;
+        }
+
+        public async Task<IEnumerable<ServicePrincipal>> GetServicePrincipalsByDeltaAsync(string deltaLink)
+        {
+            if (String.IsNullOrWhiteSpace(deltaLink))
+            {
+                //TODO log this error
+                throw new Exception("deltaLink value cannot be null or empty");
+            }
+
+            IServicePrincipalDeltaCollectionPage servicePrincipalCollectionPage;
 
             var servicePrincipalList = new List<ServicePrincipal>();
 
-            if (String.IsNullOrWhiteSpace(deltaSPLinkValue))
-            {
-                Console.WriteLine("No deltaLink found for Service Principal. Initializing...");
-                servicePrincipalCollectionPage = await graphClient.ServicePrincipals.Delta().Request().GetAsync(); ;
-            }
-            else
-            {
-                servicePrincipalCollectionPage = new ServicePrincipalDeltaCollectionPage();
-                servicePrincipalCollectionPage.InitializeNextPageRequest(graphClient, deltaSPLinkValue);
-                servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync();
-            }
+            servicePrincipalCollectionPage = new ServicePrincipalDeltaCollectionPage();
+            servicePrincipalCollectionPage.InitializeNextPageRequest(graphClient, deltaLink);
+            servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
 
-            // Populate result
             servicePrincipalList.AddRange(servicePrincipalCollectionPage.CurrentPage);
 
             while (servicePrincipalCollectionPage.NextPageRequest != null)
             {
-                servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync();
+                servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
                 servicePrincipalList.AddRange(servicePrincipalCollectionPage.CurrentPage);
             }
 
-
-            if (servicePrincipalCollectionPage.AdditionalData.TryGetValue("@odata.deltaLink", out object deltaLink))
+            if (servicePrincipalCollectionPage.AdditionalData.TryGetValue("@odata.deltaLink", out object updatedDeltaLink))
             {
-                deltaSPLinkValue = deltaLink.ToString();
+                //TODO save this delta link in cosmosDB when we do a seed
+                Console.WriteLine("Updated Delta Link:" + updatedDeltaLink.ToString());
             }
 
             return servicePrincipalList;
 
         }
-
-        public async void CreateUpdateServicePrincipalNote(string servicePrincipalId, string servicePrincipalNote)
-        {
-            var servicePrincipal = new ServicePrincipal
-            {
-                Notes = servicePrincipalNote
-            };
-
-            try
-            {
-                await graphClient.ServicePrincipals[servicePrincipalId].Request().UpdateAsync(servicePrincipal);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error Updating Notes for Service Principal Id: {servicePrincipalId}  : {ex.Message}");
-                return;
-            }
-
-            Console.WriteLine("Service Principal Notes updated");
-
-        }
-
     }
 }
