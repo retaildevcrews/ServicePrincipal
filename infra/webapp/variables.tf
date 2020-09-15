@@ -37,6 +37,7 @@ variable "COSMOS_URL" {
   description = "This is the primary connection string of the Cosmos DB and will be an output from the resource command."
 
 }
+
 variable "COSMOS_RO_KEY" {
   description = "This is the managed identify read-only key from the Cosmos DB and will be an output from the resource command."
 
@@ -47,12 +48,12 @@ variable "COSMOS_RW_KEY" {
 
 }
 
-
 variable "COSMOS_DB" {
   type        = string
   description = "This is the database name of the Cosmos DB and will be an output from the resource command."
 
 }
+
 
 /*
 variable "COSMOS_COL" {

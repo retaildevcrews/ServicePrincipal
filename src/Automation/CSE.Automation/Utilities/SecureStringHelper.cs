@@ -9,7 +9,7 @@ namespace CSE.Automation.Utilities
         public static string ConvertToUnsecureString(SecureString secureString)
         {
             if (secureString == null)
-                throw new ArgumentNullException("A null was passed to ConvertToUnsecureString (SecureString secureString) method.  Please pass a non-null value.");
+                throw new ArgumentNullException(nameof(secureString));
 
             IntPtr unmanagedString = IntPtr.Zero;
             try
@@ -25,8 +25,8 @@ namespace CSE.Automation.Utilities
 
         public static SecureString ConvertToSecureString(string stringToSecure)
         {
-            if (stringToSecure == null || stringToSecure == "")
-                throw new ArgumentNullException("A null was passed to ConvertToSecureString (string stringToSecure) method.  Please pass a non-null value.");
+            if (string.IsNullOrWhiteSpace(stringToSecure))
+                throw new ArgumentNullException(nameof(stringToSecure));
 
             var secureStr = new SecureString();
             if (stringToSecure.Length > 0)

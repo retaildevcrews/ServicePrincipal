@@ -26,7 +26,6 @@ variable "COSMOS_DB" {
   default     = "testDB"
 }
 
-
 variable "ENV" {
   type        = string
   description = "The last suffix which should be used for all resources in this example. Used by all modules"

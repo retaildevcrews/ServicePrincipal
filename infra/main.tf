@@ -50,7 +50,6 @@ module "db" {
   APP_RG_NAME      = azurerm_resource_group.rg.name
   COSMOS_RU        = var.COSMOS_RU
   COSMOS_DB        = var.SHORTNAME
-
 }
 
 # Create other Web components that have a direct deendency such as WebApp, Functions, Appinsights, KeyVault etc. 

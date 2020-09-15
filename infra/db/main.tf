@@ -34,15 +34,14 @@ output "RW_KEY" {
 
 # ---->>>>  Create a Database
 resource "azurerm_cosmosdb_sql_database" "cosmosdb" {
-  name                = "${var.COSMOS_DB}-cosmos-${var.ENV}"
-  resource_group_name = var.APP_RG_NAME 
-  account_name        = azurerm_cosmosdb_account.cosmosacct.name
-  throughput          = var.COSMOS_RU
-
+=======
+output "ro_key" {
+  value       = azurerm_cosmosdb_account.cosmosacct.primary_readonly_master_key
+  sensitive   = true
+  description = "The read Only key for the CosmosDB to be used by the Application. This is used to pass into the webapp module"
 }
 
 # ---->>>> Creating Collections
-
 resource "azurerm_cosmosdb_sql_container" "cosmosdb-audit" {
   name                = "Audit"#var.COSMOS_COL
   resource_group_name = var.APP_RG_NAME 
@@ -66,9 +65,6 @@ resource "azurerm_cosmosdb_sql_container" "cosmosdb-objtracking" {
   database_name       = azurerm_cosmosdb_sql_database.cosmosdb.name
   partition_key_path  = "/id"
 }
-
-
-
 
 output "DB_CREATION_DONE" {
   depends_on  = [azurerm_cosmosdb_account.cosmosacct]

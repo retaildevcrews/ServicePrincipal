@@ -11,7 +11,7 @@ namespace CSE.Automation.Services
     public enum AuthenticationType { MI, CLI, VS }
     class CredentialService : ICredentialService
     {
-        TokenCredential currentCredential = default;
+        TokenCredential currentCredential;
 
         public CredentialService (string credType)
         {

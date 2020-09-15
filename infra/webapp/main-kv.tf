@@ -60,11 +60,9 @@ resource "azurerm_key_vault_secret" "cosmosurl" {
 }
 
 resource "azurerm_key_vault_secret" "cosmosrokey" {
-
     depends_on = [
     azurerm_key_vault_access_policy.terraform-sp
   ]
-
   name         = "CosmosReadOnlyKey"
   value        = var.COSMOS_RO_KEY
   key_vault_id = azurerm_key_vault.kv.id
@@ -81,7 +79,6 @@ resource "azurerm_key_vault_secret" "cosmosrwkey" {
   key_vault_id = azurerm_key_vault.kv.id
 }
 
-
 resource "azurerm_key_vault_secret" "cosmosdatabase" {
 
   depends_on = [
@@ -89,6 +86,7 @@ resource "azurerm_key_vault_secret" "cosmosdatabase" {
   ]
 
   name         = "CosmosDatabase"
+
   value        = "${var.COSMOS_DB}-cosmos-${var.ENV}"
   key_vault_id = azurerm_key_vault.kv.id
 }
