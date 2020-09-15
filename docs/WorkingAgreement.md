@@ -26,9 +26,8 @@ We pledge to follow the [Microsoft Open Source Code of Conduct](https://opensour
 ### Work Items
 
 - We will track our work in GitHub
-* Our sprint work items will follow the hierarchy:  -- **Need to update this section**
+* Our sprint work items will follow the hierarchy:  --
   * Epic
-    * Feature
       * Story
         * Task
       * Bug
@@ -38,9 +37,9 @@ We pledge to follow the [Microsoft Open Source Code of Conduct](https://opensour
 |  | Sizing | Definition |
 |--|--------|------------|
 | **Epic** | Up to the lifetime of the project | Business initiative for a stakeholder to accomplish |
-| **Feature** | Completable within 2-3 sprints | Collection of stories representing a slice of value for the stakeholder |
-| **Story / Bug** | Completable within a sprint | Atomic unit of value for the project as engineering team |
-| **Task** | Completable within a day | Optionally defined by the story owner to help track work that must be completed to consider a story done |
+| **Story** | Completable within a milestone | Consists of multiple tasks |
+| **Bug** | Completable within a sprint | Production blocking bugs are prioritized |
+| **Task** | Completable within a sprint | Optionally defined by the story owner to help track work that must be completed to consider a story done |
 | **Risk** | N/A | Something that the team would like to shine light on to ensure actions can be taken to mitigate effects on the project |
 
 #### User Story Guidelines
@@ -80,7 +79,8 @@ We pledge to follow the [Microsoft Open Source Code of Conduct](https://opensour
 
 - User stories clearly provide context and scope of work
 - Acceptance Criteria is defined
-- User stories are achievable in a single sprint (else break it down)
+- User stories are achievable withinin the milestone
+  - Stories are broken down into prioritized tasks ranging from small to large (If extra large, break it down)
   - "Spike" if investigating something in order to timebox and track outcomes
 - Story owner is able to break down user story into tasks if desired
 - Dependencies identified (either external or other work items)
@@ -88,9 +88,9 @@ We pledge to follow the [Microsoft Open Source Code of Conduct](https://opensour
 #### Definition of Done
 
 - Acceptance Criteria are satisfied
-- Appropriate [Pull Request template(s)](https://github.com/retaildevcrews/aks-oidc-proxy/blob/main/.github/PULL_REQUEST_TEMPLATE.md) satisfied
-- [Pull Request](https://github.com/retaildevcrews/aks-oidc-proxy/projects/1) approved and completed
-- [DoD Review & Release](https://github.com/retaildevcrews/aks-oidc-proxy/projects/1?card_filter_query=label%3ARelease) checklist satisfied and completed
+- Appropriate [Pull Request template(s)](https://github.com/retaildevcrews/ServicePrincipal/blob/main/.github/PULL_REQUEST_TEMPLATE.md) satisfied
+- [Pull Request](https://github.com/retaildevcrews/ServicePrincipal/projects/1) approved and completed
+- [DoD Review & Release](https://github.com/retaildevcrews/ServicePrincipal/projects/1?card_filter_query=label%3Arelease) checklist satisfied and completed
 - Demonstration recorded and available to customer (when applicable)
 
 ### Backlogs and (Dash)boards
@@ -101,10 +101,10 @@ We pledge to follow the [Microsoft Open Source Code of Conduct](https://opensour
 - Kanban Board will be used to track project progress
   - Board columns:
     * **Triage**: All net-new issues/bugs/features need to be created as an issue; things to discuss/notes can be added as a "note" 
-    * **Backlog**: Has been refined, triages, and prioritized.
+    * **Backlog**: Has been refined, triaged, and prioritized.
     * **Sprint Backlog**:  Issues that have been committed for the current sprint.
     * **In Progress**: A development team member owns the story or bug and begins work.
-    * **PR Submitted/In Review**: The owner of the story or bug determines the item meets our [Definition of Done](#definition-of-done) and has created a Pull Request. The item will stay in this status through the PR process -- including addressing requested feedback or fixing issues found.
+    * **PR Submitted/In Review**: The owner of the story or bug determines the item meets our Definition of Done and has created a Pull Request. The item will stay in this status through the PR process -- including addressing requested feedback or fixing issues found.
     * **Closed**: The Pull Request/Task has completed, and the work has been committed to the `main` branch of the project repository.
   * Story Board styles:
     * We will style stories or bugs that have been committed to the current sprint so that they may be easily identified from the story board.
@@ -123,11 +123,11 @@ We pledge to follow the [Microsoft Open Source Code of Conduct](https://opensour
 
 |  | When | Length | Participants | Purpose |
 |------|------|--------|--------------|---------|
-| **Standup** | Monday, Tuesday, Wednesday, Thursday  @ 9:30AM CST | 10 minutes | Development Team, Scrum Master, Product Owner | Those with committed work answer: What did I do yesterday? What will I do today? Is there anything in my way? |
-| **Triage** | Monday, Tuesday, Wednesday, Thursday @ 9:40Am CST | 10 minutes | Development Team, Scrum Master, Product Owner| Review an net-new issues for prioritization and discussion |
-| **Review** | Friday @ 9:30am CST | 20 minutes | Development Team, Scrum Master, Product Owner | Demonstrate the work we did this week. Show and tell time. |
-| **Retrospective** | Friday @ 9:50am CST  | 20 minutes | Development Team, Scrum Master, Product Owner | Reflect as a team on how we're doing -- what's working well for us, and what could we do better? |
-| **Planning** | Friday @ 9:50am CST  | 20 minutes | Scrum Master, Product Owner, Development Team | Commit to work for the next sprint. |
+| **Standup** | Monday, Tuesday, Wednesday  @ 10:00AM CST | 10 minutes | Development Team, Scrum Master, Product Owner | Those with committed work answer: What did I do yesterday? What will I do today? Is there anything in my way? |
+| **Triage** | Monday, Tuesday, Wednesday @ 10:10AM CST | 10 minutes | Development Team, Scrum Master, Product Owner| Review an net-new issues for prioritization and discussion |
+| **Review** | Thursday @ 9:30AM CST | 20 minutes | Development Team, Scrum Master, Product Owner | Demonstrate the work we did this week. Show and tell time. |
+| **Retrospective** | Thursday @ 9:50AM CST  | 20 minutes | Development Team, Scrum Master, Product Owner | Reflect as a team on how we're doing -- what's working well for us, and what could we do better? |
+| **Planning** | Thursday @ 9:50AM CST | 20 minutes | Scrum Master, Product Owner, Development Team | Commit to work for the next sprint. |
 
 ## How we code together
 
@@ -145,7 +145,7 @@ We pledge to follow the [Microsoft Open Source Code of Conduct](https://opensour
 
 * Deliverable does not require versioning since we do not anticipate supporting multiple releases side-by-side.
 * Build numbers will be used to help us track deployments versus versions.
-* We will tag as needed to identify milestones along master branch.
+* We will tag as needed to identify milestones along main branch.
 
 ### Reviews
 
@@ -176,7 +176,7 @@ Pairing work is recommended to support knowledge sharing between the team member
 * We will make documentation accessible:
   | Type | Where? | Examples |
   |------|--------|----------|
-  | Organization Artifacts | Teams Channel Files | Game Plan, SDD, draft documents |
+  | Organization Artifacts | ArtifactHub | Game Plan, SDD, draft documents |
   | Project Artifacts | Teams Channel Files | ADS agenda, Sprint Review videos, Meeting Notes |
   | Project Documentation | GitHub Repo | Working Agreement, code of conduct, high-level overview |
   | Architecture / Designs | GitHub Repo| Technical Design documents |
