@@ -64,12 +64,15 @@ namespace CSE.Automation
                 foreach (var sp in servicePrincipals)
 
                 {
-                    if (String.IsNullOrEmpty(sp.AppId) || String.IsNullOrEmpty(sp.DisplayName))
+                    if (String.IsNullOrWhiteSpace(sp.AppId) || String.IsNullOrWhiteSpace(sp.DisplayName))
                         continue;
-
+                    //TODO
+                    //1. validate values
+                    //2. build ServicePrincipal POCO - depends on POCO definitions
+                    //3. save...
+                    //4. audit...
                     log.LogInformation($"{sp.DisplayName} - {sp.AppId} - {sp.Notes}");
                 }
-
             }
             catch(Exception ex)
             {
