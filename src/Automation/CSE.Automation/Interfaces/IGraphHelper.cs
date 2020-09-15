@@ -6,7 +6,7 @@ namespace CSE.Automation.Utilities
 {
     public interface IGraphHelper
     {
-        void createUpdateServicePrincipalNote(string servicePrincipalId, string servicePrincipalNote);
+        void CreateUpdateServicePrincipalNote(string servicePrincipalId, string servicePrincipalNote);
         Task<IEnumerable<ServicePrincipal>> GetAllServicePrincipalsAsync();
         Task<IEnumerable<User>> GetAllUsersAsync();
         Task<IEnumerable<ServicePrincipal>> GetServicePrincipalsDeltaAsync();

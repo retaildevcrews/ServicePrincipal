@@ -4,17 +4,16 @@ using System.Text.Json.Serialization;
 
 namespace CSE.Automation.Model
 {
-    class Configuration
+    public class Configuration
     {
-        public Guid ProcessorId { get; set; }
+        public string ProcessorId { get; set; }
 
         public string FilterString { get; set; }
 
-        public string SelectFields { get; set; }
+        public string[] SelectFields { get; set; }
 
         public string DeltaLink { get; set; }
-        //TODO: Can we define these conversions, camelCase, enum, array converters, etc in startup?
-        //same for below code
+
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public RunState RunState { get; set; }
 

@@ -145,7 +145,7 @@ namespace CSE.Automation.Utilities
 
         }
 
-        public async void createUpdateServicePrincipalNote(string servicePrincipalId, string servicePrincipalNote)
+        public async void CreateUpdateServicePrincipalNote(string servicePrincipalId, string servicePrincipalNote)
         {
             var servicePrincipal = new ServicePrincipal
             {
