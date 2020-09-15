@@ -20,14 +20,20 @@ resource "azurerm_cosmosdb_account" "cosmosacct" {
 }
 
 
-output "ro_key" {
+output "RO_KEY" {
   value       = azurerm_cosmosdb_account.cosmosacct.primary_readonly_master_key
   sensitive   = true
-  description = "The read Only key for the CosmosDB to be used by the Application. This is used to pass into the webapp module"
+  description = "The read-only key for the CosmosDB to be used by the Application. This is used to pass into the webapp module"
+}
+
+output "RW_KEY" {
+  value       = azurerm_cosmosdb_account.cosmosacct.primary_master_key
+  sensitive   = true
+  description = "The read-write key for the CosmosDB to be used by the Application. This is used to pass into the webapp module"
 }
 
 # ---->>>>  Create a Database
-resource "azurerm_cosmosdb_sql_database" "cosmosdb-testDB" {
+resource "azurerm_cosmosdb_sql_database" "cosmosdb" {
   name                = "${var.COSMOS_DB}-cosmos-${var.ENV}"
   resource_group_name = var.APP_RG_NAME 
   account_name        = azurerm_cosmosdb_account.cosmosacct.name
@@ -37,13 +43,32 @@ resource "azurerm_cosmosdb_sql_database" "cosmosdb-testDB" {
 
 # ---->>>> Creating Collections
 
-resource "azurerm_cosmosdb_sql_container" "cosmosdb-items" {
-  name                = var.COSMOS_COL
+resource "azurerm_cosmosdb_sql_container" "cosmosdb-audit" {
+  name                = "Audit"#var.COSMOS_COL
   resource_group_name = var.APP_RG_NAME 
   account_name        = azurerm_cosmosdb_account.cosmosacct.name
-  database_name       = azurerm_cosmosdb_sql_database.cosmosdb-testDB.name
-  partition_key_path  = "/partitionKey"
+  database_name       = azurerm_cosmosdb_sql_database.cosmosdb.name
+  partition_key_path  = "/id"
 }
+
+resource "azurerm_cosmosdb_sql_container" "cosmosdb-config" {
+  name                = "Configuration"#var.COSMOS_COL
+  resource_group_name = var.APP_RG_NAME 
+  account_name        = azurerm_cosmosdb_account.cosmosacct.name
+  database_name       = azurerm_cosmosdb_sql_database.cosmosdb.name
+  partition_key_path  = "/id"
+}
+
+resource "azurerm_cosmosdb_sql_container" "cosmosdb-objtracking" {
+  name                = "ObjectTracking"#var.COSMOS_COL
+  resource_group_name = var.APP_RG_NAME 
+  account_name        = azurerm_cosmosdb_account.cosmosacct.name
+  database_name       = azurerm_cosmosdb_sql_database.cosmosdb.name
+  partition_key_path  = "/id"
+}
+
+
+
 
 output "DB_CREATION_DONE" {
   depends_on  = [azurerm_cosmosdb_account.cosmosacct]

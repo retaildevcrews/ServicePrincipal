@@ -59,16 +59,28 @@ resource "azurerm_key_vault_secret" "cosmosurl" {
   key_vault_id = azurerm_key_vault.kv.id
 }
 
-resource "azurerm_key_vault_secret" "cosmoskey" {
+resource "azurerm_key_vault_secret" "cosmosrokey" {
 
     depends_on = [
     azurerm_key_vault_access_policy.terraform-sp
   ]
 
-  name         = "CosmosKey"
-  value        = var.COSMOS_KEY
+  name         = "CosmosReadOnlyKey"
+  value        = var.COSMOS_RO_KEY
   key_vault_id = azurerm_key_vault.kv.id
 }
+
+resource "azurerm_key_vault_secret" "cosmosrwkey" {
+
+    depends_on = [
+    azurerm_key_vault_access_policy.terraform-sp
+  ]
+
+  name         = "CosmosReadWriteKey"
+  value        = var.COSMOS_RW_KEY
+  key_vault_id = azurerm_key_vault.kv.id
+}
+
 
 resource "azurerm_key_vault_secret" "cosmosdatabase" {
 
@@ -77,10 +89,11 @@ resource "azurerm_key_vault_secret" "cosmosdatabase" {
   ]
 
   name         = "CosmosDatabase"
-  value        = var.COSMOS_DB
+  value        = "${var.COSMOS_DB}-cosmos-${var.ENV}"
   key_vault_id = azurerm_key_vault.kv.id
 }
 
+/*
 resource "azurerm_key_vault_secret" "cosmoscol" {
   
   depends_on = [
@@ -91,7 +104,7 @@ resource "azurerm_key_vault_secret" "cosmoscol" {
   value        = var.COSMOS_COL
   key_vault_id = azurerm_key_vault.kv.id
 }
-
+*/
 
 resource "azurerm_key_vault_secret" "appinsights" {
   
