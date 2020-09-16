@@ -3,14 +3,29 @@ name: Docker CI
 on:
   push:
     branches:
-      - master
+      - main
 
     paths:
       - 'src/**'
-      - 'Dockerfile*'
 
-    tags:
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - 'spikes/**' # Don't build the spikes unless explicitly specified
+
+      tags:
       - v*
+
+on:
+  pull_request:
+    types: [ opened, reopened, synchronize, closed ]
+    branches:
+      - main
+
+    paths-ignore:
+    - 'docs/**'
+    - '**.md'
+    - 'spikes/**' # Don't build the spikes unless explicitly specified
 
 jobs:
 
@@ -18,42 +33,56 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      ACR_IMAGE_URL    : ${{ secrets.DOCKER_REPO }}.azurecr.io/${{ secrets.DOCKER_REG }}
+      # These are used in if: conditions
+      ACR_LOGGED_IN    : false
+      DKR_IMG_IS_BUILT : false
+
     steps:
     - uses: actions/checkout@v1
 
-    - name: Login to registry
+    - name: Login to Azure registry
+      # do not copy the actual secrets
+      # You must add the following secrets to github repo
+      #    DOCKER_USER  - Azure ServicePrincipal ID
+      #    DOCKER_PAT   - the access token for the ServicePrincipal
+      #    DOCKER_REPO  - the azure ecr repository name in the form: organization/repository
+      #    DOCKER_REG   - the azure ecr registry name. It will be apended to form azure CR url: $DOCKER_REG.azurecr.io
+      # Overall azure reg/repo address will be in the form : $DOCKER_REG.azurecr.io/$DOCKER_REPO
       run: |
-        # Login to registry
+        # Login to Azure registry
+        echo Logging into # TODO: Remove this 
+        echo "${{ secrets.DOCKER_PAT }}" | docker login "${ACR_IMAGE_URL}" -u ${{ secrets.DOCKER_USER }} --password-stdin
 
-        # You must add the following secrets to github
-        #    DOCKER_USER  - your dockerhub user name
-        #    DOCKER_PAT   - the personal access token for dockerhub
-        #    DOCKER_REPO  - the docker repository name in the form: organization/repository
-
-        ## login to dockerhub
-        echo "${{ secrets.DOCKER_PAT }}" | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
+        # If docker login fails, set env variable
+        [[ $? == 0 ]] && echo "::set-env name=ACR_LOGGED_IN::true"
 
     - name: Build Container
-      run: docker build . --file Dockerfile --tag image
+      if: ${{ env.ACR_LOGGED_IN == 'true' }}
+      run: |
+        # Build Image
+        docker build -t image -f src/Automation/CSE.Automation/Dockerfile src/Automation
+        # Set variable is successful
+        [[ $? == 0 ]] && echo "::set-env name=DKR_IMG_IS_BUILT::true"
 
     - name: Docker Push
+      if: ${{ env.DKR_IMG_IS_BUILT == 'true' }}
       run: |
         # Tag and push the docker image
-
-        IMAGE_ID=${{ secrets.DOCKER_REPO }}
+        IMAGE_ID="${ACR_IMAGE_URL}"
 
         # Strip git ref prefix from version
         VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
 
         # Only tag and push when a new tag is created
-        if [[ "${{ github.ref }}" == "refs/tags/"* ]]
-        then
+        if [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
           # Strip "v" prefix from tag name
           VERSION=$(echo $VERSION | sed -e 's/^v//')
-  
+
           docker tag image $IMAGE_ID:$VERSION
           docker tag image $IMAGE_ID:stable
-  
+          # Push both tags
           docker push $IMAGE_ID
 
           echo "Image pushed"
