@@ -49,8 +49,8 @@ module "db" {
   ENV              = var.ENV
   APP_RG_NAME      = azurerm_resource_group.rg.name
   COSMOS_RU        = var.COSMOS_RU
-  COSMOS_DB        = var.COSMOS_DB
-  COSMOS_COL       = var.COSMOS_COL
+  COSMOS_DB        = var.SHORTNAME
+
 }
 
 # Create other Web components that have a direct deendency such as WebApp, Functions, Appinsights, KeyVault etc. 
@@ -62,12 +62,11 @@ module "web" {
   LOCATION            = var.LOCATION
   APP_RG_NAME         = azurerm_resource_group.rg.name
   TENANT_ID           = var.TF_TENANT_ID
-  COSMOS_KEY          = module.db.ro_key
+  COSMOS_RO_KEY       = module.db.RO_KEY
+  COSMOS_RW_KEY       = module.db.RW_KEY
   DB_CREATION_DONE    = module.db.DB_CREATION_DONE
   ENV                 = var.ENV
-  COSMOS_DB           = var.COSMOS_DB
-  COSMOS_COL          = var.COSMOS_COL
-  COSMOS_URL          = "https://${var.NAME}.documents.azure.com:443/"
- 
+  COSMOS_DB           = var.SHORTNAME
+  COSMOS_URL          = "https://${var.SHORTNAME}-cosmosa-${var.ENV}.documents.azure.com:443/"
   REPO                = var.REPO
 }
