@@ -20,6 +20,10 @@ namespace CSE.Automation.Model
         public DateTime LastDeltaRun { get; set; }
 
         public DateTime LastSeedTime { get; set; }
+
+        public string Name { get; set; }
+
+        public string Description { get; set; }
     }
 
     public enum RunState
