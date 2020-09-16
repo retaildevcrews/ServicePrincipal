@@ -20,18 +20,6 @@ resource "azurerm_cosmosdb_account" "cosmosacct" {
 }
 
 
-output "RO_KEY" {
-  value       = azurerm_cosmosdb_account.cosmosacct.primary_readonly_master_key
-  sensitive   = true
-  description = "The read-only key for the CosmosDB to be used by the Application. This is used to pass into the webapp module"
-}
-
-output "RW_KEY" {
-  value       = azurerm_cosmosdb_account.cosmosacct.primary_master_key
-  sensitive   = true
-  description = "The read-write key for the CosmosDB to be used by the Application. This is used to pass into the webapp module"
-}
-
 # ---->>>>  Create a Database
 resource "azurerm_cosmosdb_sql_database" "cosmosdb" {
   name                = "${var.COSMOS_DB}-cosmos-${var.ENV}"
@@ -74,4 +62,10 @@ output "DB_CREATION_DONE" {
   depends_on  = [azurerm_cosmosdb_account.cosmosacct]
   value       = true
   description = "Cosmos Db creatiom complete"
+}
+
+output "RW_KEY" {
+  value       = azurerm_cosmosdb_account.cosmosacct.primary_master_key
+  sensitive   = true
+  description = "The read-write key for the CosmosDB to be used by the Application. This is used to pass into the webapp module"
 }
