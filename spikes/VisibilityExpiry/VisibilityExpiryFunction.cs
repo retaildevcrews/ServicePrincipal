@@ -38,7 +38,7 @@ namespace VisibilityExpiry
 
             //return new OkObjectResult(responseMessage);
 
-            log.LogInformation($"Added message: \"{responseMessage}\" to queue");
+            log.LogInformation($"Added message: \"{responseMessage}\" to queue \n");
         }
     }
 }
