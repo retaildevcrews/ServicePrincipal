@@ -4,9 +4,7 @@ on:
   push:
     branches:
       - main
-
-    paths:
-      - 'src/**'
+      - feature/kushal-gh-action  # Testing feature: Remove this when merging into main branch
 
     paths-ignore:
       - 'docs/**'
@@ -81,10 +79,14 @@ jobs:
           # Strip "v" prefix from tag name
           VERSION=$(echo "${VERSION}" | sed -e 's/^v//')
           
+          # Remove the beta tag
+          docker rmi ${ACR_IMAGE}:beta
+
           # tag the image with :version and :stable
           docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:${VERSION}
           docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:stable
         fi
         
         # push the repo
+        # Here it will push either :beta or :stable and :version
         docker push ${ACR_IMAGE}
