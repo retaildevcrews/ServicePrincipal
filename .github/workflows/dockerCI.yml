@@ -34,58 +34,57 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ACR_IMAGE_URL    : ${{ secrets.DOCKER_REPO }}.azurecr.io/${{ secrets.DOCKER_REG }}
+      ACR_REG_REPO_URL    : ${{ secrets.ACR_REG }}.azurecr.io/${{ secrets.ACR_REPO }}
       # These are used in if: conditions
       ACR_LOGGED_IN    : false
       DKR_IMG_IS_BUILT : false
+      TEMP_IMG_NAME : sp_image
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
 
     - name: Login to Azure registry
       # do not copy the actual secrets
+      # do not echo secrets
       # You must add the following secrets to github repo
-      #    DOCKER_USER  - Azure ServicePrincipal ID
-      #    DOCKER_PAT   - the access token for the ServicePrincipal
-      #    DOCKER_REPO  - the azure ecr repository name in the form: organization/repository
-      #    DOCKER_REG   - the azure ecr registry name. It will be apended to form azure CR url: $DOCKER_REG.azurecr.io
-      # Overall azure reg/repo address will be in the form : $DOCKER_REG.azurecr.io/$DOCKER_REPO
+      #    SERVICE_PRINCIPAL_ID     - ServicePrincipal Application ID
+      #    SERVICE_PRINCIPAL_SECRET - Access Secret for the ServicePrincipal
+      #    ACR_REG_REPO_URL         - Azure Registry/repository name in the form: registry.azurecr.io/repository
+      # Overall azure reg/repo address will be in the form : $ACR_REG.azurecr.io/$ACR_REPO
       run: |
         # Login to Azure registry
-        echo Logging into # TODO: Remove this 
-        echo "${{ secrets.DOCKER_PAT }}" | docker login "${ACR_IMAGE_URL}" -u ${{ secrets.DOCKER_USER }} --password-stdin
-
-        # If docker login fails, set env variable
+        echo "${{ secrets.SERVICE_PRINCIPAL_SECRET }}" | docker login "${ACR_REG_REPO_URL}" -u ${{ secrets.SERVICE_PRINCIPAL_ID }} --password-stdin
+        # If docker login is successful, set env variable
         [[ $? == 0 ]] && echo "::set-env name=ACR_LOGGED_IN::true"
 
     - name: Build Container
       if: ${{ env.ACR_LOGGED_IN == 'true' }}
       run: |
         # Build Image
-        docker build -t image -f src/Automation/CSE.Automation/Dockerfile src/Automation
+        docker build -t ${TEMP_IMG_NAME} -f src/Automation/CSE.Automation/Dockerfile src/Automation
         # Set variable is successful
         [[ $? == 0 ]] && echo "::set-env name=DKR_IMG_IS_BUILT::true"
 
     - name: Docker Push
       if: ${{ env.DKR_IMG_IS_BUILT == 'true' }}
       run: |
-        # Tag and push the docker image
-        IMAGE_ID="${ACR_IMAGE_URL}"
-
-        # Strip git ref prefix from version
-        VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-
-        # Only tag and push when a new tag is created
-        if [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
+        # build the complete image name
+        ACR_IMAGE="${ACR_REG_REPO_URL}"
+        # build release image
+        docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:beta
+        # Tag image based on repo tag if a github label
+        if [[ "${{ github.ref }}" == "refs/tags/"* ]]
+        then
+          # Strip git ref prefix from version
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+        
           # Strip "v" prefix from tag name
-          VERSION=$(echo $VERSION | sed -e 's/^v//')
-
-          docker tag image $IMAGE_ID:$VERSION
-          docker tag image $IMAGE_ID:stable
-          # Push both tags
-          docker push $IMAGE_ID
-
-          echo "Image pushed"
-        else
-          echo "Image only pushed on tags"
+          VERSION=$(echo "${VERSION}" | sed -e 's/^v//')
+          
+          # tag the image with :version and :stable
+          docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:${VERSION}
+          docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:stable
         fi
+        
+        # push the repo
+        docker push ${ACR_IMAGE}
