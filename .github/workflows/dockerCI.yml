@@ -35,7 +35,7 @@ jobs:
       # These are used in if: conditions
       ACR_LOGGED_IN    : false
       DKR_IMG_IS_BUILT : false
-      TEMP_IMG_NAME : sp_image
+      TEMP_IMG_NAME    : sp_image
 
     steps:
     - uses: actions/checkout@v2
