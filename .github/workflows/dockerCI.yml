@@ -11,10 +11,9 @@ on:
       - '**.md'
       - 'spikes/**' # Don't build the spikes unless explicitly specified
 
-      tags:
+    tags:
       - v*
-
-on:
+  
   pull_request:
     types: [ opened, reopened, synchronize, closed ]
     branches:
@@ -32,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ACR_REG_REPO_URL    : ${{ secrets.ACR_REG }}.azurecr.io/${{ secrets.ACR_REPO }}
+      ACR_REG_REPO_URL : ${{ secrets.ACR_REG }}.azurecr.io/${{ secrets.ACR_REPO }}
       # These are used in if: conditions
       ACR_LOGGED_IN    : false
       DKR_IMG_IS_BUILT : false
