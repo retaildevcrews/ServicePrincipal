@@ -22,6 +22,10 @@
         public const string CosmosDBAuditCollectionName = "SPAuditCollection";
         public const string CosmosDBOjbectTrackingCollectionName = "SPObjectTrackingCollection";
 
+        // Azure Storage Queue Constants
+        public const string AzureQueueConnectionString = "AzureQueueConnectionString";
+        public const string AzureDataQueueName = "AzureDataQueueName";
+
         //DAL Constants
 
     }
