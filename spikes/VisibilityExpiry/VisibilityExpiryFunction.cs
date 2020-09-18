@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Storage.Queue;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
@@ -13,7 +14,7 @@ namespace VisibilityExpiry
     public static class VisibilityExpiryFunction
     {
         [FunctionName("VisibilityExpiry")]
-        public static async Task Run(
+        public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
             [Queue("outqueue"), StorageAccount("AzureWebJobsStorage")] CloudQueue msg, ILogger log)
         {
@@ -36,9 +37,9 @@ namespace VisibilityExpiry
                 await msg.AddMessageAsync(new CloudQueueMessage(JsonConvert.SerializeObject(responseMessage)), null, TimeSpan.FromSeconds(5), null, null);
             }
 
-            //return new OkObjectResult(responseMessage);
-
             log.LogInformation($"Added message: \"{responseMessage}\" to queue \n");
+
+            return new OkObjectResult("You have started an unstoppable chain of events");
         }
     }
 }
