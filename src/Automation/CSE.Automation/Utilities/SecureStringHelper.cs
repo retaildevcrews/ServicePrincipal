@@ -8,7 +8,7 @@ namespace CSE.Automation.Utilities
     {
         public static string ConvertToUnsecureString(SecureString secureString)
         {
-            if (secureString == null)
+            if (secureString == null || secureString.Length == 0)
                 throw new ArgumentNullException(nameof(secureString));
 
             IntPtr unmanagedString = IntPtr.Zero;

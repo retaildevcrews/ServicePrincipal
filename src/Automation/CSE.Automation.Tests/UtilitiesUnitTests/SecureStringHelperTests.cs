@@ -27,8 +27,8 @@ namespace CSE.Automation.Tests.UtilitiesUnitTests
         public void ConvertToUnsecureString_WhenStringNullOrEmpty_ThrowsArgumentNullException()
         {
             Assert.Throws<ArgumentNullException>(() => SecureStringHelper.ConvertToUnsecureString(null));
-            //TODO: is this the desired behavior? A secure string with length of zero doesn't throw an exception.
-            //Assert.Throws<ArgumentNullException>(() => SecureStringHelper.ConvertToUnsecureString(new SecureString()));
+
+            Assert.Throws<ArgumentNullException>(() => SecureStringHelper.ConvertToUnsecureString(new SecureString()));
         }
 
         [Fact]
