@@ -67,7 +67,9 @@ namespace CSE.Automation
                 SecureStringHelper.ConvertToUnsecureString(queueConnectionString),
                 SecureStringHelper.ConvertToUnsecureString(dataQueueName));
 
-            int gapIntervalSeconds = 1;
+            int gapIntervalSeconds = 15;
+            int visibilityDelay = default;
+            int recordGap = 300;
             int spCount = 0;
 
             foreach (var sp in servicePrincipals)
@@ -81,8 +83,12 @@ namespace CSE.Automation
                     Document = JsonConvert.SerializeObject(sp),
                     Attempt = 1
                 };
-               
-                int visibilityDelay = spCount * gapIntervalSeconds;
+
+                if (spCount % recordGap == 0)
+                {
+                    visibilityDelay += gapIntervalSeconds;
+                }
+                
 
                 await azureQueue.Send(myMessage, visibilityDelay).ConfigureAwait(true);
                 log.LogInformation($"{sp.DisplayName} - {sp.AppId} - {sp.Notes}");
