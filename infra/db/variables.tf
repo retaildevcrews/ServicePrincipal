@@ -32,6 +32,21 @@ variable "ENV" {
   description = "The last suffix which should be used for all resources in this example. Used by all modules"
 }
 
+variable "COSMOS_AUDIT_COL" {
+  type        = string
+  description = "The CosmosDB Collection name used to hold Audit records"
+}
+
+variable "COSMOS_CONFIG_COL" {
+  type        = string
+  description = "The CosmosDB Collection for hold the system's configuration document"
+}
+
+variable "COSMOS_OBJ_TRACKING_COL" {
+  type        = string
+  description = "The Collection used to hold ServicePrincipal and other AAD object items being tracked"
+}
+
 # variable "REPO" {
 #   type        = string
 #   description = "The Service Principal repo"

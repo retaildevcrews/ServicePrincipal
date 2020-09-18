@@ -37,16 +37,11 @@ variable "COSMOS_URL" {
   description = "This is the primary connection string of the Cosmos DB and will be an output from the resource command."
 
 }
-variable "COSMOS_RO_KEY" {
-  description = "This is the managed identify read-only key from the Cosmos DB and will be an output from the resource command."
-
-}
 
 variable "COSMOS_RW_KEY" {
-  description = "This is the managed identify read-write key from the Cosmos DB and will be an output from the resource command."
+  description = "TThis is the primary read-write key to connect to the Cosmos DB"
 
 }
-
 
 variable "COSMOS_DB" {
   type        = string
@@ -54,12 +49,20 @@ variable "COSMOS_DB" {
 
 }
 
-/*
-variable "COSMOS_COL" {
+variable "COSMOS_AUDIT_COL" {
   type        = string
-  description = "This is the collection name of the Cosmos DB and will be an output from the resource command."
+  description = "The CosmosDB Collection name used to hold Audit records"
 }
-*/
+
+variable "COSMOS_CONFIG_COL" {
+  type        = string
+  description = "The CosmosDB Collection for hold the system's configuration document"
+}
+
+variable "COSMOS_OBJ_TRACKING_COL" {
+  type        = string
+  description = "The Collection used to hold ServicePrincipal and other AAD object items being tracked"
+}
 
 variable "DB_CREATION_DONE" {
   description = "Cosmos DB creation done"
@@ -76,4 +79,14 @@ variable "ENV" {
   description = "The last suffix which should be used for all resources in this example. Used by all modules"
 }
 
+
+variable "AADUPDATE_QUEUE_NAME" {
+  type        = string
+  description = "The AAD Update queue name"
+}
+
+variable "TRACKING_QUEUE_NAME" {
+  type        = string
+  description = "The Tracking Update queue name"
+}
 
