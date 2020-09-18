@@ -50,7 +50,7 @@ namespace CSE.Automation.Utilities
             if (servicePrincipalCollectionPage.AdditionalData.TryGetValue("@odata.deltaLink", out object deltaLink))
             {
                 //TODO save this delta link in cosmosDB when we do a seed
-                Console.WriteLine("Seed Delta Link:" + deltaLink.ToString());
+               // Console.WriteLine("Seed Delta Link:" + deltaLink.ToString());
             }
 
             return servicePrincipalSeedList;
@@ -83,7 +83,7 @@ namespace CSE.Automation.Utilities
             if (servicePrincipalCollectionPage.AdditionalData.TryGetValue("@odata.deltaLink", out object updatedDeltaLink))
             {
                 //TODO save this delta link in cosmosDB when we do a seed
-                Console.WriteLine("Updated Delta Link:" + updatedDeltaLink.ToString());
+                //Console.WriteLine("Updated Delta Link:" + updatedDeltaLink.ToString());
             }
 
             return servicePrincipalList;
