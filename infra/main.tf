@@ -39,6 +39,7 @@ module "asq" {
   APP_RG_NAME   = azurerm_resource_group.rg.name
   STORAGE_ACCOUNT     = module.web.STORAGE_ACCOUNT_NAME
   STORAGE_ACCOUNT_DONE = module.web.STORAGE_ACCOUNT_DONE
+  
 }
 
 # Create Cosmos Database
@@ -50,7 +51,9 @@ module "db" {
   APP_RG_NAME      = azurerm_resource_group.rg.name
   COSMOS_RU        = var.COSMOS_RU
   COSMOS_DB        = var.SHORTNAME
-
+  COSMOS_AUDIT_COL = var.COSMOS_AUDIT_COL
+  COSMOS_CONFIG_COL = var.COSMOS_CONFIG_COL
+  COSMOS_OBJ_TRACKING_COL = var.COSMOS_OBJ_TRACKING_COL
 }
 
 # Create other Web components that have a direct deendency such as WebApp, Functions, Appinsights, KeyVault etc. 
@@ -62,11 +65,15 @@ module "web" {
   LOCATION            = var.LOCATION
   APP_RG_NAME         = azurerm_resource_group.rg.name
   TENANT_ID           = var.TF_TENANT_ID
-  COSMOS_RO_KEY       = module.db.RO_KEY
   COSMOS_RW_KEY       = module.db.RW_KEY
   DB_CREATION_DONE    = module.db.DB_CREATION_DONE
   ENV                 = var.ENV
   COSMOS_DB           = var.SHORTNAME
   COSMOS_URL          = "https://${var.SHORTNAME}-cosmosa-${var.ENV}.documents.azure.com:443/"
+  COSMOS_AUDIT_COL    = var.COSMOS_AUDIT_COL
+  COSMOS_CONFIG_COL   = var.COSMOS_CONFIG_COL
+  COSMOS_OBJ_TRACKING_COL = var.COSMOS_OBJ_TRACKING_COL
+  AADUPDATE_QUEUE_NAME     = module.asq.AAD_QUEUE_NAME
+  TRACKING_QUEUE_NAME      = module.asq.TRACKING_QUEUE_NAME
   REPO                = var.REPO
 }
