@@ -57,20 +57,19 @@ namespace CSE.Automation
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            int visibilityDelay = default;
-            int servicePrincipalCount = default;
-            int visibilityDelayGapSeconds = 8; //TODO move to configuration or KV
-            int queueRecordProcessThreshold = 300; //TODO move to configuration or KV
-
             var queueConnectionString = _secretService.GetSecretValue(Constants.AzureQueueConnectionString);
             var dataQueueName = _secretService.GetSecretValue(Constants.AzureDataQueueName);
-
             var servicePrincipals = _graphHelper.SeedServicePrincipalDeltaAsync("appId,displayName,notes").Result;
             
             IAzureQueueService azureQueue = new AzureQueueService(
                 SecureStringHelper.ConvertToUnsecureString(queueConnectionString),
                 SecureStringHelper.ConvertToUnsecureString(dataQueueName));
-            
+
+            int visibilityDelayGapSeconds = Int32.Parse(Environment.GetEnvironmentVariable("visibilityDelayGapSeconds"));
+            int queueRecordProcessThreshold = Int32.Parse(Environment.GetEnvironmentVariable("queueRecordProcessThreshold"));
+            int servicePrincipalCount = default;
+            int visibilityDelay = default;
+
             foreach (var sp in servicePrincipals)
             {
                 if (String.IsNullOrWhiteSpace(sp.AppId) || String.IsNullOrWhiteSpace(sp.DisplayName))
@@ -87,11 +86,11 @@ namespace CSE.Automation
                 {
                     visibilityDelay += visibilityDelayGapSeconds;
                 }
-                
                 await azureQueue.Send(myMessage, visibilityDelay).ConfigureAwait(true);
-                log.LogInformation($"{sp.DisplayName} - {sp.AppId} - {sp.Notes}");
                 servicePrincipalCount++;
             }
+            log.LogInformation($"Finishd Processing {servicePrincipalCount} Service Principal Objects.");
+
 
             return new OkObjectResult($"Success");
         }
