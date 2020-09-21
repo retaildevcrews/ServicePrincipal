@@ -11,8 +11,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Graph;
-using System.Collections.Generic;
+using CSE.Automation.Services;
+using Newtonsoft.Json;
 
 namespace CSE.Automation
 {
@@ -57,28 +57,40 @@ namespace CSE.Automation
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            try
+            var queueConnectionString = _secretService.GetSecretValue(Constants.AzureQueueConnectionString);
+            var dataQueueName = _secretService.GetSecretValue(Constants.AzureDataQueueName);
+            var servicePrincipals = _graphHelper.SeedServicePrincipalDeltaAsync("appId,displayName,notes").Result;
+            
+            IAzureQueueService azureQueue = new AzureQueueService(
+                SecureStringHelper.ConvertToUnsecureString(queueConnectionString),
+                SecureStringHelper.ConvertToUnsecureString(dataQueueName));
+
+            int visibilityDelayGapSeconds = Int32.Parse(Environment.GetEnvironmentVariable("visibilityDelayGapSeconds"));
+            int queueRecordProcessThreshold = Int32.Parse(Environment.GetEnvironmentVariable("queueRecordProcessThreshold"));
+            int servicePrincipalCount = default;
+            int visibilityDelay = default;
+
+            foreach (var sp in servicePrincipals)
             {
-                var servicePrincipals = _graphHelper.SeedServicePrincipalDeltaAsync("appId,displayName,notes").Result;
+                if (String.IsNullOrWhiteSpace(sp.AppId) || String.IsNullOrWhiteSpace(sp.DisplayName))
+                    continue;
 
-                foreach (var sp in servicePrincipals)
-
+                var myMessage = new Model.QueueMessage()
                 {
-                    if (String.IsNullOrWhiteSpace(sp.AppId) || String.IsNullOrWhiteSpace(sp.DisplayName))
-                        continue;
-                    //TODO
-                    //1. validate values
-                    //2. save...
-                    //3. audit...
-                    log.LogInformation($"{sp.DisplayName} - {sp.AppId} - {sp.Notes}");
+                    QueueMessageType = Model.QueueMessageType.Data,
+                    Document = JsonConvert.SerializeObject(sp),
+                    Attempt = 1
+                };
+
+                if (servicePrincipalCount % queueRecordProcessThreshold == 0)
+                {
+                    visibilityDelay += visibilityDelayGapSeconds;
                 }
+                await azureQueue.Send(myMessage, visibilityDelay).ConfigureAwait(true);
+                servicePrincipalCount++;
             }
-            catch(Exception ex)
-            {
-                log.LogError(ex.Message);
-                Debug.WriteLine(ex.Message);
-            }
-           
+            log.LogInformation($"Finishd Processing {servicePrincipalCount} Service Principal Objects.");
+
 
             return new OkObjectResult($"Success");
         }
