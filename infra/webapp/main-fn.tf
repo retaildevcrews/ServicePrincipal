@@ -44,6 +44,11 @@ resource "azurerm_function_app" "fn-default" {
     app_service_plan_id = azurerm_app_service_plan.app-plan.id
     storage_account_name        = azurerm_storage_account.svc-ppl-storage-acc.name
     storage_account_access_key = azurerm_storage_account.svc-ppl-storage-acc.primary_access_key
+    
+    identity  {
+      type = "SystemAssigned"
+    } 
+
     app_settings = {
         APPINSIGHTS_INSTRUMENTATIONKEY = "${azurerm_application_insights.svc-ppl-appi.instrumentation_key}"
 
@@ -61,13 +66,26 @@ resource "azurerm_function_app" "fn-default" {
   
 }
 
+
+
+# https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/data-sources/service_principal
+
+# If you're authenticating using a Service Principal then it must have permissions 
+# to both Read and write all applications and Sign in and read user profile 
+# within the Windows Azure Active Directory API.
+
+data "azuread_service_principal" "funcn-system-id" {
+   depends_on   = [azurerm_function_app.fn-default]
+   display_name = azurerm_function_app.fn-default.name
+}
+
+
 output "function_defaut_name" {
   value = azurerm_function_app.fn-default.name
 }
 
 output "APP_FUNCTION_SERVICE_DONE" {
-  depends_on  = [ azurerm_function_app.fn-default
-                  ]
+  depends_on  = [ azurerm_function_app.fn-default]
   value       = true
   description = "App Function Service setup is complete"
 }
