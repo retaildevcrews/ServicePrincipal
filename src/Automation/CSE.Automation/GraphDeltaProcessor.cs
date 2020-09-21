@@ -57,21 +57,20 @@ namespace CSE.Automation
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-
-            var servicePrincipals = _graphHelper.SeedServicePrincipalDeltaAsync("appId,displayName,notes").Result;
+            int visibilityDelay = default;
+            int servicePrincipalCount = default;
+            int visibilityDelayGapSeconds = 8; //TODO move to configuration or KV
+            int queueRecordProcessThreshold = 300; //TODO move to configuration or KV
 
             var queueConnectionString = _secretService.GetSecretValue(Constants.AzureQueueConnectionString);
             var dataQueueName = _secretService.GetSecretValue(Constants.AzureDataQueueName);
 
+            var servicePrincipals = _graphHelper.SeedServicePrincipalDeltaAsync("appId,displayName,notes").Result;
+            
             IAzureQueueService azureQueue = new AzureQueueService(
                 SecureStringHelper.ConvertToUnsecureString(queueConnectionString),
                 SecureStringHelper.ConvertToUnsecureString(dataQueueName));
-
-            int gapIntervalSeconds = 15;
-            int visibilityDelay = default;
-            int recordGap = 300;
-            int spCount = 0;
-
+            
             foreach (var sp in servicePrincipals)
             {
                 if (String.IsNullOrWhiteSpace(sp.AppId) || String.IsNullOrWhiteSpace(sp.DisplayName))
@@ -84,15 +83,14 @@ namespace CSE.Automation
                     Attempt = 1
                 };
 
-                if (spCount % recordGap == 0)
+                if (servicePrincipalCount % queueRecordProcessThreshold == 0)
                 {
-                    visibilityDelay += gapIntervalSeconds;
+                    visibilityDelay += visibilityDelayGapSeconds;
                 }
                 
-
                 await azureQueue.Send(myMessage, visibilityDelay).ConfigureAwait(true);
                 log.LogInformation($"{sp.DisplayName} - {sp.AppId} - {sp.Notes}");
-                spCount++;
+                servicePrincipalCount++;
             }
 
             return new OkObjectResult($"Success");
