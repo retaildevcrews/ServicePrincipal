@@ -3,14 +3,25 @@ name: Docker CI
 on:
   push:
     branches:
-      - master
+      - main
 
-    paths:
-      - 'src/**'
-      - 'Dockerfile*'
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - 'spikes/**' # Don't build the spikes unless explicitly specified
 
     tags:
       - v*
+  
+  pull_request:
+    types: [ opened, reopened, synchronize, closed ]
+    branches:
+      - main
+
+    paths-ignore:
+    - 'docs/**'
+    - '**.md'
+    - 'spikes/**' # Don't build the spikes unless explicitly specified
 
 jobs:
 
@@ -18,45 +29,62 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      ACR_REG_REPO_URL : ${{ secrets.ACR_REG }}.azurecr.io/${{ secrets.ACR_REPO }}
+      # These are used in if: conditions
+      ACR_LOGGED_IN    : false
+      DKR_IMG_IS_BUILT : false
+      TEMP_IMG_NAME    : sp_image
+
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
 
-    - name: Login to registry
+    - name: Login to Azure registry
+      # do not copy the actual secrets
+      # do not echo secrets
+      # You must add the following secrets to github repo
+      #    SERVICE_PRINCIPAL_ID     - ServicePrincipal Application ID
+      #    SERVICE_PRINCIPAL_SECRET - Access Secret for the ServicePrincipal
+      #    ACR_REG_REPO_URL         - Azure Registry/repository name in the form: registry.azurecr.io/repository
+      # Overall azure reg/repo address will be in the form : $ACR_REG.azurecr.io/$ACR_REPO
       run: |
-        # Login to registry
-
-        # You must add the following secrets to github
-        #    DOCKER_USER  - your dockerhub user name
-        #    DOCKER_PAT   - the personal access token for dockerhub
-        #    DOCKER_REPO  - the docker repository name in the form: organization/repository
-
-        ## login to dockerhub
-        echo "${{ secrets.DOCKER_PAT }}" | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
+        # Login to Azure registry
+        echo "${{ secrets.SERVICE_PRINCIPAL_SECRET }}" | docker login "${ACR_REG_REPO_URL}" -u ${{ secrets.SERVICE_PRINCIPAL_ID }} --password-stdin
+        # If docker login is successful, set env variable
+        [[ $? == 0 ]] && echo "::set-env name=ACR_LOGGED_IN::true"
 
     - name: Build Container
-      run: docker build . --file Dockerfile --tag image
+      if: ${{ env.ACR_LOGGED_IN == 'true' }}
+      run: |
+        # Build Image
+        docker build -t ${TEMP_IMG_NAME} -f src/Automation/CSE.Automation/Dockerfile src/Automation
+        # Set variable is successful
+        [[ $? == 0 ]] && echo "::set-env name=DKR_IMG_IS_BUILT::true"
 
     - name: Docker Push
+      if: ${{ env.DKR_IMG_IS_BUILT == 'true' }}
       run: |
-        # Tag and push the docker image
-
-        IMAGE_ID=${{ secrets.DOCKER_REPO }}
-
-        # Strip git ref prefix from version
-        VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-
-        # Only tag and push when a new tag is created
+        # build the complete image name
+        ACR_IMAGE="${ACR_REG_REPO_URL}"
+        # build release image
+        docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:beta
+        # Tag image based on repo tag if a github label
         if [[ "${{ github.ref }}" == "refs/tags/"* ]]
         then
+          # Strip git ref prefix from version
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+        
           # Strip "v" prefix from tag name
-          VERSION=$(echo $VERSION | sed -e 's/^v//')
-  
-          docker tag image $IMAGE_ID:$VERSION
-          docker tag image $IMAGE_ID:stable
-  
-          docker push $IMAGE_ID
+          VERSION=$(echo "${VERSION}" | sed -e 's/^v//')
+          
+          # Remove the beta tag
+          docker rmi ${ACR_IMAGE}:beta
 
-          echo "Image pushed"
-        else
-          echo "Image only pushed on tags"
+          # tag the image with :version and :stable
+          docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:${VERSION}
+          docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:stable
         fi
+        
+        # push the repo
+        # Here it will push either :beta or :stable and :version
+        docker push ${ACR_IMAGE}

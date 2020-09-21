@@ -47,11 +47,11 @@ namespace CSE.Automation.Utilities
                 servicePrincipalSeedList.AddRange(servicePrincipalCollectionPage.CurrentPage);
             }
 
-            if (servicePrincipalCollectionPage.AdditionalData.TryGetValue("@odata.deltaLink", out object deltaLink))
-            {
-                //TODO save this delta link in cosmosDB when we do a seed
-                Console.WriteLine("Seed Delta Link:" + deltaLink.ToString());
-            }
+            //if (servicePrincipalCollectionPage.AdditionalData.TryGetValue("@odata.deltaLink", out object deltaLink))
+            //{
+            //    //TODO save this delta link in cosmosDB when we do a seed
+            //   // Console.WriteLine("Seed Delta Link:" + deltaLink.ToString());
+            //}
 
             return servicePrincipalSeedList;
         }
@@ -80,11 +80,11 @@ namespace CSE.Automation.Utilities
                 servicePrincipalList.AddRange(servicePrincipalCollectionPage.CurrentPage);
             }
 
-            if (servicePrincipalCollectionPage.AdditionalData.TryGetValue("@odata.deltaLink", out object updatedDeltaLink))
-            {
-                //TODO save this delta link in cosmosDB when we do a seed
-                Console.WriteLine("Updated Delta Link:" + updatedDeltaLink.ToString());
-            }
+            //if (servicePrincipalCollectionPage.AdditionalData.TryGetValue("@odata.deltaLink", out object updatedDeltaLink))
+            //{
+            //    //TODO save this delta link in cosmosDB when we do a seed
+            //    //Console.WriteLine("Updated Delta Link:" + updatedDeltaLink.ToString());
+            //}
 
             return servicePrincipalList;
 

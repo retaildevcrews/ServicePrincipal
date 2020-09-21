@@ -60,6 +60,21 @@ variable "ACR_SP_SECRET" {
   description = "The ACR Service Principal secret"
 }
 
+variable "COSMOS_AUDIT_COL" {
+  type        = string
+  description = "The CosmosDB Collection name used to hold Audit records"
+}
+
+variable "COSMOS_CONFIG_COL" {
+  type        = string
+  description = "The CosmosDB Collection for hold the system's configuration document"
+}
+
+variable "COSMOS_OBJ_TRACKING_COL" {
+  type        = string
+  description = "The Collection used to hold ServicePrincipal and other AAD object items being tracked"
+}
+
 variable "REPO" {
   type        = string
   description = "The databricks-scim-automation repo"

@@ -4,6 +4,9 @@ data "azurerm_client_config" "current" {}
 
 # Create Key Vault // As of today 8-27-2020 v13.1 has some issues https://github.com/hashicorp/terraform/issues/26011
 resource "azurerm_key_vault" "kv" {
+  
+  depends_on = [azurerm_storage_account.svc-ppl-storage-acc]
+
   name                            = "${var.NAME}-kv-${var.ENV}"
   location                        = var.LOCATION
   resource_group_name             = var.APP_RG_NAME
@@ -48,25 +51,30 @@ resource "azurerm_key_vault_access_policy" "terraform-sp" {
 
 # }
 
+
+ resource "azurerm_key_vault_access_policy" "fn-default-pol" {
+   depends_on = [azurerm_function_app.fn-default]
+
+   key_vault_id = azurerm_key_vault.kv.id
+   tenant_id    = var.TENANT_ID  # this access policy will get the name of TenantID -- [svc_ppl_Name]
+   object_id =  data.azuread_service_principal.funcn-system-id.id
+
+   secret_permissions = [
+       "Get",
+       "List",
+       "Set"
+   ]
+ }
+
+
 resource "azurerm_key_vault_secret" "cosmosurl" {
 
    depends_on = [
     azurerm_key_vault_access_policy.terraform-sp
   ]
 
-  name         = "CosmosUrl"
+  name         = "SPCosmosURL"
   value        = var.COSMOS_URL
-  key_vault_id = azurerm_key_vault.kv.id
-}
-
-resource "azurerm_key_vault_secret" "cosmosrokey" {
-
-    depends_on = [
-    azurerm_key_vault_access_policy.terraform-sp
-  ]
-
-  name         = "CosmosReadOnlyKey"
-  value        = var.COSMOS_RO_KEY
   key_vault_id = azurerm_key_vault.kv.id
 }
 
@@ -76,7 +84,7 @@ resource "azurerm_key_vault_secret" "cosmosrwkey" {
     azurerm_key_vault_access_policy.terraform-sp
   ]
 
-  name         = "CosmosReadWriteKey"
+  name         = "SPCosmosKey"
   value        = var.COSMOS_RW_KEY
   key_vault_id = azurerm_key_vault.kv.id
 }
@@ -88,23 +96,46 @@ resource "azurerm_key_vault_secret" "cosmosdatabase" {
     azurerm_key_vault_access_policy.terraform-sp
   ]
 
-  name         = "CosmosDatabase"
+  name         = "SPCosmosDatabase"
   value        = "${var.COSMOS_DB}-cosmos-${var.ENV}"
   key_vault_id = azurerm_key_vault.kv.id
 }
 
-/*
-resource "azurerm_key_vault_secret" "cosmoscol" {
+
+resource "azurerm_key_vault_secret" "cosmosauditcol" {
   
   depends_on = [
     azurerm_key_vault_access_policy.terraform-sp
   ]
   
-  name         = "CosmosCollection"
-  value        = var.COSMOS_COL
+  name         = "SPAuditCollection"
+  value        = var.COSMOS_AUDIT_COL
   key_vault_id = azurerm_key_vault.kv.id
 }
-*/
+
+
+resource "azurerm_key_vault_secret" "cosmosconfigcol" {
+  
+  depends_on = [
+    azurerm_key_vault_access_policy.terraform-sp
+  ]
+  
+  name         = "SPConfigurationCollection"
+  value        = var.COSMOS_CONFIG_COL
+  key_vault_id = azurerm_key_vault.kv.id
+}
+
+resource "azurerm_key_vault_secret" "cosmosobktrackingcol" {
+  
+  depends_on = [
+    azurerm_key_vault_access_policy.terraform-sp
+  ]
+  
+  name         = "SPObjectTracking"
+  value        = var.COSMOS_OBJ_TRACKING_COL
+  key_vault_id = azurerm_key_vault.kv.id
+}
+
 
 resource "azurerm_key_vault_secret" "appinsights" {
   
@@ -123,7 +154,29 @@ resource "azurerm_key_vault_secret" "storageaccpk" {
     azurerm_key_vault_access_policy.terraform-sp
   ]
 
-  name         = "StorageAccountPrimaryKey"
+  name         = "SPStorageAccountPrimaryKey"
   value        = azurerm_storage_account.svc-ppl-storage-acc.primary_access_key
+  key_vault_id = azurerm_key_vault.kv.id
+}
+
+resource "azurerm_key_vault_secret" "aadupdatequeue" {
+  
+  depends_on = [
+    azurerm_key_vault_access_policy.terraform-sp
+  ]
+
+  name         = "SPAADUpdateQueue"
+  value        = var.AADUPDATE_QUEUE_NAME
+  key_vault_id = azurerm_key_vault.kv.id
+}
+
+resource "azurerm_key_vault_secret" "trackingupdatequeue" {
+  
+  depends_on = [
+    azurerm_key_vault_access_policy.terraform-sp
+  ]
+
+  name         = "SPTrackingUpdateQueue"
+  value        = var.TRACKING_QUEUE_NAME
   key_vault_id = azurerm_key_vault.kv.id
 }
