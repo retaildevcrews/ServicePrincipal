@@ -1,7 +1,5 @@
 using System;
-
 using System.Diagnostics;
-using System.Security;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Utilities;
 using Microsoft.Azure.WebJobs;
@@ -12,8 +10,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using CSE.Automation.Services;
-using Newtonsoft.Json;
 using System.Globalization;
+using Microsoft.Graph;
 
 namespace CSE.Automation
 {
@@ -22,10 +20,10 @@ namespace CSE.Automation
         private readonly ICredentialService _credService;
         private readonly ISecretClient _secretService;
 
-        private readonly IGraphHelper _graphHelper;
+        private readonly IGraphHelper<ServicePrincipal> _graphHelper;
         private readonly IDALResolver _DALResolver;
 
-        public GraphDeltaProcessor(ISecretClient secretClient, ICredentialService credService, IGraphHelper graphHelper, IDALResolver dalResolver)
+        public GraphDeltaProcessor(ISecretClient secretClient, ICredentialService credService, IGraphHelper<ServicePrincipal> graphHelper, IDALResolver dalResolver)
         {
             _credService = credService;
             _secretService = secretClient;
@@ -51,7 +49,6 @@ namespace CSE.Automation
         }
 
 
-
         [FunctionName("SeedServicePrincipal")]
         public async Task<IActionResult> SeedServicePrincipal(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
@@ -59,8 +56,17 @@ namespace CSE.Automation
         {
             var queueConnectionString = _secretService.GetSecretValue(Constants.SPStorageConnectionString);
             var dataQueueName = _secretService.GetSecretValue(Constants.SPTrackingUpdateQueue);
-            var servicePrincipals = _graphHelper.SeedServicePrincipalDeltaAsync("appId,displayName,notes").Result;
-            
+            string deltaLink = "TBD"; //TODO Get this from cosmos
+            Model.Configuration config = null; //TODO
+
+            var servicePrincipalResult = _graphHelper.GetDeltaGraphObjects("appId,displayName,notes",deltaLink,config).Result;
+
+            string updatedDeltaLink = servicePrincipalResult.Item1;
+            var servicePrincipals = servicePrincipalResult.Item2;
+
+
+            log.LogInformation($"Updated Delta Link: {updatedDeltaLink}");
+
             IAzureQueueService azureQueue = new AzureQueueService(queueConnectionString, dataQueueName);
 
             int visibilityDelayGapSeconds = Int32.Parse(Environment.GetEnvironmentVariable("visibilityDelayGapSeconds"), CultureInfo.InvariantCulture);
