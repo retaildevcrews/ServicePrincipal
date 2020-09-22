@@ -64,9 +64,6 @@ namespace CSE.Automation
             string updatedDeltaLink = servicePrincipalResult.Item1;
             var servicePrincipals = servicePrincipalResult.Item2;
 
-
-            log.LogInformation($"Updated Delta Link: {updatedDeltaLink}");
-
             IAzureQueueService azureQueue = new AzureQueueService(queueConnectionString, dataQueueName);
 
             int visibilityDelayGapSeconds = Int32.Parse(Environment.GetEnvironmentVariable("visibilityDelayGapSeconds"), CultureInfo.InvariantCulture);
