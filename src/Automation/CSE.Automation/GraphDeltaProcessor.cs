@@ -5,6 +5,7 @@ using System.Security;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Utilities;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.Storage.Queue;
 using Microsoft.Extensions.Logging;
 
 using System.Threading.Tasks;
@@ -24,12 +25,15 @@ namespace CSE.Automation
         private readonly IGraphHelper _graphHelper;
         private readonly IDALResolver _DALResolver;
 
+
         public GraphDeltaProcessor(ISecretClient secretClient, ICredentialService credService, IGraphHelper graphHelper, IDALResolver dalResolver)
         {
             _credService = credService;
             _secretService = secretClient;
             _graphHelper = graphHelper;
             _DALResolver = dalResolver;
+
+            Console.WriteLine(Environment.GetEnvironmentVariable("Constants.SPStorageConnectionString"));
         }
 
         [FunctionName("ServicePrincipalDeltas")]
@@ -57,8 +61,8 @@ namespace CSE.Automation
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            var queueConnectionString = _secretService.GetSecretValue(Constants.AzureQueueConnectionString);
-            var dataQueueName = _secretService.GetSecretValue(Constants.AzureDataQueueName);
+            var queueConnectionString = _secretService.GetSecretValue(Constants.SPStorageConnectionString);
+            var dataQueueName = _secretService.GetSecretValue(Constants.SPTrackingUpdateQueue);
             var servicePrincipals = _graphHelper.SeedServicePrincipalDeltaAsync("appId,displayName,notes").Result;
             
             IAzureQueueService azureQueue = new AzureQueueService(
@@ -95,5 +99,12 @@ namespace CSE.Automation
             return new OkObjectResult($"Success");
         }
 
+        [FunctionName("QueueTriggerFunction")]
+        [StorageAccount(Constants.SPStorageConnectionString)]
+        public static void Run([QueueTrigger(Constants.SPTrackingUpdateQueue)] CloudQueueMessage msg, ILogger log)
+        {
+            log.LogInformation("Incoming message\n");
+            log.LogInformation($"C# Queue trigger function processed: {msg.AsString} \n");
+        }
     }
 }

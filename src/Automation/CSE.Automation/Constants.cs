@@ -23,8 +23,9 @@
         public const string CosmosDBOjbectTrackingCollectionName = "SPObjectTrackingCollection";
 
         // Azure Storage Queue Constants
-        public const string AzureQueueConnectionString = "AzureQueueConnectionString";
-        public const string AzureDataQueueName = "AzureDataQueueName";
+        public const string SPStorageConnectionString = "SPStorageConnectionString";
+        public const string SPTrackingUpdateQueue = "SPTrackingUpdateQueue";
+        public const string SPAADUpdateQueue = "SPAADUpdateQueue";
 
         //DAL Constants
 
