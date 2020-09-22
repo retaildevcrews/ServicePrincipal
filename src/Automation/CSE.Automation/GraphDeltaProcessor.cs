@@ -13,6 +13,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using CSE.Automation.Services;
 using Newtonsoft.Json;
+using System.Globalization;
 
 namespace CSE.Automation
 {
@@ -65,31 +66,41 @@ namespace CSE.Automation
                 SecureStringHelper.ConvertToUnsecureString(queueConnectionString),
                 SecureStringHelper.ConvertToUnsecureString(dataQueueName));
 
-            int visibilityDelayGapSeconds = Int32.Parse(Environment.GetEnvironmentVariable("visibilityDelayGapSeconds"));
-            int queueRecordProcessThreshold = Int32.Parse(Environment.GetEnvironmentVariable("queueRecordProcessThreshold"));
+            int visibilityDelayGapSeconds = Int32.Parse(Environment.GetEnvironmentVariable("visibilityDelayGapSeconds"), CultureInfo.InvariantCulture);
+            int queueRecordProcessThreshold = Int32.Parse(Environment.GetEnvironmentVariable("queueRecordProcessThreshold"),CultureInfo.InvariantCulture);
+            
             int servicePrincipalCount = default;
             int visibilityDelay = default;
 
+            log.LogInformation($"Processing Service Principal objects from Graph...");
             foreach (var sp in servicePrincipals)
             {
                 if (String.IsNullOrWhiteSpace(sp.AppId) || String.IsNullOrWhiteSpace(sp.DisplayName))
                     continue;
 
+                var servicePrincipal = new Model.ServicePrincipal()
+                {
+                    AppId = sp.AppId,
+                    DisplayName = sp.DisplayName,
+                    Notes = sp.Notes
+                };
+
                 var myMessage = new Model.QueueMessage()
                 {
                     QueueMessageType = Model.QueueMessageType.Data,
-                    Document = JsonConvert.SerializeObject(sp),
-                    Attempt = 1
+                    Document = servicePrincipal,
+                    Attempt = 0
                 };
 
-                if (servicePrincipalCount % queueRecordProcessThreshold == 0)
+                if (servicePrincipalCount % queueRecordProcessThreshold == 0 && servicePrincipalCount!=0)
                 {
+                    log.LogInformation($"Processed {servicePrincipalCount} Service Principal Objects.");
                     visibilityDelay += visibilityDelayGapSeconds;
                 }
                 await azureQueue.Send(myMessage, visibilityDelay).ConfigureAwait(true);
                 servicePrincipalCount++;
             }
-            log.LogInformation($"Finishd Processing {servicePrincipalCount} Service Principal Objects.");
+            log.LogInformation($"Finished Processing {servicePrincipalCount} Service Principal Objects.");
 
 
             return new OkObjectResult($"Success");
