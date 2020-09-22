@@ -57,8 +57,8 @@ namespace CSE.Automation
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            var queueConnectionString = _secretService.GetSecretValue(Constants.AzureQueueConnectionString);
-            var dataQueueName = _secretService.GetSecretValue(Constants.AzureDataQueueName);
+            var queueConnectionString = _secretService.GetSecretValue(Constants.SPStorageConnectionString);
+            var dataQueueName = _secretService.GetSecretValue(Constants.SPTrackingUpdateQueue);
             var servicePrincipals = _graphHelper.SeedServicePrincipalDeltaAsync("appId,displayName,notes").Result;
             
             IAzureQueueService azureQueue = new AzureQueueService(
