@@ -5,8 +5,12 @@ using CSE.Automation.Interfaces;
 
 namespace CSE.Automation.Processors
 {
-    public class ServicePrincipalProcessor:IDeltaProcessor
+    public class ServicePrincipalProcessor:DeltaProcessorBase
     {
+        public ServicePrincipalProcessor (IDAL configDAL):base(configDAL)
+        {
+
+        }
         public void ProcessDeltas()
         {
 
