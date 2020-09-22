@@ -18,4 +18,8 @@
     <ProjectReference Include="..\CSE.Automation\CSE.Automation.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="UtilitiesUnitTests\" />
+  </ItemGroup>
+
 </Project>

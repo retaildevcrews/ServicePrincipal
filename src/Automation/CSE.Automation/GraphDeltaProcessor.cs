@@ -40,9 +40,8 @@ namespace CSE.Automation
         {
             try
             {
-                var kvSecret = _secretService.GetSecret("testSecret");
-                SecureString secureValue = _secretService.GetSecretValue("testSecret");
-                Debug.WriteLine(SecureStringHelper.ConvertToUnsecureString(secureValue));
+                var kvSecretValue = _secretService.GetSecretValue("testSecret");
+                Debug.WriteLine(kvSecretValue);
             }
             catch (Exception ex)
             {
@@ -62,9 +61,7 @@ namespace CSE.Automation
             var dataQueueName = _secretService.GetSecretValue(Constants.SPTrackingUpdateQueue);
             var servicePrincipals = _graphHelper.SeedServicePrincipalDeltaAsync("appId,displayName,notes").Result;
             
-            IAzureQueueService azureQueue = new AzureQueueService(
-                SecureStringHelper.ConvertToUnsecureString(queueConnectionString),
-                SecureStringHelper.ConvertToUnsecureString(dataQueueName));
+            IAzureQueueService azureQueue = new AzureQueueService(queueConnectionString, dataQueueName);
 
             int visibilityDelayGapSeconds = Int32.Parse(Environment.GetEnvironmentVariable("visibilityDelayGapSeconds"), CultureInfo.InvariantCulture);
             int queueRecordProcessThreshold = Int32.Parse(Environment.GetEnvironmentVariable("queueRecordProcessThreshold"),CultureInfo.InvariantCulture);
