@@ -10,7 +10,7 @@ namespace CSE.Automation.Model
 
         public int Attempt { get; set; }
 
-        public string Document { get; set; }
+        public GraphModel Document { get; set; }
     }
 
     public enum QueueMessageType
