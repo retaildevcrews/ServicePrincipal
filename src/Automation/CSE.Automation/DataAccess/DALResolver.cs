@@ -12,9 +12,9 @@ namespace CSE.Automation.DataAccess
     {
         private ConcurrentDictionary<string, IDAL> _registeredDALs = new System.Collections.Concurrent.ConcurrentDictionary<string, IDAL>();
         private ISecretClient _secretClient;
-        private SecureString _cosmosURL;
-        private SecureString _cosmosKey;
-        private SecureString _cosmosDatabaseName;
+        private readonly string _cosmosURL;
+        private readonly string _cosmosKey;
+        private readonly string _cosmosDatabaseName;
 
         public DALResolver (ISecretClient secretClient)
         {
@@ -28,7 +28,7 @@ namespace CSE.Automation.DataAccess
         private IDAL CreateDAL(DALCollection collectionName)
         {
             string collectionNameKey = default;
-            SecureString cosmosCollectionName = default;
+            string cosmosCollectionName = default;
 
             switch (collectionName){
                 case DALCollection.Audit:
@@ -44,10 +44,7 @@ namespace CSE.Automation.DataAccess
 
             cosmosCollectionName = _secretClient.GetSecretValue(collectionNameKey);
 
-            return new DAL(new Uri(SecureStringHelper.ConvertToUnsecureString(_cosmosURL)),
-                           SecureStringHelper.ConvertToUnsecureString(_cosmosKey),
-                           SecureStringHelper.ConvertToUnsecureString(_cosmosDatabaseName),
-                           SecureStringHelper.ConvertToUnsecureString(cosmosCollectionName));
+            return new DAL(new Uri(_cosmosURL), _cosmosKey, _cosmosDatabaseName, cosmosCollectionName);
 
 
         }

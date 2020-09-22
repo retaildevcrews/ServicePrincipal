@@ -1,9 +1,7 @@
 ﻿using Azure.Security.KeyVault.Secrets;
-using CSE.Automation.Interfaces;
-using CSE.Automation.Utilities;
-using System;
-using System.Security;
 using CSE.Automation.Base;
+using CSE.Automation.Interfaces;
+using System;
 
 namespace CSE.Automation.KeyVault
 {
@@ -37,9 +35,9 @@ namespace CSE.Automation.KeyVault
             return _secretClient.GetSecret(secretName);
         }
 
-        public SecureString GetSecretValue(string secretName)
+        public string GetSecretValue(string secretName)
         {
-            return SecureStringHelper.ConvertToSecureString(GetSecret(secretName).Value);
+            return GetSecret(secretName).Value;
         }
     }
 }
