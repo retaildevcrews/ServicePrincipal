@@ -13,6 +13,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using CSE.Automation.Services;
 using Newtonsoft.Json;
+using System.Globalization;
 
 namespace CSE.Automation
 {
@@ -65,8 +66,9 @@ namespace CSE.Automation
                 SecureStringHelper.ConvertToUnsecureString(queueConnectionString),
                 SecureStringHelper.ConvertToUnsecureString(dataQueueName));
 
-            int visibilityDelayGapSeconds = Int32.Parse(Environment.GetEnvironmentVariable("visibilityDelayGapSeconds"));
-            int queueRecordProcessThreshold = Int32.Parse(Environment.GetEnvironmentVariable("queueRecordProcessThreshold"));
+            int visibilityDelayGapSeconds = Int32.Parse(Environment.GetEnvironmentVariable("visibilityDelayGapSeconds"), CultureInfo.InvariantCulture);
+            int queueRecordProcessThreshold = Int32.Parse(Environment.GetEnvironmentVariable("queueRecordProcessThreshold"),CultureInfo.InvariantCulture);
+            
             int servicePrincipalCount = default;
             int visibilityDelay = default;
 
