@@ -33,9 +33,7 @@ namespace CSE.Automation
             var graphAppTentantId = secretService.GetSecretValue(Constants.GraphAppTenantIdKey);
             var graphAppClientSecret = secretService.GetSecretValue(Constants.GraphAppClientSecretKey);
 
-            var graphHelper =  new GraphHelper(SecureStringHelper.ConvertToUnsecureString(graphAppClientId), 
-                                    SecureStringHelper.ConvertToUnsecureString(graphAppTentantId), 
-                                    SecureStringHelper.ConvertToUnsecureString(graphAppClientSecret));
+            var graphHelper =  new GraphHelper(graphAppClientId, graphAppTentantId, graphAppClientSecret);
 
             builder.Services.AddSingleton<IGraphHelper>(graphHelper);
 
