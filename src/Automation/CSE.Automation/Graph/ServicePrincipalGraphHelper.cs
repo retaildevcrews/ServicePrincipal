@@ -26,7 +26,7 @@ namespace CSE.Automation.Utilities
         }
 
         //TODO: Currently this function only does a full seed, need to use configuration to determine if doing delta vs seed
-        public async Task<(string, IEnumerable<ServicePrincipal>)> GetDeltaGraphObjects(string selectFields, string deltaLink, Model.Configuration config)
+        public async Task<(string, IEnumerable<ServicePrincipal>)> GetDeltaGraphObjects(string selectFields, Model.Configuration config)
         {
             IServicePrincipalDeltaCollectionPage servicePrincipalCollectionPage;
 

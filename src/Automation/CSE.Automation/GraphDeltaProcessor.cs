@@ -56,10 +56,9 @@ namespace CSE.Automation
         {
             var queueConnectionString = _secretService.GetSecretValue(Constants.SPStorageConnectionString);
             var dataQueueName = _secretService.GetSecretValue(Constants.SPTrackingUpdateQueue);
-            string deltaLink = "TBD"; //TODO Get this from cosmos
             Model.Configuration config = null; //TODO
 
-            var servicePrincipalResult = _graphHelper.GetDeltaGraphObjects("appId,displayName,notes",deltaLink,config).Result;
+            var servicePrincipalResult = _graphHelper.GetDeltaGraphObjects("appId,displayName,notes",config).Result;
 
             string updatedDeltaLink = servicePrincipalResult.Item1;
             var servicePrincipals = servicePrincipalResult.Item2;

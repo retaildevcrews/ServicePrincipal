@@ -6,6 +6,6 @@ namespace CSE.Automation.Utilities
 {
     public interface IGraphHelper<T>
     {
-        Task<(string,IEnumerable<T>)> GetDeltaGraphObjects(string selectFields,string deltaLink, Configuration config);
+        Task<(string,IEnumerable<T>)> GetDeltaGraphObjects(string selectFields,Configuration config);
     }
 }
