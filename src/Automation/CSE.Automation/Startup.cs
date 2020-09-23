@@ -1,13 +1,12 @@
-﻿using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+﻿using CSE.Automation.DataAccess;
+using CSE.Automation.Interfaces;
+using CSE.Automation.KeyVault;
+using CSE.Automation.Services;
+using CSE.Automation.Utilities;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Diagnostics;
-using CSE.Automation.Interfaces;
-using CSE.Automation.Services;
-using CSE.Automation.Utilities;
-using CSE.Automation.KeyVault;
-using CSE.Automation.DataAccess;
-using System.Configuration;
 
 [assembly: FunctionsStartup(typeof(CSE.Automation.Startup))]
 
@@ -21,8 +20,6 @@ namespace CSE.Automation
                 throw new ArgumentNullException(nameof(builder));
 
             Debug.WriteLine(Environment.GetEnvironmentVariable("AUTH_TYPE"));
-            ConfigurationManager.AppSettings["test"] = "tested";
-            Debug.WriteLine(Environment.GetEnvironmentVariable("test"));
 
             //setup KV access and register services
             ICredentialService credService = new CredentialService(Environment.GetEnvironmentVariable(Constants.AuthType));
@@ -31,12 +28,6 @@ namespace CSE.Automation
             ISecretClient secretService = new SecretService(Environment.GetEnvironmentVariable(Constants.KeyVaultName), credService);
             builder.Services.AddSingleton<ISecretClient>((s) => secretService);
 
-            //set connection string for queue trigger
-            var queueConnectionString = secretService.GetSecret(Constants.SPStorageConnectionString).Value;
-            var spTrackingQueueName = secretService.GetSecret(Constants.SPTrackingUpdateQueue).Value;
-
-            ConfigurationManager.AppSettings[Constants.SPStorageConnectionString] = queueConnectionString;
-            ConfigurationManager.AppSettings[Constants.SPTrackingUpdateQueue] = spTrackingQueueName;
             //setup graph API helper and register
             var graphAppClientId = secretService.GetSecretValue(Constants.GraphAppClientIdKey);
             var graphAppTentantId = secretService.GetSecretValue(Constants.GraphAppTenantIdKey);
