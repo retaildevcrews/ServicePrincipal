@@ -108,9 +108,9 @@ namespace CSE.Automation
             return new OkObjectResult($"Success");
         }
 
-        [FunctionName("QueueTriggerFunction")]
+        [FunctionName("SPTrackingQueueTriggerFunction")]
         [StorageAccount(Constants.SPStorageConnectionString)]
-        public static void Run([QueueTrigger(Constants.SPTrackingUpdateQueue)] CloudQueueMessage msg, ILogger log)
+        public static void RunQueueDaemon([QueueTrigger(Constants.SPTrackingUpdateQueue)] CloudQueueMessage msg, ILogger log)
         {
             log.LogInformation("Incoming message\n");
             log.LogInformation($"C# Queue trigger function processed: {msg.AsString} \n");

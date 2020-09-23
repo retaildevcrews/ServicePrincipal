@@ -11,17 +11,17 @@ namespace CSE.Automation.Tests
         private readonly ICredentialService _credService;
         private readonly ISecretClient _secretService;
 
-        private readonly IGraphHelper _graphHelper;
+        private readonly IGraphHelper<ServicePrincipalGraphHelper> _graphHelper;
         private readonly IDALResolver _DALResolver;
 
         public GraphDeltaProcessorFunctionsTests()
         {
             _credService = Substitute.For<ICredentialService>();
             _secretService = Substitute.For<ISecretClient>();
-            _graphHelper = Substitute.For<IGraphHelper>();
+            _graphHelper = Substitute.For <IGraphHelper<ServicePrincipalGraphHelper>>();
             _DALResolver = Substitute.For<IDALResolver>();
 
-            _subject = new GraphDeltaProcessor(_secretService, _credService, _graphHelper, _DALResolver);
+            _subject = new GraphDeltaProcessor(_secretService, _credService, (IGraphHelper<Microsoft.Graph.ServicePrincipal>)_graphHelper, _DALResolver);
         }
 
         [Fact]

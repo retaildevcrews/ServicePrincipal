@@ -1,15 +1,14 @@
 ﻿using CSE.Automation.DataAccess;
+using CSE.Automation.Extensions;
 using CSE.Automation.Interfaces;
 using CSE.Automation.KeyVault;
 using CSE.Automation.Services;
 using CSE.Automation.Utilities;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Graph;
 using System;
 using System.Diagnostics;
-using CSE.Automation.KeyVault;
-using CSE.Automation.DataAccess;
-using Microsoft.Graph;
 
 [assembly: FunctionsStartup(typeof(CSE.Automation.Startup))]
 
@@ -23,6 +22,14 @@ namespace CSE.Automation
                 throw new ArgumentNullException(nameof(builder));
 
             Debug.WriteLine(Environment.GetEnvironmentVariable("AUTH_TYPE"));
+
+            //Add keyvault secrets to config
+
+            var config = builder.AddAzureKeyVaultConfiguration("KeyVaultEndpoint");
+            var test = config["KeyVaultEndpoint"];
+            var connectionString = config["SPStorageConnectionString"];
+            var trackingQueueName = config[Constants.SPTrackingUpdateQueue];
+
 
             //setup KV access and register services
             ICredentialService credService = new CredentialService(Environment.GetEnvironmentVariable(Constants.AuthType));

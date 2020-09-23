@@ -3,10 +3,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace CSE.Automation.Extensions
 {
@@ -56,6 +53,7 @@ namespace CSE.Automation.Extensions
 
             // replace the existing IConfiguration instance with our new one
             services.Replace(ServiceDescriptor.Singleton(typeof(IConfiguration), config));
+
             return config;
         }
 
@@ -66,7 +64,8 @@ namespace CSE.Automation.Extensions
                 for (int i = 0; i < keyVaultEndpoints.Length; i++)
                 {
                     var keyVaultEndpoint = keyVaultEndpoints[i];
-                    if (!string.IsNullOrWhiteSpace(keyVaultEndpoint)) builder.AddAzureKeyVault(keyVaultEndpoints[i]);
+                    if (!string.IsNullOrWhiteSpace(keyVaultEndpoint))
+                        builder.AddAzureKeyVault(keyVaultEndpoints[i]);
                 }
             }
             return builder;
