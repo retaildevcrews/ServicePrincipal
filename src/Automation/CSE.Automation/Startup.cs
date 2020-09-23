@@ -38,12 +38,12 @@ namespace CSE.Automation
             builder.Services.AddSingleton<IGraphHelper>(graphHelper);
 
             //Retrieve CosmosDB configuration, create access objects, and register
-            IDALResolver dalResolver = new DALResolver(secretService);
-            IDAL configDAL = dalResolver.GetDAL(DALCollection.Configuration);
-            IDAL auditDAL = dalResolver.GetDAL(DALCollection.Audit);
-            IDAL objTrackingDAL = dalResolver.GetDAL(DALCollection.ObjectTracking);
+            IServiceResolver dalResolver = new DALResolver(secretService);
+            IDAL configDAL = dalResolver.GetService<IDAL> (DALCollection.Configuration.ToString());
+            IDAL auditDAL = dalResolver.GetService <IDAL> (DALCollection.Audit.ToString());
+            IDAL objTrackingDAL = dalResolver.GetService <IDAL> (DALCollection.ObjectTracking.ToString());
 
-            builder.Services.AddSingleton<IDALResolver>(dalResolver);
+            builder.Services.AddSingleton<IServiceResolver>(dalResolver);
         }
     }
 }

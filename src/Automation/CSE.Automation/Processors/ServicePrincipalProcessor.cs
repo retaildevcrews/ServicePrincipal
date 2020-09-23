@@ -6,11 +6,11 @@ using CSE.Automation.Utilities;
 
 namespace CSE.Automation.Processors
 {
-    public class ServicePrincipalNotesProcessor:DeltaProcessorBase
+    public class ServicePrincipalProcessor:DeltaProcessorBase
     {
-        private readonly string _uniqueId = "E7575910-2F85-4373-8284-403E7D530C55";
-        public ServicePrincipalNotesProcessor(IDAL configDAL):base(configDAL)
+        public ServicePrincipalProcessor(IDAL configDAL):base(configDAL)
         {
+
             // TODO:
             // 1. Create sample config and add to CosmosDB
             // 2. Ensure config loads and parses properly
