@@ -24,7 +24,7 @@
 
         // Azure Storage Queue Constants
         public const string SPStorageConnectionString = "SPStorageConnectionString";
-        public const string SPTrackingUpdateQueue = "SPTrackingUpdateQueue";
+        public const string SPTrackingUpdateQueue = "SPTrackingUpdateQueue"; 
         public const string SPAADUpdateQueue = "SPAADUpdateQueue";
 
         //DAL Constants

@@ -1,7 +1,5 @@
 using System;
-
 using System.Diagnostics;
-using System.Security;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Utilities;
 using Microsoft.Azure.WebJobs;
@@ -13,7 +11,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using CSE.Automation.Services;
-using Newtonsoft.Json;
+using System.Globalization;
+using Microsoft.Graph;
 
 namespace CSE.Automation
 {
@@ -22,11 +21,10 @@ namespace CSE.Automation
         private readonly ICredentialService _credService;
         private readonly ISecretClient _secretService;
 
-        private readonly IGraphHelper _graphHelper;
+        private readonly IGraphHelper<ServicePrincipal> _graphHelper;
         private readonly IDALResolver _DALResolver;
 
-
-        public GraphDeltaProcessor(ISecretClient secretClient, ICredentialService credService, IGraphHelper graphHelper, IDALResolver dalResolver)
+        public GraphDeltaProcessor(ISecretClient secretClient, ICredentialService credService, IGraphHelper<ServicePrincipal> graphHelper, IDALResolver dalResolver)
         {
             _credService = credService;
             _secretService = secretClient;
@@ -43,9 +41,8 @@ namespace CSE.Automation
         {
             try
             {
-                var kvSecret = _secretService.GetSecret("testSecret");
-                SecureString secureValue = _secretService.GetSecretValue("testSecret");
-                Debug.WriteLine(SecureStringHelper.ConvertToUnsecureString(secureValue));
+                var kvSecretValue = _secretService.GetSecretValue("testSecret");
+                Debug.WriteLine(kvSecretValue);
             }
             catch (Exception ex)
             {
@@ -55,7 +52,6 @@ namespace CSE.Automation
         }
 
 
-
         [FunctionName("SeedServicePrincipal")]
         public async Task<IActionResult> SeedServicePrincipal(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
@@ -63,37 +59,50 @@ namespace CSE.Automation
         {
             var queueConnectionString = _secretService.GetSecretValue(Constants.SPStorageConnectionString);
             var dataQueueName = _secretService.GetSecretValue(Constants.SPTrackingUpdateQueue);
-            var servicePrincipals = _graphHelper.SeedServicePrincipalDeltaAsync("appId,displayName,notes").Result;
-            
-            IAzureQueueService azureQueue = new AzureQueueService(
-                SecureStringHelper.ConvertToUnsecureString(queueConnectionString),
-                SecureStringHelper.ConvertToUnsecureString(dataQueueName));
+            Model.Configuration config = null; //TODO
 
-            int visibilityDelayGapSeconds = Int32.Parse(Environment.GetEnvironmentVariable("visibilityDelayGapSeconds"));
-            int queueRecordProcessThreshold = Int32.Parse(Environment.GetEnvironmentVariable("queueRecordProcessThreshold"));
+            var servicePrincipalResult = _graphHelper.GetDeltaGraphObjects("appId,displayName,notes",config).Result;
+
+            string updatedDeltaLink = servicePrincipalResult.Item1;
+            var servicePrincipals = servicePrincipalResult.Item2;
+
+            IAzureQueueService azureQueue = new AzureQueueService(queueConnectionString, dataQueueName);
+
+            int visibilityDelayGapSeconds = Int32.Parse(Environment.GetEnvironmentVariable("visibilityDelayGapSeconds"), CultureInfo.InvariantCulture);
+            int queueRecordProcessThreshold = Int32.Parse(Environment.GetEnvironmentVariable("queueRecordProcessThreshold"),CultureInfo.InvariantCulture);
+            
             int servicePrincipalCount = default;
             int visibilityDelay = default;
 
+            log.LogInformation($"Processing Service Principal objects from Graph...");
             foreach (var sp in servicePrincipals)
             {
                 if (String.IsNullOrWhiteSpace(sp.AppId) || String.IsNullOrWhiteSpace(sp.DisplayName))
                     continue;
 
+                var servicePrincipal = new Model.ServicePrincipal()
+                {
+                    AppId = sp.AppId,
+                    DisplayName = sp.DisplayName,
+                    Notes = sp.Notes
+                };
+
                 var myMessage = new Model.QueueMessage()
                 {
                     QueueMessageType = Model.QueueMessageType.Data,
-                    Document = JsonConvert.SerializeObject(sp),
-                    Attempt = 1
+                    Document = servicePrincipal,
+                    Attempt = 0
                 };
 
-                if (servicePrincipalCount % queueRecordProcessThreshold == 0)
+                if (servicePrincipalCount % queueRecordProcessThreshold == 0 && servicePrincipalCount!=0)
                 {
+                    log.LogInformation($"Processed {servicePrincipalCount} Service Principal Objects.");
                     visibilityDelay += visibilityDelayGapSeconds;
                 }
                 await azureQueue.Send(myMessage, visibilityDelay).ConfigureAwait(true);
                 servicePrincipalCount++;
             }
-            log.LogInformation($"Finishd Processing {servicePrincipalCount} Service Principal Objects.");
+            log.LogInformation($"Finished Processing {servicePrincipalCount} Service Principal Objects.");
 
 
             return new OkObjectResult($"Success");

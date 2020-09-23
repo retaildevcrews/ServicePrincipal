@@ -7,6 +7,9 @@ using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Diagnostics;
+using CSE.Automation.KeyVault;
+using CSE.Automation.DataAccess;
+using Microsoft.Graph;
 
 [assembly: FunctionsStartup(typeof(CSE.Automation.Startup))]
 
@@ -33,11 +36,9 @@ namespace CSE.Automation
             var graphAppTentantId = secretService.GetSecretValue(Constants.GraphAppTenantIdKey);
             var graphAppClientSecret = secretService.GetSecretValue(Constants.GraphAppClientSecretKey);
 
-            var graphHelper =  new GraphHelper(SecureStringHelper.ConvertToUnsecureString(graphAppClientId), 
-                                    SecureStringHelper.ConvertToUnsecureString(graphAppTentantId), 
-                                    SecureStringHelper.ConvertToUnsecureString(graphAppClientSecret));
+            var graphHelper =  new ServicePrincipalGraphHelper(graphAppClientId, graphAppTentantId, graphAppClientSecret);
 
-            builder.Services.AddSingleton<IGraphHelper>(graphHelper);
+            builder.Services.AddSingleton<IGraphHelper<ServicePrincipal>>(graphHelper);
 
             //Retrieve CosmosDB configuration, create access objects, and register
             IDALResolver dalResolver = new DALResolver(secretService);

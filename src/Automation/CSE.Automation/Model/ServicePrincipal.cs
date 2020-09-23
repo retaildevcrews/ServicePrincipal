@@ -9,6 +9,6 @@ namespace CSE.Automation.Model
 
         public string DisplayName { get; set; }
 
-        public Notes Notes { get; set; }
+        public string Notes { get; set; }
     }
 }
