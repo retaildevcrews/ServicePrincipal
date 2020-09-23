@@ -20,10 +20,10 @@ namespace CSE.Automation
         private readonly ICredentialService _credService;
         private readonly ISecretClient _secretService;
 
-        private readonly IGraphHelper<ServicePrincipal> _graphHelper;
+        private readonly GraphHelperBase<ServicePrincipal> _graphHelper;
         private readonly IDALResolver _DALResolver;
 
-        public GraphDeltaProcessor(ISecretClient secretClient, ICredentialService credService, IGraphHelper<ServicePrincipal> graphHelper, IDALResolver dalResolver)
+        public GraphDeltaProcessor(ISecretClient secretClient, ICredentialService credService, GraphHelperBase<ServicePrincipal> graphHelper, IDALResolver dalResolver)
         {
             _credService = credService;
             _secretService = secretClient;
