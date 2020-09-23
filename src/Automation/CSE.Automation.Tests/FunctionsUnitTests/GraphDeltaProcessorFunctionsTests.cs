@@ -1,4 +1,5 @@
 using CSE.Automation.Interfaces;
+using CSE.Automation.Model;
 using CSE.Automation.Utilities;
 using NSubstitute;
 using Xunit;
@@ -11,14 +12,14 @@ namespace CSE.Automation.Tests
         private readonly ICredentialService _credService;
         private readonly ISecretClient _secretService;
 
-        private readonly IGraphHelper _graphHelper;
+        private readonly ServicePrincipalGraphHelper _graphHelper;
         private readonly IDALResolver _DALResolver;
 
         public GraphDeltaProcessorFunctionsTests()
         {
             _credService = Substitute.For<ICredentialService>();
             _secretService = Substitute.For<ISecretClient>();
-            _graphHelper = Substitute.For<IGraphHelper>();
+            _graphHelper = Substitute.For<ServicePrincipalGraphHelper>();
             _DALResolver = Substitute.For<IDALResolver>();
 
             _subject = new GraphDeltaProcessor(_secretService, _credService, _graphHelper, _DALResolver);
