@@ -36,7 +36,7 @@ namespace CSE.Automation
 
             var graphHelper =  new ServicePrincipalGraphHelper(graphAppClientId, graphAppTentantId, graphAppClientSecret);
 
-            builder.Services.AddSingleton<IGraphHelper<ServicePrincipal>>(graphHelper);
+            builder.Services.AddSingleton<GraphHelperBase<ServicePrincipal>>(graphHelper);
 
             //Retrieve CosmosDB configuration, create access objects, and register
             IServiceResolver dalResolver = new DALResolver(secretService);

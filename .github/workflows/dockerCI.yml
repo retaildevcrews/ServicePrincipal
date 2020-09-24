@@ -57,7 +57,7 @@ jobs:
       if: ${{ env.ACR_LOGGED_IN == 'true' }}
       run: |
         # Build Image
-        docker build -t ${TEMP_IMG_NAME} -f src/Automation/CSE.Automation/Dockerfile src/Automation
+        docker build --pull -t ${TEMP_IMG_NAME} -f src/Automation/CSE.Automation/Dockerfile src/Automation
         # Set variable is successful
         [[ $? == 0 ]] && echo "::set-env name=DKR_IMG_IS_BUILT::true"
 
