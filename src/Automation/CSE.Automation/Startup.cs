@@ -26,10 +26,6 @@ namespace CSE.Automation
             //Add keyvault secrets to config
 
             var config = builder.AddAzureKeyVaultConfiguration("KeyVaultEndpoint");
-            var test = config["KeyVaultEndpoint"];
-            var connectionString = config["SPStorageConnectionString"];
-            var trackingQueueName = config[Constants.SPTrackingUpdateQueue];
-
 
             //setup KV access and register services
             ICredentialService credService = new CredentialService(Environment.GetEnvironmentVariable(Constants.AuthType));

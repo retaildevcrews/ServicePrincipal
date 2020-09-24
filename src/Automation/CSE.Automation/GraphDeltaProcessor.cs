@@ -1,18 +1,17 @@
+using CSE.Automation.Interfaces;
+using CSE.Automation.Services;
+using CSE.Automation.Utilities;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Storage.Queue;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.Extensions.Logging;
+using Microsoft.Graph;
 using System;
 using System.Diagnostics;
-using CSE.Automation.Interfaces;
-using CSE.Automation.Utilities;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.Storage.Queue;
-using Microsoft.Extensions.Logging;
-
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
-using CSE.Automation.Services;
 using System.Globalization;
-using Microsoft.Graph;
+using System.Threading.Tasks;
 
 namespace CSE.Automation
 {
@@ -23,6 +22,7 @@ namespace CSE.Automation
 
         private readonly IGraphHelper<ServicePrincipal> _graphHelper;
         private readonly IDALResolver _DALResolver;
+
 
         public GraphDeltaProcessor(ISecretClient secretClient, ICredentialService credService, IGraphHelper<ServicePrincipal> graphHelper, IDALResolver dalResolver)
         {
@@ -110,10 +110,23 @@ namespace CSE.Automation
 
         [FunctionName("SPTrackingQueueTriggerFunction")]
         [StorageAccount(Constants.SPStorageConnectionString)]
-        public static void RunQueueDaemon([QueueTrigger(Constants.SPTrackingUpdateQueue)] CloudQueueMessage msg, ILogger log)
+        public static async Task RunSPTrackingQueueDaemon([QueueTrigger(Constants.SPTrackingUpdateQueueAppSetting)] CloudQueueMessage msg, 
+            [Queue(Constants.SPAADUpdateQueueAppSetting)] CloudQueue queue, ILogger log)
         {
-            log.LogInformation("Incoming message\n");
-            log.LogInformation($"C# Queue trigger function processed: {msg.AsString} \n");
+            log.LogInformation("Incoming message from SPTracking queue\n");
+            log.LogInformation($"C# SP Tracking Queue trigger function processed: {msg.AsString} \n");
+
+            var newMsg = $"Following message processed from SPTracking queue:\n{msg.AsString}\n";
+            await queue.AddMessageAsync(new CloudQueueMessage(newMsg), null, TimeSpan.FromSeconds(5), null, null).ConfigureAwait(false);
+        }
+
+
+        [FunctionName("SPAADQueueTriggerFunction")]
+        [StorageAccount(Constants.SPStorageConnectionString)]
+        public static void RunSPAADQueueDaemon([QueueTrigger(Constants.SPAADUpdateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
+        {
+            log.LogInformation("Incoming message from AAD queue\n");
+            log.LogInformation($"C# AAD Queue trigger function processed: {msg.AsString} \n");
         }
     }
 }
