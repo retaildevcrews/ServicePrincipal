@@ -14,6 +14,7 @@ using System.Globalization;
 using Microsoft.Graph;
 using CSE.Automation.Processors;
 using CSE.Automation.DataAccess;
+using CSE.Automation.Model;
 
 namespace CSE.Automation
 {
@@ -66,7 +67,7 @@ namespace CSE.Automation
         {
             var queueConnectionString = _secretService.GetSecretValue(Constants.SPStorageConnectionString);
             var dataQueueName = _secretService.GetSecretValue(Constants.SPTrackingUpdateQueue);
-            Model.ProcessorConfiguration config = null; //TODO
+            ProcessorConfiguration config = null; //TODO
 
             var servicePrincipalResult = _graphHelper.GetDeltaGraphObjects("appId,displayName,notes",config).Result;
 
@@ -87,7 +88,7 @@ namespace CSE.Automation
                 if (String.IsNullOrWhiteSpace(sp.AppId) || String.IsNullOrWhiteSpace(sp.DisplayName))
                     continue;
 
-                var servicePrincipal = new Model.ServicePrincipalModel()
+                var servicePrincipal = new ServicePrincipalModel()
                 {
                     AppId = sp.AppId,
                     DisplayName = sp.DisplayName,

@@ -1,7 +1,7 @@
 ﻿
 namespace CSE.Automation.Model
 {
-    // Used name ServicePrincipalModel to disambituate from Microsoft.Graph.ServicePrincipal
+    // Used name ServicePrincipalModel to disambiguate from Microsoft.Graph.ServicePrincipal
     public class ServicePrincipalModel : GraphModel
     {
         public string AppId { get; set; }

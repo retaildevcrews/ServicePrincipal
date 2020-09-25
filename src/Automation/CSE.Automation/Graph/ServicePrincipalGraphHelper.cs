@@ -1,4 +1,5 @@
-﻿using Microsoft.Graph;
+﻿using CSE.Automation.Model;
+using Microsoft.Graph;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -12,7 +13,7 @@ namespace CSE.Automation.Graph
             : base(graphAppClientId, graphAppTenantId, graphAppClientSecret) {
         }
 
-        public override async Task<(string, IEnumerable<ServicePrincipal>)> GetDeltaGraphObjects(string selectFields, Model.ProcessorConfiguration config)
+        public override async Task<(string, IEnumerable<ServicePrincipal>)> GetDeltaGraphObjects(string selectFields, ProcessorConfiguration config)
         {
             IServicePrincipalDeltaCollectionPage servicePrincipalCollectionPage;
 
