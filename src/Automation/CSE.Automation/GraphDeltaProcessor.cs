@@ -9,6 +9,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using System;
+using System.Collections;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading.Tasks;
@@ -117,7 +118,7 @@ namespace CSE.Automation
             log.LogInformation($"C# SP Tracking Queue trigger function processed: {msg.AsString} \n");
 
             var newMsg = $"Following message processed from SPTracking queue:\n{msg.AsString}\n";
-            await queue.AddMessageAsync(new CloudQueueMessage(newMsg), null, TimeSpan.FromSeconds(5), null, null).ConfigureAwait(false);
+            await queue.AddMessageAsync(new CloudQueueMessage(newMsg)).ConfigureAwait(false);
         }
 
 
