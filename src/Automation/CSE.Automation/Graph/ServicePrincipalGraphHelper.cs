@@ -1,32 +1,19 @@
-﻿using Microsoft.Graph;
-using Microsoft.Graph.Auth;
-using Microsoft.Identity.Client;
+﻿using CSE.Automation.Model;
+using Microsoft.Graph;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 #pragma warning disable CA1031 // Do not catch general exception types
 
-namespace CSE.Automation.Utilities
+namespace CSE.Automation.Graph
 {
-    public class ServicePrincipalGraphHelper : IGraphHelper<ServicePrincipal>
+    public class ServicePrincipalGraphHelper : GraphHelperBase<ServicePrincipal>
     {
-        private static GraphServiceClient graphClient;
-        private IConfidentialClientApplication confidentialClientApplication;
-
         public ServicePrincipalGraphHelper(string graphAppClientId, string graphAppTenantId, string graphAppClientSecret)
-        {
-            confidentialClientApplication = ConfidentialClientApplicationBuilder
-           .Create(graphAppClientId)
-           .WithTenantId(graphAppTenantId)
-           .WithClientSecret(graphAppClientSecret)
-           .Build();
-
-            ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
-            graphClient = new GraphServiceClient(authProvider);
+            : base(graphAppClientId, graphAppTenantId, graphAppClientSecret) {
         }
 
-        //TODO: Currently this function only does a full seed, need to use configuration to determine if doing delta vs seed
-        public async Task<(string, IEnumerable<ServicePrincipal>)> GetDeltaGraphObjects(string selectFields, Model.Configuration config)
+        public override async Task<(string, IEnumerable<ServicePrincipal>)> GetDeltaGraphObjects(string selectFields, ProcessorConfiguration config)
         {
             IServicePrincipalDeltaCollectionPage servicePrincipalCollectionPage;
 

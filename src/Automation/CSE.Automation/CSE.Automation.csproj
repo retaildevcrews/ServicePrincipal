@@ -35,7 +35,4 @@
       <Generator>SettingsSingleFileGenerator</Generator>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Graph\" />
-  </ItemGroup>
 </Project>
