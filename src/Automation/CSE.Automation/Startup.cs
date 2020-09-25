@@ -4,10 +4,13 @@ using System;
 using System.Diagnostics;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Services;
-using CSE.Automation.Utilities;
+using CSE.Automation.Graph;
 using CSE.Automation.KeyVault;
 using CSE.Automation.DataAccess;
 using Microsoft.Graph;
+using CSE.Automation.Model;
+using System.Collections.Generic;
+using CSE.Automation.Processors;
 
 [assembly: FunctionsStartup(typeof(CSE.Automation.Startup))]
 
@@ -22,29 +25,38 @@ namespace CSE.Automation
 
             Debug.WriteLine(Environment.GetEnvironmentVariable("AUTH_TYPE"));
 
-            //setup KV access and register services
+            // Setup KV access and register services
             ICredentialService credService = new CredentialService(Environment.GetEnvironmentVariable(Constants.AuthType));
             builder.Services.AddSingleton<ICredentialService>((s) => credService);
 
             ISecretClient secretService = new SecretService(Environment.GetEnvironmentVariable(Constants.KeyVaultName), credService);
             builder.Services.AddSingleton<ISecretClient>((s) => secretService);
 
-            //setup graph API helper and register
+            // Setup graph API helper and register
             var graphAppClientId = secretService.GetSecretValue(Constants.GraphAppClientIdKey);
             var graphAppTentantId = secretService.GetSecretValue(Constants.GraphAppTenantIdKey);
             var graphAppClientSecret = secretService.GetSecretValue(Constants.GraphAppClientSecretKey);
+
+
 
             var graphHelper =  new ServicePrincipalGraphHelper(graphAppClientId, graphAppTentantId, graphAppClientSecret);
 
             builder.Services.AddSingleton<GraphHelperBase<ServicePrincipal>>(graphHelper);
 
-            //Retrieve CosmosDB configuration, create access objects, and register
-            IDALResolver dalResolver = new DALResolver(secretService);
-            IDAL configDAL = dalResolver.GetDAL(DALCollection.Configuration);
-            IDAL auditDAL = dalResolver.GetDAL(DALCollection.Audit);
-            IDAL objTrackingDAL = dalResolver.GetDAL(DALCollection.ObjectTracking);
+            // Retrieve CosmosDB configuration, create access objects, and register
+            DALResolver dalResolver = new DALResolver(secretService);
+            IDAL configDAL = dalResolver.GetService<IDAL> (DALCollection.Configuration.ToString());
+            IDAL auditDAL = dalResolver.GetService <IDAL> (DALCollection.Audit.ToString());
+            IDAL objTrackingDAL = dalResolver.GetService <IDAL> (DALCollection.ObjectTracking.ToString());
 
-            builder.Services.AddSingleton<IDALResolver>(dalResolver);
+            builder.Services.AddSingleton<DALResolver>(dalResolver);
+
+            // Create and register ProcessorResolver
+            var processorResolver = new ProcessorResolver(configDAL);
+            var processortest = processorResolver.GetService<IDeltaProcessor>(ProcessorType.ServicePrincipal.ToString());
+            builder.Services.AddSingleton<ProcessorResolver>(processorResolver);
+
+
         }
     }
 }

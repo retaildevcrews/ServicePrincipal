@@ -5,7 +5,7 @@ using Microsoft.Graph;
 using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
 
-namespace CSE.Automation.Utilities
+namespace CSE.Automation.Graph
 {
     public abstract class GraphHelperBase<T>
     {
@@ -23,6 +23,6 @@ namespace CSE.Automation.Utilities
             graphClient = new GraphServiceClient(authProvider);
         }
 
-        public abstract Task<(string,IEnumerable<T>)> GetDeltaGraphObjects(string selectFields,Configuration config);
+        public abstract Task<(string,IEnumerable<T>)> GetDeltaGraphObjects(string selectFields,ProcessorConfiguration config);
     }
 }

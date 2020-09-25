@@ -205,9 +205,10 @@ namespace CSE.Automation.DataAccess
             return results;
         }
 
-        public async Task<T> GetById<T>(string Id)
+        public async Task<T> GetById<T>(string Id, string partitionKey)
         {
-            var response = await cosmosDetails.Container.ReadItemAsync<T>(Id, new PartitionKey(GetPartitionKey(Id))).ConfigureAwait(false);
+
+            var response = await cosmosDetails.Container.ReadItemAsync<T>(Id, new PartitionKey(partitionKey)).ConfigureAwait(false);
             return response;
         }
 
