@@ -1,5 +1,5 @@
 ﻿using CSE.Automation.Interfaces;
-using CSE.Automation.Utilities;
+using CSE.Automation.Graph;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -60,7 +60,7 @@ namespace CSE.Automation.DataAccess
         {
 
             if (typeof(T) != typeof(IDAL))
-                throw new InvalidCastException("For DAL resolve type T must be of type IDAL");
+                throw new InvalidCastException("For DAL resolver type T must be of type IDAL");
 
             DALCollection collectionName = Enum.Parse<DALCollection>(keyName);
             

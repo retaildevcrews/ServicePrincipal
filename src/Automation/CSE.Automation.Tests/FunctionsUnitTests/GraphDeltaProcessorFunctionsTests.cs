@@ -1,8 +1,10 @@
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
-using CSE.Automation.Utilities;
+using CSE.Automation.Graph;
 using NSubstitute;
 using Xunit;
+using CSE.Automation.DataAccess;
+using CSE.Automation.Processors;
 
 namespace CSE.Automation.Tests
 {
@@ -13,16 +15,18 @@ namespace CSE.Automation.Tests
         private readonly ISecretClient _secretService;
 
         private readonly ServicePrincipalGraphHelper _graphHelper;
-        private readonly IDALResolver _DALResolver;
+        private readonly DALResolver _DALResolver;
+        private readonly ProcessorResolver _processorResolver;
 
         public GraphDeltaProcessorFunctionsTests()
         {
             _credService = Substitute.For<ICredentialService>();
             _secretService = Substitute.For<ISecretClient>();
             _graphHelper = Substitute.For<ServicePrincipalGraphHelper>();
-            _DALResolver = Substitute.For<IDALResolver>();
+            _DALResolver = Substitute.For<DALResolver>();
+            _processorResolver = Substitute.For<ProcessorResolver>();
 
-            _subject = new GraphDeltaProcessor(_secretService, _credService, _graphHelper, _DALResolver);
+            _subject = new GraphDeltaProcessor(_secretService, _credService, _graphHelper, _DALResolver, _processorResolver);
         }
 
         [Fact]

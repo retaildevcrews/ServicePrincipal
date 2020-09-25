@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 #pragma warning disable CA1031 // Do not catch general exception types
 
-namespace CSE.Automation.Utilities
+namespace CSE.Automation.Graph
 {
     public class ServicePrincipalGraphHelper : GraphHelperBase<ServicePrincipal>
     {
@@ -12,7 +12,7 @@ namespace CSE.Automation.Utilities
             : base(graphAppClientId, graphAppTenantId, graphAppClientSecret) {
         }
 
-        public override async Task<(string, IEnumerable<ServicePrincipal>)> GetDeltaGraphObjects(string selectFields, Model.Configuration config)
+        public override async Task<(string, IEnumerable<ServicePrincipal>)> GetDeltaGraphObjects(string selectFields, Model.ProcessorConfiguration config)
         {
             IServicePrincipalDeltaCollectionPage servicePrincipalCollectionPage;
 

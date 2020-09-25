@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using CSE.Automation.Interfaces;
-using CSE.Automation.Utilities;
+using CSE.Automation.Graph;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 
@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Http;
 using CSE.Automation.Services;
 using System.Globalization;
 using Microsoft.Graph;
+using CSE.Automation.Processors;
+using CSE.Automation.DataAccess;
 
 namespace CSE.Automation
 {
@@ -21,14 +23,16 @@ namespace CSE.Automation
         private readonly ISecretClient _secretService;
 
         private readonly GraphHelperBase<ServicePrincipal> _graphHelper;
-        private readonly IDALResolver _DALResolver;
+        private readonly DALResolver _DALResolver;
+        private readonly ProcessorResolver _processorResolver;
 
-        public GraphDeltaProcessor(ISecretClient secretClient, ICredentialService credService, GraphHelperBase<ServicePrincipal> graphHelper, IDALResolver dalResolver)
+        public GraphDeltaProcessor(ISecretClient secretClient, ICredentialService credService, GraphHelperBase<ServicePrincipal> graphHelper, DALResolver dalResolver, ProcessorResolver processorResolver)
         {
             _credService = credService;
             _secretService = secretClient;
             _graphHelper = graphHelper;
             _DALResolver = dalResolver;
+            _processorResolver = processorResolver;
         }
 
         [FunctionName("ServicePrincipalDeltas")]
@@ -36,10 +40,16 @@ namespace CSE.Automation
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1801:Review unused parameters", Justification = "Required as part of Trigger declaration.")]
         public void Run([TimerTrigger("0 */2 * * * *")] TimerInfo myTimer, ILogger log)
         {
+
+            if (log == null)
+                throw new ArgumentNullException(nameof(log));
+
             try
             {
                 var kvSecretValue = _secretService.GetSecretValue("testSecret");
                 Debug.WriteLine(kvSecretValue);
+
+                var spProcessor = _processorResolver.GetService<IDeltaProcessor>(ProcessorType.ServicePrincipal.ToString());
             }
             catch (Exception ex)
             {
@@ -56,7 +66,7 @@ namespace CSE.Automation
         {
             var queueConnectionString = _secretService.GetSecretValue(Constants.SPStorageConnectionString);
             var dataQueueName = _secretService.GetSecretValue(Constants.SPTrackingUpdateQueue);
-            Model.Configuration config = null; //TODO
+            Model.ProcessorConfiguration config = null; //TODO
 
             var servicePrincipalResult = _graphHelper.GetDeltaGraphObjects("appId,displayName,notes",config).Result;
 
@@ -77,7 +87,7 @@ namespace CSE.Automation
                 if (String.IsNullOrWhiteSpace(sp.AppId) || String.IsNullOrWhiteSpace(sp.DisplayName))
                     continue;
 
-                var servicePrincipal = new Model.ServicePrincipal()
+                var servicePrincipal = new Model.ServicePrincipalModel()
                 {
                     AppId = sp.AppId,
                     DisplayName = sp.DisplayName,
