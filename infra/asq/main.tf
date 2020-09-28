@@ -4,7 +4,7 @@ resource azurerm_storage_queue tracking-queue {
     var.STORAGE_ACCOUNT_DONE
   ]
   name                 = "${var.NAME}-sq-trackingupdate-${var.ENV}"
-  storage_account_name = var.STORAGE_ACCOUNT 
+  storage_account_name = var.STORAGE_ACCOUNT_NAME
 }
 
 resource azurerm_storage_queue aad-queue {
@@ -12,7 +12,7 @@ resource azurerm_storage_queue aad-queue {
     var.STORAGE_ACCOUNT_DONE
   ]
   name                 = "${var.NAME}-sq-aadupdate-${var.ENV}"
-  storage_account_name = var.STORAGE_ACCOUNT 
+  storage_account_name = var.STORAGE_ACCOUNT_NAME 
 }
 
 output "AAD_QUEUE_NAME" {

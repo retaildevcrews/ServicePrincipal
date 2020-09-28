@@ -22,7 +22,7 @@ variable "ENV" {
 }
 
 
-variable "STORAGE_ACCOUNT" {
+variable "STORAGE_ACCOUNT_NAME" {
   type        = string
   description = "Azure Storage Account"
 }

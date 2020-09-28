@@ -22,10 +22,6 @@ variable "LOCATION" {
 
 }
 
-# variable "APP_SERVICE_DONE" {
-#   description = "App Service dependency complete"
-#   type        = bool
-# }
 
 variable "TENANT_ID" {
   type        = string
@@ -90,3 +86,26 @@ variable "TRACKING_QUEUE_NAME" {
   description = "The Tracking Update queue name"
 }
 
+variable "TF_CLIENT_SP_ID" {
+  type        = string
+  description = "The Terraform Service Principal"
+}
+
+variable "TF_CLIENT_SP_SECRET" {
+  type        = string
+  description = "The Terraform Service Principal Secrete"
+}
+variable "ACR_SP_ID" {
+  type        = string
+  description = "The ACR Service Principal"
+}
+
+variable "ACR_SP_SECRET" {
+  type        = string
+  description = "The ACR Service Principal Secret"
+}
+
+variable "STORAGE_NAME" {
+  type        = string
+  description = "The Azure Storage Account Name"
+}

@@ -38,49 +38,29 @@ then
   export svc_ppl_Repo=serviceprincipal
 fi
 
+
+# store az info into variables
+export svc_ppl_TENANT_ID=$(az account show -o tsv --query tenantId)
+export svc_ppl_SUB_ID=$(az account show -o tsv --query id)
+export svc_ppl_CLIENT_SECRET=$(az ad sp create-for-rbac -n http://${svc_ppl_Name}-tf-sp-${svc_ppl_Enviroment} --query password -o tsv)
+export svc_ppl_CLIENT_ID=$(az ad sp show --id http://${svc_ppl_Name}-tf-sp-${svc_ppl_Enviroment} --query appId -o tsv)
+export svc_ppl_ACR_SP_SECRET=$(az ad sp create-for-rbac --skip-assignment -n http://${svc_ppl_Name}-acr-sp-${svc_ppl_Enviroment} --query password -o tsv)
+export svc_ppl_ACR_SP_ID=$(az ad sp show --id http://${svc_ppl_Name}-acr-sp-${svc_ppl_Enviroment} --query appId -o tsv)
+
 # create terraform.tfvars and replace template values
-
-cp example.tfvars terraform.tfvars
-
-# replace name
-ex -s -c "%s/<<svc_ppl_Name>>/$svc_ppl_Name/g|x" terraform.tfvars
-
-# replace short name
-ex -s -c "%s/<<svc_ppl_ShortName>>/$svc_ppl_ShortName/g|x" terraform.tfvars
-
-
-# replace location
-ex -s -c "%s/<<svc_ppl_Location>>/$svc_ppl_Location/g|x" terraform.tfvars
-
-# replace location
-ex -s -c "%s/<<svc_ppl_Enviroment>>/$svc_ppl_Enviroment/g|x" terraform.tfvars
-
-
-# replace repo
-ex -s -c "%s/<<svc_ppl_Repo>>/$svc_ppl_Repo/g|x" terraform.tfvars
-
-# replace email
-# ex -s -c "%s/<<svc_ppl_Email>>/$svc_ppl_Email/g|x" terraform.tfvars
-
-# replace TF_TENANT_ID
-ex -s -c "%s/<<svc_ppl_TENANT_ID>>/$(az account show -o tsv --query tenantId)/g|x" terraform.tfvars
-
-# replace TF_SUB_ID
-ex -s -c "%s/<<svc_ppl_SUB_ID>>/$(az account show -o tsv --query id)/g|x" terraform.tfvars
-
-# create a service principal
-# replace TF_CLIENT_SECRET
-ex -s -c "%s/<<svc_ppl_CLIENT_SECRET>>/$(az ad sp create-for-rbac -n http://${svc_ppl_Name}-tf-sp-${svc_ppl_Enviroment} --query password -o tsv)/g|x" terraform.tfvars
-
-# replace TF_CLIENT_ID
-ex -s -c "%s/<<svc_ppl_CLIENT_ID>>/$(az ad sp show --id http://${svc_ppl_Name}-tf-sp-${svc_ppl_Enviroment} --query appId -o tsv)/g|x" terraform.tfvars
-
-# create a service principal
-# replace ACR_SP_SECRET
-ex -s -c "%s/<<svc_ppl_ACR_SP_SECRET>>/$(az ad sp create-for-rbac --skip-assignment -n http://${svc_ppl_Name}-acr-sp-${svc_ppl_Enviroment} --query password -o tsv)/g|x" terraform.tfvars
-
-# replace ACR_SP_ID
-ex -s -c "%s/<<svc_ppl_ACR_SP_ID>>/$(az ad sp show --id http://${svc_ppl_Name}-acr-sp-${svc_ppl_Enviroment} --query appId -o tsv)/g|x" terraform.tfvars
+cat example.tfvars | \
+sed "s|<<svc_ppl_Name>>|$svc_ppl_Name|" | \
+sed "s|<<svc_ppl_ShortName>>|$svc_ppl_ShortName|" | \
+sed "s|<<svc_ppl_Location>>|$svc_ppl_Location|" | \
+sed "s|<<svc_ppl_Enviroment>>|$svc_ppl_Enviroment|" | \
+sed "s|<<svc_ppl_Repo>>|$svc_ppl_Repo|" | \
+# sed "s|<<svc_ppl_Email>>|$svc_ppl_Email|" | \
+sed "s|<<svc_ppl_TENANT_ID>>|$svc_ppl_TENANT_ID|" | \
+sed "s|<<svc_ppl_SUB_ID>>|$svc_ppl_SUB_ID|" | \
+sed "s|<<svc_ppl_CLIENT_SECRET>>|$svc_ppl_CLIENT_SECRET|" | \
+sed "s|<<svc_ppl_CLIENT_ID>>|$svc_ppl_CLIENT_ID|" | \
+sed "s|<<svc_ppl_ACR_SP_SECRET>>|$svc_ppl_ACR_SP_SECRET|" | \
+sed "s|<<svc_ppl_ACR_SP_ID>>|$svc_ppl_ACR_SP_ID|" > terraform.tfvars
 
 # validate the substitutions
 cat terraform.tfvars
@@ -118,67 +98,65 @@ az ad app permission grant --id $servicePricipalId --api $graphId
 az ad app permission admin-consent --id $servicePricipalId
 
 
+# create tf_state resource group
+export TF_RG_NAME=$svc_ppl_Name-rg-$svc_ppl_Enviroment
+echo "Creating the TF Resource Group"
+if echo ${TF_RG_NAME} > /dev/null 2>&1 && echo ${svc_ppl_Location} > /dev/null 2>&1; then
+    if ! az group create --name ${TF_RG_NAME} --location ${svc_ppl_Location} -o table; then
+        echo "ERROR: failed to create the resource group"
+        exit 1
+    fi
+    echo "Created Resource Group: ${TF_RG_NAME} in ${svc_ppl_Location}"
+fi
+
+# create storage account for state file
+export TFSUB_ID=$(az account show -o tsv --query id)
+export TFSA_NAME=$svc_ppl_Name"st"$svc_ppl_Enviroment
+echo "Creating File Storage Account and Container"
 
 
+if echo ${TFSUB_ID} > /dev/null 2>&1; then
+    if ! az storage account create --resource-group $TF_RG_NAME --name $TFSA_NAME --sku Standard_LRS --encryption-services blob -o table; then
+        echo "ERROR: Failed to create Storage Account"
+        exit 1
+    fi
+    echo "TF Storage Account Created."
+    sleep 20s
+fi
 
-##  Do we need this ?
+# retrieve storage account access key
+if echo ${TF_RG_NAME} > /dev/null 2>&1; then
+    if ! ARM_ACCESS_KEY=$(az storage account keys list --resource-group $TF_RG_NAME --account-name $TFSA_NAME --query [0].value -o tsv); then
+        echo "ERROR: Failed to Retrieve Storage Account Access Key"
+        exit 1
+    fi
+    echo "TF Storage Account Access Key = $ARM_ACCESS_KEY"
+fi
 
-# # create tf_state resource group
-# export TFSTATE_RG_NAME=$He_Name-rg-tf
-# echo "Creating the TFState Resource Group"
-# if echo ${TFSTATE_RG_NAME} > /dev/null 2>&1 && echo ${He_Location} > /dev/null 2>&1; then
-#     if ! az group create --name ${TFSTATE_RG_NAME} --location ${He_Location} -o table; then
-#         echo "ERROR: failed to create the resource group"
-#         exit 1
-#     fi
-#     echo "Created Resource Group: ${TFSTATE_RG_NAME} in ${TF_LOCATION}"
-# fi
+export TFCI_NAME=$svc_ppl_Name"citfstate"$svc_ppl_Enviroment
 
-# # create storage account for state file
-# export TFSUB_ID=$(az account show -o tsv --query id)
-# export TFSA_NAME=tfstate$RANDOM
-# echo "Creating State File Storage Account and Container"
-# if echo ${TFSUB_ID} > /dev/null 2>&1; then
-#     if ! az storage account create --resource-group $TFSTATE_RG_NAME --name $TFSA_NAME --sku Standard_LRS --encryption-services blob -o table; then
-#         echo "ERROR: Failed to create Storage Account"
-#         exit 1
-#     fi
-#     echo "TF State Storage Account Created. Name = $TFSA_NAME"
-#     sleep 20s
-# fi
+if echo ${TF_RG_NAME} > /dev/null 2>&1; then
+    if ! az storage container create --name $TFCI_NAME --account-name $TFSA_NAME --account-key $ARM_ACCESS_KEY -o table; then
+        echo "ERROR: Failed to Retrieve Storage Container"
+        exit 1
+    fi
+    echo "TF State Storage Account Container Created"
+    export TFSA_CONTAINER=$(az storage container show --name ${TFCI_NAME} --account-name ${TFSA_NAME} --account-key ${ARM_ACCESS_KEY} --query name -o tsv)
+    echo "TF Storage Container name = ${TFSA_CONTAINER}"
+fi
 
-# # retrieve storage account access key
-# if echo ${TFSTATE_RG_NAME} > /dev/null 2>&1; then
-#     if ! ARM_ACCESS_KEY=$(az storage account keys list --resource-group $TFSTATE_RG_NAME --account-name $TFSA_NAME --query [0].value -o tsv); then
-#         echo "ERROR: Failed to Retrieve Storage Account Access Key"
-#         exit 1
-#     fi
-#     echo "TF State Storage Account Access Key = $ARM_ACCESS_KEY"
-# fi
-
-# if echo ${TFSTATE_RG_NAME} > /dev/null 2>&1; then
-#     if ! az storage container create --name "container${TFSA_NAME}" --account-name $TFSA_NAME --account-key $ARM_ACCESS_KEY -o table; then
-#         echo "ERROR: Failed to Retrieve Storage Container"
-#         exit 1
-#     fi
-#     echo "TF State Storage Account Container Created"
-#     export TFSA_CONTAINER=$(az storage container show --name "container${TFSA_NAME}" --account-name ${TFSA_NAME} --account-key ${ARM_ACCESS_KEY} --query name -o tsv)
-#     echo "TF Storage Container name = ${TFSA_CONTAINER}"
-# fi
-
-# # create storage container 
+# create storage container 
 
 # echo "The terraform options to store state remotely will be added as main_tf_state.tf in your root directory"
-# cat << EOF > ./main_tf_state.tf
-
+# cat << EOF > main_tf_state.tf
 # terraform {
 #   required_version = ">= 0.13"
 #   backend "azurerm" {
-#     resource_group_name  = "${TFSTATE_RG_NAME}"
+#     resource_group_name  = "${TF_RG_NAME}"
 #     storage_account_name = "${TFSA_NAME}"
 #     container_name       = "${TFSA_CONTAINER}"
-#     key                  = "prod.terraform.tfstate"
+#     key                  = "${svc_ppl_Name}.terraform.tfstate.${svc_ppl_Enviroment}"
 #   }
 # }
-
 # EOF
+
