@@ -1,5 +1,5 @@
 ﻿using CSE.Automation.Interfaces;
-using CSE.Automation.Utilities;
+using CSE.Automation.Graph;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.Text;
 
 namespace CSE.Automation.DataAccess
 {
-    public class DALResolver : IDALResolver
+    public class DALResolver : IServiceResolver
     {
         private ConcurrentDictionary<string, IDAL> _registeredDALs = new System.Collections.Concurrent.ConcurrentDictionary<string, IDAL>();
         private ISecretClient _secretClient;
@@ -49,11 +49,22 @@ namespace CSE.Automation.DataAccess
 
         }
 
-        public IDAL GetDAL(DALCollection collection)
-        {
-            string collectionName = Enum.GetName(typeof(DALCollection), collection);
-            return _registeredDALs.GetOrAdd(collectionName, CreateDAL(collection));
+        //public IDAL GetDAL(DALCollection collection)
+        //{
+        //    string collectionName = Enum.GetName(typeof(DALCollection), collection);
+        //    return _registeredDALs.GetOrAdd(collectionName, CreateDAL(collection));
 
+        //}
+
+        public T GetService<T>(string keyName)
+        {
+
+            if (typeof(T) != typeof(IDAL))
+                throw new InvalidCastException("For DAL resolver type T must be of type IDAL");
+
+            DALCollection collectionName = Enum.Parse<DALCollection>(keyName);
+            
+            return (T) _registeredDALs.GetOrAdd(keyName, CreateDAL(collectionName)) ;
         }
 
 

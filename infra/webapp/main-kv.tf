@@ -180,3 +180,54 @@ resource "azurerm_key_vault_secret" "trackingupdatequeue" {
   value        = var.TRACKING_QUEUE_NAME
   key_vault_id = azurerm_key_vault.kv.id
 }
+
+resource "azurerm_key_vault_secret" "graphdppclientid" {
+  
+  depends_on = [
+    azurerm_key_vault_access_policy.terraform-sp
+  ]
+
+  name         = "graphdAppClientId"
+  value        = azuread_application.graphclient.application_id
+  key_vault_id = azurerm_key_vault.kv.id
+}
+
+resource "random_password" "graphspsecret" {
+  length = 35
+  special = true
+  override_special = "~!@#$%&*()-_=+[]{}<>:?"
+}
+
+
+resource "azurerm_key_vault_secret" "graphdappclientsecret" {
+  
+  depends_on = [
+    azurerm_key_vault_access_policy.terraform-sp
+  ]
+
+  name         = "graphdAppClientSecret"
+  value        = random_password.graphspsecret.result
+  key_vault_id = azurerm_key_vault.kv.id
+}
+
+resource "azurerm_key_vault_secret" "graphdapptenantid" {
+  
+  depends_on = [
+    azurerm_key_vault_access_policy.terraform-sp
+  ]
+
+  name         = "graphdAppTenantid"
+  value        = var.TENANT_ID
+  key_vault_id = azurerm_key_vault.kv.id
+}
+
+resource "azurerm_key_vault_secret" "storageconnectionstring" {
+  
+  depends_on = [
+    azurerm_key_vault_access_policy.terraform-sp
+  ]
+
+  name         = "SPStorageConnectionString"
+  value        = azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
+  key_vault_id = azurerm_key_vault.kv.id
+}

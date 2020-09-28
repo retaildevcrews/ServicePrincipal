@@ -1,16 +1,21 @@
-﻿using System;
+﻿using Microsoft.Graph;
+using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 
 namespace CSE.Automation.Model
 {
-    public class Configuration
+    public class ProcessorConfiguration
     {
-        public string ProcessorId { get; set; }
+        public string Id { get; set; }
 
         public string FilterString { get; set; }
 
-        public string[] SelectFields { get; set; }
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public ProcessorType ConfigType { get; set; }
+
+        public List<string> SelectFields { get; set; }
 
         public string DeltaLink { get; set; }
 

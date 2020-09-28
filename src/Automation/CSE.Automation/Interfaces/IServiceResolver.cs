@@ -5,8 +5,9 @@ using CSE.Automation;
 
 namespace CSE.Automation.Interfaces
 {
-    public interface IDALResolver
+    public interface IServiceResolver
     {
-        IDAL GetDAL(DALCollection collection);
+        T GetService<T>(string keyName);
     }
+
 }
