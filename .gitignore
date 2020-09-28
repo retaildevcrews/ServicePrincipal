@@ -78,12 +78,6 @@ artifacts/
 *.svclog
 *.scc
 
-# OS generated files #
-.DS_Store*
-
-# Mac desktop service store files
-.DS_Store
-
 # Chutzpah Test files
 _Chutzpah*
 
