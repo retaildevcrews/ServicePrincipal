@@ -7,8 +7,6 @@ using System.Linq;
 
 namespace CSE.Automation.Extensions
 {
-    // This code taken from: https://github.com/briandunnington/AzureFunctionsKeyVaultSettingsExample/blob/master/AzureFunctionsKeyVaultSettingsExample/KeyVaultConfigExtensions.cs
-    // Thank you Brain Dunnington!
     public static class KeyVaultConfigExtensions
     {
         public static IConfiguration AddAzureKeyVaultConfiguration(this IWebJobsBuilder builder, string keyVaultUrlSettingName)
@@ -24,9 +22,8 @@ namespace CSE.Automation.Extensions
         /* This is the meat of the logic. It finds the IConfiguration service that is already registered by the runtime, and then
          * creates an instance of the concrete class if necessary. It loads all of the Key Vault secrets into the config, and then
          * replaces the registered IConfiguration instance with the patched version.
-         * 
-         * Use at your own risk 😊
          * */
+
         public static IConfiguration AddAzureKeyVaultConfiguration(this IServiceCollection services, string keyVaultUrlSettingName)
         {
             // get the IConfiguration that is already registered with the host
