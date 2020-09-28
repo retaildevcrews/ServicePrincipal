@@ -1,20 +1,21 @@
 ﻿using System;
+using System.Collections;
 using System.Diagnostics;
-using CSE.Automation.Interfaces;
-using CSE.Automation.Graph;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Logging;
-
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
-using CSE.Automation.Services;
 using System.Globalization;
-using Microsoft.Graph;
-using CSE.Automation.Processors;
+using System.Threading.Tasks;
 using CSE.Automation.DataAccess;
+using CSE.Automation.Graph;
+using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
+using CSE.Automation.Processors;
+using CSE.Automation.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Storage.Queue;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.Extensions.Logging;
+using Microsoft.Graph;
 
 namespace CSE.Automation
 {
@@ -116,5 +117,25 @@ namespace CSE.Automation
             return new OkObjectResult($"Success");
         }
 
+        [FunctionName("SPTrackingQueueTriggerFunction")]
+        [StorageAccount(Constants.SPStorageConnectionString)]
+        public static async Task RunSPTrackingQueueDaemon([QueueTrigger(Constants.SPTrackingUpdateQueueAppSetting)] CloudQueueMessage msg, 
+            [Queue(Constants.SPAADUpdateQueueAppSetting)] CloudQueue queue, ILogger log)
+        {
+            log.LogInformation("Incoming message from SPTracking queue\n");
+            log.LogInformation($"C# SP Tracking Queue trigger function processed: {msg.AsString} \n");
+
+            var newMsg = $"Following message processed from SPTracking queue:\n{msg.AsString}\n";
+            await queue.AddMessageAsync(new CloudQueueMessage(newMsg)).ConfigureAwait(false);
+        }
+
+
+        [FunctionName("SPAADQueueTriggerFunction")]
+        [StorageAccount(Constants.SPStorageConnectionString)]
+        public static void RunSPAADQueueDaemon([QueueTrigger(Constants.SPAADUpdateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
+        {
+            log.LogInformation("Incoming message from AAD queue\n");
+            log.LogInformation($"C# AAD Queue trigger function processed: {msg.AsString} \n");
+        }
     }
 }

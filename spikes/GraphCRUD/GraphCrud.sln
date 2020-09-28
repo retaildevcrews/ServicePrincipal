@@ -4,7 +4,7 @@ VisualStudioVersion = 16.0.30413.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GraphCrud", "GraphCrud.csproj", "{323ABC38-44A8-4506-B370-D09870B31DFA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisibilityExpiry", "..\VisibilityExpiry\VisibilityExpiry.csproj", "{EF48983D-8BB8-4B32-9D52-6EB0D34AD130}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisibilityExpiry", "..\VisibilityExpiry\VisibilityExpiry.csproj", "{EF48983D-8BB8-4B32-9D52-6EB0D34AD130}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -13,7 +13,6 @@ namespace CSE.Automation.Tests
         private readonly GraphDeltaProcessor _subject;
         private readonly ICredentialService _credService;
         private readonly ISecretClient _secretService;
-
         private readonly ServicePrincipalGraphHelper _graphHelper;
         private readonly DALResolver _DALResolver;
         private readonly ProcessorResolver _processorResolver;

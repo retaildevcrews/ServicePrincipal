@@ -35,7 +35,7 @@ namespace CSE.Automation.Config
             {
                 if (queryRequestOptions == default)
                 {
-                    queryRequestOptions = new QueryRequestOptions { MaxItemCount = MaxRows, ConsistencyLevel = ConsistencyLevel.Session };
+                    queryRequestOptions = new QueryRequestOptions { MaxItemCount = MaxRows };//, ConsistencyLevel = ConsistencyLevel.Session };
                 }
 
                 return queryRequestOptions;
