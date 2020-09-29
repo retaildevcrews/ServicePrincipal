@@ -2,19 +2,24 @@
 
 FROM mcr.microsoft.com/azure-functions/dotnet:3.0 AS base
 ARG SP_AUTOMATION_VERSION
+ARG SP_AUTOMATION_GITHASH
 # Embed them in base
 ENV SP_AUTOMATION_VERSION=${SP_AUTOMATION_VERSION}
+ENV SP_AUTOMATION_GITHASH=${SP_AUTOMATION_GITHASH}
 WORKDIR /home/site/wwwroot
 EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
-ARG SP_AUTOMATION_VERSION
-ENV SP_AUTOMATION_VERSION=${SP_AUTOMATION_VERSION}
 WORKDIR /src
 COPY ["CSE.Automation/CSE.Automation.csproj", "CSE.Automation/"]
 RUN dotnet restore "CSE.Automation/CSE.Automation.csproj"
 COPY . .
 WORKDIR "/src/CSE.Automation"
+ARG SP_AUTOMATION_VERSION
+ARG SP_AUTOMATION_GITHASH
+# Embed them in base
+ENV SP_AUTOMATION_VERSION=${SP_AUTOMATION_VERSION}
+ENV SP_AUTOMATION_GITHASH=${SP_AUTOMATION_GITHASH}
 # If SP_AUTOMATION_VERSION is not specified, then don't use /p:Version argument
 RUN [ ! -z ${SP_AUTOMATION_VERSION} ] && echo Specified Version: ${SP_AUTOMATION_VERSION} \
     && VER_ARG="/p:Version=${SP_AUTOMATION_VERSION}" \
