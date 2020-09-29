@@ -11,8 +11,8 @@ namespace CSE.Automation.Processors
 {
     public class DeltaProcessorBase : IDeltaProcessor
     {
-        private IDAL _configDAL;
-        private ProcessorConfiguration _config;
+        protected IDAL _configDAL;
+        protected ProcessorConfiguration _config;
         protected string _uniqueId = string.Empty;
         public string ProcessorId
         {

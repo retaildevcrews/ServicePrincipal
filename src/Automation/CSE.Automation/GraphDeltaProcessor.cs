@@ -65,6 +65,10 @@ namespace CSE.Automation
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
+            // TODO: If we end up with now request params needed for the seed function then remove the param and this check.
+            if (req is null)
+                throw new ArgumentNullException(nameof(req));
+
             var queueConnectionString = _secretService.GetSecretValue(Constants.SPStorageConnectionString);
             var dataQueueName = _secretService.GetSecretValue(Constants.SPTrackingUpdateQueue);
             ProcessorConfiguration config = null; //TODO

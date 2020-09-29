@@ -27,6 +27,9 @@ namespace CSE.Automation.Services
 
         public async Task Send(QueueMessage message, int visibilityDelay)
         {
+            if (message is null)
+                throw new ArgumentNullException(nameof(message));
+
             bool messageSent = false;
             int numOfAttempts = 1;
             

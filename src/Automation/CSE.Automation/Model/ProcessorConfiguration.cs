@@ -15,7 +15,7 @@ namespace CSE.Automation.Model
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ProcessorType ConfigType { get; set; }
 
-        public List<string> SelectFields { get; set; }
+        public List<string> SelectFields { get;  }
 
         public string DeltaLink { get; set; }
 
