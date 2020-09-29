@@ -32,7 +32,7 @@ resource "azurerm_cosmosdb_sql_database" "cosmosdb" {
 # ---->>>> Creating Collections
 
 resource "azurerm_cosmosdb_sql_container" "cosmosdb-audit" {
-  name                = "Audit"#var.COSMOS_COL
+  name                = var.COSMOS_AUDIT_COL
   resource_group_name = var.APP_RG_NAME 
   account_name        = azurerm_cosmosdb_account.cosmosacct.name
   database_name       = azurerm_cosmosdb_sql_database.cosmosdb.name
@@ -40,15 +40,15 @@ resource "azurerm_cosmosdb_sql_container" "cosmosdb-audit" {
 }
 
 resource "azurerm_cosmosdb_sql_container" "cosmosdb-config" {
-  name                = "Configuration"#var.COSMOS_COL
+  name                = var.COSMOS_CONFIG_COL
   resource_group_name = var.APP_RG_NAME 
   account_name        = azurerm_cosmosdb_account.cosmosacct.name
   database_name       = azurerm_cosmosdb_sql_database.cosmosdb.name
-  partition_key_path  = "/id"
+  partition_key_path  = "/configType"
 }
 
 resource "azurerm_cosmosdb_sql_container" "cosmosdb-objtracking" {
-  name                = "ObjectTracking"#var.COSMOS_COL
+  name                = var.COSMOS_OBJ_TRACKING_COL
   resource_group_name = var.APP_RG_NAME 
   account_name        = azurerm_cosmosdb_account.cosmosacct.name
   database_name       = azurerm_cosmosdb_sql_database.cosmosdb.name
