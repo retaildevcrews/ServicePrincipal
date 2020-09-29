@@ -45,7 +45,8 @@ resource "azurerm_app_service_plan" "app-plan" {
 resource "azurerm_function_app" "fn-default" {
     
     depends_on = [
-        data.azurerm_storage_account.svc-ppl-storage-acc
+        data.azurerm_storage_account.svc-ppl-storage-acc,
+        azurerm_application_insights.svc-ppl-appi
      ]
 
     name = "${var.NAME}-funcn-${var.ENV}"
@@ -63,6 +64,8 @@ resource "azurerm_function_app" "fn-default" {
         APPINSIGHTS_INSTRUMENTATIONKEY = "${azurerm_application_insights.svc-ppl-appi.instrumentation_key}"
 
         https_only = true
+
+        KeyVaultEndpoint = "${azurerm_key_vault.kv.vault_uri}"
 /*
         FUNCTIONS_WORKER_RUNTIME = "node"
         WEBSITE_NODE_DEFAULT_VERSION = "~10"

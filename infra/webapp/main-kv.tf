@@ -133,7 +133,7 @@ resource "azurerm_key_vault_secret" "cosmosobktrackingcol" {
     azurerm_key_vault_access_policy.terraform-sp
   ]
   
-  name         = "SPObjectTracking"
+  name         = "SPObjectTrackingCollection"
   value        = var.COSMOS_OBJ_TRACKING_COL
   key_vault_id = azurerm_key_vault.kv.id
 }
@@ -189,7 +189,7 @@ resource "azurerm_key_vault_secret" "graphdppclientid" {
     azurerm_key_vault_access_policy.terraform-sp
   ]
 
-  name         = "graphdAppClientId"
+  name         = "graphAppClientId"
   value        = azuread_application.graphclient.application_id
   key_vault_id = azurerm_key_vault.kv.id
 }
@@ -207,7 +207,7 @@ resource "azurerm_key_vault_secret" "graphdappclientsecret" {
     azurerm_key_vault_access_policy.terraform-sp
   ]
 
-  name         = "graphdAppClientSecret"
+  name         = "graphAppClientSecret"
   value        = random_password.graphspsecret.result
   key_vault_id = azurerm_key_vault.kv.id
 }
@@ -218,7 +218,7 @@ resource "azurerm_key_vault_secret" "graphdapptenantid" {
     azurerm_key_vault_access_policy.terraform-sp
   ]
 
-  name         = "graphdAppTenantid"
+  name         = "graphAppTenantId"
   value        = var.TENANT_ID
   key_vault_id = azurerm_key_vault.kv.id
 }
