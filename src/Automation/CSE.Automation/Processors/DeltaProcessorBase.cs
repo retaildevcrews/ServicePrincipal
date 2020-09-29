@@ -1,11 +1,8 @@
 ﻿using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
-using CSE.Automation.Graph;
-using Microsoft.Graph;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.ComponentModel.Design;
+
+using System.Threading.Tasks;
 
 namespace CSE.Automation.Processors
 {
@@ -36,7 +33,7 @@ namespace CSE.Automation.Processors
             _configDAL = configDAL;
         }
 
-        public void ProcessDeltas()
+        public virtual Task ProcessDeltas()
         {
             throw new NotImplementedException();
         }

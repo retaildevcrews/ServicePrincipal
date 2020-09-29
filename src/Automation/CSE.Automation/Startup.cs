@@ -43,20 +43,20 @@ namespace CSE.Automation
 
 
 
-            var graphHelper =  new ServicePrincipalGraphHelper(graphAppClientId, graphAppTentantId, graphAppClientSecret);
+            var spGraphHelper =  new ServicePrincipalGraphHelper(graphAppClientId, graphAppTentantId, graphAppClientSecret);
 
-            builder.Services.AddSingleton<GraphHelperBase<ServicePrincipal>>(graphHelper);
+            builder.Services.AddSingleton<GraphHelperBase<ServicePrincipal>>(spGraphHelper);
 
             // Retrieve CosmosDB configuration, create access objects, and register
             DALResolver dalResolver = new DALResolver(secretService);
-            IDAL configDAL = dalResolver.GetService<IDAL> (DALCollection.Configuration.ToString());
+            IDAL configDAL = dalResolver.GetService<IDAL> (DALCollection.ProcessorConfiguration.ToString());
             IDAL auditDAL = dalResolver.GetService <IDAL> (DALCollection.Audit.ToString());
             IDAL objTrackingDAL = dalResolver.GetService <IDAL> (DALCollection.ObjectTracking.ToString());
 
             builder.Services.AddSingleton<DALResolver>(dalResolver);
-
+            
             // Create and register ProcessorResolver
-            var processorResolver = new ProcessorResolver(configDAL);
+            var processorResolver = new ProcessorResolver(configDAL,secretService, spGraphHelper);
             var processortest = processorResolver.GetService<IDeltaProcessor>(ProcessorType.ServicePrincipal.ToString());
             builder.Services.AddSingleton<ProcessorResolver>(processorResolver);
 
