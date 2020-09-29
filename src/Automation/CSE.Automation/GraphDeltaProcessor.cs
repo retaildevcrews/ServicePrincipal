@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Diagnostics;
-using CSE.Automation.Interfaces;
-using CSE.Automation.Graph;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Logging;
-
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
-using CSE.Automation.Services;
 using System.Globalization;
-using Microsoft.Graph;
-using CSE.Automation.Processors;
+using System.Threading.Tasks;
 using CSE.Automation.DataAccess;
+using CSE.Automation.Graph;
+using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
+using CSE.Automation.Processors;
+using CSE.Automation.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Storage.Queue;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.Extensions.Logging;
+using Microsoft.Graph;
 
 namespace CSE.Automation
 {
@@ -73,7 +73,7 @@ namespace CSE.Automation
             var dataQueueName = _secretService.GetSecretValue(Constants.SPTrackingUpdateQueue);
             ProcessorConfiguration config = null; //TODO
 
-            var servicePrincipalResult = _graphHelper.GetDeltaGraphObjects("appId,displayName,notes",config).Result;
+            var servicePrincipalResult = _graphHelper.GetDeltaGraphObjects("appId,displayName,notes", config).Result;
 
             string updatedDeltaLink = servicePrincipalResult.Item1;
             var servicePrincipals = servicePrincipalResult.Item2;
@@ -81,8 +81,8 @@ namespace CSE.Automation
             IAzureQueueService azureQueue = new AzureQueueService(queueConnectionString, dataQueueName);
 
             int visibilityDelayGapSeconds = Int32.Parse(Environment.GetEnvironmentVariable("visibilityDelayGapSeconds"), CultureInfo.InvariantCulture);
-            int queueRecordProcessThreshold = Int32.Parse(Environment.GetEnvironmentVariable("queueRecordProcessThreshold"),CultureInfo.InvariantCulture);
-            
+            int queueRecordProcessThreshold = Int32.Parse(Environment.GetEnvironmentVariable("queueRecordProcessThreshold"), CultureInfo.InvariantCulture);
+
             int servicePrincipalCount = default;
             int visibilityDelay = default;
 
@@ -106,7 +106,7 @@ namespace CSE.Automation
                     Attempt = 0
                 };
 
-                if (servicePrincipalCount % queueRecordProcessThreshold == 0 && servicePrincipalCount!=0)
+                if (servicePrincipalCount % queueRecordProcessThreshold == 0 && servicePrincipalCount != 0)
                 {
                     log.LogInformation($"Processed {servicePrincipalCount} Service Principal Objects.");
                     visibilityDelay += visibilityDelayGapSeconds;
@@ -120,5 +120,24 @@ namespace CSE.Automation
             return new OkObjectResult($"Success");
         }
 
+        [FunctionName("SPTrackingQueueTriggerFunction")]
+        [StorageAccount(Constants.SPStorageConnectionString)]
+        public static async Task RunSPTrackingQueueDaemon([QueueTrigger(Constants.SPTrackingUpdateQueueAppSetting)] CloudQueueMessage msg,
+            [Queue(Constants.SPAADUpdateQueueAppSetting)] CloudQueue queue, ILogger log)
+        {
+            log.LogInformation("Incoming message from SPTracking queue\n");
+            log.LogInformation($"C# SP Tracking Queue trigger function processed: {msg.AsString} \n");
+
+            var newMsg = $"Following message processed from SPTracking queue:\n{msg.AsString}\n";
+            await queue.AddMessageAsync(new CloudQueueMessage(newMsg)).ConfigureAwait(false);
+        }
+
+        [FunctionName("SPAADQueueTriggerFunction")]
+        [StorageAccount(Constants.SPStorageConnectionString)]
+        public static void RunSPAADQueueDaemon([QueueTrigger(Constants.SPAADUpdateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
+        {
+            log.LogInformation("Incoming message from AAD queue\n");
+            log.LogInformation($"C# AAD Queue trigger function processed: {msg.AsString} \n");
+        }
     }
 }
