@@ -11,6 +11,7 @@ using Microsoft.Graph;
 using CSE.Automation.Model;
 using System.Collections.Generic;
 using CSE.Automation.Processors;
+using CSE.Automation.Extensions;
 
 [assembly: FunctionsStartup(typeof(CSE.Automation.Startup))]
 
@@ -24,6 +25,9 @@ namespace CSE.Automation
                 throw new ArgumentNullException(nameof(builder));
 
             Debug.WriteLine(Environment.GetEnvironmentVariable("AUTH_TYPE"));
+
+            // Add key vault secrets to config object
+            var config = builder.AddAzureKeyVaultConfiguration("KeyVaultEndpoint");
 
             // Setup KV access and register services
             ICredentialService credService = new CredentialService(Environment.GetEnvironmentVariable(Constants.AuthType));
