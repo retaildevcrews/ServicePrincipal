@@ -22,7 +22,7 @@ namespace CSE.Automation.Processors
         private protected void InitializeProcessor(ProcessorType processorType)
         {
             // Need the config for startup, so accepting the blocking call in the constructor.
-            _config = _configDAL.GetById<ProcessorConfiguration>(_uniqueId, processorType.ToString()).Result;
+            _config = _configDAL.GetByIdAsync<ProcessorConfiguration>(_uniqueId, processorType.ToString()).Result;
         }
 
         public DeltaProcessorBase (IDAL configDAL)

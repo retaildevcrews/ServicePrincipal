@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Threading.Tasks;
 using CSE.Automation.Config;
 using CSE.Automation.Interfaces;
+using Microsoft.Azure.Documents.Client;
 
 namespace CSE.Automation.DataAccess
 {
@@ -36,8 +37,6 @@ namespace CSE.Automation.DataAccess
             cosmosDetails = new CosmosConfig
             {
                 MaxRows = MaxPageSize,
-
-
                 Timeout = CosmosTimeout,
                 CosmosCollection = cosmosCollection,
                 CosmosDatabase = cosmosDatabase,
@@ -205,11 +204,20 @@ namespace CSE.Automation.DataAccess
             return results;
         }
 
-        public async Task<T> GetById<T>(string Id, string partitionKey)
+        public async Task<T> GetByIdAsync<T>(string id, string partitionKey)
         {
 
-            var response = await cosmosDetails.Container.ReadItemAsync<T>(Id, new PartitionKey(partitionKey)).ConfigureAwait(false);
+            var response = await cosmosDetails.Container.ReadItemAsync<T>(id, new PartitionKey(partitionKey)).ConfigureAwait(false);
             return response;
+        }
+
+        public async Task<T> ReplaceDocumentAsync<T>(string id, T newDocument,string partitionKey=null)
+        {
+            var con = cosmosDetails.Client.GetContainer(cosmosDetails.CosmosDatabase, cosmosDetails.CosmosCollection);
+
+            //PartitionKey pk = String.IsNullOrWhiteSpace(partitionKey) ? default : new PartitionKey(partitionKey);
+            
+            return await con.ReplaceItemAsync<T>(newDocument, id,null).ConfigureAwait(false);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "Using lower case with cosmos queries as tested.")]

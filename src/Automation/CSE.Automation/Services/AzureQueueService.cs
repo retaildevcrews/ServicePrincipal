@@ -41,7 +41,7 @@ namespace CSE.Automation.Services
 
                     await _queueClient
                         .SendMessageAsync(JsonConvert.SerializeObject(message), TimeSpan.FromSeconds(visibilityDelay))
-                        .ConfigureAwait(true);
+                        .ConfigureAwait(false);
                     messageSent = true;
                 }
                 catch (Azure.RequestFailedException e)

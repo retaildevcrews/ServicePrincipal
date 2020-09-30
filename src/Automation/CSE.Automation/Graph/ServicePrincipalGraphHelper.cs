@@ -30,27 +30,28 @@ namespace CSE.Automation.Graph
                 config.RunState == RunState.SeedAndRun ||
                 String.IsNullOrEmpty(config.DeltaLink))
             {
-                Console.WriteLine("Seeding Service Principal objects..."); //TODO change this to log
+                Console.WriteLine("Seeding Service Principal objects from Graph..."); //TODO change this to log
 
                 servicePrincipalCollectionPage = await graphClient.ServicePrincipals
                 .Delta()
                 .Request()
                 .Select(selectFields)
                 .GetAsync()
-                .ConfigureAwait(true);
+                .ConfigureAwait(false);
             }
             else
             {
+                Console.WriteLine("Fetching Service Principal Delta objects from Graph...");
                 servicePrincipalCollectionPage = new ServicePrincipalDeltaCollectionPage();
                 servicePrincipalCollectionPage.InitializeNextPageRequest(graphClient, config.DeltaLink);
-                servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(true); ;
+                servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(false); ;
             }
 
             servicePrincipalSeedList.AddRange(servicePrincipalCollectionPage.CurrentPage);
 
             while (servicePrincipalCollectionPage.NextPageRequest != null)
             {
-                servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(true);
+                servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
                 servicePrincipalSeedList.AddRange(servicePrincipalCollectionPage.CurrentPage);
             }
 

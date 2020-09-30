@@ -35,9 +35,8 @@ namespace CSE.Automation.Processors
             var queueConnectionString = _secretService.GetSecretValue(Constants.SPStorageConnectionString);
             var dataQueueName = _secretService.GetSecretValue(Constants.SPTrackingUpdateQueue);
 
-            ProcessorConfiguration tempConfig = new ProcessorConfiguration();
-
-            var servicePrincipalResult = _graphHelper.GetDeltaGraphObjects("appId,displayName,notes", tempConfig).Result;
+           
+            var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects("appId,displayName,notes", _config).ConfigureAwait(false);
 
             string updatedDeltaLink = servicePrincipalResult.Item1; //TODO save this back in Config
             var servicePrincipalList = servicePrincipalResult.Item2;
@@ -47,7 +46,7 @@ namespace CSE.Automation.Processors
             int servicePrincipalCount = default;
             int visibilityDelay = default;
 
-            Console.WriteLine($"Processing Service Principal objects from Graph..."); //TODO change this to log
+            Console.WriteLine($"Processing Service Principal objects..."); //TODO change this to log
 
             foreach (var sp in servicePrincipalList)
             {
@@ -74,9 +73,16 @@ namespace CSE.Automation.Processors
                     Console.WriteLine($"Processed {servicePrincipalCount} Service Principal Objects."); //TODO change this to log
                     visibilityDelay += visibilityDelayGapSeconds;
                 }
-                await azureQueue.Send(myMessage, visibilityDelay).ConfigureAwait(true);
+                await azureQueue.Send(myMessage, visibilityDelay).ConfigureAwait(false);
                 servicePrincipalCount++;
             }
+
+            _config.DeltaLink = updatedDeltaLink;
+            _config.LastSeedTime = DateTime.Now;
+            _config.RunState = RunState.DeltaRun;
+
+            await _configDAL.ReplaceDocumentAsync<ProcessorConfiguration>(_config.Id, _config, _config.ConfigType.ToString()).ConfigureAwait(false);
+
             Console.WriteLine($"Finished Processing {servicePrincipalCount} Service Principal Objects."); //TODO change this to log
         }
 

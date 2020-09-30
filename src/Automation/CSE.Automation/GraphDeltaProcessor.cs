@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.Threading.Tasks;
-using CSE.Automation.DataAccess;
-using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Processors;
 using Microsoft.AspNetCore.Http;
@@ -12,7 +9,6 @@ using Microsoft.Azure.Storage.Queue;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
 
 namespace CSE.Automation
 {
@@ -20,52 +16,45 @@ namespace CSE.Automation
     {
 
         private readonly ProcessorResolver _processorResolver;
-
+     
         public GraphDeltaProcessor(ProcessorResolver processorResolver)
         {
             _processorResolver = processorResolver;
         }
 
-        [FunctionName("ServicePrincipalDeltas")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Will add specific error in time.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1801:Review unused parameters", Justification = "Required as part of Trigger declaration.")]
-        public static void Run([TimerTrigger("0 */2 * * * *")] TimerInfo myTimer, ILogger log)
+        private async void launchSeedDeltaProcessor()
         {
-
-            if (log == null)
-                throw new ArgumentNullException(nameof(log));
-
-            try
-            {
-           
-                //var spProcessor = _processorResolver.GetService<IDeltaProcessor>(ProcessorType.ServicePrincipal.ToString());
-            }
-            catch (Exception ex)
-            {
-                log.LogError(ex.Message);
-                Debug.WriteLine(ex.Message);
-            }
-        }
-
-        [FunctionName("SeedServicePrincipal")]
-        public async Task<IActionResult> SeedServicePrincipal(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
-            ILogger log)
-        {
-            log.LogDebug("Executing SeedServicePrincipal Function");
-            // TODO: If we end up with now request params needed for the seed function then remove the param and this check.
-            if (req is null)
-                throw new ArgumentNullException(nameof(req));
-
             int visibilityDelayGapSeconds = int.Parse(Environment.GetEnvironmentVariable("visibilityDelayGapSeconds"), CultureInfo.InvariantCulture);
             int queueRecordProcessThreshold = int.Parse(Environment.GetEnvironmentVariable("queueRecordProcessThreshold"), CultureInfo.InvariantCulture);
-    
+
             ServicePrincipalProcessor spProcessor = (ServicePrincipalProcessor)_processorResolver.GetService<IDeltaProcessor>(ProcessorType.ServicePrincipal.ToString());
             spProcessor.visibilityDelayGapSeconds = visibilityDelayGapSeconds;
             spProcessor.queueRecordProcessThreshold = queueRecordProcessThreshold;
 
-            await spProcessor.ProcessDeltas().ConfigureAwait(true);
-            
+            await spProcessor.ProcessDeltas().ConfigureAwait(false);
+        }
+
+        [FunctionName("SeedDeltaProcessorTimer")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Will add specific error in time.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1801:Review unused parameters", Justification = "Required as part of Trigger declaration.")]
+        public void SeedDeltaProcessorTimer([TimerTrigger("0 */30 * * * *")] TimerInfo myTimer, ILogger log)
+        {
+            log.LogDebug("Executing SeedDeltaProcessorTimer Function");
+            //launchSeedDeltaProcessor();
+        }
+
+        [FunctionName("SeedDeltaProcessor")]
+        public IActionResult SeedServicePrincipal(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
+            ILogger log)
+        {
+            log.LogDebug("Executing SeedDeltaProcessor HttpTrigger Function");
+            // TODO: If we end up with now request params needed for the seed function then remove the param and this check.
+            if (req is null)
+                throw new ArgumentNullException(nameof(req));
+
+            launchSeedDeltaProcessor();
+
             return new OkObjectResult($"Success");
         }
 
@@ -75,9 +64,9 @@ namespace CSE.Automation
             [Queue(Constants.SPAADUpdateQueueAppSetting)] CloudQueue queue, ILogger log)
         {
             log.LogInformation("Incoming message from SPTracking queue\n");
-            log.LogInformation($"C# SP Tracking Queue trigger function processed: {msg.AsString} \n");
+            log.LogInformation($"C# SP Tracking Queue trigger function processed: {msg} \n");
 
-            var newMsg = $"Following message processed from SPTracking queue:\n{msg.AsString}\n";
+            var newMsg = $"Following message processed from SPTracking queue:\n{msg}\n";
             await queue.AddMessageAsync(new CloudQueueMessage(newMsg)).ConfigureAwait(false);
         }
 
@@ -86,7 +75,7 @@ namespace CSE.Automation
         public static void RunSPAADQueueDaemon([QueueTrigger(Constants.SPAADUpdateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
         {
             log.LogInformation("Incoming message from AAD queue\n");
-            log.LogInformation($"C# AAD Queue trigger function processed: {msg.AsString} \n");
+            log.LogInformation($"C# AAD Queue trigger function processed: {msg} \n");
         }
     }
 }
