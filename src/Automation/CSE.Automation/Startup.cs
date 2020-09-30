@@ -8,8 +8,6 @@ using CSE.Automation.Graph;
 using CSE.Automation.KeyVault;
 using CSE.Automation.DataAccess;
 using Microsoft.Graph;
-using CSE.Automation.Model;
-using System.Collections.Generic;
 using CSE.Automation.Processors;
 using CSE.Automation.Extensions;
 
@@ -38,12 +36,10 @@ namespace CSE.Automation
 
             // Setup graph API helper and register
             var graphAppClientId = secretService.GetSecretValue(Constants.GraphAppClientIdKey);
-            var graphAppTentantId = secretService.GetSecretValue(Constants.GraphAppTenantIdKey);
+            var graphAppTenantId = secretService.GetSecretValue(Constants.GraphAppTenantIdKey);
             var graphAppClientSecret = secretService.GetSecretValue(Constants.GraphAppClientSecretKey);
 
-
-
-            var spGraphHelper =  new ServicePrincipalGraphHelper(graphAppClientId, graphAppTentantId, graphAppClientSecret);
+            var spGraphHelper =  new ServicePrincipalGraphHelper(graphAppClientId, graphAppTenantId, graphAppClientSecret);
 
             builder.Services.AddSingleton<GraphHelperBase<ServicePrincipal>>(spGraphHelper);
 
@@ -57,9 +53,7 @@ namespace CSE.Automation
             
             // Create and register ProcessorResolver
             var processorResolver = new ProcessorResolver(configDAL,secretService, spGraphHelper);
-            var processortest = processorResolver.GetService<IDeltaProcessor>(ProcessorType.ServicePrincipal.ToString());
             builder.Services.AddSingleton<ProcessorResolver>(processorResolver);
-
 
         }
     }

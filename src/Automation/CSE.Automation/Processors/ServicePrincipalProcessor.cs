@@ -37,8 +37,6 @@ namespace CSE.Automation.Processors
 
             ProcessorConfiguration tempConfig = new ProcessorConfiguration();
 
-            Console.WriteLine("Config:" + _config.ToString());
-
             var servicePrincipalResult = _graphHelper.GetDeltaGraphObjects("appId,displayName,notes", tempConfig).Result;
 
             string updatedDeltaLink = servicePrincipalResult.Item1; //TODO save this back in Config
