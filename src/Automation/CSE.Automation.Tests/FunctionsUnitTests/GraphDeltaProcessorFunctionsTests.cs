@@ -22,6 +22,9 @@ namespace CSE.Automation.Tests
         {
             _credService = Substitute.For<ICredentialService>();
             _secretService = Substitute.For<ISecretClient>();
+            // TODO: Need to add an interface for GraphHelper so we can mock it or come up with another way to instantiate 
+            // GraphDeltaProcessor for testing. As it is right now the substitution won't work because the GraphHelper
+            // constructor will actually get called and try to create a client and needs tentant id and secret 
             _graphHelper = Substitute.For<ServicePrincipalGraphHelper>();
             _DALResolver = Substitute.For<DALResolver>();
             _processorResolver = Substitute.For<ProcessorResolver>();
