@@ -84,16 +84,19 @@ jobs:
         # build the complete image name
         ACR_IMAGE="${ACR_REG_REPO_URL}"
         # Tag image based on repo tag if a github label
+        GIT_HASH=$( echo ${{ github.sha	}} | cut -c1-7 )
         if [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
           # Strip git ref prefix and "v" from version
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e 's/^v//')
 
-          # tag the image with :version and :stable
+          # tag the image with :version, :version-hash and :stable
           docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:${VERSION}
+          docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:${VERSION}-${GIT_HASH}
           docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:stable
         else
-          # If it's not a git-tag, then use the "beta" tag
+          # If it's not a git-tag, then use the "beta-hash" tag
           docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:beta
+          docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:beta-${GIT_HASH}
         fi
         
         # push the repo
