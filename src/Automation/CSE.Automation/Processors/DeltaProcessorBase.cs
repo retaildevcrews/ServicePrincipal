@@ -1,11 +1,8 @@
 ﻿using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
-using CSE.Automation.Graph;
-using Microsoft.Graph;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.ComponentModel.Design;
+
+using System.Threading.Tasks;
 
 namespace CSE.Automation.Processors
 {
@@ -25,7 +22,7 @@ namespace CSE.Automation.Processors
         private protected void InitializeProcessor(ProcessorType processorType)
         {
             // Need the config for startup, so accepting the blocking call in the constructor.
-            _config = _configDAL.GetById<ProcessorConfiguration>(_uniqueId, processorType.ToString()).Result;
+            _config = _configDAL.GetByIdAsync<ProcessorConfiguration>(_uniqueId, processorType.ToString()).Result;
         }
 
         public DeltaProcessorBase (IDAL configDAL)
@@ -36,7 +33,7 @@ namespace CSE.Automation.Processors
             _configDAL = configDAL;
         }
 
-        public void ProcessDeltas()
+        public virtual Task<int> ProcessDeltas()
         {
             throw new NotImplementedException();
         }
