@@ -22,7 +22,7 @@ namespace CSE.Automation
             _processorResolver = processorResolver;
         }
 
-        private async void launchSeedDeltaProcessor()
+        private async Task<int> launchSeedDeltaProcessor()
         {
             int visibilityDelayGapSeconds = int.Parse(Environment.GetEnvironmentVariable("visibilityDelayGapSeconds"), CultureInfo.InvariantCulture);
             int queueRecordProcessThreshold = int.Parse(Environment.GetEnvironmentVariable("queueRecordProcessThreshold"), CultureInfo.InvariantCulture);
@@ -31,20 +31,20 @@ namespace CSE.Automation
             spProcessor.visibilityDelayGapSeconds = visibilityDelayGapSeconds;
             spProcessor.queueRecordProcessThreshold = queueRecordProcessThreshold;
 
-            await spProcessor.ProcessDeltas().ConfigureAwait(false);
+            return await spProcessor.ProcessDeltas().ConfigureAwait(false);
         }
 
         [FunctionName("SeedDeltaProcessorTimer")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Will add specific error in time.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1801:Review unused parameters", Justification = "Required as part of Trigger declaration.")]
-        public void SeedDeltaProcessorTimer([TimerTrigger("0 */30 * * * *")] TimerInfo myTimer, ILogger log)
+        public async Task<int> SeedDeltaProcessorTimer([TimerTrigger("0 */30 * * * *")] TimerInfo myTimer, ILogger log)
         {
             log.LogDebug("Executing SeedDeltaProcessorTimer Function");
-            //launchSeedDeltaProcessor();
+            return await launchSeedDeltaProcessor().ConfigureAwait(false);
         }
 
         [FunctionName("SeedDeltaProcessor")]
-        public IActionResult SeedServicePrincipal(
+        public async Task<IActionResult> SeedServicePrincipal(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
@@ -53,9 +53,9 @@ namespace CSE.Automation
             if (req is null)
                 throw new ArgumentNullException(nameof(req));
 
-            launchSeedDeltaProcessor();
+            int objectCount = await launchSeedDeltaProcessor().ConfigureAwait(false);
 
-            return new OkObjectResult($"Success");
+            return new OkObjectResult($"Service Principal Objects Processed: {objectCount}");
         }
 
         [FunctionName("SPTrackingQueueTriggerFunction")]
@@ -63,6 +63,8 @@ namespace CSE.Automation
         public static async Task RunSPTrackingQueueDaemon([QueueTrigger(Constants.SPTrackingUpdateQueueAppSetting)] CloudQueueMessage msg,
             [Queue(Constants.SPAADUpdateQueueAppSetting)] CloudQueue queue, ILogger log)
         {
+            if (queue is null)
+                throw new ArgumentNullException(nameof (queue));
             log.LogInformation("Incoming message from SPTracking queue\n");
             log.LogInformation($"C# SP Tracking Queue trigger function processed: {msg} \n");
 

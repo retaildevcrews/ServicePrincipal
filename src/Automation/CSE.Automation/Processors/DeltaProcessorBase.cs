@@ -33,7 +33,7 @@ namespace CSE.Automation.Processors
             _configDAL = configDAL;
         }
 
-        public virtual Task ProcessDeltas()
+        public virtual Task<int> ProcessDeltas()
         {
             throw new NotImplementedException();
         }

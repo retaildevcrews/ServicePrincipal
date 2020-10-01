@@ -4,6 +4,6 @@ namespace CSE.Automation.Interfaces
 {
     public interface IDeltaProcessor
     {
-        public Task ProcessDeltas();
+        public Task<int> ProcessDeltas();
     }
 }

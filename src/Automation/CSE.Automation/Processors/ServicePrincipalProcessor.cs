@@ -30,7 +30,7 @@ namespace CSE.Automation.Processors
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Console.WriteLine will be changed to logs")]
-        public override async Task ProcessDeltas()
+        public override async Task<int> ProcessDeltas()
         {
             var queueConnectionString = _secretService.GetSecretValue(Constants.SPStorageConnectionString);
             var dataQueueName = _secretService.GetSecretValue(Constants.SPTrackingUpdateQueue);
@@ -84,6 +84,7 @@ namespace CSE.Automation.Processors
             await _configDAL.ReplaceDocumentAsync<ProcessorConfiguration>(_config.Id, _config, _config.ConfigType.ToString()).ConfigureAwait(false);
 
             Console.WriteLine($"Finished Processing {servicePrincipalCount} Service Principal Objects."); //TODO change this to log
+            return servicePrincipalCount;
         }
 
     }
