@@ -190,15 +190,15 @@ resource "azurerm_key_vault_secret" "graphdppclientid" {
   ]
 
   name         = "graphAppClientId"
-  value        = azuread_application.graphclient.application_id
+  value        = var.GRAPH_SP_ID #azuread_application.graphclient.application_id
   key_vault_id = azurerm_key_vault.kv.id
 }
 
-resource "random_password" "graphspsecret" {
-  length = 35
-  special = true
-  override_special = "~!@#$%&*()-_=+[]{}<>:?"
-}
+# resource "random_password" "graphspsecret" {
+#   length = 35
+#   special = true
+#   override_special = "~!@#$%&*()-_=+[]{}<>:?"
+# }
 
 
 resource "azurerm_key_vault_secret" "graphdappclientsecret" {
@@ -208,7 +208,7 @@ resource "azurerm_key_vault_secret" "graphdappclientsecret" {
   ]
 
   name         = "graphAppClientSecret"
-  value        = random_password.graphspsecret.result
+  value        =  var.GRAPH_SP_SECRET  #random_password.graphspsecret.result
   key_vault_id = azurerm_key_vault.kv.id
 }
 
