@@ -60,6 +60,17 @@ variable "ACR_SP_SECRET" {
   description = "The ACR Service Principal secret"
 }
 
+variable "GRAPH_SP_ID" {
+  type        = string
+  description = "The Graph client Service Principal"
+}
+
+variable "GRAPH_SP_SECRET" {
+  type        = string
+  description = "The Graph client Service Principal Secret"
+}
+
+
 variable "COSMOS_AUDIT_COL" {
   type        = string
   description = "The CosmosDB Collection name used to hold Audit records"
