@@ -83,7 +83,7 @@ jobs:
         # build the complete image name
         ACR_IMAGE="${ACR_REG_REPO_URL}"
         # Tag image based on repo tag if a github label
-        GIT_HASH=$( echo ${{ github.sha	}} | cut -c1-7 )
+        GIT_HASH=$( echo ${{ github.sha }} | cut -c1-7 )
         if [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
           # Strip git ref prefix and "v" from version
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e 's/^v//')
