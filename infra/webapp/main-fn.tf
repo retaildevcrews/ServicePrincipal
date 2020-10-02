@@ -1,24 +1,34 @@
 # NOTE: Storage account name can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long
 
-resource azurerm_storage_account svc-ppl-storage-acc {
-  name                      = "${var.PROJECT_NAME}st${var.ENV}"
-  location                  = var.LOCATION
-  resource_group_name       = var.APP_RG_NAME
-  account_tier              = "Standard"
-  account_replication_type  = "LRS"
+# resource azurerm_storage_account svc-ppl-storage-acc {
+#   name                      = "${var.PROJECT_NAME}st${var.ENV}"
+#   location                  = var.LOCATION
+#   resource_group_name       = var.APP_RG_NAME
+#   account_tier              = "Standard"
+#   account_replication_type  = "LRS"
+# }
+
+
+data "azurerm_storage_account" "svc-ppl-storage-acc" {
+  name                          = var.STORAGE_NAME
+  resource_group_name             = var.APP_RG_NAME
 }
 
+
 output "STORAGE_ACCOUNT_DONE" {
-  depends_on  = [azurerm_storage_account.svc-ppl-storage-acc]
+  depends_on  = [  data.azurerm_storage_account.svc-ppl-storage-acc
+          ]
   value       = true
   description = "Storage Account setup is complete"
 }
 
-output "STORAGE_ACCOUNT_NAME" {
-  depends_on  = [azurerm_storage_account.svc-ppl-storage-acc]
-  value       = azurerm_storage_account.svc-ppl-storage-acc.name
-  description = "Storage Account name"
-}
+# output "STORAGE_ACCOUNT_NAME" {
+#   depends_on  = [
+#     data.azurerm_storage_account.svc-ppl-storage-acc
+#    ] 
+#   value       = locals.storage_acc_name
+#   description = "Storage Account name"
+# }
 
 resource "azurerm_app_service_plan" "app-plan" {
     name                = "${var.NAME}-plan-${var.ENV}"
@@ -35,15 +45,16 @@ resource "azurerm_app_service_plan" "app-plan" {
 resource "azurerm_function_app" "fn-default" {
     
     depends_on = [
-        azurerm_storage_account.svc-ppl-storage-acc
+        data.azurerm_storage_account.svc-ppl-storage-acc,
+        azurerm_application_insights.svc-ppl-appi
      ]
 
     name = "${var.NAME}-funcn-${var.ENV}"
     location = var.LOCATION
     resource_group_name = var.APP_RG_NAME
     app_service_plan_id = azurerm_app_service_plan.app-plan.id
-    storage_account_name        = azurerm_storage_account.svc-ppl-storage-acc.name
-    storage_account_access_key = azurerm_storage_account.svc-ppl-storage-acc.primary_access_key
+    storage_account_name        = data.azurerm_storage_account.svc-ppl-storage-acc.name
+    storage_account_access_key = data.azurerm_storage_account.svc-ppl-storage-acc.primary_access_key
     
     identity  {
       type = "SystemAssigned"
@@ -53,6 +64,8 @@ resource "azurerm_function_app" "fn-default" {
         APPINSIGHTS_INSTRUMENTATIONKEY = "${azurerm_application_insights.svc-ppl-appi.instrumentation_key}"
 
         https_only = true
+
+        KeyVaultEndpoint = "${azurerm_key_vault.kv.vault_uri}"
 /*
         FUNCTIONS_WORKER_RUNTIME = "node"
         WEBSITE_NODE_DEFAULT_VERSION = "~10"

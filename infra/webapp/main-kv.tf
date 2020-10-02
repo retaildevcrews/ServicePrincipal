@@ -4,8 +4,10 @@ data "azurerm_client_config" "current" {}
 
 # Create Key Vault // As of today 8-27-2020 v13.1 has some issues https://github.com/hashicorp/terraform/issues/26011
 resource "azurerm_key_vault" "kv" {
-  
-  depends_on = [azurerm_storage_account.svc-ppl-storage-acc]
+    
+  depends_on = [
+    data.azurerm_storage_account.svc-ppl-storage-acc
+    ]
 
   name                            = "${var.NAME}-kv-${var.ENV}"
   location                        = var.LOCATION
@@ -131,7 +133,7 @@ resource "azurerm_key_vault_secret" "cosmosobktrackingcol" {
     azurerm_key_vault_access_policy.terraform-sp
   ]
   
-  name         = "SPObjectTracking"
+  name         = "SPObjectTrackingCollection"
   value        = var.COSMOS_OBJ_TRACKING_COL
   key_vault_id = azurerm_key_vault.kv.id
 }
@@ -155,7 +157,7 @@ resource "azurerm_key_vault_secret" "storageaccpk" {
   ]
 
   name         = "SPStorageAccountPrimaryKey"
-  value        = azurerm_storage_account.svc-ppl-storage-acc.primary_access_key
+  value        = data.azurerm_storage_account.svc-ppl-storage-acc.primary_access_key
   key_vault_id = azurerm_key_vault.kv.id
 }
 
@@ -180,3 +182,98 @@ resource "azurerm_key_vault_secret" "trackingupdatequeue" {
   value        = var.TRACKING_QUEUE_NAME
   key_vault_id = azurerm_key_vault.kv.id
 }
+
+resource "azurerm_key_vault_secret" "graphdppclientid" {
+  
+  depends_on = [
+    azurerm_key_vault_access_policy.terraform-sp
+  ]
+
+  name         = "graphAppClientId"
+  value        = var.GRAPH_SP_ID #azuread_application.graphclient.application_id
+  key_vault_id = azurerm_key_vault.kv.id
+}
+
+# resource "random_password" "graphspsecret" {
+#   length = 35
+#   special = true
+#   override_special = "~!@#$%&*()-_=+[]{}<>:?"
+# }
+
+
+resource "azurerm_key_vault_secret" "graphdappclientsecret" {
+  
+  depends_on = [
+    azurerm_key_vault_access_policy.terraform-sp
+  ]
+
+  name         = "graphAppClientSecret"
+  value        =  var.GRAPH_SP_SECRET  #random_password.graphspsecret.result
+  key_vault_id = azurerm_key_vault.kv.id
+}
+
+resource "azurerm_key_vault_secret" "graphdapptenantid" {
+  
+  depends_on = [
+    azurerm_key_vault_access_policy.terraform-sp
+  ]
+
+  name         = "graphAppTenantId"
+  value        = var.TENANT_ID
+  key_vault_id = azurerm_key_vault.kv.id
+}
+
+resource "azurerm_key_vault_secret" "storageconnectionstring" {
+  
+  depends_on = [
+    azurerm_key_vault_access_policy.terraform-sp
+  ]
+
+  name         = "SPStorageConnectionString"
+  value        = data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
+  key_vault_id = azurerm_key_vault.kv.id
+}
+
+
+resource "azurerm_key_vault_secret" "spterraformclientid" {
+  
+  depends_on = [
+    azurerm_key_vault_access_policy.terraform-sp
+  ]
+
+  name         = "SPTfClientId"
+  value        = var.TF_CLIENT_SP_ID
+  key_vault_id = azurerm_key_vault.kv.id
+}
+
+resource "azurerm_key_vault_secret" "spterraformclientsecret" {
+  
+  depends_on = [
+    azurerm_key_vault_access_policy.terraform-sp
+  ]
+
+  name         = "SPTfClientSecret"
+  value        = var.TF_CLIENT_SP_SECRET
+  key_vault_id = azurerm_key_vault.kv.id
+}
+resource "azurerm_key_vault_secret" "apacrclientid" {
+  
+  depends_on = [
+    azurerm_key_vault_access_policy.terraform-sp
+  ]
+
+  name         = "SPAcrClientId"
+  value        = var.ACR_SP_ID
+  key_vault_id = azurerm_key_vault.kv.id
+}
+resource "azurerm_key_vault_secret" "apacrclientsecret" {
+  
+  depends_on = [
+    azurerm_key_vault_access_policy.terraform-sp
+  ]
+
+  name         = "SPAcrClientSecret"
+  value        = var.ACR_SP_SECRET
+  key_vault_id = azurerm_key_vault.kv.id
+}
+

@@ -17,6 +17,9 @@ namespace CSE.Automation.Model
 
         public AuditEntry(IGraphModel originalDocument)
         {
+            if (originalDocument is null)
+                throw new ArgumentNullException(nameof(originalDocument));
+
             this.Id = originalDocument.Id;
             this.Created = originalDocument.Created;
             this.Deleted = originalDocument.Deleted;
