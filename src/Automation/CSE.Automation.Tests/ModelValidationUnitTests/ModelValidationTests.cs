@@ -3,6 +3,10 @@ using Xunit;
 using CSE.Automation.Model;
 using FluentValidation;
 using System;
+using System.Collections.Generic;
+using FluentValidation.Results;
+using System.Linq;
+using System.ComponentModel.DataAnnotations;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests
 {
@@ -10,7 +14,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
     {
 
         [Fact]
-        public void ServicePrincipalModelValidate_ThrowsValidationExceptionIfInvalid()
+        public void ServicePrincipalModelValidate_ReturnsValidationFailuresIfInvalid()
         {
             var servicePrincipal = new ServicePrincipalModel
             {
@@ -19,15 +23,27 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 DisplayName = "fake display name"
             };
 
-            Action result = () => servicePrincipal.Validate(new CreateServicePrincipalValidator());
+            var validationSuccess = servicePrincipal.Validate(new CreateServicePrincipalValidator(), out IEnumerable<ValidationFailure> errors);
 
-            var exception = Assert.Throws<ValidationException>(result);
-
-            Assert.Contains("'Notes' must not be empty", exception.Message);
+            Assert.False(validationSuccess);
+            Assert.Contains(errors, x => x.PropertyName == "Notes");
         }
 
         [Fact]
-        public void ServicePrinciapalModelValidate_DoesNotThrowExceptionIfValid()
+        public void ServicePrincipalModelValidate_ThrowsArgumentNullExceptionIfValidatorNotPassedIn()
+        {
+            var servicePrincipal = new ServicePrincipalModel
+            {
+                AppId = "fake app id",
+                AppDisplayName = "fake app display name",
+                DisplayName = "fake display name"
+            };
+            var exception = Record.Exception(() => servicePrincipal.Validate(null, out IEnumerable<ValidationFailure> errors));
+            Assert.IsType<ArgumentNullException>(exception);
+        }
+
+        [Fact]
+        public void ServicePrinciapalModelValidate_ReturnsTrueIfValid()
         {
             var servicePrincipal = new ServicePrincipalModel
             {
@@ -38,9 +54,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 Notes = "super fake note"
             };
 
-            var exception = Record.Exception(() => servicePrincipal.Validate(new CreateServicePrincipalValidator()));
+            var validationSuccess = servicePrincipal.Validate(new CreateServicePrincipalValidator(), out IEnumerable<ValidationFailure> errors);
 
-            Assert.Null(exception);
+            Assert.True(validationSuccess);
+            Assert.Null(errors);
         }
     }
 }

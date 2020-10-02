@@ -1,5 +1,8 @@
 ﻿
+using System;
+using System.Collections.Generic;
 using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.Extensions.Options;
 
 namespace CSE.Automation.Model
@@ -15,19 +18,24 @@ namespace CSE.Automation.Model
 
         public string Notes { get; set; }
 
-        public void Validate(AbstractValidator<ServicePrincipalModel> validator)
+        public bool Validate(AbstractValidator<ServicePrincipalModel> validator, out IEnumerable<ValidationFailure> errors)
         {
+            errors = null;
+
             if (validator == null)
             {
-                throw new ValidationException("Validator must not be null.");
+                throw new ArgumentNullException(nameof(validator));
             }
 
             var validationResults = validator.Validate(this);
 
             if (!validationResults.IsValid)
             {
-                throw new ValidationException(validationResults.Errors);
+                errors = validationResults.Errors;
+                return false;
             }
+
+            return true;
         }
     }
 
