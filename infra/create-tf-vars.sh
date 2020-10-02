@@ -109,9 +109,18 @@ export graphServicePricipalId=$svc_ppl_GRAPH_SP_ID
 servicePricipalId=$(eval echo $graphServicePricipalId)
 echo "Graph Service Principal AppID: " $graphServicePricipalId
 
+export appRoleAppReadWriteAllOwnedBy=$(az ad sp show --id $graphId --query "appRoles[?value=='Application.ReadWrite.OwnedBy'].id | [0]") 
+appRoleAppReadWriteAllOwnedBy=$(eval echo $appRoleAppReadWriteAllOwnedBy)
+echo "Application- Application.ReadWrite.OwnedBy ID: " $appRoleAppReadWriteAllOwnedBy
+
+
+export appRoleDirReadAll=$(az ad sp show --id $graphId --query "appRoles[?value=='Directory.Read.All'].id | [0]") 
+appRoleDirReadAll=$(eval echo $appRoleDirReadAll)
+echo "Application- Directory.Read.All ID:" $appRoleDirReadAll
+
 
 # Add App persmission 
-az ad app permission add --id $graphServicePricipalId --api $graphId --api-permissions $dirReadAll=Scope $appReadWriteAll=Scope
+az ad app permission add --id $graphServicePricipalId --api $graphId --api-permissions $appRoleDirReadAll=Role $appRoleAppReadWriteAllOwnedBy=Role
 
 # Make permissions effective
 az ad app permission grant --id $graphServicePricipalId --api $graphId
