@@ -111,7 +111,7 @@ echo "Graph Service Principal AppID: " $graphServicePricipalId
 
 export appRoleAppReadWriteAllOwnedBy=$(az ad sp show --id $graphId --query "appRoles[?value=='Application.ReadWrite.OwnedBy'].id | [0]") 
 appRoleAppReadWriteAllOwnedBy=$(eval echo $appRoleAppReadWriteAllOwnedBy)
-echo "Application- Application.ReadWrite.All ID: " $appRoleAppReadWriteAllOwnedBy
+echo "Application- Application.ReadWrite.OwnedBy ID: " $appRoleAppReadWriteAllOwnedBy
 
 
 export appRoleDirReadAll=$(az ad sp show --id $graphId --query "appRoles[?value=='Directory.Read.All'].id | [0]") 
