@@ -16,7 +16,7 @@ for objectId in "${spToDeletearray[@]}";
 do
 # echo $objectId
 az ad sp delete --id $objectId > /dev/null & 
-sleep .1
+sleep .2
 done
 
 fg

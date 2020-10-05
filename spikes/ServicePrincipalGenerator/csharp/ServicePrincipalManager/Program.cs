@@ -12,7 +12,7 @@ namespace ServicePrincipalNotesUpdater
     {
         static string servicePrincipalPrefix = ConfigurationManager.AppSettings.Get("prefix");
         static string servicePrincipalBaseName = ConfigurationManager.AppSettings.Get("baseName");
-        static int numberOfServicePrincipalToCreate = Int32.Parse(ConfigurationManager.AppSettings.Get("numberOfServicePrincipalToCreate"));
+
         static void Main(string[] args)
         {
             Console.WriteLine("Service Principal Graph API Spike\n");
@@ -29,27 +29,70 @@ namespace ServicePrincipalNotesUpdater
 
             ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
 
-                      // Initialize Graph client
+            // Initialize Graph client
             GraphHelper.Initialize(authProvider);
+            MainMenu();
 
-            //AddServicePrincipalNote(2, "Some Notes- Testing Mode");
+            //GetCountForServicePrincipalsWithNotes(); 
 
-            //GenerateServicePrincipal(numberOfServicePrincipalToCreate);
+            //GetServicePrincipalAndRegisteredAppsCount();
 
-            DeleteServicePrincipal();
+            //GenerateServicePrincipal();//>>>>>>>>> Creates SP objects
+
+            //DeleteServicePrincipal();//>>>>>>>>> Deletes SP objects
 
         }
-        static void AddServicePrincipalNote(int count, string notes)
-        {
-            var servicePrincipalList = GraphHelper.GetAllServicePrincipalsAsync($"{servicePrincipalPrefix}-{ servicePrincipalBaseName}", count).Result;
 
-            if (servicePrincipalList != null)
+        private static void MainMenu()
+        {
+            int choice = -1;
+
+            while (choice != 0)
             {
-                foreach (var spObject in servicePrincipalList)
+                Console.WriteLine("Please choose one of the following options:");
+                Console.WriteLine("0. Exit");
+                Console.WriteLine("1. Update Service Principals Notes");
+
+
+                try
                 {
-                    GraphHelper.CreateUpdateServicePrincipalNote(spObject.Id, notes);
+                    choice = int.Parse(Console.ReadLine());
+                }
+                catch (System.FormatException)
+                {
+                    // Set to invalid value
+                    choice = -1;
+                }
+
+                switch (choice)
+                {
+                    case 0:
+                        Console.WriteLine("Goodbye...");
+                        break;
+                    case 1:
+                        UpdateServicePrincipalNote();
+                        break;
+
+                    default:
+                        Console.WriteLine("Invalid choice! Please try again.");
+                        break;
                 }
             }
+        }
+
+        static void UpdateServicePrincipalNote()
+        {
+            Console.WriteLine("Getting Service Principal Objects....");
+
+            int count = int.Parse(ConfigurationManager.AppSettings.Get("numberOfServicePrincipalToUpdate"));
+            string notes = ConfigurationManager.AppSettings.Get("Notes");
+
+            var servicePrincipalList = GraphHelper.GetAllServicePrincipalsAsync($"{servicePrincipalPrefix}-{ servicePrincipalBaseName}", count).Result;
+
+            Console.WriteLine($"Updating Notes field for {servicePrincipalList.Count()} Service Principal Objects....");
+
+            GraphHelper.UpdateServicePrincipalNote(notes, servicePrincipalList);
+   
 
             Console.WriteLine("Service Principal Notes updated, press a key to continue");
             Console.ReadKey();
@@ -70,12 +113,39 @@ namespace ServicePrincipalNotesUpdater
         }
 
 
-        static void GenerateServicePrincipal(int count)
+        static void GenerateServicePrincipal()
         {
-            GraphHelper.CreateServicePrincipalAsync($"{servicePrincipalPrefix}-{ servicePrincipalBaseName}", count);
+            int numberOfServicePrincipalToCreate = int.Parse(ConfigurationManager.AppSettings.Get("numberOfServicePrincipalToCreate"));
+            GraphHelper.CreateServicePrincipalAsync($"{servicePrincipalPrefix}-{ servicePrincipalBaseName}", numberOfServicePrincipalToCreate);
                        
         }
 
+
+        static void GetServicePrincipalAndRegisteredAppsCount()
+        {
+
+            var servicePrincipalList = GraphHelper.GetAllServicePrincipalsAsync($"{servicePrincipalPrefix}-{ servicePrincipalBaseName}").Result;
+
+            var applicationsList = GraphHelper.GetAllApplicationAsync($"{servicePrincipalPrefix}-{ servicePrincipalBaseName}").Result;
+
+
+            Console.WriteLine("Service Principal Objects Count: " + servicePrincipalList.Count());
+            Console.WriteLine("Registered Apps Objects Count: " + applicationsList.Count());
+
+            Console.ReadKey();
+        }
+
+
+
+        static void GetCountForServicePrincipalsWithNotes()
+        {
+
+            var servicePrincipalList = GraphHelper.GetAllServicePrincipalsWithNotes($"{servicePrincipalPrefix}-{ servicePrincipalBaseName}").Result;
+            Console.WriteLine("Service Principal Objects with Notes : " + servicePrincipalList.Count());
+            Console.ReadKey();
+        }
+
+        
 
     }
 }

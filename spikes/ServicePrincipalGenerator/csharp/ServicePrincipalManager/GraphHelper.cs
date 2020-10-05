@@ -22,27 +22,6 @@ namespace ServicePrincipalNotesUpdater
             _graphClient = new GraphServiceClient(authProvider);
         }
 
-        public static async void CreateUpdateServicePrincipalNote(string servicePrincipalId, string servicePrincipalNote)
-        {
-            var servicePrincipal = new ServicePrincipal
-            {
-                Notes = servicePrincipalNote
-            };
-
-            try
-            {
-                await _graphClient.ServicePrincipals[servicePrincipalId].Request().UpdateAsync(servicePrincipal);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error Updating Notes for Service Principal Id: {servicePrincipalId}  : {ex.Message}");
-                return;
-            }
-
-           
-
-        }
-
         //https://stackoverflow.com/questions/56707404/microsoft-graph-only-returning-the-first-100-users
         public static async Task<IList<ServicePrincipal>> GetAllServicePrincipalsAsync(string spNamePefix, int count= 0)
         {
@@ -61,18 +40,21 @@ namespace ServicePrincipalNotesUpdater
 
                 servicePrincipalList.AddRange(servicePrincipalsPage.CurrentPage);
 
+                bool breakOnListCountGreaterOrEqualsToCount = (count > 0);
 
-                while (servicePrincipalsPage.NextPageRequest != null)
+                while (servicePrincipalsPage.NextPageRequest != null )
                 {
+                    if (breakOnListCountGreaterOrEqualsToCount && servicePrincipalList.Count >= count)
+                    {
+                        break;
+                    }
                     servicePrincipalsPage = await servicePrincipalsPage.NextPageRequest.GetAsync();
                     servicePrincipalList.AddRange(servicePrincipalsPage.CurrentPage);
                 }
 
                 if (count > 0)
-                    //return servicePrincipalList.Where(x => x.DisplayName.StartsWith(spNamePefix)).Take(count).ToList();
                     return servicePrincipalList.Take(count).ToList();
                 else
-                   //return servicePrincipalList.Where(x => x.DisplayName.StartsWith(spNamePefix)).ToList();
                    return servicePrincipalList.ToList();
             }
             catch (ServiceException ex)
@@ -99,18 +81,22 @@ namespace ServicePrincipalNotesUpdater
 
                 applicationList.AddRange(applicationsPage.CurrentPage);
 
+                bool breakOnListCountGreaterOrEqualsToCount = (count > 0);
 
                 while (applicationsPage.NextPageRequest != null)
                 {
+                    if (breakOnListCountGreaterOrEqualsToCount && applicationList.Count >= count)
+                    {
+                        break;
+                    }
+
                     applicationsPage = await applicationsPage.NextPageRequest.GetAsync();
                     applicationList.AddRange(applicationsPage.CurrentPage);
                 }
 
                 if (count > 0)
-                    //return servicePrincipalList.Where(x => x.DisplayName.StartsWith(spNamePefix)).Take(count).ToList();
                     return applicationList.Take(count).ToList();
                 else
-                    //return servicePrincipalList.Where(x => x.DisplayName.StartsWith(spNamePefix)).ToList();
                     return applicationList.ToList();
             }
             catch (ServiceException ex)
@@ -121,7 +107,7 @@ namespace ServicePrincipalNotesUpdater
         }
 
 
-       public static async void CreateServicePrincipalAsync(string spNamePefix, int count)
+       public static void CreateServicePrincipalAsync(string spNamePefix, int count)
         {
             
             //IList<Application> applicationList = new List<Application>();
@@ -145,8 +131,6 @@ namespace ServicePrincipalNotesUpdater
 
             Task.WaitAll(appRegistrationTasks.ToArray()); // Exception thrpwn here 
 
-            
-            //var applicationsList = GetAllApplicationAsync(spNamePefix).Result;//Test
 
             AddServicePrincipals(appRegistrationTasks);
 
@@ -222,5 +206,70 @@ namespace ServicePrincipalNotesUpdater
 
         }
 
+        public static void UpdateServicePrincipalNote(string servicePrincipalNote, IList<ServicePrincipal> servicePrincipalList)
+        {
+
+            if (servicePrincipalList != null && servicePrincipalList.Count() > 0)
+            {
+                var tasks = new List<Task>();
+
+                Parallel.ForEach(servicePrincipalList, spObject =>
+                {
+
+                    var servicePrincipal = new ServicePrincipal
+                    {
+                        Notes = $"{servicePrincipalNote} - {spObject.Id}"
+                    };
+
+                    Task thisTask = Task.Run(() => _graphClient.ServicePrincipals[spObject.Id].Request().UpdateAsync(servicePrincipal));
+                    tasks.Add(thisTask);
+                });
+
+                Task.WaitAll(tasks.ToArray());
+
+            }
+        }
+
+
+        public static async Task<IList<ServicePrincipal>> GetAllServicePrincipalsWithNotes(string spNamePefix, int count = 0)
+        {
+            try
+            {
+                List<ServicePrincipal> servicePrincipalList = new List<ServicePrincipal>();
+
+
+                var servicePrincipalsPage = await _graphClient.ServicePrincipals
+               .Request()
+               .Filter($"startswith(displayName,'{spNamePefix}')")
+               .GetAsync();
+
+
+                //https://stackoverflow.com/questions/56707404/microsoft-graph-only-returning-the-first-100-users
+
+                servicePrincipalList.AddRange(servicePrincipalsPage.CurrentPage);
+
+                bool breakOnListCountGreaterOrEqualsToCount = (count > 0);
+
+                while (servicePrincipalsPage.NextPageRequest != null)
+                {
+                    if (breakOnListCountGreaterOrEqualsToCount && servicePrincipalList.Count >= count)
+                    {
+                        break;
+                    }
+                    servicePrincipalsPage = await servicePrincipalsPage.NextPageRequest.GetAsync();
+                    servicePrincipalList.AddRange(servicePrincipalsPage.CurrentPage);
+                }
+
+                if (count > 0)
+                    return servicePrincipalList.Where(x => !string.IsNullOrEmpty(x.Notes)).Take(count).ToList();
+                else
+                    return servicePrincipalList.Where(x => !string.IsNullOrEmpty(x.Notes)).ToList();
+            }
+            catch (ServiceException ex)
+            {
+                Console.WriteLine($"Error getting All Owners: {ex.Message}");
+                return null;
+            }
+        }
     }
 }
