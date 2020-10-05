@@ -4,7 +4,7 @@ VisualStudioVersion = 16.0.30503.244
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSE.Automation", "CSE.Automation\CSE.Automation.csproj", "{FE6FA95D-5003-425C-B37B-41706591E57E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSE.Automation.Tests", "CSE.Automation.Tests\CSE.Automation.Tests.csproj", "{5C515ED7-6CFE-462E-827F-68EADE6DB6B5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSE.Automation.Tests", "CSE.Automation.Tests\CSE.Automation.Tests.csproj", "{5C515ED7-6CFE-462E-827F-68EADE6DB6B5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
