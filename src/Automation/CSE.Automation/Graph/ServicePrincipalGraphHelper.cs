@@ -7,19 +7,19 @@ using System.Threading.Tasks;
 
 namespace CSE.Automation.Graph
 {
+
+
     public class ServicePrincipalGraphHelper : GraphHelperBase<ServicePrincipal>
     {
-        public ServicePrincipalGraphHelper(string graphAppClientId, string graphAppTenantId, string graphAppClientSecret)
-            : base(graphAppClientId, graphAppTenantId, graphAppClientSecret) {
+        public ServicePrincipalGraphHelper(GraphHelperSettings settings)
+            : base(settings) {
         }
 
         public override async Task<(string, IEnumerable<ServicePrincipal>)> GetDeltaGraphObjects(string selectFields, ProcessorConfiguration config)
         {
-            IServicePrincipalDeltaCollectionPage servicePrincipalCollectionPage;
-
             var servicePrincipalSeedList = new List<ServicePrincipal>();
 
-            servicePrincipalCollectionPage = await graphClient.ServicePrincipals
+            IServicePrincipalDeltaCollectionPage servicePrincipalCollectionPage = await graphClient.ServicePrincipals
                 .Delta()
                 .Request()
                 .Select(selectFields)

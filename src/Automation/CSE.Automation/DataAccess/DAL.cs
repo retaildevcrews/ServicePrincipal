@@ -1,14 +1,40 @@
 ﻿using Microsoft.Azure.Cosmos;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Threading.Tasks;
 using CSE.Automation.Config;
 using CSE.Automation.Interfaces;
+using CSE.Automation.Model;
+using Microsoft.Extensions.Logging;
 
 namespace CSE.Automation.DataAccess
 {
-    public partial class DAL : IDAL
+    interface ICosmosDBSettings
+    {
+        string Uri { get; }
+        string Key { get; }
+        string DatabaseName { get; }
+        string CollectionName { get; }
+    }
+
+    class CosmosDBSettings : SettingsBase, ICosmosDBSettings
+    {
+        public CosmosDBSettings(ISecretClient secretClient) : base(secretClient) { }
+
+        [Secret(Constants.CosmosDBURLName)]
+        public string Uri => base.GetSecret();
+
+        [Secret(Constants.CosmosDBKeyName)]
+        public string Key => base.GetSecret();
+        [Secret(Constants.CosmosDBDatabaseName)]
+        public string DatabaseName => base.GetSecret();
+
+        public string CollectionName { get; set; }
+    }
+
+    class DAL : IDAL
     {
         const string pagedOffsetString = " offset {0} limit {1}";
 
@@ -17,38 +43,42 @@ namespace CSE.Automation.DataAccess
         public int CosmosTimeout { get; set; } = 60;
         public int CosmosMaxRetries { get; set; } = 10;
 
-        private CosmosConfig cosmosDetails;
+        private CosmosConfig _cosmosOptions;
+        private CosmosClient _client = null;
+        private Container _container = null;
+        private ICosmosDBSettings _settings;
+        private ILogger _logger;
 
         /// <summary>
         /// Data Access Layer Constructor
         /// </summary>
-        /// <param name="cosmosUrl">CosmosDB Url</param>
-        /// <param name="cosmosKey">CosmosDB connection key</param>
-        /// <param name="cosmosDatabase">CosmosDB Database</param>
-        /// <param name="cosmosCollection">CosmosDB Collection</param>
-        public DAL(Uri cosmosUrl, string cosmosKey, string cosmosDatabase, string cosmosCollection)
+        /// <param name="settings"></param>
+        /// <param name="logger"></param>
+        public DAL(ICosmosDBSettings settings, ILogger<DAL> logger)
         {
-            if (cosmosUrl == null)
+            if (settings.Uri == null)
             {
-                throw new ArgumentNullException(nameof(cosmosUrl));
+                throw new ArgumentException("settings.Uri cannot be null");
             }
 
-            cosmosDetails = new CosmosConfig
+            _settings = settings;
+            _logger = logger;
+
+            _cosmosOptions = new CosmosConfig
             {
                 MaxRows = MaxPageSize,
-
-
                 Timeout = CosmosTimeout,
-                CosmosCollection = cosmosCollection,
-                CosmosDatabase = cosmosDatabase,
-                CosmosKey = cosmosKey,
-                CosmosUrl = cosmosUrl.AbsoluteUri
+                //CosmosCollection = cosmosCollection,
+                //CosmosDatabase = cosmosDatabase,
+                //CosmosKey = cosmosKey,
+                //CosmosUrl = cosmosUrl.AbsoluteUri
             };
 
             // create the CosmosDB client and container
-            cosmosDetails.Client = OpenAndTestCosmosClient(cosmosUrl, cosmosKey, cosmosDatabase, cosmosCollection);
-            cosmosDetails.Container = cosmosDetails.Client.GetContainer(cosmosDatabase, cosmosCollection);
+            //cosmosDetails.Client = OpenAndTestCosmosClient(new Uri(_settings.Uri, UriKind.Absolute), _settings.Key, _settings.DatabaseName, _settings.CollectionName);
+            //cosmosDetails.Container = cosmosDetails.Client.GetContainer(_settings.DatabaseName, _settings.CollectionName);
         }
+
 
         /// <summary>
         /// Recreate the Cosmos Client / Container (after a key rotation)
@@ -69,10 +99,10 @@ namespace CSE.Automation.DataAccess
                     }
 
                     if (force ||
-                        cosmosDetails.CosmosCollection != cosmosCollection ||
-                        cosmosDetails.CosmosDatabase != cosmosDatabase ||
-                        cosmosDetails.CosmosKey != cosmosKey ||
-                        cosmosDetails.CosmosUrl != cosmosUrl.AbsoluteUri)
+                        _cosmosOptions.CosmosCollection != cosmosCollection ||
+                        _cosmosOptions.CosmosDatabase != cosmosDatabase ||
+                        _cosmosOptions.CosmosKey != cosmosKey ||
+                        _cosmosOptions.CosmosUrl != cosmosUrl.AbsoluteUri)
                     {
                         CosmosConfig d = new CosmosConfig
                         {
@@ -87,7 +117,7 @@ namespace CSE.Automation.DataAccess
                         d.Container = d.Client.GetContainer(cosmosDatabase, cosmosCollection);
 
                         // set the current CosmosDetail
-                        cosmosDetails = d;
+                        _cosmosOptions = d;
                     }
                 }).ConfigureAwait(false);
         }
@@ -125,7 +155,7 @@ namespace CSE.Automation.DataAccess
 
             // open and test a new client / container
 #pragma warning disable CA2000 // Dispose objects before losing scope.  Disabling as the container connection remains in scope.
-            var c = new CosmosClient(cosmosUrl.AbsoluteUri, cosmosKey, cosmosDetails.CosmosClientOptions);
+            var c = new CosmosClient(cosmosUrl.AbsoluteUri, cosmosKey, _cosmosOptions.CosmosClientOptions);
 #pragma warning restore CA2000 // Dispose objects before losing scope
             var con = c.GetContainer(cosmosDatabase, cosmosCollection);
 
@@ -133,6 +163,65 @@ namespace CSE.Automation.DataAccess
             //await con.ReadItemAsync<dynamic>("action", new PartitionKey("0")).ConfigureAwait(false);
 
             return c;
+        }
+
+        public bool Test()
+        {
+            // validate required parameters
+            if (_settings.Uri == null)
+            {
+                throw new ArgumentException($"CosmosUri cannot be null");
+            }
+
+            if (string.IsNullOrEmpty(_settings.Key))
+            {
+                throw new ArgumentException($"CosmosKey cannot be null");
+            }
+
+            if (string.IsNullOrEmpty(_settings.DatabaseName))
+            {
+                throw new ArgumentException($"CosmosDatabase cannot be null");
+            }
+
+            if (string.IsNullOrEmpty(_settings.CollectionName))
+            {
+                throw new ArgumentException($"CosmosCollection cannot be null");
+            }
+
+            // open and test a new client / container
+            try
+            {
+                var container = GetContainer(this.Client);
+
+                //TODO: commenting out for the moment.  Need a good way to test that doesn't require a document
+                //await con.ReadItemAsync<dynamic>("action", new PartitionKey("0")).ConfigureAwait(false);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogCritical(ex, $"Failed to connect to CosmosDB {_settings.DatabaseName}:{_settings.CollectionName}");
+                throw;
+            }
+
+        }
+
+        CosmosClient Client => _client ??= new CosmosClient(_settings.Uri, _settings.Key, _cosmosOptions.CosmosClientOptions);
+        private Container Container => _container ??= GetContainer(Client);
+
+        Container GetContainer(CosmosClient client)
+        {
+            try
+            {
+                var container = client.GetContainer(_settings.DatabaseName, _settings.CollectionName);
+
+                return container;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogCritical(ex, $"Failed to connect to CosmosDB {_settings.DatabaseName}:{_settings.CollectionName}");
+                throw;
+            }
         }
 
         /// <summary>
@@ -167,7 +256,7 @@ namespace CSE.Automation.DataAccess
         private async Task<IEnumerable<T>> InternalCosmosDBSqlQuery<T>(QueryDefinition queryDefinition)
         {
             // run query
-            var query = cosmosDetails.Container.GetItemQueryIterator<T>(queryDefinition, requestOptions: cosmosDetails.QueryRequestOptions);
+            var query = this.Container.GetItemQueryIterator<T>(queryDefinition, requestOptions: _cosmosOptions.QueryRequestOptions);
 
             List<T> results = new List<T>();
 
@@ -191,7 +280,7 @@ namespace CSE.Automation.DataAccess
         private async Task<IEnumerable<T>> InternalCosmosDBSqlQuery<T>(string sql)
         {
             // run query
-            var query = cosmosDetails.Container.GetItemQueryIterator<T>(sql, requestOptions: cosmosDetails.QueryRequestOptions);
+            var query = this.Container.GetItemQueryIterator<T>(sql, requestOptions: _cosmosOptions.QueryRequestOptions);
 
             List<T> results = new List<T>();
 
@@ -205,10 +294,10 @@ namespace CSE.Automation.DataAccess
             return results;
         }
 
-        public async Task<T> GetById<T>(string Id, string partitionKey)
+        public async Task<T> GetById<T>(string id, string partitionKey)
         {
 
-            var response = await cosmosDetails.Container.ReadItemAsync<T>(Id, new PartitionKey(partitionKey)).ConfigureAwait(false);
+            var response = await this.Container.ReadItemAsync<T>(id, new PartitionKey(partitionKey)).ConfigureAwait(false);
             return response;
         }
 
@@ -260,7 +349,7 @@ namespace CSE.Automation.DataAccess
             string sql = "select * from m";
             if (filter != TypeFilter.any)
             {
-                sql += ($" m.objectType='{0}'", Enum.GetName(typeof(TypeFilter), filter));
+                sql += $" m.objectType='{Enum.GetName(typeof(TypeFilter), filter)}'";
             }
 
             return await InternalCosmosDBSqlQuery<T>(sql).ConfigureAwait(false);

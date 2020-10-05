@@ -5,25 +5,28 @@ using System;
 
 namespace CSE.Automation.KeyVault
 {
+    public class SecretServiceSettings
+    {
+        public string KeyVaultName { get; set; }
+    }
+
     public class SecretService : KeyVaultBase, ISecretClient
     {
-        private SecretClient _secretClient;
-        private ICredentialService _credService;
+        private readonly SecretClient _secretClient;
 
-        public SecretService(string keyVaultName, ICredentialService credService)
+        public SecretService(SecretServiceSettings settings, ICredentialService credService)
         {
-            _credService = credService;
+            var credService1 = credService;
             //build URI
-            string keyVaultUri = default;
-            if (!KeyVaultHelper.BuildKeyVaultConnectionString(keyVaultName, out keyVaultUri))
+            if (!KeyVaultHelper.BuildKeyVaultConnectionString(settings.KeyVaultName, out var keyVaultUri))
             {
                 throw new Exception("Key vault name not Valid"); //TODO: place holder code ensure error message is good and contains input value
             }
             Uri = new Uri(keyVaultUri);
 
             //construct secret client
-            if (_credService != null)
-                _secretClient = new SecretClient(Uri, _credService.CurrentCredential);
+            if (credService1 != null)
+                _secretClient = new SecretClient(Uri, credService1.CurrentCredential);
             else
                 throw new Exception("Credential Service is Null in SecretService");
         }

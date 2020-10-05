@@ -10,8 +10,8 @@ namespace CSE.Automation.Config
     /// </summary>
     internal class CosmosConfig
     {
-        public CosmosClient Client;
-        public Container Container;
+        //public CosmosClient Client;
+        //public Container Container;
 
         // default values for Cosmos Options
         public int MaxRows = 1000;
@@ -19,10 +19,10 @@ namespace CSE.Automation.Config
         public int Retries = 10;
 
         // Cosmos connection fields
-        public string CosmosUrl;
-        public string CosmosKey;
-        public string CosmosDatabase;
-        public string CosmosCollection;
+        //public string CosmosUrl;
+        //public string CosmosKey;
+        //public string CosmosDatabase;
+        //public string CosmosCollection;
 
         // member variables
         private QueryRequestOptions queryRequestOptions;

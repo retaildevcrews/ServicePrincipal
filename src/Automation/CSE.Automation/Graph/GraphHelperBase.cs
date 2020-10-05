@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
 using Microsoft.Graph;
 using Microsoft.Graph.Auth;
@@ -7,16 +8,35 @@ using Microsoft.Identity.Client;
 
 namespace CSE.Automation.Graph
 {
-    public abstract class GraphHelperBase<T>
+    class GraphHelperSettings : SettingsBase
+    {
+        public GraphHelperSettings(ISecretClient secretClient) : base(secretClient) { }
+
+        [Secret(Constants.GraphAppClientIdKey)]
+        public string GraphAppClientId => base.GetSecret();
+
+        [Secret(Constants.GraphAppTenantIdKey)]
+        public string GraphAppTenantId => base.GetSecret();
+
+        [Secret(Constants.GraphAppClientSecretKey)]
+        public string GraphAppClientSecret => base.GetSecret();
+    }
+
+    interface IGraphHelper<T>
+    {
+        Task<(string, IEnumerable<T>)> GetDeltaGraphObjects(string selectFields, ProcessorConfiguration config);
+    }
+
+    abstract class GraphHelperBase<T> : IGraphHelper<T>
     {
         protected GraphServiceClient graphClient { get; }
 
-        public GraphHelperBase(string graphAppClientId, string graphAppTenantId, string graphAppClientSecret)
+        protected GraphHelperBase(GraphHelperSettings settings)
         {
            IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
-           .Create(graphAppClientId)
-           .WithTenantId(graphAppTenantId)
-           .WithClientSecret(graphAppClientSecret)
+           .Create(settings.GraphAppClientId)
+           .WithTenantId(settings.GraphAppTenantId)
+           .WithClientSecret(settings.GraphAppClientSecret)
            .Build();
 
             ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);

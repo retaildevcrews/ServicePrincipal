@@ -54,6 +54,15 @@ namespace CSE.Automation.Extensions
             return config;
         }
 
+        public static IConfigurationBuilder AddAzureKeyVaultConfiguration(this IConfigurationBuilder configBuilder, string keyVaultUrlSettingName)
+        {
+            // build a temporary configuration so we can extract the key vault urls
+            var tempConfig = configBuilder.Build();
+            var keyVaultUrls = tempConfig[keyVaultUrlSettingName]?.Split(',');
+            configBuilder.AddAzureKeyVaults(keyVaultUrls);
+
+            return configBuilder;
+        }
         public static IConfigurationBuilder AddAzureKeyVaults(this IConfigurationBuilder builder, params string[] keyVaultEndpoints)
         {
             if (builder != null && keyVaultEndpoints != null)
