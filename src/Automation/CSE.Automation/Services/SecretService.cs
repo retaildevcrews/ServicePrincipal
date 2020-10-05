@@ -2,12 +2,20 @@
 using CSE.Automation.Base;
 using CSE.Automation.Interfaces;
 using System;
+using System.ComponentModel.DataAnnotations;
+using System.Configuration;
+using CSE.Automation.Extensions;
+using CSE.Automation.Model;
 
 namespace CSE.Automation.KeyVault
 {
-    public class SecretServiceSettings
+    public class SecretServiceSettings : ISettingsValidator
     {
         public string KeyVaultName { get; set; }
+        public void Validate()
+        {
+            if (this.KeyVaultName.IsNull()) throw new ConfigurationErrorsException($"{this.GetType().Name}: KeyVaultName is invalid");
+        }
     }
 
     public class SecretService : KeyVaultBase, ISecretClient

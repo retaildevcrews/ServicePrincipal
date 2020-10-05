@@ -1,10 +1,13 @@
 ﻿using System.Collections.Generic;
+using System.Configuration;
 using System.Threading.Tasks;
+using CSE.Automation.Extensions;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
 using Microsoft.Graph;
 using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
+using SettingsBase = CSE.Automation.Model.SettingsBase;
 
 namespace CSE.Automation.Graph
 {
@@ -20,6 +23,13 @@ namespace CSE.Automation.Graph
 
         [Secret(Constants.GraphAppClientSecretKey)]
         public string GraphAppClientSecret => base.GetSecret();
+
+        public override void Validate()
+        {
+            if (this.GraphAppClientId.IsNull()) throw new ConfigurationErrorsException($"{this.GetType().Name}: GraphAppClientId is null");
+            if (this.GraphAppTenantId.IsNull()) throw new ConfigurationErrorsException($"{this.GetType().Name}: GraphAppTenantId is null");
+            if (this.GraphAppClientSecret.IsNull()) throw new ConfigurationErrorsException($"{this.GetType().Name}: GraphAppClientSecret is null");
+        }
     }
 
     public interface IGraphHelper<T>

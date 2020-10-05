@@ -1,6 +1,7 @@
 ﻿using Microsoft.Azure.Cosmos;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading.Tasks;
@@ -8,15 +9,15 @@ using CSE.Automation.Config;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
 using Microsoft.Extensions.Logging;
+using SettingsBase = CSE.Automation.Model.SettingsBase;
 
 namespace CSE.Automation.DataAccess
 {
-    interface ICosmosDBSettings
+    interface ICosmosDBSettings : ISettingsValidator
     {
         string Uri { get; }
         string Key { get; }
         string DatabaseName { get; }
-        string CollectionName { get; }
     }
 
     class CosmosDBSettings : SettingsBase, ICosmosDBSettings
@@ -31,7 +32,12 @@ namespace CSE.Automation.DataAccess
         [Secret(Constants.CosmosDBDatabaseName)]
         public string DatabaseName => base.GetSecret();
 
-        public string CollectionName { get; set; }
+        public override void Validate()
+        {
+            if (string.IsNullOrEmpty(this.Uri)) throw new ConfigurationErrorsException($"{this.GetType().Name}: Uri is invalid");
+            if (string.IsNullOrEmpty(this.Key)) throw new ConfigurationErrorsException($"{this.GetType().Name}: Key is invalid");
+            if (string.IsNullOrEmpty(this.DatabaseName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: DatabaseName is invalid");
+        }
     }
 
     abstract class CosmosDBRepository : ICosmosDBRepository, IDisposable
@@ -94,7 +100,7 @@ namespace CSE.Automation.DataAccess
                 _client = null;
                 if (await Test().ConfigureAwait(true) == false)
                 {
-                    _logger.LogError($"Failed to reconnect to CosmosDB {_settings.DatabaseName}:{_settings.CollectionName}");
+                    _logger.LogError($"Failed to reconnect to CosmosDB {_settings.DatabaseName}:{this.CollectionName}");
                 }
                 
             }
@@ -165,7 +171,7 @@ namespace CSE.Automation.DataAccess
             }
             catch (Exception ex)
             {
-                _logger.LogCritical(ex, $"Failed to connect to CosmosDB {_settings.DatabaseName}:{_settings.CollectionName}");
+                _logger.LogCritical(ex, $"Failed to connect to CosmosDB {_settings.DatabaseName}:{this.CollectionName}");
                 return false;
             }
 
@@ -182,7 +188,7 @@ namespace CSE.Automation.DataAccess
             }
             catch (Exception ex)
             {
-                _logger.LogCritical(ex, $"Failed to connect to CosmosDB {_settings.DatabaseName}:{_settings.CollectionName}");
+                _logger.LogCritical(ex, $"Failed to connect to CosmosDB {_settings.DatabaseName}:{this.CollectionName}");
                 throw;
             }
         }

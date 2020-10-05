@@ -17,5 +17,15 @@ namespace CSE.Automation.Extensions
             if (Enum.TryParse<TEnum>(value, true, out var enumValue)) return enumValue;
             throw new InvalidEnumArgumentException($"Cannot coerce {value} to {typeof(TEnum).Name}");
         }
+
+        public static bool IsNotNull(this string? value)
+        {
+            return string.IsNullOrEmpty(value) == false;
+        }
+
+        public static bool IsNull(this string? value)
+        {
+            return string.IsNullOrEmpty(value);
+        }
     }
 }

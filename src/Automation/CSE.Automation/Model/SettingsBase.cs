@@ -8,6 +8,11 @@ using CSE.Automation.Interfaces;
 
 namespace CSE.Automation.Model
 {
+    public interface ISettingsValidator
+    {
+        void Validate();
+    }
+
     [AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = true)]
     sealed class SecretAttribute : Attribute
     {
@@ -22,7 +27,7 @@ namespace CSE.Automation.Model
     }
 
 
-    public abstract class SettingsBase
+    public abstract class SettingsBase : ISettingsValidator
     {
         private readonly ISecretClient _secretClient;
 
@@ -53,6 +58,8 @@ namespace CSE.Automation.Model
         {
             return _secretClient.GetSecretValue(name);
         }
+
+        public virtual void Validate() { }
     }
 
 }

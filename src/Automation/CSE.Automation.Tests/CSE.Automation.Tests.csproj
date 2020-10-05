@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="FunctionsUnitTests\GraphDeltaProcessorFunctionsTests.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageReference Include="NSubstitute" Version="4.2.2" />
     <PackageReference Include="xunit" Version="2.4.0" />
@@ -24,10 +20,6 @@
 
   <ItemGroup>
     <Folder Include="UtilitiesUnitTests\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="FunctionsUnitTests\GraphDeltaProcessorFunctionsTests.cs" />
   </ItemGroup>
 
 </Project>

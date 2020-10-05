@@ -25,6 +25,8 @@ namespace CSE.Automation
 {
     public class Startup : FunctionsStartup
     {
+        private ILogger _logger;
+
         /// <summary>
         /// Configure the host runtime
         /// </summary>
@@ -40,15 +42,20 @@ namespace CSE.Automation
             if (builder == default)
                 throw new ArgumentNullException(nameof(builder));
 
+            _logger = CreateBootstrapLogger();
+            _logger.LogInformation($"Bootstrap logger initialized.");
             Debug.WriteLine(Environment.GetEnvironmentVariable("AUTH_TYPE"));
 
             // CONFIGURATION
             BuildConfiguration(builder);
 
-            // Settings from Config
+            // Settings from Config built above
             RegisterSettings(builder);
 
             RegisterServices(builder);
+
+            ValidateSettings(builder);
+
             //// Add key vault secrets to config object
             //var config = builder.AddAzureKeyVaultConfiguration("KeyVaultEndpoint");
 
@@ -78,17 +85,29 @@ namespace CSE.Automation
 
         }
 
-        private void BuildConfiguration(IFunctionsHostBuilder builder)
+        private static ILogger CreateBootstrapLogger()
+        {
+            var serviceProvider = new ServiceCollection()
+                .AddLogging(builder =>
+                {
+                    builder.AddConsole();
+                    builder.AddDebug();
+                })
+                .BuildServiceProvider();
+
+            return serviceProvider.GetService<ILoggerFactory>().CreateLogger<Startup>();
+        }
+        private static void BuildConfiguration(IFunctionsHostBuilder builder)
         {
             // CONFIGURATION
             var serviceProvider = builder.Services.BuildServiceProvider();
-            var env = serviceProvider.GetRequiredService<IHostingEnvironment>();
-            var appDirectory = serviceProvider.GetRequiredService<IOptions<ExecutionContextOptions>>().Value.AppDirectory;
+            var env = builder.GetContext().EnvironmentName;
+            var appDirectory = builder.GetContext().ApplicationRootPath;
             var defaultConfig = serviceProvider.GetRequiredService<IConfiguration>();
 
             var configBuilder = new ConfigurationBuilder()
                 .SetBasePath(appDirectory)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true)
+                .AddJsonFile($"appsettings.{env}.json", true)
                 .AddJsonFile("local.settings.json", true)
                 .AddConfiguration(defaultConfig)
                 .AddAzureKeyVaultConfiguration("KeyVaultEndpoint");
@@ -97,7 +116,7 @@ namespace CSE.Automation
             builder.Services.Replace(ServiceDescriptor.Singleton(typeof(IConfiguration), hostConfig));
         }
 
-        private void RegisterSettings(IFunctionsHostBuilder builder)
+        private static void RegisterSettings(IFunctionsHostBuilder builder)
         {
             // SERVICES SETTINGS
             var secretServiceSettings = new SecretServiceSettings() { KeyVaultName = Environment.GetEnvironmentVariable(Constants.KeyVaultName) };
@@ -105,20 +124,46 @@ namespace CSE.Automation
             builder.Services
                 .AddSingleton(credServiceSettings)
                 .AddSingleton(secretServiceSettings)
+                .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<SecretServiceSettings>())
+
                 .AddTransient<GraphHelperSettings>()
-                .AddSingleton<ICosmosDBSettings, CosmosDBSettings>();
+                .AddTransient<ISettingsValidator, GraphHelperSettings>()
+
+                .AddSingleton<ICosmosDBSettings, CosmosDBSettings>()
+                .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ICosmosDBSettings>());
 
         }
 
-        private void RegisterServices(IFunctionsHostBuilder builder)
+        private void ValidateSettings(IFunctionsHostBuilder builder)
+        {
+            var provider = builder.Services.BuildServiceProvider();
+            var settings = provider.GetServices<ISettingsValidator>();
+            foreach (var validator in settings)
+            {
+                try
+                {
+                    validator.Validate();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogCritical(ex, $"Failed to validate application configuration");
+                    throw;
+                }
+            }
+
+            _logger.LogInformation($"All settings classes validated.");
+        }
+
+        private static void RegisterServices(IFunctionsHostBuilder builder)
         {
             builder.Services
                 .AddSingleton(typeof(ICredentialService), typeof(CredentialService))
                 .AddSingleton(typeof(ISecretClient), typeof(SecretService))
                 .AddSingleton<IConfigRepository, ConfigRepository>()
 
+                .AddTransient<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>()
                 .AddTransient<IServicePrincipalProcessor, ServicePrincipalProcessor>();
-
+                
         }
 
     }
