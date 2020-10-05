@@ -11,7 +11,7 @@ namespace CSE.Automation.Processors
 {
     public class DeltaProcessorBase : IDeltaProcessor
     {
-        protected IDAL _configDAL;
+        protected readonly ICosmosDBRepository _repository;
         protected ProcessorConfiguration _config;
         protected string _uniqueId = string.Empty;
         public string ProcessorId
@@ -25,15 +25,16 @@ namespace CSE.Automation.Processors
         private protected void InitializeProcessor(ProcessorType processorType)
         {
             // Need the config for startup, so accepting the blocking call in the constructor.
-            _config = _configDAL.GetById<ProcessorConfiguration>(_uniqueId, processorType.ToString()).Result;
+            _config = _repository.GetById<ProcessorConfiguration>(_uniqueId, processorType.ToString()).Result;
         }
 
-        public DeltaProcessorBase (IDAL configDAL)
+        protected DeltaProcessorBase (ICosmosDBRepository repository)
         {
-            if (configDAL is null)
-                throw new NullReferenceException("Null Configuration DAL passed to DeltaProcessor Constructor");
+            //if (configDAL is null)
+            //    throw new NullReferenceException("Null Configuration DAL passed to DeltaProcessor Constructor");
 
-            _configDAL = configDAL;
+            //_configDAL = configDAL;
+            _repository = repository;
         }
 
         public void ProcessDeltas()

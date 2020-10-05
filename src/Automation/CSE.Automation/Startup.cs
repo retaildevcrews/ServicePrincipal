@@ -62,18 +62,18 @@ namespace CSE.Automation
 
 
 
-            // Retrieve CosmosDB configuration, create access objects, and register
-            DALResolver dalResolver = new DALResolver(secretService);
-            IDAL configDAL = dalResolver.GetService<IDAL> (DALCollection.Configuration.ToString());
-            IDAL auditDAL = dalResolver.GetService <IDAL> (DALCollection.Audit.ToString());
-            IDAL objTrackingDAL = dalResolver.GetService <IDAL> (DALCollection.ObjectTracking.ToString());
+            //// Retrieve CosmosDB configuration, create access objects, and register
+            //DALResolver dalResolver = new DALResolver(secretService);
+            //IDAL configDAL = dalResolver.GetService<IDAL> (DALCollection.Configuration.ToString());
+            //IDAL auditDAL = dalResolver.GetService <IDAL> (DALCollection.Audit.ToString());
+            //IDAL objTrackingDAL = dalResolver.GetService <IDAL> (DALCollection.ObjectTracking.ToString());
 
-            builder.Services.AddSingleton<DALResolver>(dalResolver);
+            //builder.Services.AddSingleton<DALResolver>(dalResolver);
 
-            // Create and register ProcessorResolver
-            var processorResolver = new ProcessorResolver(configDAL);
-            var processortest = processorResolver.GetService<IDeltaProcessor>(ProcessorType.ServicePrincipal.ToString());
-            builder.Services.AddSingleton<ProcessorResolver>(processorResolver);
+            //// Create and register ProcessorResolver
+            //var processorResolver = new ProcessorResolver(configDAL);
+            //var processortest = processorResolver.GetService<IDeltaProcessor>(ProcessorType.ServicePrincipal.ToString());
+            //builder.Services.AddSingleton<ProcessorResolver>(processorResolver);
 
 
         }
@@ -106,9 +106,7 @@ namespace CSE.Automation
                 .AddSingleton(credServiceSettings)
                 .AddSingleton(secretServiceSettings)
                 .AddTransient<GraphHelperSettings>()
-                .AddTransient(provider => new ConfigDBSettings(provider.GetService<ISecretClient>()){CollectionName = Constants.CosmosDBConfigCollectionName})
-                .AddTransient(provider => new AuditDBSettings(provider.GetService<ISecretClient>()){CollectionName = Constants.CosmosDBConfigCollectionName})
-                .AddTransient(provider => new TrackingDBSettings(provider.GetService<ISecretClient>()){CollectionName = Constants.CosmosDBConfigCollectionName});
+                .AddSingleton<ICosmosDBSettings, CosmosDBSettings>();
 
         }
 
@@ -117,15 +115,10 @@ namespace CSE.Automation
             builder.Services
                 .AddSingleton(typeof(ICredentialService), typeof(CredentialService))
                 .AddSingleton(typeof(ISecretClient), typeof(SecretService))
-                .AddSingleton<DALResolver>();
+                .AddSingleton<IConfigRepository, ConfigRepository>()
 
-            builder.Services
-                .AddTransient<IConfigDAL, DAL>(provider => new DAL(provider.GetService<ICosmosDBSettings>(), provider.GetService<ILogger<DAL>>()));
-            IDAL configDAL = dalResolver.GetService<IDAL> (DALCollection.Configuration.ToString());
-            IDAL auditDAL = dalResolver.GetService <IDAL> (DALCollection.Audit.ToString());
-            IDAL objTrackingDAL = dalResolver.GetService <IDAL> (DALCollection.ObjectTracking.ToString());
-            // Setup graph API helper and register
-            builder.Services.AddSingleton(typeof(IGraphHelper<ServicePrincipal>), typeof(ServicePrincipalGraphHelper));
+                .AddTransient<IServicePrincipalProcessor, ServicePrincipalProcessor>();
+
         }
 
     }

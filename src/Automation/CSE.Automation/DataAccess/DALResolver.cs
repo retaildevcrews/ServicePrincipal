@@ -9,30 +9,7 @@ using CSE.Automation.Model;
 
 namespace CSE.Automation.DataAccess
 {
-    public interface IConfigDAL : IDAL { }
-    public interface IAuditDAL : IDAL {}
-    public interface ITrackingDAL : IDAL {}
-
-    class ConfigDBSettings : CosmosDBSettings {
-        public ConfigDBSettings(ISecretClient client) : base(client)
-        {
-            
-        }
-    }
-    class AuditDBSettings : CosmosDBSettings {
-        public AuditDBSettings(ISecretClient client) : base(client)
-        {
-            
-        }
-    }
-    class TrackingDBSettings : CosmosDBSettings {
-        public TrackingDBSettings(ISecretClient client) : base(client)
-        {
-            
-        }
-    }
-
-
+   
     class DALResolver : IServiceResolver
     {
         private ConcurrentDictionary<string, IDAL> _registeredDALs = new System.Collections.Concurrent.ConcurrentDictionary<string, IDAL>();

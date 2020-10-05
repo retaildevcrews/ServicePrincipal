@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 
 namespace CSE.Automation.Graph
 {
-
-
     public class ServicePrincipalGraphHelper : GraphHelperBase<ServicePrincipal>
     {
         public ServicePrincipalGraphHelper(GraphHelperSettings settings)

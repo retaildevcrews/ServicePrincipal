@@ -20,20 +20,21 @@ namespace CSE.Automation
 {
     public class GraphDeltaProcessor
     {
-        private readonly ICredentialService _credService;
         private readonly ISecretClient _secretService;
 
-        private readonly GraphHelperBase<ServicePrincipal> _graphHelper;
-        private readonly DALResolver _DALResolver;
-        private readonly ProcessorResolver _processorResolver;
+        private readonly IGraphHelper<ServicePrincipal> _graphHelper;
 
-        public GraphDeltaProcessor(ISecretClient secretClient, ICredentialService credService, GraphHelperBase<ServicePrincipal> graphHelper, DALResolver dalResolver, ProcessorResolver processorResolver)
+        private readonly IServicePrincipalProcessor _processor;
+        //private readonly DALResolver _DALResolver;
+        //private readonly ProcessorResolver _processorResolver;
+
+        public GraphDeltaProcessor(ISecretClient secretClient, IGraphHelper<ServicePrincipal> graphHelper, IServicePrincipalProcessor processor)
         {
-            _credService = credService;
             _secretService = secretClient;
             _graphHelper = graphHelper;
-            _DALResolver = dalResolver;
-            _processorResolver = processorResolver;
+            _processor = processor;
+            //_DALResolver = dalResolver;
+            //_processorResolver = processorResolver;
         }
 
         [FunctionName("ServicePrincipalDeltas")]
@@ -50,7 +51,7 @@ namespace CSE.Automation
                 var kvSecretValue = _secretService.GetSecretValue("testSecret");
                 Debug.WriteLine(kvSecretValue);
 
-                var spProcessor = _processorResolver.GetService<IDeltaProcessor>(ProcessorType.ServicePrincipal.ToString());
+                //var spProcessor = _processorResolver.GetService<IDeltaProcessor>(ProcessorType.ServicePrincipal.ToString());
             }
             catch (Exception ex)
             {

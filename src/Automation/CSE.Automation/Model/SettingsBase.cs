@@ -22,7 +22,7 @@ namespace CSE.Automation.Model
     }
 
 
-    abstract class SettingsBase
+    public abstract class SettingsBase
     {
         private readonly ISecretClient _secretClient;
 

@@ -8,7 +8,7 @@ using Microsoft.Identity.Client;
 
 namespace CSE.Automation.Graph
 {
-    class GraphHelperSettings : SettingsBase
+    public class GraphHelperSettings : SettingsBase
     {
         public GraphHelperSettings(ISecretClient secretClient) : base(secretClient) { }
 
@@ -22,12 +22,12 @@ namespace CSE.Automation.Graph
         public string GraphAppClientSecret => base.GetSecret();
     }
 
-    interface IGraphHelper<T>
+    public interface IGraphHelper<T>
     {
         Task<(string, IEnumerable<T>)> GetDeltaGraphObjects(string selectFields, ProcessorConfiguration config);
     }
 
-    abstract class GraphHelperBase<T> : IGraphHelper<T>
+    public abstract class GraphHelperBase<T> : IGraphHelper<T>
     {
         protected GraphServiceClient graphClient { get; }
 
