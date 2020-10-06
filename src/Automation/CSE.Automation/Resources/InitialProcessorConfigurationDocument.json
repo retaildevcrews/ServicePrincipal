@@ -1,0 +1,16 @@
+{
+  "id": "02a54ac9-441e-43f1-88ee-fde420db2559",
+  "filterString": "filterstring",
+  "selectFields": [
+    "field0",
+    "field1",
+    "field2"
+  ],
+  "deltaLink": "",
+  "runState": "seedAndRun",
+  "lastDeltaRun": "2020-09-24T17:52:54.191943-05:00",
+  "lastSeedTime": "2020-09-24T17:52:54.1921422-05:00",
+  "name": "ServicePrincipal Processor",
+  "description": "Descriptive Text",
+  "configType": "ServicePrincipal"
+}

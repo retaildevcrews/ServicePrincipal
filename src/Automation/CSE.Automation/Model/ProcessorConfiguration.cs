@@ -19,7 +19,7 @@ namespace CSE.Automation.Model
         public ProcessorType ConfigType { get; set; }
 
         [JsonProperty(PropertyName ="selectFields")]
-        public List<string> SelectFields { get;  }
+        public List<string> SelectFields { get; set; }
 
         [JsonProperty(PropertyName ="deltaLink")]
         public string DeltaLink { get; set; }

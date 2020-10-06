@@ -5,7 +5,6 @@ using System.Globalization;
 using System.Threading.Tasks;
 using CSE.Automation.Config;
 using CSE.Automation.Interfaces;
-using Microsoft.Azure.Documents.Client;
 
 namespace CSE.Automation.DataAccess
 {
@@ -206,7 +205,7 @@ namespace CSE.Automation.DataAccess
 
         public async Task<T> GetByIdAsync<T>(string id, string partitionKey)
         {
-
+            
             var response = await cosmosDetails.Container.ReadItemAsync<T>(id, new PartitionKey(partitionKey)).ConfigureAwait(false);
             return response;
         }
@@ -216,9 +215,26 @@ namespace CSE.Automation.DataAccess
             var con = cosmosDetails.Client.GetContainer(cosmosDetails.CosmosDatabase, cosmosDetails.CosmosCollection);
 
             //PartitionKey pk = String.IsNullOrWhiteSpace(partitionKey) ? default : new PartitionKey(partitionKey);
-            
+
             return await con.ReplaceItemAsync<T>(newDocument, id,null).ConfigureAwait(false);
         }
+
+        public async Task<T> CreateDocumentAsync<T>(T newDocument, string partitionKey = null)
+        {
+            var con = cosmosDetails.Client.GetContainer(cosmosDetails.CosmosDatabase, cosmosDetails.CosmosCollection);
+
+            return await con.CreateItemAsync<T>(newDocument, new PartitionKey(partitionKey)).ConfigureAwait(false);
+        }
+
+        public async Task<bool> DoesExistsAsync(string id, string partitionKey)
+        {
+            using (ResponseMessage response = await cosmosDetails.Container.ReadItemStreamAsync(id, new PartitionKey(partitionKey)).ConfigureAwait(false))
+            {
+                return response.IsSuccessStatusCode;
+            }
+
+        }
+
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "Using lower case with cosmos queries as tested.")]
         public async Task<IEnumerable<T>> GetPagedAsync<T>(string q, int offset = 0, int limit = Constants.DefaultPageSize)

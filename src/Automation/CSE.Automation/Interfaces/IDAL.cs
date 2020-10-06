@@ -12,5 +12,7 @@ namespace CSE.Automation.Interfaces
         public Task<IEnumerable<T>> GetAllAsync<T>(TypeFilter filter= TypeFilter.any);
         public Task Reconnect(Uri cosmosUrl, string cosmosKey, string cosmosDatabase, string cosmosCollection, bool force = false);
         public Task<T> ReplaceDocumentAsync<T>(string id, T newDocument, string partitionKey = null);
+        public Task<T> CreateDocumentAsync<T>(T newDocument, string partitionKey = null);
+        public Task<bool> DoesExistsAsync(string id, string partitionKey);
     }
 }
