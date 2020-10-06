@@ -35,6 +35,10 @@ namespace CSE.Automation.Processors
 
             //_configDAL = configDAL;
             _repository = repository;
+            if (_repository.Test().Result == false)
+            {
+                throw new ApplicationException($"Repository {_repository.DatabaseName}:{_repository.CollectionName} failed connection test");
+            }
         }
 
         public void ProcessDeltas()

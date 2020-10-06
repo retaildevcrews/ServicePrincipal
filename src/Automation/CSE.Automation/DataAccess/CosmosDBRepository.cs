@@ -79,6 +79,7 @@ namespace CSE.Automation.DataAccess
         public int CosmosTimeout { get; set; } = 60;
         public int CosmosMaxRetries { get; set; } = 10;
         public abstract string CollectionName { get; }
+        public string DatabaseName => _settings.DatabaseName;
 
         CosmosClient Client => _client ??= new CosmosClient(_settings.Uri, _settings.Key, _cosmosOptions.CosmosClientOptions);
         private Container Container => _container ??= GetContainer(Client);

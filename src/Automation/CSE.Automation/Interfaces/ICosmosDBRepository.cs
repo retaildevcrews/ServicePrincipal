@@ -15,6 +15,9 @@ namespace CSE.Automation.Interfaces
         Task<bool> Test();
         PartitionKey ResolvePartitionKey(string entityId);
         string GenerateId<TEntity>(TEntity entity) where TEntity : class;
+
+        string DatabaseName { get; }
         string CollectionName { get; }
+
     }
 }

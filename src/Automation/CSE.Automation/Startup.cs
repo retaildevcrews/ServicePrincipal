@@ -10,6 +10,7 @@ using CSE.Automation.DataAccess;
 using Microsoft.Graph;
 using CSE.Automation.Model;
 using System.Collections.Generic;
+using System.Linq;
 using CSE.Automation.Processors;
 using CSE.Automation.Extensions;
 using Microsoft.AspNetCore.Hosting;
@@ -44,7 +45,7 @@ namespace CSE.Automation
 
             _logger = CreateBootstrapLogger();
             _logger.LogInformation($"Bootstrap logger initialized.");
-            Debug.WriteLine(Environment.GetEnvironmentVariable("AUTH_TYPE"));
+            _logger.LogDebug($"AUTH_TYPE: {Environment.GetEnvironmentVariable("AUTH_TYPE")}");
 
             // CONFIGURATION
             BuildConfiguration(builder);
@@ -56,35 +57,14 @@ namespace CSE.Automation
 
             ValidateSettings(builder);
 
-            //// Add key vault secrets to config object
-            //var config = builder.AddAzureKeyVaultConfiguration("KeyVaultEndpoint");
-
-            // Setup KV access and register services
-            //ICredentialService credService = new CredentialService(credServiceSettings);
-            //builder.Services.AddSingleton<ICredentialService>((s) => credService);
-
-            //ISecretClient secretService = new SecretService(secretServiceSettings, credService);
-            //builder.Services.AddSingleton<ISecretClient>((s) => secretService);
-
-
-
-
-            //// Retrieve CosmosDB configuration, create access objects, and register
-            //DALResolver dalResolver = new DALResolver(secretService);
-            //IDAL configDAL = dalResolver.GetService<IDAL> (DALCollection.Configuration.ToString());
-            //IDAL auditDAL = dalResolver.GetService <IDAL> (DALCollection.Audit.ToString());
-            //IDAL objTrackingDAL = dalResolver.GetService <IDAL> (DALCollection.ObjectTracking.ToString());
-
-            //builder.Services.AddSingleton<DALResolver>(dalResolver);
-
-            //// Create and register ProcessorResolver
-            //var processorResolver = new ProcessorResolver(configDAL);
-            //var processortest = processorResolver.GetService<IDeltaProcessor>(ProcessorType.ServicePrincipal.ToString());
-            //builder.Services.AddSingleton<ProcessorResolver>(processorResolver);
-
+            //ValidateServices(builder);
 
         }
 
+        /// <summary>
+        /// Create a basic logger (low dependency) so that we can get some logs out of bootstrap
+        /// </summary>
+        /// <returns></returns>
         private static ILogger CreateBootstrapLogger()
         {
             var serviceProvider = new ServiceCollection()
@@ -97,6 +77,7 @@ namespace CSE.Automation
 
             return serviceProvider.GetService<ILoggerFactory>().CreateLogger<Startup>();
         }
+
         private static void BuildConfiguration(IFunctionsHostBuilder builder)
         {
             // CONFIGURATION
@@ -159,12 +140,58 @@ namespace CSE.Automation
             builder.Services
                 .AddSingleton(typeof(ICredentialService), typeof(CredentialService))
                 .AddSingleton(typeof(ISecretClient), typeof(SecretService))
-                .AddSingleton<IConfigRepository, ConfigRepository>()
+
+                // register the concrete as the singleton, then use forwarder pattern to register same singleton with alternate interfaces
+                .AddSingleton<ConfigRepository>()
+                .AddSingleton<IConfigRepository>(provider => provider.GetService<ConfigRepository>())
+                .AddSingleton<ICosmosDBRepository>(provider => provider.GetService<ConfigRepository>())
 
                 .AddTransient<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>()
                 .AddTransient<IServicePrincipalProcessor, ServicePrincipalProcessor>();
                 
         }
 
+        /// <summary>
+        /// Instantiate the remote data sources and verify their connectivity
+        /// </summary>
+        /// <param name="builder"></param>
+        private void ValidateServices(IFunctionsHostBuilder builder)
+        {
+            foreach (var service in builder.Services)
+            {
+                Trace.WriteLine($"{service.ServiceType.Name}");
+            }
+            
+            var provider = builder.Services.AddLogging(b =>
+            {
+                b.AddConsole();
+                b.AddDebug();
+            }).BuildServiceProvider();
+
+            var repositories = provider.GetServices<ICosmosDBRepository>();
+            var hasFailingTest = false;
+
+            foreach (var repository in repositories)
+            {
+                var testPassed = repository.Test().Result;
+                hasFailingTest = testPassed == false || hasFailingTest;
+
+                var result = testPassed
+                    ? "Passed"
+                    : "Failed";
+                var message = $"Repository test for {repository.DatabaseName}:{repository.CollectionName} {result}";
+                if (testPassed)
+                {
+                    _logger.LogInformation(message);
+                }
+                else
+                {
+                    _logger.LogCritical(message);
+                }
+            }
+
+            if (hasFailingTest)
+                throw new ApplicationException($"One or more repositories failed test.");
+        }
     }
 }

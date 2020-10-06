@@ -40,7 +40,7 @@ namespace CSE.Automation
         [FunctionName("ServicePrincipalDeltas")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Will add specific error in time.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1801:Review unused parameters", Justification = "Required as part of Trigger declaration.")]
-        public void Run([TimerTrigger("0 */2 * * * *")] TimerInfo myTimer, ILogger log)
+        public void ServicePrincipalDeltas([TimerTrigger("0 */2 * * * *")] TimerInfo myTimer, ILogger log)
         {
 
             if (log == null)
