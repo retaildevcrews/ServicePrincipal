@@ -63,12 +63,20 @@ namespace CSE.Automation
         public static async Task RunSPTrackingQueueDaemon([QueueTrigger(Constants.SPTrackingUpdateQueueAppSetting)] CloudQueueMessage msg,
             [Queue(Constants.SPAADUpdateQueueAppSetting)] CloudQueue queue, ILogger log)
         {
-            if (queue is null)
-                throw new ArgumentNullException(nameof (queue));
-            log.LogInformation("Incoming message from SPTracking queue\n");
-            log.LogInformation($"C# SP Tracking Queue trigger function processed: {msg} \n");
+            if (queue == null)
+            {
+                throw new ArgumentNullException(nameof(queue));
+            }
 
-            var newMsg = $"Following message processed from SPTracking queue:\n{msg}\n";
+            if (msg == null)
+            {
+                throw new ArgumentNullException(nameof(msg));
+            }
+
+            log.LogInformation("Incoming message from SPTracking queue\n");
+            log.LogInformation($"C# SP Tracking Queue trigger function processed: {msg.AsString} \n");
+
+            var newMsg = $"Following message processed from SPTracking queue:\n{msg.AsString}\n";
             await queue.AddMessageAsync(new CloudQueueMessage(newMsg)).ConfigureAwait(false);
         }
 
@@ -76,8 +84,13 @@ namespace CSE.Automation
         [StorageAccount(Constants.SPStorageConnectionString)]
         public static void RunSPAADQueueDaemon([QueueTrigger(Constants.SPAADUpdateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
         {
+            if (msg == null)
+            {
+                throw new ArgumentNullException(nameof(msg));
+            }
+
             log.LogInformation("Incoming message from AAD queue\n");
-            log.LogInformation($"C# AAD Queue trigger function processed: {msg} \n");
+            log.LogInformation($"C# AAD Queue trigger function processed: {msg.AsString} \n");
         }
     }
 }

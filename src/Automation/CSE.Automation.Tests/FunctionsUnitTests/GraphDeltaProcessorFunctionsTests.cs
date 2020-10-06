@@ -12,6 +12,9 @@ namespace CSE.Automation.Tests
 
         public GraphDeltaProcessorFunctionsTests()
         {
+            // TODO: Need to add an interfaces for these so we can mock them or come up with another way to instantiate 
+            // for testing. As it is right now the substitution won't work because the
+            // constructors will actually get called and GraphHelperBase will try to create a graph client.
             _processorResolver = Substitute.For<ProcessorResolver>();
             _subject = new GraphDeltaProcessor(_processorResolver);
         }
