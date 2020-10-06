@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using CSE.Automation.Config;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Logging;
 using SettingsBase = CSE.Automation.Model.SettingsBase;
 
@@ -46,7 +48,7 @@ namespace CSE.Automation.DataAccess
 
 
         private readonly CosmosConfig _cosmosOptions;
-        private CosmosClient _client;
+        private static CosmosClient _client;
         private Container _container;
         private readonly ICosmosDBSettings _settings;
         private readonly ILogger _logger;
@@ -164,20 +166,28 @@ namespace CSE.Automation.DataAccess
             // open and test a new client / container
             try
             {
-                var container = GetContainer(this.Client);
-
-                var response = await container.ReadContainerAsync().ConfigureAwait(false);
-                
-                return true;
+                return (await GetContainerNames().ConfigureAwait(false)).Any(x => x == this.CollectionName);
             }
             catch (Exception ex)
             {
-                _logger.LogCritical(ex, $"Failed to connect to CosmosDB {_settings.DatabaseName}:{this.CollectionName}");
+                _logger.LogCritical(ex, $"Failed to find collection in CosmosDB {_settings.DatabaseName}:{this.CollectionName}");
                 return false;
             }
-
         }
 
+        private async Task<IList<string>> GetContainerNames()
+        {
+            var containerNames = new List<string>();
+            var database = this.Client.GetDatabase(_settings.DatabaseName);
+            using var iter = database.GetContainerQueryIterator<ContainerProperties>();
+            while (iter.HasMoreResults)
+            {
+                var response = await iter.ReadNextAsync().ConfigureAwait(false);
+                containerNames.AddRange(response.Select(c => c.Id));
+            }
+
+            return containerNames;
+        }
 
         Container GetContainer(CosmosClient client)
         {

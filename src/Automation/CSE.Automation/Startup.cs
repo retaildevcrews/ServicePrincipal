@@ -110,6 +110,9 @@ namespace CSE.Automation
                 .AddTransient<GraphHelperSettings>()
                 .AddTransient<ISettingsValidator, GraphHelperSettings>()
 
+                .AddSingleton<ConfigRespositorySettings>()
+                .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ConfigRespositorySettings>())
+
                 .AddSingleton<ICosmosDBSettings, CosmosDBSettings>()
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ICosmosDBSettings>());
 
