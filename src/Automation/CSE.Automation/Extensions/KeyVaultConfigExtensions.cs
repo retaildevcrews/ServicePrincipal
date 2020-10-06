@@ -3,20 +3,31 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using System;
 using System.Linq;
 
 namespace CSE.Automation.Extensions
 {
     public static class KeyVaultConfigExtensions
     {
-        public static IConfiguration AddAzureKeyVaultConfiguration(this IWebJobsBuilder builder, string keyVaultUrlSettingName)
+        public static IConfiguration AddAzureKeyVaultConfiguration(this IWebJobsBuilder builder, string vaultEndpoint)
         {
-            return builder.Services.AddAzureKeyVaultConfiguration(keyVaultUrlSettingName);
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.Services.AddAzureKeyVaultConfiguration(vaultEndpoint);
         }
 
-        public static IConfiguration AddAzureKeyVaultConfiguration(this IFunctionsHostBuilder builder, string keyVaultUrlSettingName)
+        public static IConfiguration AddAzureKeyVaultConfiguration(this IFunctionsHostBuilder builder, string vaultEndpoint)
         {
-            return builder.Services.AddAzureKeyVaultConfiguration(keyVaultUrlSettingName);
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.Services.AddAzureKeyVaultConfiguration(vaultEndpoint);
         }
 
         /* This is the meat of the logic. It finds the IConfiguration service that is already registered by the runtime, and then
@@ -24,7 +35,7 @@ namespace CSE.Automation.Extensions
          * replaces the registered IConfiguration instance with the patched version.
          * */
 
-        public static IConfiguration AddAzureKeyVaultConfiguration(this IServiceCollection services, string keyVaultUrlSettingName)
+        public static IConfiguration AddAzureKeyVaultConfiguration(this IServiceCollection services, string vaultEndpoint)
         {
             // get the IConfiguration that is already registered with the host
             var configBuilder = new ConfigurationBuilder();
@@ -42,7 +53,7 @@ namespace CSE.Automation.Extensions
 
             // build a temporary configuration so we can extract the key vault urls
             var tempConfig = configBuilder.Build();
-            var keyVaultUrls = tempConfig[keyVaultUrlSettingName]?.Split(',');
+            var keyVaultUrls = tempConfig[vaultEndpoint]?.Split(',');
 
             // add the key vault providers and build a new config
             configBuilder.AddAzureKeyVaults(keyVaultUrls);

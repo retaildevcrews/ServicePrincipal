@@ -1,10 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="UtilitiesUnitTests\**" />
+    <EmbeddedResource Remove="UtilitiesUnitTests\**" />
+    <None Remove="UtilitiesUnitTests\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
@@ -16,10 +22,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CSE.Automation\CSE.Automation.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="UtilitiesUnitTests\" />
   </ItemGroup>
 
 </Project>

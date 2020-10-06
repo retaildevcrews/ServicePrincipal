@@ -1,0 +1,31 @@
+{
+  "name": "service-principal"
+  },
+
+  // Set *default* container specific settings.json values on container create.
+  "settings": {
+    "terminal.integrated.shell.linux": "/bin/bash"
+//    "terminal.integrated.shell.linux": "/bin/zsh"
+  },
+
+  "remoteUser": "vscode",
+
+  // Open port 4120 by default
+  "forwardPorts": [4120],
+
+  "mounts": [
+//    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
+
+  // Install extensions
+  "extensions": [
+    "ms-dotnettools.csharp",
+    "eamodio.gitlens",
+    "davidanson.vscode-markdownlint",
+    "gruntfuggly.todo-tree",
+    "ms-azuretools.vscode-docker"
+  ],
+
+  // Run Bash script in .devcontainer directory
+  "postCreateCommand": "/bin/bash ./.devcontainer/post-install.sh"
+}

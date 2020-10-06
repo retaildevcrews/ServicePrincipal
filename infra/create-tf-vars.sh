@@ -46,6 +46,10 @@ export svc_ppl_CLIENT_SECRET=$(az ad sp create-for-rbac -n http://${svc_ppl_Name
 export svc_ppl_CLIENT_ID=$(az ad sp show --id http://${svc_ppl_Name}-tf-sp-${svc_ppl_Enviroment} --query appId -o tsv)
 export svc_ppl_ACR_SP_SECRET=$(az ad sp create-for-rbac --skip-assignment -n http://${svc_ppl_Name}-acr-sp-${svc_ppl_Enviroment} --query password -o tsv)
 export svc_ppl_ACR_SP_ID=$(az ad sp show --id http://${svc_ppl_Name}-acr-sp-${svc_ppl_Enviroment} --query appId -o tsv)
+export svc_ppl_GRAPH_SP_SECRET=$(az ad sp create-for-rbac --skip-assignment -n http://${svc_ppl_Name}-graph-${svc_ppl_Enviroment} --query password -o tsv)
+export svc_ppl_GRAPH_SP_ID=$(az ad sp show --id http://${svc_ppl_Name}-graph-${svc_ppl_Enviroment} --query appId -o tsv)
+
+
 
 # create terraform.tfvars and replace template values
 cat example.tfvars | \
@@ -60,7 +64,9 @@ sed "s|<<svc_ppl_SUB_ID>>|$svc_ppl_SUB_ID|" | \
 sed "s|<<svc_ppl_CLIENT_SECRET>>|$svc_ppl_CLIENT_SECRET|" | \
 sed "s|<<svc_ppl_CLIENT_ID>>|$svc_ppl_CLIENT_ID|" | \
 sed "s|<<svc_ppl_ACR_SP_SECRET>>|$svc_ppl_ACR_SP_SECRET|" | \
-sed "s|<<svc_ppl_ACR_SP_ID>>|$svc_ppl_ACR_SP_ID|" > terraform.tfvars
+sed "s|<<svc_ppl_ACR_SP_ID>>|$svc_ppl_ACR_SP_ID|" | \
+sed "s|<<svc_ppl_GRAPH_SP_ID>>|$svc_ppl_GRAPH_SP_ID|" | \
+sed "s|<<svc_ppl_GRAPH_SP_SECRET>>|$svc_ppl_GRAPH_SP_SECRET|" > terraform.tfvars
 
 # validate the substitutions
 cat terraform.tfvars
@@ -68,23 +74,23 @@ cat terraform.tfvars
 
 # Grant Application.ReadWrite.All and Directory.Read.All API access to Service Principal (${svc_ppl_Name}-tf-sp)
 # Get service principal App ID
-export servicePricipalId=$(az ad sp list --query "[?appDisplayName=='${svc_ppl_Name}-tf-sp-${svc_ppl_Enviroment}'].appId | [0]" --all) #e5a378f6-a834-4449-9703-c119566dba39
+export servicePricipalId=$svc_ppl_CLIENT_ID #$(az ad sp list --query "[?appDisplayName=='${svc_ppl_Name}-tf-sp-${svc_ppl_Enviroment}'].appId | [0]" --all) 
 servicePricipalId=$(eval echo $servicePricipalId)
 echo "Service Principal AppID: " $servicePricipalId
 
 # Get MSGraphId
-export graphId=$(az ad sp list --query "[?appDisplayName=='Microsoft Graph'].appId | [0]" --all) #00000003-0000-0000-c000-000000000000 
+export graphId=$(az ad sp list --query "[?appDisplayName=='Microsoft Graph'].appId | [0]" --all) 
 graphId=$(eval echo $graphId)
 echo "Service MSGraph AppID: " $graphId
 
 
 # Get MSGraph Permission valiables
-export appReadWriteAll=$(az ad sp show --id $graphId --query "oauth2Permissions[?value=='Application.ReadWrite.All'].id | [0]") #06da0dbc-49e2-44d2-8312-53f166ab848a 
+export appReadWriteAll=$(az ad sp show --id $graphId --query "oauth2Permissions[?value=='Application.ReadWrite.All'].id | [0]") 
 appReadWriteAll=$(eval echo $appReadWriteAll)
 echo "Application.ReadWrite.All ID: " $appReadWriteAll
 
 
-export dirReadAll=$(az ad sp show --id $graphId --query "oauth2Permissions[?value=='Directory.Read.All'].id | [0]") #bdfbf15f-ee85-4955-8675-146e8e5296b5
+export dirReadAll=$(az ad sp show --id $graphId --query "oauth2Permissions[?value=='Directory.Read.All'].id | [0]") 
 dirReadAll=$(eval echo $dirReadAll)
 echo "Directory.Read.All ID:" $dirReadAll
 
@@ -96,6 +102,33 @@ az ad app permission grant --id $servicePricipalId --api $graphId
 
 # Admin consent
 az ad app permission admin-consent --id $servicePricipalId
+
+# Get graph service principal App ID--------------------------------------------------------------------------------------------
+
+export graphServicePricipalId=$svc_ppl_GRAPH_SP_ID
+servicePricipalId=$(eval echo $graphServicePricipalId)
+echo "Graph Service Principal AppID: " $graphServicePricipalId
+
+export appRoleAppReadWriteAllOwnedBy=$(az ad sp show --id $graphId --query "appRoles[?value=='Application.ReadWrite.OwnedBy'].id | [0]") 
+appRoleAppReadWriteAllOwnedBy=$(eval echo $appRoleAppReadWriteAllOwnedBy)
+echo "Application- Application.ReadWrite.OwnedBy ID: " $appRoleAppReadWriteAllOwnedBy
+
+
+export appRoleDirReadAll=$(az ad sp show --id $graphId --query "appRoles[?value=='Directory.Read.All'].id | [0]") 
+appRoleDirReadAll=$(eval echo $appRoleDirReadAll)
+echo "Application- Directory.Read.All ID:" $appRoleDirReadAll
+
+
+# Add App persmission 
+az ad app permission add --id $graphServicePricipalId --api $graphId --api-permissions $appRoleDirReadAll=Role $appRoleAppReadWriteAllOwnedBy=Role
+
+# Make permissions effective
+az ad app permission grant --id $graphServicePricipalId --api $graphId
+
+# Admin consent
+az ad app permission admin-consent --id $graphServicePricipalId
+
+
 
 
 # create tf_state resource group

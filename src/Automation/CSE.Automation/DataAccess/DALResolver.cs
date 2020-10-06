@@ -29,7 +29,7 @@ namespace CSE.Automation.DataAccess
                 case DALCollection.Audit:
                     collectionNameKey = Constants.CosmosDBAuditCollectionName;
                     break;
-                case DALCollection.Configuration:
+                case DALCollection.ProcessorConfiguration:
                     collectionNameKey = Constants.CosmosDBConfigCollectionName;
                     break;
                 case DALCollection.ObjectTracking:

@@ -1,11 +1,10 @@
 ﻿using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
-using CSE.Automation.Graph;
-using Microsoft.Graph;
+using CSE.Automation.Properties;
+using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.ComponentModel.Design;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace CSE.Automation.Processors
 {
@@ -25,7 +24,36 @@ namespace CSE.Automation.Processors
         private protected void InitializeProcessor(ProcessorType processorType)
         {
             // Need the config for startup, so accepting the blocking call in the constructor.
-            _config = _repository.GetById<ProcessorConfiguration>(_uniqueId, processorType.ToString()).Result;
+
+           _config = GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist(processorType);
+        }
+
+        private protected ProcessorConfiguration GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist(ProcessorType processorType)
+        {
+            
+            if (!_configDAL.DoesExistsAsync(_uniqueId, processorType.ToString()).Result)
+            {
+
+                if (Resources.InitialProcessorConfigurationDocument == null || Resources.InitialProcessorConfigurationDocument.Length == 0)
+                    throw new NullReferenceException("Null or empty initial Configuration Document resource.");
+                
+                var initalDocumentAsString = System.Text.Encoding.Default.GetString(Resources.InitialProcessorConfigurationDocument);
+
+                try
+                {
+                    ProcessorConfiguration initialConfigDocumentAsJson = JsonConvert.DeserializeObject<ProcessorConfiguration>(initalDocumentAsString);
+                    return _configDAL.CreateDocumentAsync<ProcessorConfiguration>(initialConfigDocumentAsJson, processorType.ToString()).Result;
+                }
+                catch(Exception ex)
+                {
+                    throw new InvalidDataException("Unable to deserialize Initial Configuration Document.", ex);
+                }
+            }
+            else
+            {
+                return _configDAL.GetByIdAsync<ProcessorConfiguration>(_uniqueId, processorType.ToString()).Result;
+            }
+
         }
 
         protected DeltaProcessorBase (ICosmosDBRepository repository)
@@ -41,7 +69,7 @@ namespace CSE.Automation.Processors
             }
         }
 
-        public void ProcessDeltas()
+        public virtual Task<int> ProcessDeltas()
         {
             throw new NotImplementedException();
         }

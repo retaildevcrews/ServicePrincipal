@@ -97,4 +97,6 @@ module "web" {
   TF_CLIENT_SP_SECRET   = var.TF_CLIENT_SECRET
   ACR_SP_ID           = var.ACR_SP_ID
   ACR_SP_SECRET       = var.ACR_SP_SECRET
+  GRAPH_SP_ID           = var.GRAPH_SP_ID
+  GRAPH_SP_SECRET       = var.GRAPH_SP_SECRET
 }
