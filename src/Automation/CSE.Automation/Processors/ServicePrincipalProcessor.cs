@@ -11,43 +11,43 @@ using System.Threading.Tasks;
 
 namespace CSE.Automation.Processors
 {
-    public interface IServicePrincipalProcessor {}
+    public interface IServicePrincipalProcessor : IDeltaProcessor {}
+
+    class ServicePrincipalProcessorSettings : DeltaProcessorSettings
+    {
+        public ServicePrincipalProcessorSettings(ISecretClient secretClient) : base(secretClient) { }
+
+        [Secret(Constants.SPStorageConnectionString)]
+        public string QueueConnectionString => base.GetSecret(Constants.SPStorageConnectionString);
+        [Secret(Constants.SPTrackingUpdateQueue)]
+        public string QueueName => base.GetSecret(Constants.SPTrackingUpdateQueue);
+    }
 
     class ServicePrincipalProcessor : DeltaProcessorBase, IServicePrincipalProcessor
     {
         private readonly ISecretClient _secretService;
-        private readonly GraphHelperBase<ServicePrincipal> _graphHelper;
-
-        public int visibilityDelayGapSeconds { get; set; }
-        public int queueRecordProcessThreshold { get; set; }
-
-        public ServicePrincipalProcessor(IDAL configDAL, ISecretClient secretClient, GraphHelperBase<ServicePrincipal> graphHelper,
-            int visibilityDelayGapSeconds, int queueRecordProcessThreshold) : base(configDAL)
-        public ServicePrincipalProcessor(IConfigRepository repository) : base((ICosmosDBRepository)repository)
+        private readonly IGraphHelper<ServicePrincipal> _graphHelper;
+        private readonly ServicePrincipalProcessorSettings _settings;
+        public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings, IGraphHelper<ServicePrincipal> graphHelper, IConfigRepository repository) : base((ICosmosDBRepository)repository)
         {
-            _uniqueId = "02a54ac9-441e-43f1-88ee-fde420db2559";
-            InitializeProcessor(ProcessorType.ServicePrincipal);
-
-            _secretService = secretClient;
-            _configDAL = configDAL;
+            _settings = settings;
             _graphHelper = graphHelper;
-            this.visibilityDelayGapSeconds = visibilityDelayGapSeconds;
-            this.queueRecordProcessThreshold = queueRecordProcessThreshold;
+            //InitializeProcessor(ProcessorType.ServicePrincipal);
         }
+
+        public override int VisibilityDelayGapSeconds => _settings.VisibilityDelayGapSeconds;
+        public override int QueueRecordProcessThreshold => _settings.QueueRecordProcessThreshold;
+        public override Guid ConfigurationId => _settings.ConfigurationId;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Console.WriteLine will be changed to logs")]
         public override async Task<int> ProcessDeltas()
         {
-            var queueConnectionString = _secretService.GetSecretValue(Constants.SPStorageConnectionString);
-            var dataQueueName = _secretService.GetSecretValue(Constants.SPTrackingUpdateQueue);
-
-           
             var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects("appId,displayName,notes", _config).ConfigureAwait(false);
 
             string updatedDeltaLink = servicePrincipalResult.Item1; //TODO save this back in Config
             var servicePrincipalList = servicePrincipalResult.Item2;
 
-            IAzureQueueService azureQueue = new AzureQueueService(queueConnectionString, dataQueueName);
+            IAzureQueueService azureQueue = new AzureQueueService(_settings.QueueConnectionString, _settings.QueueName);
 
             int servicePrincipalCount = default;
             int visibilityDelay = default;
@@ -74,10 +74,10 @@ namespace CSE.Automation.Processors
                     Attempt = 0
                 };
 
-                if (servicePrincipalCount % queueRecordProcessThreshold == 0 && servicePrincipalCount != 0)
+                if (servicePrincipalCount % QueueRecordProcessThreshold == 0 && servicePrincipalCount != 0)
                 {
                     Console.WriteLine($"Processed {servicePrincipalCount} Service Principal Objects."); //TODO change this to log
-                    visibilityDelay += visibilityDelayGapSeconds;
+                    visibilityDelay += VisibilityDelayGapSeconds;
                 }
                 await azureQueue.Send(myMessage, visibilityDelay).ConfigureAwait(false);
                 servicePrincipalCount++;
@@ -87,7 +87,7 @@ namespace CSE.Automation.Processors
             _config.LastSeedTime = DateTime.Now;
             _config.RunState = RunState.DeltaRun;
 
-            await _configDAL.ReplaceDocumentAsync<ProcessorConfiguration>(_config.Id, _config, _config.ConfigType.ToString()).ConfigureAwait(false);
+            await _repository.ReplaceDocumentAsync<ProcessorConfiguration>(_config.Id, _config).ConfigureAwait(false);
 
             Console.WriteLine($"Finished Processing {servicePrincipalCount} Service Principal Objects."); //TODO change this to log
             return servicePrincipalCount;

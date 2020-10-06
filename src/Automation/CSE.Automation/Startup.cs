@@ -1,24 +1,21 @@
-﻿using Microsoft.Azure.Functions.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection;
-using System;
+﻿using System;
 using System.Diagnostics;
-using CSE.Automation.Interfaces;
-using CSE.Automation.Services;
-using CSE.Automation.Graph;
-using CSE.Automation.KeyVault;
+
 using CSE.Automation.DataAccess;
-using Microsoft.Graph;
-using CSE.Automation.Model;
-using System.Collections.Generic;
-using System.Linq;
-using CSE.Automation.Processors;
 using CSE.Automation.Extensions;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Azure.WebJobs.Host.Bindings;
+using CSE.Automation.Graph;
+using CSE.Automation.Interfaces;
+using CSE.Automation.KeyVault;
+using CSE.Automation.Model;
+using CSE.Automation.Processors;
+using CSE.Automation.Services;
+
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using Microsoft.Graph;
 
 [assembly: FunctionsStartup(typeof(CSE.Automation.Startup))]
 
@@ -57,7 +54,17 @@ namespace CSE.Automation
 
             ValidateSettings(builder);
 
-            //ValidateServices(builder);
+            try
+            {
+                var client = builder.Services.BuildServiceProvider().GetService<ISecretClient>();
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+            ValidateServices(builder);
 
         }
 
@@ -102,6 +109,7 @@ namespace CSE.Automation
             // SERVICES SETTINGS
             var secretServiceSettings = new SecretServiceSettings() { KeyVaultName = Environment.GetEnvironmentVariable(Constants.KeyVaultName) };
             var credServiceSettings = new CredentialServiceSettings() { AuthType = Environment.GetEnvironmentVariable(Constants.AuthType).As<AuthenticationType>()};
+
             builder.Services
                 .AddSingleton(credServiceSettings)
                 .AddSingleton(secretServiceSettings)
@@ -110,12 +118,17 @@ namespace CSE.Automation
                 .AddTransient<GraphHelperSettings>()
                 .AddTransient<ISettingsValidator, GraphHelperSettings>()
 
-                .AddSingleton<ConfigRespositorySettings>()
+                .AddSingleton<ConfigRespositorySettings>(x => new ConfigRespositorySettings(x.GetRequiredService<ISecretClient>()))
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ConfigRespositorySettings>())
 
-                .AddSingleton<ICosmosDBSettings, CosmosDBSettings>()
+                .AddSingleton(x => new ServicePrincipalProcessorSettings(x.GetRequiredService<ISecretClient>())
+                {
+                    ConfigurationId = Environment.GetEnvironmentVariable("visibilityDelayGapSeconds").ToGuid(Guid.Parse("02a54ac9-441e-43f1-88ee-fde420db2559")),
+                    VisibilityDelayGapSeconds = Environment.GetEnvironmentVariable("visibilityDelayGapSeconds").ToInt(8),
+                    QueueRecordProcessThreshold = Environment.GetEnvironmentVariable("queueRecordProcessThreshold").ToInt(10),
+                })
+                .AddSingleton<ICosmosDBSettings, CosmosDBSettings>(x => new CosmosDBSettings(x.GetRequiredService<ISecretClient>()))
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ICosmosDBSettings>());
-
         }
 
         private void ValidateSettings(IFunctionsHostBuilder builder)
@@ -141,17 +154,20 @@ namespace CSE.Automation
         private static void RegisterServices(IFunctionsHostBuilder builder)
         {
             builder.Services
-                .AddSingleton(typeof(ICredentialService), typeof(CredentialService))
-                .AddSingleton(typeof(ISecretClient), typeof(SecretService))
+                .AddSingleton<ICredentialService>(x => new CredentialService(x.GetRequiredService<CredentialServiceSettings>()))
+                .AddSingleton<ISecretClient>(x => new SecretService(x.GetRequiredService<SecretServiceSettings>(), x.GetRequiredService<ICredentialService>()))
 
                 // register the concrete as the singleton, then use forwarder pattern to register same singleton with alternate interfaces
-                .AddSingleton<ConfigRepository>()
-                .AddSingleton<IConfigRepository>(provider => provider.GetService<ConfigRepository>())
-                .AddSingleton<ICosmosDBRepository>(provider => provider.GetService<ConfigRepository>())
+                .AddScoped<ConfigRepository>()
+                .AddScoped<IConfigRepository, ConfigRepository>()
+                .AddScoped<ICosmosDBRepository, ConfigRepository>()
+                //.AddSingleton<IConfigRepository>(provider => provider.GetService<ConfigRepository>())
+                //.AddSingleton<ICosmosDBRepository>(provider => provider.GetService<ConfigRepository>())
 
-                .AddTransient<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>()
-                .AddTransient<IServicePrincipalProcessor, ServicePrincipalProcessor>();
-                
+                .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>()
+                .AddScoped<IServicePrincipalProcessor, ServicePrincipalProcessor>()
+
+                .AddScoped<GraphDeltaProcessor>();
         }
 
         /// <summary>

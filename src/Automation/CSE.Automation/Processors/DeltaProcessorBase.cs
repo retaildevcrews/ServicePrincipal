@@ -8,53 +8,26 @@ using System.Threading.Tasks;
 
 namespace CSE.Automation.Processors
 {
-    public class DeltaProcessorBase : IDeltaProcessor
+    public class DeltaProcessorSettings : SettingsBase
+    {
+        public DeltaProcessorSettings(ISecretClient secretClient) : base(secretClient)
+        {
+            
+        }
+        public Guid ConfigurationId { get; set; }
+
+        public int VisibilityDelayGapSeconds { get; set; }
+        public int QueueRecordProcessThreshold { get; set; }
+
+    }
+    abstract class DeltaProcessorBase : IDeltaProcessor
     {
         protected readonly ICosmosDBRepository _repository;
         protected ProcessorConfiguration _config;
-        protected string _uniqueId = string.Empty;
-        public string ProcessorId
-        {
-            get
-            {
-                return _uniqueId;
-            }
-        }
 
-        private protected void InitializeProcessor(ProcessorType processorType)
-        {
-            // Need the config for startup, so accepting the blocking call in the constructor.
-
-           _config = GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist(processorType);
-        }
-
-        private protected ProcessorConfiguration GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist(ProcessorType processorType)
-        {
-            
-            if (!_configDAL.DoesExistsAsync(_uniqueId, processorType.ToString()).Result)
-            {
-
-                if (Resources.InitialProcessorConfigurationDocument == null || Resources.InitialProcessorConfigurationDocument.Length == 0)
-                    throw new NullReferenceException("Null or empty initial Configuration Document resource.");
-                
-                var initalDocumentAsString = System.Text.Encoding.Default.GetString(Resources.InitialProcessorConfigurationDocument);
-
-                try
-                {
-                    ProcessorConfiguration initialConfigDocumentAsJson = JsonConvert.DeserializeObject<ProcessorConfiguration>(initalDocumentAsString);
-                    return _configDAL.CreateDocumentAsync<ProcessorConfiguration>(initialConfigDocumentAsJson, processorType.ToString()).Result;
-                }
-                catch(Exception ex)
-                {
-                    throw new InvalidDataException("Unable to deserialize Initial Configuration Document.", ex);
-                }
-            }
-            else
-            {
-                return _configDAL.GetByIdAsync<ProcessorConfiguration>(_uniqueId, processorType.ToString()).Result;
-            }
-
-        }
+        public abstract int VisibilityDelayGapSeconds { get; }
+        public abstract int QueueRecordProcessThreshold { get; }
+        public abstract Guid ConfigurationId { get; }
 
         protected DeltaProcessorBase (ICosmosDBRepository repository)
         {
@@ -69,9 +42,42 @@ namespace CSE.Automation.Processors
             }
         }
 
-        public virtual Task<int> ProcessDeltas()
+        private protected void InitializeProcessor()
         {
-            throw new NotImplementedException();
+            // Need the config for startup, so accepting the blocking call in the constructor.
+
+           _config = GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist();
         }
+
+        private ProcessorConfiguration GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist()
+        {
+            
+            if (!_repository.DoesExistsAsync(this.ConfigurationId.ToString()).Result)
+            {
+
+                if (Resources.InitialProcessorConfigurationDocument == null || Resources.InitialProcessorConfigurationDocument.Length == 0)
+                    throw new NullReferenceException("Null or empty initial Configuration Document resource.");
+                
+                var initalDocumentAsString = System.Text.Encoding.Default.GetString(Resources.InitialProcessorConfigurationDocument);
+
+                try
+                {
+                    ProcessorConfiguration initialConfigDocumentAsJson = JsonConvert.DeserializeObject<ProcessorConfiguration>(initalDocumentAsString);
+                    return _repository.CreateDocumentAsync<ProcessorConfiguration>(initialConfigDocumentAsJson, _repository.ResolvePartitionKey(initialConfigDocumentAsJson.Id)).Result;
+                }
+                catch(Exception ex)
+                {
+                    throw new InvalidDataException("Unable to deserialize Initial Configuration Document.", ex);
+                }
+            }
+            else
+            {
+                return _repository.GetByIdAsync<ProcessorConfiguration>(this.ConfigurationId.ToString()).Result;
+            }
+
+        }
+
+        public abstract Task<int> ProcessDeltas();
+
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Threading.Tasks;
+using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Processors;
 using Microsoft.AspNetCore.Http;
@@ -9,67 +10,67 @@ using Microsoft.Azure.Storage.Queue;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Graph;
 
 namespace CSE.Automation
 {
     public class GraphDeltaProcessor
     {
-        private readonly ISecretClient _secretService;
-
+        private readonly ISecretClient _secretClient;
         private readonly IGraphHelper<ServicePrincipal> _graphHelper;
-
         private readonly IServicePrincipalProcessor _processor;
-        //private readonly DALResolver _DALResolver;
-        //private readonly ProcessorResolver _processorResolver;
 
         public GraphDeltaProcessor(ISecretClient secretClient, IGraphHelper<ServicePrincipal> graphHelper, IServicePrincipalProcessor processor)
         {
-            _secretService = secretClient;
+            _secretClient = secretClient;
             _graphHelper = graphHelper;
             _processor = processor;
-            //_DALResolver = dalResolver;
-            //_processorResolver = processorResolver;
+
         }
 
-        private async Task<int> launchSeedDeltaProcessor()
-        {
-            int visibilityDelayGapSeconds = int.Parse(Environment.GetEnvironmentVariable("visibilityDelayGapSeconds"), CultureInfo.InvariantCulture);
-            int queueRecordProcessThreshold = int.Parse(Environment.GetEnvironmentVariable("queueRecordProcessThreshold"), CultureInfo.InvariantCulture);
+        //private async Task<int> LaunchSeedDeltaProcessor()
+        //{
+        //    int visibilityDelayGapSeconds = int.Parse(Environment.GetEnvironmentVariable("visibilityDelayGapSeconds"), CultureInfo.InvariantCulture);
+        //    int queueRecordProcessThreshold = int.Parse(Environment.GetEnvironmentVariable("queueRecordProcessThreshold"), CultureInfo.InvariantCulture);
+        //    _processor.VisibilityDelayGapSeconds = visibilityDelayGapSeconds;
+        //    _processor.QueueRecordProcessThreshold = queueRecordProcessThreshold;
 
-            ServicePrincipalProcessor spProcessor = (ServicePrincipalProcessor)_processorResolver.GetService<IDeltaProcessor>(ProcessorType.ServicePrincipal.ToString());
-            spProcessor.visibilityDelayGapSeconds = visibilityDelayGapSeconds;
-            spProcessor.queueRecordProcessThreshold = queueRecordProcessThreshold;
-
-            return await spProcessor.ProcessDeltas().ConfigureAwait(false);
-        }
+        //    return await _processor.ProcessDeltas().ConfigureAwait(false);
+        //}
 
         [FunctionName("SeedDeltaProcessorTimer")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Will add specific error in time.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1801:Review unused parameters", Justification = "Required as part of Trigger declaration.")]
-        public async Task<int> SeedDeltaProcessorTimer([TimerTrigger("0 */30 * * * *")] TimerInfo myTimer, ILogger log)
+        public async Task SeedDeltaProcessorTimer([TimerTrigger("0 */30 * * * *")] TimerInfo myTimer, ILogger log)
         {
             log.LogDebug("Executing SeedDeltaProcessorTimer Function");
-            return await launchSeedDeltaProcessor().ConfigureAwait(false);
+
+
+            var result = await _processor.ProcessDeltas().ConfigureAwait(false);
+            //return new OkObjectResult($"Service Principal Objects Seeded: {result}");
+
         }
 
         [FunctionName("SeedDeltaProcessor")]
-        public async Task<IActionResult> SeedServicePrincipal(
+        public async Task<IActionResult> SeedDeltaProcessor(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
             log.LogDebug("Executing SeedDeltaProcessor HttpTrigger Function");
+
+
             // TODO: If we end up with now request params needed for the seed function then remove the param and this check.
             if (req is null)
                 throw new ArgumentNullException(nameof(req));
 
-            int objectCount = await launchSeedDeltaProcessor().ConfigureAwait(false);
+            int objectCount = await _processor.ProcessDeltas().ConfigureAwait(false);
 
             return new OkObjectResult($"Service Principal Objects Processed: {objectCount}");
         }
 
-        [FunctionName("SPTrackingQueueTriggerFunction")]
+        [FunctionName("SPTrackingQueueTrigger")]
         [StorageAccount(Constants.SPStorageConnectionString)]
-        public static async Task RunSPTrackingQueueDaemon([QueueTrigger(Constants.SPTrackingUpdateQueueAppSetting)] CloudQueueMessage msg,
+        public static async Task SPTrackingQueueTrigger([QueueTrigger(Constants.SPTrackingUpdateQueueAppSetting)] CloudQueueMessage msg,
             [Queue(Constants.SPAADUpdateQueueAppSetting)] CloudQueue queue, ILogger log)
         {
             if (queue == null)
@@ -89,9 +90,9 @@ namespace CSE.Automation
             await queue.AddMessageAsync(new CloudQueueMessage(newMsg)).ConfigureAwait(false);
         }
 
-        [FunctionName("SPAADQueueTriggerFunction")]
+        [FunctionName("SPAADQueueTrigger")]
         [StorageAccount(Constants.SPStorageConnectionString)]
-        public static void RunSPAADQueueDaemon([QueueTrigger(Constants.SPAADUpdateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
+        public static void SPAADQueueTrigger([QueueTrigger(Constants.SPAADUpdateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
         {
             if (msg == null)
             {

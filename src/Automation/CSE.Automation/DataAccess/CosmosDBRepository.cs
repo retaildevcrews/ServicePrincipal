@@ -47,7 +47,7 @@ namespace CSE.Automation.DataAccess
         const string pagedOffsetString = " offset {0} limit {1}";
 
 
-        private readonly CosmosConfig _cosmosOptions;
+        private readonly CosmosConfig _options;
         private static CosmosClient _client;
         private Container _container;
         private readonly ICosmosDBSettings _settings;
@@ -68,7 +68,7 @@ namespace CSE.Automation.DataAccess
             _settings = settings;
             _logger = logger;
 
-            _cosmosOptions = new CosmosConfig
+            _options = new CosmosConfig
             {
                 MaxRows = MaxPageSize,
                 Timeout = CosmosTimeout,
@@ -83,7 +83,7 @@ namespace CSE.Automation.DataAccess
         public abstract string CollectionName { get; }
         public string DatabaseName => _settings.DatabaseName;
 
-        CosmosClient Client => _client ??= new CosmosClient(_settings.Uri, _settings.Key, _cosmosOptions.CosmosClientOptions);
+        CosmosClient Client => _client ??= new CosmosClient(_settings.Uri, _settings.Key, _options.CosmosClientOptions);
         private Container Container => _container ??= GetContainer(Client);
 
         public abstract string GenerateId<TEntity>(TEntity entity) where TEntity : class;
@@ -236,7 +236,7 @@ namespace CSE.Automation.DataAccess
         private async Task<IEnumerable<T>> InternalCosmosDBSqlQuery<T>(QueryDefinition queryDefinition)
         {
             // run query
-            var query = this.Container.GetItemQueryIterator<T>(queryDefinition, requestOptions: _cosmosOptions.QueryRequestOptions);
+            var query = this.Container.GetItemQueryIterator<T>(queryDefinition, requestOptions: _options.QueryRequestOptions);
 
             List<T> results = new List<T>();
 
@@ -260,7 +260,7 @@ namespace CSE.Automation.DataAccess
         private async Task<IEnumerable<T>> InternalCosmosDBSqlQuery<T>(string sql)
         {
             // run query
-            var query = this.Container.GetItemQueryIterator<T>(sql, requestOptions: _cosmosOptions.QueryRequestOptions);
+            var query = this.Container.GetItemQueryIterator<T>(sql, requestOptions: _options.QueryRequestOptions);
 
             List<T> results = new List<T>();
 
@@ -274,11 +274,29 @@ namespace CSE.Automation.DataAccess
             return results;
         }
 
-        public async Task<T> GetById<T>(string id, string partitionKey)
+        public async Task<T> GetByIdAsync<T>(string id)
         {
-
-            var response = await this.Container.ReadItemAsync<T>(id, new PartitionKey(partitionKey)).ConfigureAwait(false);
+            var response = await this.Container.ReadItemAsync<T>(id, ResolvePartitionKey(id)).ConfigureAwait(false);
             return response;
+        }
+
+        public async Task<T> ReplaceDocumentAsync<T>(string id, T newDocument)
+        {
+            //PartitionKey pk = String.IsNullOrWhiteSpace(partitionKey) ? default : new PartitionKey(partitionKey);
+
+            return await this.Container.ReplaceItemAsync<T>(newDocument, id, ResolvePartitionKey(id)).ConfigureAwait(false);
+        }
+
+        public async Task<T> CreateDocumentAsync<T>(T newDocument, PartitionKey partitionKey)
+        {
+            return await this.Container.CreateItemAsync<T>(newDocument, partitionKey).ConfigureAwait(false);
+        }
+
+
+        public async Task<bool> DoesExistsAsync(string id)
+        {
+            using ResponseMessage response = await this.Container.ReadItemStreamAsync(id, ResolvePartitionKey(id)).ConfigureAwait(false);
+            return response.IsSuccessStatusCode;
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "Using lower case with cosmos queries as tested.")]
@@ -329,7 +347,7 @@ namespace CSE.Automation.DataAccess
             string sql = "select * from m";
             if (filter != TypeFilter.any)
             {
-                sql += $" m.objectType='{Enum.GetName(typeof(TypeFilter), filter)}'";
+                sql += ($" m.objectType='{0}'", Enum.GetName(typeof(TypeFilter), filter));
             }
 
             return await InternalCosmosDBSqlQuery<T>(sql).ConfigureAwait(false);
