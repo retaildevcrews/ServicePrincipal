@@ -25,7 +25,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _graphHelper = Substitute.For<IGraphHelper<ServicePrincipal>>();
             _processor = Substitute.For<IServicePrincipalProcessor>();
 
-            _subject = new GraphDeltaProcessor(_secretClient, _graphHelper, _processor);
+            _subject = new GraphDeltaProcessor(_processor);
         }
 
         [Fact]

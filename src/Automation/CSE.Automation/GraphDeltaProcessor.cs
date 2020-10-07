@@ -16,14 +16,10 @@ namespace CSE.Automation
 {
     public class GraphDeltaProcessor
     {
-        private readonly ISecretClient _secretClient;
-        private readonly IGraphHelper<ServicePrincipal> _graphHelper;
         private readonly IServicePrincipalProcessor _processor;
 
-        public GraphDeltaProcessor(ISecretClient secretClient, IGraphHelper<ServicePrincipal> graphHelper, IServicePrincipalProcessor processor)
+        public GraphDeltaProcessor(IServicePrincipalProcessor processor)
         {
-            _secretClient = secretClient;
-            _graphHelper = graphHelper;
             _processor = processor;
 
         }
