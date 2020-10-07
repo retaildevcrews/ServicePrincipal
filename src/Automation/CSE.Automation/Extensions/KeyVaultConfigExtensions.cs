@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
+using System.Diagnostics;
 using System.Linq;
 
 namespace CSE.Automation.Extensions
@@ -68,6 +69,8 @@ namespace CSE.Automation.Extensions
         public static IConfigurationBuilder AddAzureKeyVaultConfiguration(this IConfigurationBuilder configBuilder, string keyVaultUrlSettingName)
         {
             // build a temporary configuration so we can extract the key vault urls
+            if (configBuilder == null) throw new ArgumentNullException(nameof(configBuilder));
+
             var tempConfig = configBuilder.Build();
             var keyVaultUrls = tempConfig[keyVaultUrlSettingName]?.Split(',');
             configBuilder.AddAzureKeyVaults(keyVaultUrls);
@@ -86,6 +89,11 @@ namespace CSE.Automation.Extensions
                 }
             }
             return builder;
+        }
+
+        public static IConfigurationBuilder AddAzureKeyVaultConfiguration(IConfigurationBuilder configBuilder, Uri keyVaultUrlSettingName)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -42,7 +42,7 @@ namespace CSE.Automation.DataAccess
         }
     }
 
-    abstract class CosmosDBRepository : ICosmosDBRepository, IDisposable
+    abstract class CosmosDBRepository<TEntity> : ICosmosDBRepository<TEntity>, IDisposable where TEntity : class
     {
         const string pagedOffsetString = " offset {0} limit {1}";
 
@@ -86,7 +86,7 @@ namespace CSE.Automation.DataAccess
         CosmosClient Client => _client ??= new CosmosClient(_settings.Uri, _settings.Key, _options.CosmosClientOptions);
         private Container Container => _container ??= GetContainer(Client);
 
-        public abstract string GenerateId<TEntity>(TEntity entity) where TEntity : class;
+        public abstract string GenerateId(TEntity entity);
         public virtual PartitionKey ResolvePartitionKey(string entityId) => PartitionKey.Null;
 
         /// <summary>
@@ -168,7 +168,9 @@ namespace CSE.Automation.DataAccess
             {
                 return (await GetContainerNames().ConfigureAwait(false)).Any(x => x == this.CollectionName);
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 _logger.LogCritical(ex, $"Failed to find collection in CosmosDB {_settings.DatabaseName}:{this.CollectionName}");
                 return false;
@@ -213,19 +215,19 @@ namespace CSE.Automation.DataAccess
         /// </summary>
         /// <param name="id">document id</param>
         /// <returns>the partition key</returns>
-        public static string GetPartitionKey(string id)
-        {
-            // validate id
-            if (!string.IsNullOrEmpty(id) &&
-                id.Length > 5 &&
-                (id.StartsWith("tt", StringComparison.OrdinalIgnoreCase) || id.StartsWith("nm", StringComparison.OrdinalIgnoreCase)) &&
-                int.TryParse(id.Substring(2), out int idInt))
-            {
-                return (idInt % 10).ToString(CultureInfo.InvariantCulture);
-            }
+        //public static string GetPartitionKey(string id)
+        //{
+        //    // validate id
+        //    if (!string.IsNullOrEmpty(id) &&
+        //        id.Length > 5 &&
+        //        (id.StartsWith("tt", StringComparison.OrdinalIgnoreCase) || id.StartsWith("nm", StringComparison.OrdinalIgnoreCase)) &&
+        //        int.TryParse(id.Substring(2), out int idInt))
+        //    {
+        //        return (idInt % 10).ToString(CultureInfo.InvariantCulture);
+        //    }
 
-            throw new ArgumentException("Invalid Partition Key");
-        }
+        //    throw new ArgumentException("Invalid Partition Key");
+        //}
 
         /// <summary>
         /// Generic function to be used by subclasses to execute arbitrary queries and return type T.
@@ -233,12 +235,12 @@ namespace CSE.Automation.DataAccess
         /// <typeparam name="T">POCO type to which results are serialized and returned.</typeparam>
         /// <param name="queryDefinition">Query to be executed.</param>
         /// <returns>Enumerable list of objects of type T.</returns>
-        private async Task<IEnumerable<T>> InternalCosmosDBSqlQuery<T>(QueryDefinition queryDefinition)
+        private async Task<IEnumerable<TEntity>> InternalCosmosDBSqlQuery(QueryDefinition queryDefinition)
         {
             // run query
-            var query = this.Container.GetItemQueryIterator<T>(queryDefinition, requestOptions: _options.QueryRequestOptions);
+            var query = this.Container.GetItemQueryIterator<TEntity>(queryDefinition, requestOptions: _options.QueryRequestOptions);
 
-            List<T> results = new List<T>();
+            var results = new List<TEntity>();
 
             while (query.HasMoreResults)
             {
@@ -257,12 +259,12 @@ namespace CSE.Automation.DataAccess
         /// <typeparam name="T">POCO type to which results are serialized and returned.</typeparam>
         /// <param name="sql">Query to be executed.</param>
         /// <returns>Enumerable list of objects of type T.</returns>
-        private async Task<IEnumerable<T>> InternalCosmosDBSqlQuery<T>(string sql)
+        private async Task<IEnumerable<TEntity>> InternalCosmosDBSqlQuery(string sql)
         {
             // run query
-            var query = this.Container.GetItemQueryIterator<T>(sql, requestOptions: _options.QueryRequestOptions);
+            var query = this.Container.GetItemQueryIterator<TEntity>(sql, requestOptions: _options.QueryRequestOptions);
 
-            List<T> results = new List<T>();
+           var results = new List<TEntity>();
 
             while (query.HasMoreResults)
             {
@@ -274,22 +276,22 @@ namespace CSE.Automation.DataAccess
             return results;
         }
 
-        public async Task<T> GetByIdAsync<T>(string id)
+        public async Task<TEntity> GetByIdAsync(string id)
         {
-            var response = await this.Container.ReadItemAsync<T>(id, ResolvePartitionKey(id)).ConfigureAwait(false);
+            var response = await this.Container.ReadItemAsync<TEntity>(id, ResolvePartitionKey(id)).ConfigureAwait(false);
             return response;
         }
 
-        public async Task<T> ReplaceDocumentAsync<T>(string id, T newDocument)
+        public async Task<TEntity> ReplaceDocumentAsync(string id, TEntity newDocument)
         {
             //PartitionKey pk = String.IsNullOrWhiteSpace(partitionKey) ? default : new PartitionKey(partitionKey);
 
-            return await this.Container.ReplaceItemAsync<T>(newDocument, id, ResolvePartitionKey(id)).ConfigureAwait(false);
+            return await this.Container.ReplaceItemAsync<TEntity>(newDocument, id, ResolvePartitionKey(id)).ConfigureAwait(false);
         }
 
-        public async Task<T> CreateDocumentAsync<T>(T newDocument, PartitionKey partitionKey)
+        public async Task<TEntity> CreateDocumentAsync(TEntity newDocument, PartitionKey partitionKey)
         {
-            return await this.Container.CreateItemAsync<T>(newDocument, partitionKey).ConfigureAwait(false);
+            return await this.Container.CreateItemAsync<TEntity>(newDocument, partitionKey).ConfigureAwait(false);
         }
 
 
@@ -300,7 +302,7 @@ namespace CSE.Automation.DataAccess
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "Using lower case with cosmos queries as tested.")]
-        public async Task<IEnumerable<T>> GetPagedAsync<T>(string q, int offset = 0, int limit = Constants.DefaultPageSize)
+        public async Task<IEnumerable<TEntity>> GetPagedAsync(string q, int offset = 0, int limit = Constants.DefaultPageSize)
         {
             string sql = q;
 
@@ -338,11 +340,11 @@ namespace CSE.Automation.DataAccess
                 queryDefinition.WithParameter("@q", q);
             }
 
-            return await InternalCosmosDBSqlQuery<T>(queryDefinition).ConfigureAwait(false);
+            return await InternalCosmosDBSqlQuery(queryDefinition).ConfigureAwait(false);
 
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync<T>(TypeFilter filter = TypeFilter.any)
+        public async Task<IEnumerable<TEntity>> GetAllAsync(TypeFilter filter = TypeFilter.any)
         {
             string sql = "select * from m";
             if (filter != TypeFilter.any)
@@ -350,7 +352,7 @@ namespace CSE.Automation.DataAccess
                 sql += ($" m.objectType='{0}'", Enum.GetName(typeof(TypeFilter), filter));
             }
 
-            return await InternalCosmosDBSqlQuery<T>(sql).ConfigureAwait(false);
+            return await InternalCosmosDBSqlQuery(sql).ConfigureAwait(false);
         }
 
         #region IDisposable

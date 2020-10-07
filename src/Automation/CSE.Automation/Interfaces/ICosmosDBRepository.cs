@@ -6,17 +6,17 @@ using Microsoft.Azure.Cosmos;
 
 namespace CSE.Automation.Interfaces
 {
-    public interface ICosmosDBRepository
+    public interface ICosmosDBRepository<TEntity> where TEntity : class
     {
-        Task<T> GetByIdAsync<T>(string id);
-        Task<IEnumerable<T>> GetPagedAsync<T>(string q, int offset = 0, int limit = 0);
-        Task<IEnumerable<T>> GetAllAsync<T>(TypeFilter filter= TypeFilter.any);
+        Task<TEntity> GetByIdAsync(string id);
+        Task<IEnumerable<TEntity>> GetPagedAsync(string q, int offset = 0, int limit = 0);
+        Task<IEnumerable<TEntity>> GetAllAsync(TypeFilter filter= TypeFilter.any);
         Task Reconnect(bool force = false);
         Task<bool> Test();
         PartitionKey ResolvePartitionKey(string entityId);
-        string GenerateId<TEntity>(TEntity entity) where TEntity : class;
-        Task<T> ReplaceDocumentAsync<T>(string id, T newDocument);
-        Task<T> CreateDocumentAsync<T>(T newDocument, PartitionKey partitionKey);
+        string GenerateId(TEntity entity);
+        Task<TEntity> ReplaceDocumentAsync(string id, TEntity newDocument);
+        Task<TEntity> CreateDocumentAsync(TEntity newDocument, PartitionKey partitionKey);
         Task<bool> DoesExistsAsync(string id);
 
         string DatabaseName { get; }

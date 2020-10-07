@@ -32,15 +32,16 @@ namespace CSE.Automation.Processors
         }
     }
 
-    class ServicePrincipalProcessor : DeltaProcessorBase, IServicePrincipalProcessor
+    internal class ServicePrincipalProcessor : DeltaProcessorBase, IServicePrincipalProcessor
     {
         private readonly IGraphHelper<ServicePrincipal> _graphHelper;
         private readonly ServicePrincipalProcessorSettings _settings;
-        public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings, IGraphHelper<ServicePrincipal> graphHelper, IConfigRepository repository) : base((ICosmosDBRepository)repository)
+        public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings, IGraphHelper<ServicePrincipal> graphHelper, IConfigRepository repository) : base(repository)
         {
             _settings = settings;
             _graphHelper = graphHelper;
-            //InitializeProcessor(ProcessorType.ServicePrincipal);
+
+            InitializeProcessor();
         }
 
         public override int VisibilityDelayGapSeconds => _settings.VisibilityDelayGapSeconds;
@@ -95,7 +96,7 @@ namespace CSE.Automation.Processors
             _config.LastSeedTime = DateTime.Now;
             _config.RunState = RunState.DeltaRun;
 
-            await _repository.ReplaceDocumentAsync<ProcessorConfiguration>(_config.Id, _config).ConfigureAwait(false);
+            await _configRepository.ReplaceDocumentAsync(_config.Id, _config).ConfigureAwait(false);
 
             Console.WriteLine($"Finished Processing {servicePrincipalCount} Service Principal Objects."); //TODO change this to log
             return servicePrincipalCount;

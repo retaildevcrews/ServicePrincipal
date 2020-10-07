@@ -4,9 +4,9 @@ using System.Text;
 
 namespace CSE.Automation.Model
 {
-    class SecretSetting
+    internal class SecretSetting
     {
-        public string SecretReference { get; set; }
+        public string Reference { get; set; }
         public string Value { get; set; }
     }
 }

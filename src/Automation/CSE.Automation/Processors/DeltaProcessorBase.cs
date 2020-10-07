@@ -6,6 +6,7 @@ using System;
 using System.Configuration;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.Azure.Cosmos;
 using SettingsBase = CSE.Automation.Model.SettingsBase;
 
 namespace CSE.Automation.Processors
@@ -31,23 +32,23 @@ namespace CSE.Automation.Processors
     }
     abstract class DeltaProcessorBase : IDeltaProcessor
     {
-        protected readonly ICosmosDBRepository _repository;
+        protected readonly ICosmosDBRepository<ProcessorConfiguration> _configRepository;
         protected ProcessorConfiguration _config;
 
         public abstract int VisibilityDelayGapSeconds { get; }
         public abstract int QueueRecordProcessThreshold { get; }
         public abstract Guid ConfigurationId { get; }
 
-        protected DeltaProcessorBase (ICosmosDBRepository repository)
+        protected DeltaProcessorBase (ICosmosDBRepository<ProcessorConfiguration> configRepository)
         {
             //if (configDAL is null)
             //    throw new NullReferenceException("Null Configuration DAL passed to DeltaProcessor Constructor");
 
             //_configDAL = configDAL;
-            _repository = repository;
-            if (_repository.Test().Result == false)
+            _configRepository = configRepository;
+            if (_configRepository.Test().Result == false)
             {
-                throw new ApplicationException($"Repository {_repository.DatabaseName}:{_repository.CollectionName} failed connection test");
+                throw new ApplicationException($"Repository {_configRepository.DatabaseName}:{_configRepository.CollectionName} failed connection test");
             }
         }
 
@@ -61,7 +62,7 @@ namespace CSE.Automation.Processors
         private ProcessorConfiguration GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist()
         {
             
-            if (!_repository.DoesExistsAsync(this.ConfigurationId.ToString()).Result)
+            if (!_configRepository.DoesExistsAsync(this.ConfigurationId.ToString()).Result)
             {
 
                 if (Resources.InitialProcessorConfigurationDocument == null || Resources.InitialProcessorConfigurationDocument.Length == 0)
@@ -72,7 +73,7 @@ namespace CSE.Automation.Processors
                 try
                 {
                     ProcessorConfiguration initialConfigDocumentAsJson = JsonConvert.DeserializeObject<ProcessorConfiguration>(initalDocumentAsString);
-                    return _repository.CreateDocumentAsync<ProcessorConfiguration>(initialConfigDocumentAsJson, _repository.ResolvePartitionKey(initialConfigDocumentAsJson.Id)).Result;
+                    return _configRepository.CreateDocumentAsync(initialConfigDocumentAsJson, _configRepository.ResolvePartitionKey(initialConfigDocumentAsJson.Id)).Result;
                 }
                 catch(Exception ex)
                 {
@@ -81,7 +82,7 @@ namespace CSE.Automation.Processors
             }
             else
             {
-                return _repository.GetByIdAsync<ProcessorConfiguration>(this.ConfigurationId.ToString()).Result;
+                return _configRepository.GetByIdAsync(this.ConfigurationId.ToString()).Result;
             }
 
         }

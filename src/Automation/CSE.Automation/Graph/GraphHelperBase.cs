@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using CSE.Automation.Extensions;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
+using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
@@ -40,14 +41,18 @@ namespace CSE.Automation.Graph
     public abstract class GraphHelperBase<T> : IGraphHelper<T>
     {
         protected GraphServiceClient graphClient { get; }
+        protected readonly ILogger _logger;
 
-        protected GraphHelperBase(GraphHelperSettings settings)
+        protected GraphHelperBase(GraphHelperSettings settings, ILogger logger)
         {
+            _logger = logger;
            IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
-           .Create(settings.GraphAppClientId)
-           .WithTenantId(settings.GraphAppTenantId)
-           .WithClientSecret(settings.GraphAppClientSecret)
-           .Build();
+#pragma warning disable CA1062 // Validate arguments of public methods, settings is injected from parent via Container
+                                                                               .Create(settings.GraphAppClientId)
+#pragma warning restore CA1062 // Validate arguments of public methods
+                                                                               .WithTenantId(settings.GraphAppTenantId)
+                                                                               .WithClientSecret(settings.GraphAppClientSecret)
+                                                                               .Build();
 
             ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
             graphClient = new GraphServiceClient(authProvider);

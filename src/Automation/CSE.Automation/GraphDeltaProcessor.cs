@@ -41,14 +41,13 @@ namespace CSE.Automation
         [FunctionName("SeedDeltaProcessorTimer")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Will add specific error in time.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1801:Review unused parameters", Justification = "Required as part of Trigger declaration.")]
-        public async Task SeedDeltaProcessorTimer([TimerTrigger("0 */30 * * * *")] TimerInfo myTimer, ILogger log)
+        public async Task<int> SeedDeltaProcessorTimer([TimerTrigger("0 */30 * * * *")] TimerInfo myTimer, ILogger log)
         {
             log.LogDebug("Executing SeedDeltaProcessorTimer Function");
 
 
             var result = await _processor.ProcessDeltas().ConfigureAwait(false);
-            //return new OkObjectResult($"Service Principal Objects Seeded: {result}");
-
+            return result;
         }
 
         [FunctionName("SeedDeltaProcessor")]
@@ -70,18 +69,18 @@ namespace CSE.Automation
 
         [FunctionName("SPTrackingQueueTrigger")]
         [StorageAccount(Constants.SPStorageConnectionString)]
-        public static async Task SPTrackingQueueTrigger([QueueTrigger(Constants.SPTrackingUpdateQueueAppSetting)] CloudQueueMessage msg,
-            [Queue(Constants.SPAADUpdateQueueAppSetting)] CloudQueue queue, ILogger log)
+//        public static async Task SPTrackingQueueTrigger([QueueTrigger(Constants.SPTrackingUpdateQueueAppSetting)] CloudQueueMessage msg, [Queue(Constants.SPAADUpdateQueueAppSetting)] CloudQueue queue, ILogger log)
+        public static async Task SPTrackingQueueTrigger([QueueTrigger(Constants.SPTrackingUpdateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
         {
             if (msg == null)
             {
                 throw new ArgumentNullException(nameof(msg));
             }
 
-            log.LogInformation("Incoming message from SPTracking queue\n");
+            log.LogInformation("Incoming message from SPTracking queue: {queue}");
             
             // Made this async to adhere with Function being declared async Task.  Remove once actual processing logic is added.
-            await Task.Run(() => { log.LogInformation($"Queue trigger function processed: {msg.Id.ToString()} \n"); }).ConfigureAwait(false);
+            await Task.Run(() => { log.LogInformation($"Queue trigger function processed: {msg.Id.ToString()}"); }).ConfigureAwait(false);
 
         }
 
@@ -94,8 +93,8 @@ namespace CSE.Automation
                 throw new ArgumentNullException(nameof(msg));
             }
 
-            log.LogInformation("Incoming message from AAD queue\n");
-            log.LogInformation($"C# AAD Queue trigger function processed: {msg.AsString} \n");
+            log.LogInformation("Incoming message from AAD queue");
+            log.LogInformation($"C# AAD Queue trigger function processed: {msg.AsString}");
         }
     }
 }

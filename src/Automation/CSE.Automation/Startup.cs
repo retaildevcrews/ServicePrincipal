@@ -150,7 +150,7 @@ namespace CSE.Automation
                 // register the concrete as the singleton, then use forwarder pattern to register same singleton with alternate interfaces
                 .AddScoped<ConfigRepository>()
                 .AddScoped<IConfigRepository, ConfigRepository>()
-                .AddScoped<ICosmosDBRepository, ConfigRepository>()
+                .AddScoped<ICosmosDBRepository<ProcessorConfiguration>, ConfigRepository>()
                 //.AddSingleton<IConfigRepository>(provider => provider.GetService<ConfigRepository>())
                 //.AddSingleton<ICosmosDBRepository>(provider => provider.GetService<ConfigRepository>())
 
@@ -164,43 +164,43 @@ namespace CSE.Automation
         /// Instantiate the remote data sources and verify their connectivity
         /// </summary>
         /// <param name="builder"></param>
-        private void ValidateServices(IFunctionsHostBuilder builder)
-        {
-            foreach (var service in builder.Services)
-            {
-                Trace.WriteLine($"{service.ServiceType.Name}");
-            }
+        //private void ValidateServices(IFunctionsHostBuilder builder)
+        //{
+        //    foreach (var service in builder.Services)
+        //    {
+        //        Trace.WriteLine($"{service.ServiceType.Name}");
+        //    }
             
-            var provider = builder.Services.AddLogging(b =>
-            {
-                b.AddConsole();
-                b.AddDebug();
-            }).BuildServiceProvider();
+        //    var provider = builder.Services.AddLogging(b =>
+        //    {
+        //        b.AddConsole();
+        //        b.AddDebug();
+        //    }).BuildServiceProvider();
 
-            var repositories = provider.GetServices<ICosmosDBRepository>();
-            var hasFailingTest = false;
+        //    var repositories = provider.GetServices<ICosmosDBRepository<>>();
+        //    var hasFailingTest = false;
 
-            foreach (var repository in repositories)
-            {
-                var testPassed = repository.Test().Result;
-                hasFailingTest = testPassed == false || hasFailingTest;
+        //    foreach (var repository in repositories)
+        //    {
+        //        var testPassed = repository.Test().Result;
+        //        hasFailingTest = testPassed == false || hasFailingTest;
 
-                var result = testPassed
-                    ? "Passed"
-                    : "Failed";
-                var message = $"Repository test for {repository.DatabaseName}:{repository.CollectionName} {result}";
-                if (testPassed)
-                {
-                    _logger.LogInformation(message);
-                }
-                else
-                {
-                    _logger.LogCritical(message);
-                }
-            }
+        //        var result = testPassed
+        //            ? "Passed"
+        //            : "Failed";
+        //        var message = $"Repository test for {repository.DatabaseName}:{repository.CollectionName} {result}";
+        //        if (testPassed)
+        //        {
+        //            _logger.LogInformation(message);
+        //        }
+        //        else
+        //        {
+        //            _logger.LogCritical(message);
+        //        }
+        //    }
 
-            if (hasFailingTest)
-                throw new ApplicationException($"One or more repositories failed test.");
-        }
+        //    if (hasFailingTest)
+        //        throw new ApplicationException($"One or more repositories failed test.");
+        //}
     }
 }
