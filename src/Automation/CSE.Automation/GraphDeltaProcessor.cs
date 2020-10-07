@@ -63,6 +63,10 @@ namespace CSE.Automation
         public static async Task RunSPTrackingQueueDaemon([QueueTrigger(Constants.SPTrackingUpdateQueueAppSetting)] CloudQueueMessage msg,
              ILogger log)
         {
+            if (msg == null)
+            {
+                throw new ArgumentNullException(nameof(msg));
+            }
 
             log.LogInformation("Incoming message from SPTracking queue\n");
             
