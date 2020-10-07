@@ -54,17 +54,7 @@ namespace CSE.Automation
 
             ValidateSettings(builder);
 
-            try
-            {
-                var client = builder.Services.BuildServiceProvider().GetService<ISecretClient>();
-
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-            ValidateServices(builder);
+            //ValidateServices(builder);
 
         }
 
@@ -123,7 +113,7 @@ namespace CSE.Automation
 
                 .AddSingleton(x => new ServicePrincipalProcessorSettings(x.GetRequiredService<ISecretClient>())
                 {
-                    ConfigurationId = Environment.GetEnvironmentVariable("visibilityDelayGapSeconds").ToGuid(Guid.Parse("02a54ac9-441e-43f1-88ee-fde420db2559")),
+                    ConfigurationId = Environment.GetEnvironmentVariable("configId").ToGuid(Guid.Parse("02a54ac9-441e-43f1-88ee-fde420db2559")),
                     VisibilityDelayGapSeconds = Environment.GetEnvironmentVariable("visibilityDelayGapSeconds").ToInt(8),
                     QueueRecordProcessThreshold = Environment.GetEnvironmentVariable("queueRecordProcessThreshold").ToInt(10),
                 })

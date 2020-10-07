@@ -356,7 +356,7 @@ namespace CSE.Automation.DataAccess
         #region IDisposable
         public void Dispose()
         {
-            _client?.Dispose();
+            //_client?.Dispose();
         }
         #endregion
     }

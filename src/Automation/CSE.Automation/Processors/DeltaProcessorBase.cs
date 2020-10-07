@@ -3,8 +3,10 @@ using CSE.Automation.Model;
 using CSE.Automation.Properties;
 using Newtonsoft.Json;
 using System;
+using System.Configuration;
 using System.IO;
 using System.Threading.Tasks;
+using SettingsBase = CSE.Automation.Model.SettingsBase;
 
 namespace CSE.Automation.Processors
 {
@@ -19,6 +21,13 @@ namespace CSE.Automation.Processors
         public int VisibilityDelayGapSeconds { get; set; }
         public int QueueRecordProcessThreshold { get; set; }
 
+        public override void Validate()
+        {
+            base.Validate();
+            if (this.ConfigurationId == Guid.Empty) throw new ConfigurationErrorsException($"{this.GetType().Name}: ConfigurationId is invalid");
+            if (this.VisibilityDelayGapSeconds <= 0 || this.VisibilityDelayGapSeconds > 500) throw new ConfigurationErrorsException($"{this.GetType().Name}: VisibilityDelayGapSeconds is invalid");
+            if (this.QueueRecordProcessThreshold <= 0 || this.QueueRecordProcessThreshold > 3000) throw new ConfigurationErrorsException($"{this.GetType().Name}: QueueRecordProcessThreshold is invalid");
+        }
     }
     abstract class DeltaProcessorBase : IDeltaProcessor
     {

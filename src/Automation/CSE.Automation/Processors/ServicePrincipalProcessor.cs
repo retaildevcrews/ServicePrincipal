@@ -5,6 +5,7 @@ using CSE.Automation.Services;
 using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Text;
 using CSE.Automation.DataAccess;
 using System.Threading.Tasks;
@@ -21,11 +22,18 @@ namespace CSE.Automation.Processors
         public string QueueConnectionString => base.GetSecret(Constants.SPStorageConnectionString);
         [Secret(Constants.SPTrackingUpdateQueue)]
         public string QueueName => base.GetSecret(Constants.SPTrackingUpdateQueue);
+
+        public override void Validate()
+        {
+            base.Validate();
+            if (string.IsNullOrEmpty(this.QueueConnectionString)) throw new ConfigurationErrorsException($"{this.GetType().Name}: QueueConnectionString is invalid");
+            if (string.IsNullOrEmpty(this.QueueName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: QueueName is invalid");
+
+        }
     }
 
     class ServicePrincipalProcessor : DeltaProcessorBase, IServicePrincipalProcessor
     {
-        private readonly ISecretClient _secretService;
         private readonly IGraphHelper<ServicePrincipal> _graphHelper;
         private readonly ServicePrincipalProcessorSettings _settings;
         public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings, IGraphHelper<ServicePrincipal> graphHelper, IConfigRepository repository) : base((ICosmosDBRepository)repository)
