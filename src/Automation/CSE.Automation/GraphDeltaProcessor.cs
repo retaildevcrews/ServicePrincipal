@@ -61,23 +61,14 @@ namespace CSE.Automation
         [FunctionName("SPTrackingQueueTriggerFunction")]
         [StorageAccount(Constants.SPStorageConnectionString)]
         public static async Task RunSPTrackingQueueDaemon([QueueTrigger(Constants.SPTrackingUpdateQueueAppSetting)] CloudQueueMessage msg,
-            [Queue(Constants.SPAADUpdateQueueAppSetting)] CloudQueue queue, ILogger log)
+             ILogger log)
         {
-            if (queue == null)
-            {
-                throw new ArgumentNullException(nameof(queue));
-            }
-
-            if (msg == null)
-            {
-                throw new ArgumentNullException(nameof(msg));
-            }
 
             log.LogInformation("Incoming message from SPTracking queue\n");
-            log.LogInformation($"C# SP Tracking Queue trigger function processed: {msg.AsString} \n");
+            
+            // Made this async to adhere with Function being declared async Task.  Remove once actual processing logic is added.
+            await Task.Run(() => { log.LogInformation($"Queue trigger function processed: {msg.Id.ToString()} \n"); }).ConfigureAwait(false);
 
-            var newMsg = $"Following message processed from SPTracking queue:\n{msg.AsString}\n";
-            await queue.AddMessageAsync(new CloudQueueMessage(newMsg)).ConfigureAwait(false);
         }
 
         [FunctionName("SPAADQueueTriggerFunction")]
