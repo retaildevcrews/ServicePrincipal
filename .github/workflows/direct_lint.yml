@@ -8,4 +8,6 @@ jobs:
     - name: Install modules
       run: dotnet tool install -g dotnet-format
     - name: Run ESLint
-      run: dotnet-format --folder --check 
+      run: |
+        cd Service Principal
+        dotnet-format --folder --check 
