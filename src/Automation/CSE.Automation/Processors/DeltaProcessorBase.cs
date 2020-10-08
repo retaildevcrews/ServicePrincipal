@@ -25,7 +25,7 @@ namespace CSE.Automation.Processors
             _config = _configDAL.GetByIdAsync<ProcessorConfiguration>(_uniqueId, processorType.ToString()).Result;
         }
 
-        public DeltaProcessorBase (IDAL configDAL)
+        public DeltaProcessorBase(IDAL configDAL)
         {
             if (configDAL is null)
                 throw new NullReferenceException("Null Configuration DAL passed to DeltaProcessor Constructor");

@@ -39,20 +39,20 @@ namespace CSE.Automation
             var graphAppTenantId = secretService.GetSecretValue(Constants.GraphAppTenantIdKey);
             var graphAppClientSecret = secretService.GetSecretValue(Constants.GraphAppClientSecretKey);
 
-            var spGraphHelper =  new ServicePrincipalGraphHelper(graphAppClientId, graphAppTenantId, graphAppClientSecret);
+            var spGraphHelper = new ServicePrincipalGraphHelper(graphAppClientId, graphAppTenantId, graphAppClientSecret);
 
             builder.Services.AddSingleton<GraphHelperBase<ServicePrincipal>>(spGraphHelper);
 
             // Retrieve CosmosDB configuration, create access objects, and register
             DALResolver dalResolver = new DALResolver(secretService);
-            IDAL configDAL = dalResolver.GetService<IDAL> (DALCollection.ProcessorConfiguration.ToString());
-            IDAL auditDAL = dalResolver.GetService <IDAL> (DALCollection.Audit.ToString());
-            IDAL objTrackingDAL = dalResolver.GetService <IDAL> (DALCollection.ObjectTracking.ToString());
+            IDAL configDAL = dalResolver.GetService<IDAL>(DALCollection.ProcessorConfiguration.ToString());
+            IDAL auditDAL = dalResolver.GetService<IDAL>(DALCollection.Audit.ToString());
+            IDAL objTrackingDAL = dalResolver.GetService<IDAL>(DALCollection.ObjectTracking.ToString());
 
             builder.Services.AddSingleton<DALResolver>(dalResolver);
-            
+
             // Create and register ProcessorResolver
-            var processorResolver = new ProcessorResolver(configDAL,secretService, spGraphHelper);
+            var processorResolver = new ProcessorResolver(configDAL, secretService, spGraphHelper);
             builder.Services.AddSingleton<ProcessorResolver>(processorResolver);
 
         }

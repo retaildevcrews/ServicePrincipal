@@ -11,33 +11,33 @@ namespace CSE.Automation.Model
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
 
-        [JsonProperty(PropertyName ="filterString")]
+        [JsonProperty(PropertyName = "filterString")]
         public string FilterString { get; set; }
 
-        [JsonProperty(PropertyName ="configType")]
+        [JsonProperty(PropertyName = "configType")]
         [JsonConverter(typeof(StringEnumConverter))]
         public ProcessorType ConfigType { get; set; }
 
-        [JsonProperty(PropertyName ="selectFields")]
-        public List<string> SelectFields { get;  }
+        [JsonProperty(PropertyName = "selectFields")]
+        public List<string> SelectFields { get; }
 
-        [JsonProperty(PropertyName ="deltaLink")]
+        [JsonProperty(PropertyName = "deltaLink")]
         public string DeltaLink { get; set; }
 
-        [JsonProperty(PropertyName ="runState")]
+        [JsonProperty(PropertyName = "runState")]
         [JsonConverter(typeof(StringEnumConverter))]
         public RunState RunState { get; set; }
 
-        [JsonProperty(PropertyName ="lastDeltaRun")]
+        [JsonProperty(PropertyName = "lastDeltaRun")]
         public DateTime LastDeltaRun { get; set; }
 
-        [JsonProperty(PropertyName ="lastSeedTime")]
+        [JsonProperty(PropertyName = "lastSeedTime")]
         public DateTime LastSeedTime { get; set; }
 
-        [JsonProperty(PropertyName ="name")]
+        [JsonProperty(PropertyName = "name")]
         public string Name { get; set; }
 
-        [JsonProperty(PropertyName ="description")]
+        [JsonProperty(PropertyName = "description")]
         public string Description { get; set; }
     }
 

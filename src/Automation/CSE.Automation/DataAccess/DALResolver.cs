@@ -16,7 +16,7 @@ namespace CSE.Automation.DataAccess
         private readonly string _cosmosKey;
         private readonly string _cosmosDatabaseName;
 
-        public DALResolver (ISecretClient secretClient)
+        public DALResolver(ISecretClient secretClient)
         {
             _secretClient = secretClient;
 
@@ -30,7 +30,8 @@ namespace CSE.Automation.DataAccess
             string collectionNameKey = default;
             string cosmosCollectionName = default;
 
-            switch (collectionName){
+            switch (collectionName)
+            {
                 case DALCollection.Audit:
                     collectionNameKey = Constants.CosmosDBAuditCollectionName;
                     break;
@@ -63,8 +64,8 @@ namespace CSE.Automation.DataAccess
                 throw new InvalidCastException("For DAL resolver type T must be of type IDAL");
 
             DALCollection collectionName = Enum.Parse<DALCollection>(keyName);
-            
-            return (T) _registeredDALs.GetOrAdd(keyName, CreateDAL(collectionName)) ;
+
+            return (T)_registeredDALs.GetOrAdd(keyName, CreateDAL(collectionName));
         }
 
 

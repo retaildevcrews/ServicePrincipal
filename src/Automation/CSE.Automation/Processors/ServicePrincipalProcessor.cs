@@ -35,7 +35,7 @@ namespace CSE.Automation.Processors
             var queueConnectionString = _secretService.GetSecretValue(Constants.SPStorageConnectionString);
             var dataQueueName = _secretService.GetSecretValue(Constants.SPTrackingUpdateQueue);
 
-           
+
             var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects("appId,displayName,notes", _config).ConfigureAwait(false);
 
             string updatedDeltaLink = servicePrincipalResult.Item1; //TODO save this back in Config

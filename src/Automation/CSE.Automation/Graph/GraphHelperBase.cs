@@ -13,16 +13,16 @@ namespace CSE.Automation.Graph
 
         public GraphHelperBase(string graphAppClientId, string graphAppTenantId, string graphAppClientSecret)
         {
-           IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
-           .Create(graphAppClientId)
-           .WithTenantId(graphAppTenantId)
-           .WithClientSecret(graphAppClientSecret)
-           .Build();
+            IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
+            .Create(graphAppClientId)
+            .WithTenantId(graphAppTenantId)
+            .WithClientSecret(graphAppClientSecret)
+            .Build();
 
             ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
             graphClient = new GraphServiceClient(authProvider);
         }
 
-        public abstract Task<(string,IEnumerable<T>)> GetDeltaGraphObjects(string selectFields,ProcessorConfiguration config);
+        public abstract Task<(string, IEnumerable<T>)> GetDeltaGraphObjects(string selectFields, ProcessorConfiguration config);
     }
 }

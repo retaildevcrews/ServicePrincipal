@@ -16,7 +16,7 @@ namespace CSE.Automation
     {
 
         private readonly ProcessorResolver _processorResolver;
-    
+
         public GraphDeltaProcessor(ProcessorResolver processorResolver)
         {
             _processorResolver = processorResolver;
@@ -64,7 +64,7 @@ namespace CSE.Automation
             [Queue(Constants.SPAADUpdateQueueAppSetting)] CloudQueue queue, ILogger log)
         {
             if (queue is null)
-                throw new ArgumentNullException(nameof (queue));
+                throw new ArgumentNullException(nameof(queue));
             log.LogInformation("Incoming message from SPTracking queue\n");
             log.LogInformation($"C# SP Tracking Queue trigger function processed: {msg} \n");
 

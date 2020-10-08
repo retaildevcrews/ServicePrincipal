@@ -32,7 +32,7 @@ namespace CSE.Automation.Services
 
             bool messageSent = false;
             int numOfAttempts = 1;
-            
+
             while (!messageSent && numOfAttempts <= 3)
             {
                 try

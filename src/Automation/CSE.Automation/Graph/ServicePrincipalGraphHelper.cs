@@ -11,7 +11,8 @@ namespace CSE.Automation.Graph
     public class ServicePrincipalGraphHelper : GraphHelperBase<ServicePrincipal>
     {
         public ServicePrincipalGraphHelper(string graphAppClientId, string graphAppTenantId, string graphAppClientSecret)
-            : base(graphAppClientId, graphAppTenantId, graphAppClientSecret) {
+            : base(graphAppClientId, graphAppTenantId, graphAppClientSecret)
+        {
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Console.WriteLine will be changed to logs")]

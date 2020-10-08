@@ -211,13 +211,13 @@ namespace CSE.Automation.DataAccess
             return response;
         }
 
-        public async Task<T> ReplaceDocumentAsync<T>(string id, T newDocument,string partitionKey=null)
+        public async Task<T> ReplaceDocumentAsync<T>(string id, T newDocument, string partitionKey = null)
         {
             var con = cosmosDetails.Client.GetContainer(cosmosDetails.CosmosDatabase, cosmosDetails.CosmosCollection);
 
             //PartitionKey pk = String.IsNullOrWhiteSpace(partitionKey) ? default : new PartitionKey(partitionKey);
-            
-            return await con.ReplaceItemAsync<T>(newDocument, id,null).ConfigureAwait(false);
+
+            return await con.ReplaceItemAsync<T>(newDocument, id, null).ConfigureAwait(false);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "Using lower case with cosmos queries as tested.")]
