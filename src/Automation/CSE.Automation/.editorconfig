@@ -2,22 +2,26 @@
 ###############################
 # Core EditorConfig Options   #
 ###############################
+
+# top-most EditorConfig file
+root = true
+
 # All files
 [*]
 indent_style = space
-end_of_line = crlf
+# end_of_line = crlf
 
 # Code files
 [*.{cs,csx,vb,vbx}]
-indent_size = 4
-insert_final_newline = true
-charset = utf-8-bom
+# indent_size = 4
+# insert_final_newline = true
+# charset = utf-8-bom
 ###############################
 # .NET Coding Conventions     #
 ###############################
 [*.{cs,vb}]
 # Organize usings
-dotnet_sort_system_directives_first = true
+# dotnet_sort_system_directives_first = true
 # this. preferences
 dotnet_style_qualification_for_field = false:silent
 dotnet_style_qualification_for_property = false:silent
