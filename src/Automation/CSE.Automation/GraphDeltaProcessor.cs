@@ -16,7 +16,7 @@ namespace CSE.Automation
     {
 
         private readonly ProcessorResolver _processorResolver;
-     
+    
         public GraphDeltaProcessor(ProcessorResolver processorResolver)
         {
             _processorResolver = processorResolver;
