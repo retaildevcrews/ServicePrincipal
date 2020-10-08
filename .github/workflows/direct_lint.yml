@@ -8,4 +8,4 @@ jobs:
     - name: Install modules
       run: dotnet tool install -g dotnet-format
     - name: Run ESLint
-      run: dotnet-format --folder --check --include src/Automation/Extensions/KeyVaultConfigExtensions.cs
+      run: dotnet-format --folder --check 
