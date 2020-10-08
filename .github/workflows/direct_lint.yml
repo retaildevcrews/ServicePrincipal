@@ -9,5 +9,4 @@ jobs:
       run: dotnet tool install -g dotnet-format
     - name: Run ESLint
       run: |
-        cd ./ServicePrincipal
-        dotnet-format --folder --check 
+        dotnet-format src/Automation/CSE.Automation --folder --check 
