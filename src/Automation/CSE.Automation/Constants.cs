@@ -29,7 +29,8 @@
         public const string SPAADUpdateQueue = "SPAADUpdateQueue";
         public const string SPAADUpdateQueueAppSetting = "%SPAADUpdateQueue%";
 
-        //DAL Constants
-
+        //Queueing Constants
+        public const int MaxVisibilityDelayGapSeconds = 500;
+        public const int MaxQueueRecordProcessThreshold = 3000;
     }
 }
