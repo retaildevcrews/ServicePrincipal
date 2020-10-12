@@ -19,9 +19,9 @@ namespace CSE.Automation.Processors
         public ServicePrincipalProcessorSettings(ISecretClient secretClient) : base(secretClient) { }
 
         [Secret(Constants.SPStorageConnectionString)]
-        public string QueueConnectionString => base.GetSecret(Constants.SPStorageConnectionString);
+        public string QueueConnectionString => base.GetSecret();
         [Secret(Constants.SPTrackingUpdateQueue)]
-        public string QueueName => base.GetSecret(Constants.SPTrackingUpdateQueue);
+        public string QueueName => base.GetSecret();
 
         public override void Validate()
         {

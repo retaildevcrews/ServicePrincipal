@@ -146,7 +146,7 @@ namespace CSE.Automation
             builder.Services
                 .AddSingleton<ICredentialService>(x => new CredentialService(x.GetRequiredService<CredentialServiceSettings>()))
                 .AddSingleton<ISecretClient>(x => new SecretService(x.GetRequiredService<SecretServiceSettings>(), x.GetRequiredService<ICredentialService>()))
-
+                
                 // register the concrete as the singleton, then use forwarder pattern to register same singleton with alternate interfaces
                 .AddScoped<ConfigRepository>()
                 .AddScoped<IConfigRepository, ConfigRepository>()

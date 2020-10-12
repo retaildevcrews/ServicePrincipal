@@ -5,7 +5,6 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Configuration;
 using CSE.Automation.Extensions;
-using CSE.Automation.Model;
 
 namespace CSE.Automation.KeyVault
 {

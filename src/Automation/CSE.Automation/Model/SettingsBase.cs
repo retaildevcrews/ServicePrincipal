@@ -8,10 +8,6 @@ using CSE.Automation.Interfaces;
 
 namespace CSE.Automation.Model
 {
-    public interface ISettingsValidator
-    {
-        void Validate();
-    }
 
     [AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = true)]
     sealed class SecretAttribute : Attribute

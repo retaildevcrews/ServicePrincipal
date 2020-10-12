@@ -1,26 +1,18 @@
-﻿using Microsoft.Azure.Cosmos;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using CSE.Automation.Config;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
-using Microsoft.Extensions.Azure;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using SettingsBase = CSE.Automation.Model.SettingsBase;
 
 namespace CSE.Automation.DataAccess
 {
-    interface ICosmosDBSettings : ISettingsValidator
-    {
-        string Uri { get; }
-        string Key { get; }
-        string DatabaseName { get; }
-    }
 
     class CosmosDBSettings : SettingsBase, ICosmosDBSettings
     {
