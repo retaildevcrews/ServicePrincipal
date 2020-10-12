@@ -32,20 +32,20 @@ namespace CSE.Automation.Model
             _secretClient = secretClient;
         }
 
-        protected string GetSecret([CallerMemberName]string name=default)
+        protected string GetSecret([CallerMemberName] string name = default)
         {
             if (string.IsNullOrEmpty(name)) return string.Empty;
 
             var propInfo = this.GetType().GetProperty(name);
             if (propInfo == null)
-            { 
+            {
                 throw new ArgumentOutOfRangeException($"Failed to get property information for property '{name}'");
             }
 
             var attr = propInfo.CustomAttributes.FirstOrDefault(x => x.AttributeType == typeof(SecretAttribute));
 
             return attr != null
-                ? GetSecretInternal(attr.ConstructorArguments.First().Value.ToString()) 
+                ? GetSecretInternal(attr.ConstructorArguments.First().Value.ToString())
                 : GetSecretInternal(propInfo.Name);
 
         }

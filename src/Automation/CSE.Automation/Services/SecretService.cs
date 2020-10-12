@@ -38,7 +38,7 @@ namespace CSE.Automation.KeyVault
                 throw new Exception("Credential Service is Null in SecretService");
         }
 
-        public Uri Uri { get; set;}
+        public Uri Uri { get; set; }
 
         public KeyVaultSecret GetSecret(string secretName)
         {

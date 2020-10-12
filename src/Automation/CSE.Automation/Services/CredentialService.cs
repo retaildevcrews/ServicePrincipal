@@ -18,7 +18,7 @@ namespace CSE.Automation.Services
     {
         readonly TokenCredential _currentCredential;
 
-        public CredentialService (CredentialServiceSettings settings)
+        public CredentialService(CredentialServiceSettings settings)
         {
             _currentCredential = settings.AuthType switch
             {
@@ -30,9 +30,9 @@ namespace CSE.Automation.Services
         }
 
         public TokenCredential CurrentCredential
-        { 
+        {
             get { return _currentCredential; }
         }
-        
+
     }
 }

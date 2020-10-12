@@ -97,11 +97,11 @@ namespace CSE.Automation.DataAccess
                 {
                     _logger.LogError($"Failed to reconnect to CosmosDB {_settings.DatabaseName}:{this.CollectionName}");
                 }
-                
+
             }
         }
 
-        #if OLDCODE
+#if OLDCODE
         /// <summary>
         /// Open and test the Cosmos Client / Container / Query
         /// </summary>
@@ -145,7 +145,7 @@ namespace CSE.Automation.DataAccess
             return c;
         }
 
-        #endif
+#endif
 
 
         public async Task<bool> Test()
@@ -256,7 +256,7 @@ namespace CSE.Automation.DataAccess
             // run query
             var query = this.Container.GetItemQueryIterator<TEntity>(sql, requestOptions: _options.QueryRequestOptions);
 
-           var results = new List<TEntity>();
+            var results = new List<TEntity>();
 
             while (query.HasMoreResults)
             {

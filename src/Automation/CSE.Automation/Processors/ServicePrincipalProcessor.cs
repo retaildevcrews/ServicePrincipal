@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace CSE.Automation.Processors
 {
-    public interface IServicePrincipalProcessor : IDeltaProcessor {}
+    public interface IServicePrincipalProcessor : IDeltaProcessor { }
 
     class ServicePrincipalProcessorSettings : DeltaProcessorSettings
     {
