@@ -27,7 +27,7 @@ namespace CSE.Automation.DataAccess
         }
     }
 
-    internal interface IConfigRepository : ICosmosDBRepository<ProcessorConfiguration> {}
+    internal interface IConfigRepository : ICosmosDBRepository<ProcessorConfiguration> { }
 
     internal class ConfigRepository : CosmosDBRepository<ProcessorConfiguration>, IConfigRepository
     {
@@ -47,6 +47,6 @@ namespace CSE.Automation.DataAccess
             return new PartitionKey($"ServicePrincipal");
         }
 
-        public override string CollectionName  => _settings.CollectionName;
+        public override string CollectionName => _settings.CollectionName;
     }
 }

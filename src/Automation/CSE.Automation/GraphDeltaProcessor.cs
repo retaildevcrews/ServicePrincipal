@@ -73,7 +73,7 @@ namespace CSE.Automation
             }
 
             log.LogInformation("Incoming message from SPTracking queue");
-            
+
             // Made this async to adhere with Function being declared async Task.  Remove once actual processing logic is added.
             await Task.Run(() => { log.LogInformation($"Queue trigger function processed: {msg.Id}"); }).ConfigureAwait(false);
 

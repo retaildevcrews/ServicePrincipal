@@ -98,7 +98,7 @@ namespace CSE.Automation
         {
             // SERVICES SETTINGS
             var secretServiceSettings = new SecretServiceSettings() { KeyVaultName = Environment.GetEnvironmentVariable(Constants.KeyVaultName) };
-            var credServiceSettings = new CredentialServiceSettings() { AuthType = Environment.GetEnvironmentVariable(Constants.AuthType).As<AuthenticationType>()};
+            var credServiceSettings = new CredentialServiceSettings() { AuthType = Environment.GetEnvironmentVariable(Constants.AuthType).As<AuthenticationType>() };
 
             builder.Services
                 .AddSingleton(credServiceSettings)
@@ -146,7 +146,7 @@ namespace CSE.Automation
             builder.Services
                 .AddSingleton<ICredentialService>(x => new CredentialService(x.GetRequiredService<CredentialServiceSettings>()))
                 .AddSingleton<ISecretClient>(x => new SecretService(x.GetRequiredService<SecretServiceSettings>(), x.GetRequiredService<ICredentialService>()))
-                
+
                 // register the concrete as the singleton, then use forwarder pattern to register same singleton with alternate interfaces
                 .AddScoped<ConfigRepository>()
                 .AddScoped<IConfigRepository, ConfigRepository>()
@@ -170,7 +170,7 @@ namespace CSE.Automation
         //    {
         //        Trace.WriteLine($"{service.ServiceType.Name}");
         //    }
-            
+
         //    var provider = builder.Services.AddLogging(b =>
         //    {
         //        b.AddConsole();

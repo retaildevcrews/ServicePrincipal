@@ -3,10 +3,10 @@ using System.Text.Json.Serialization;
 
 namespace CSE.Automation.Model
 {
-    
+
     public class QueueMessage
-    {        
-        public QueueMessageType QueueMessageType { get; set;}
+    {
+        public QueueMessageType QueueMessageType { get; set; }
 
         public int Attempt { get; set; }
 
