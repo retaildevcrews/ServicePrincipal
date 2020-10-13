@@ -1,14 +1,14 @@
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build
 WORKDIR /src
-COPY *.csproj /src
-RUN dotnet restore
-COPY . /src
+COPY ["CSE.Automation/CSE.Automation.csproj", "CSE.Automation/"]
+RUN dotnet restore "CSE.Automation/CSE.Automation.csproj"
+COPY . .
 WORKDIR /home/site/wwwroot
 ARG SP_AUTOMATION_VERSION
 RUN [ ! -z ${SP_AUTOMATION_VERSION} ] && echo Specified Version: ${SP_AUTOMATION_VERSION} \
     && VER_ARG="/p:Version=${SP_AUTOMATION_VERSION}" \
     || echo "Version not specified in docker arg." \
-    && dotnet publish /src/*.csproj --output .
+    && dotnet publish /src/CSE.Automation/*.csproj --output .
 
 FROM mcr.microsoft.com/azure-functions/dotnet:3.0 as final
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot
