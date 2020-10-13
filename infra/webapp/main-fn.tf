@@ -66,8 +66,8 @@ resource "azurerm_function_app" "fn-default" {
         APPINSIGHTS_INSTRUMENTATIONKEY = "${azurerm_application_insights.svc-ppl-appi.instrumentation_key}"
         https_only = true
         
-        DOCKER_REGISTRY_SERVER_URL = "${var.ACR_URI}"
-        DOCKER_REGISTRY_SERVER_USERNAME = "${var.ACR_SP_ID}"
+        DOCKER_REGISTRY_SERVER_URL = "https://${var.ACR_URI}"
+        DOCKER_REGISTRY_SERVER_USERNAME = "${var.ACR_SP_ID}" #"alfredospacrdev" #
         DOCKER_REGISTRY_SERVER_PASSWORD = "${var.ACR_SP_SECRET}"
         DOCKER_CUSTOM_IMAGE_NAME = "${var.REPO}:latest"
         WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
@@ -81,7 +81,6 @@ resource "azurerm_function_app" "fn-default" {
     }
 
     site_config {
-      always_on         = true
       linux_fx_version  = "DOCKER|${var.ACR_URI}/${var.REPO}:latest"
     }
   
