@@ -85,9 +85,9 @@ namespace CSE.Automation
 
             var configBuilder = new ConfigurationBuilder()
                 .SetBasePath(appDirectory)
+                .AddConfiguration(defaultConfig)
                 .AddJsonFile($"appsettings.{env}.json", true)
                 .AddJsonFile("local.settings.json", true)
-                .AddConfiguration(defaultConfig)
                 .AddAzureKeyVaultConfiguration("KeyVaultEndpoint");
 
             var hostConfig = configBuilder.Build();
@@ -96,9 +96,12 @@ namespace CSE.Automation
 
         private static void RegisterSettings(IFunctionsHostBuilder builder)
         {
+            var serviceProvider = builder.Services.BuildServiceProvider();
+            var config = serviceProvider.GetRequiredService<IConfiguration>();
+
             // SERVICES SETTINGS
-            var secretServiceSettings = new SecretServiceSettings() { KeyVaultName = Environment.GetEnvironmentVariable(Constants.KeyVaultName) };
-            var credServiceSettings = new CredentialServiceSettings() { AuthType = Environment.GetEnvironmentVariable(Constants.AuthType).As<AuthenticationType>()};
+            var secretServiceSettings = new SecretServiceSettings() { KeyVaultName = config[Constants.KeyVaultName] };
+            var credServiceSettings = new CredentialServiceSettings() { AuthType = config[Constants.AuthType].As<AuthenticationType>()};
 
             builder.Services
                 .AddSingleton(credServiceSettings)
@@ -113,11 +116,16 @@ namespace CSE.Automation
 
                 .AddSingleton(x => new ServicePrincipalProcessorSettings(x.GetRequiredService<ISecretClient>())
                 {
-                    ConfigurationId = Environment.GetEnvironmentVariable("configId").ToGuid(Guid.Parse("02a54ac9-441e-43f1-88ee-fde420db2559")),
-                    VisibilityDelayGapSeconds = Environment.GetEnvironmentVariable("visibilityDelayGapSeconds").ToInt(8),
-                    QueueRecordProcessThreshold = Environment.GetEnvironmentVariable("queueRecordProcessThreshold").ToInt(10),
+                    ConfigurationId = config["configId"].ToGuid(Guid.Parse("02a54ac9-441e-43f1-88ee-fde420db2559")),
+                    VisibilityDelayGapSeconds = config["visibilityDelayGapSeconds"].ToInt(8),
+                    QueueRecordProcessThreshold = config["queueRecordProcessThreshold"].ToInt(10),
                 })
-                .AddSingleton<ICosmosDBSettings, CosmosDBSettings>(x => new CosmosDBSettings(x.GetRequiredService<ISecretClient>()))
+                .AddSingleton<ICosmosDBSettings, CosmosDBSettings>(x => new CosmosDBSettings(x.GetRequiredService<ISecretClient>())
+                                                                                {
+                                                                                    Uri = config[Constants.CosmosDBURLName],
+                                                                                    Key = config[Constants.CosmosDBKeyName],
+                                                                                    DatabaseName = config[Constants.CosmosDBDatabaseName]
+                                                                                })
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ICosmosDBSettings>());
         }
 

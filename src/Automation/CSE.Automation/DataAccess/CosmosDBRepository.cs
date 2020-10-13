@@ -16,15 +16,33 @@ namespace CSE.Automation.DataAccess
 
     class CosmosDBSettings : SettingsBase, ICosmosDBSettings
     {
+        private string _uri;
+        private string _key;
+        private string _databaseName;
+
         public CosmosDBSettings(ISecretClient secretClient) : base(secretClient) { }
 
         [Secret(Constants.CosmosDBURLName)]
-        public string Uri => base.GetSecret();
+        public string Uri
+        {
+            get { return _uri ?? base.GetSecret(); }
+            set { _uri = value; }
+        }
 
         [Secret(Constants.CosmosDBKeyName)]
-        public string Key => base.GetSecret();
+        public string Key
+        {
+            get { return _key ?? base.GetSecret(); }
+            set { _key = value; }
+        }
+
         [Secret(Constants.CosmosDBDatabaseName)]
-        public string DatabaseName => base.GetSecret();
+        public string DatabaseName
+        {
+            get { return _databaseName ?? base.GetSecret(); }
+            set { _databaseName = value; }
+        }
+
 
         public override void Validate()
         {
@@ -97,11 +115,11 @@ namespace CSE.Automation.DataAccess
                 {
                     _logger.LogError($"Failed to reconnect to CosmosDB {_settings.DatabaseName}:{this.CollectionName}");
                 }
-                
+
             }
         }
 
-        #if OLDCODE
+#if OLDCODE
         /// <summary>
         /// Open and test the Cosmos Client / Container / Query
         /// </summary>
@@ -145,7 +163,7 @@ namespace CSE.Automation.DataAccess
             return c;
         }
 
-        #endif
+#endif
 
 
         public async Task<bool> Test()
@@ -256,7 +274,7 @@ namespace CSE.Automation.DataAccess
             // run query
             var query = this.Container.GetItemQueryIterator<TEntity>(sql, requestOptions: _options.QueryRequestOptions);
 
-           var results = new List<TEntity>();
+            var results = new List<TEntity>();
 
             while (query.HasMoreResults)
             {
