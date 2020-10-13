@@ -76,8 +76,6 @@ resource "azurerm_function_app" "fn-default" {
         AUTH_TYPE = "MI"
         KeyVaultEndpoint = "${azurerm_key_vault.kv.vault_uri}"
         KEYVAULT_NAME = "${azurerm_key_vault.kv.name}"
-        visibilityDelayGapSeconds = 8
-        queueRecordProcessThreshold = 300
     }
 
     site_config {
