@@ -6,6 +6,11 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="SolutionScripts\**" />
+    <EmbeddedResource Remove="SolutionScripts\**" />
+    <None Remove="SolutionScripts\**" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Remove="DataAccess\DAL.cs" />
     <Compile Remove="DataAccess\DALResolver.cs" />
     <Compile Remove="Model\SecretSetting.cs" />
@@ -33,6 +38,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.8" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.9" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
+    <PackageReference Include="SolutionScripts" Version="1.2.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
     <PackageReference Include="Microsoft.Graph.Auth" Version="1.0.0-preview.5" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
