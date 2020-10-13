@@ -23,7 +23,6 @@ namespace CSE.Automation.KeyVault
 
         public SecretService(SecretServiceSettings settings, ICredentialService credService)
         {
-            var credService1 = credService;
             //build URI
             if (!KeyVaultHelper.BuildKeyVaultConnectionString(settings.KeyVaultName, out var keyVaultUri))
             {
@@ -32,10 +31,7 @@ namespace CSE.Automation.KeyVault
             Uri = new Uri(keyVaultUri);
 
             //construct secret client
-            if (credService1 != null)
-                _secretClient = new SecretClient(Uri, credService1.CurrentCredential);
-            else
-                throw new Exception("Credential Service is Null in SecretService");
+            _secretClient = new SecretClient(Uri, credService.CurrentCredential);
         }
 
         public Uri Uri { get; set; }

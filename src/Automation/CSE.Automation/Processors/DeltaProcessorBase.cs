@@ -26,8 +26,8 @@ namespace CSE.Automation.Processors
         {
             base.Validate();
             if (this.ConfigurationId == Guid.Empty) throw new ConfigurationErrorsException($"{this.GetType().Name}: ConfigurationId is invalid");
-            if (this.VisibilityDelayGapSeconds <= 0 || this.VisibilityDelayGapSeconds > 500) throw new ConfigurationErrorsException($"{this.GetType().Name}: VisibilityDelayGapSeconds is invalid");
-            if (this.QueueRecordProcessThreshold <= 0 || this.QueueRecordProcessThreshold > 3000) throw new ConfigurationErrorsException($"{this.GetType().Name}: QueueRecordProcessThreshold is invalid");
+            if (this.VisibilityDelayGapSeconds <= 0 || this.VisibilityDelayGapSeconds > Constants.MaxVisibilityDelayGapSeconds) throw new ConfigurationErrorsException($"{this.GetType().Name}: VisibilityDelayGapSeconds is invalid");
+            if (this.QueueRecordProcessThreshold <= 0 || this.QueueRecordProcessThreshold > Constants.MaxQueueRecordProcessThreshold) throw new ConfigurationErrorsException($"{this.GetType().Name}: QueueRecordProcessThreshold is invalid");
         }
     }
     abstract class DeltaProcessorBase : IDeltaProcessor
