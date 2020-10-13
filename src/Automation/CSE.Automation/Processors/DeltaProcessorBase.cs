@@ -15,7 +15,7 @@ namespace CSE.Automation.Processors
     {
         public DeltaProcessorSettings(ISecretClient secretClient) : base(secretClient)
         {
-
+            
         }
         public Guid ConfigurationId { get; set; }
 
@@ -33,18 +33,23 @@ namespace CSE.Automation.Processors
     abstract class DeltaProcessorBase : IDeltaProcessor
     {
         protected readonly ICosmosDBRepository<ProcessorConfiguration> _configRepository;
+        protected readonly ICosmosDBRepository<AuditEntry> _auditRepository;
+
         protected ProcessorConfiguration _config;
 
         public abstract int VisibilityDelayGapSeconds { get; }
         public abstract int QueueRecordProcessThreshold { get; }
         public abstract Guid ConfigurationId { get; }
 
-        protected DeltaProcessorBase(ICosmosDBRepository<ProcessorConfiguration> configRepository)
+        protected DeltaProcessorBase (ICosmosDBRepository<ProcessorConfiguration> configRepository, ICosmosDBRepository<AuditEntry> auditRepository)
         {
-            //if (configDAL is null)
-            //    throw new NullReferenceException("Null Configuration DAL passed to DeltaProcessor Constructor");
+           
+            _auditRepository = auditRepository;
+            if (_auditRepository.Test().Result == false)
+            {
+                throw new ApplicationException($"Repository {_auditRepository.DatabaseName}:{_auditRepository.CollectionName} failed connection test");
+            }
 
-            //_configDAL = configDAL;
             _configRepository = configRepository;
             if (_configRepository.Test().Result == false)
             {
@@ -55,19 +60,21 @@ namespace CSE.Automation.Processors
         private protected void InitializeProcessor()
         {
             // Need the config for startup, so accepting the blocking call in the constructor.
-
-            _config = GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist();
+           _config = GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist();
+           
         }
+
+        
 
         private ProcessorConfiguration GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist()
         {
-
+            
             if (!_configRepository.DoesExistsAsync(this.ConfigurationId.ToString()).Result)
             {
 
                 if (Resources.InitialProcessorConfigurationDocument == null || Resources.InitialProcessorConfigurationDocument.Length == 0)
                     throw new NullReferenceException("Null or empty initial Configuration Document resource.");
-
+                
                 var initalDocumentAsString = System.Text.Encoding.Default.GetString(Resources.InitialProcessorConfigurationDocument);
 
                 try
@@ -75,7 +82,7 @@ namespace CSE.Automation.Processors
                     ProcessorConfiguration initialConfigDocumentAsJson = JsonConvert.DeserializeObject<ProcessorConfiguration>(initalDocumentAsString);
                     return _configRepository.CreateDocumentAsync(initialConfigDocumentAsJson, _configRepository.ResolvePartitionKey(initialConfigDocumentAsJson.Id)).Result;
                 }
-                catch (Exception ex)
+                catch(Exception ex)
                 {
                     throw new InvalidDataException("Unable to deserialize Initial Configuration Document.", ex);
                 }

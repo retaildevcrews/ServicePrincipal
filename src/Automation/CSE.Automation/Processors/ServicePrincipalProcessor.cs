@@ -36,7 +36,7 @@ namespace CSE.Automation.Processors
     {
         private readonly IGraphHelper<ServicePrincipal> _graphHelper;
         private readonly ServicePrincipalProcessorSettings _settings;
-        public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings, IGraphHelper<ServicePrincipal> graphHelper, IConfigRepository repository) : base(repository)
+        public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings, IGraphHelper<ServicePrincipal> graphHelper, IConfigRepository repository, IAuditRepository auditRepository) : base(repository, auditRepository)
         {
             _settings = settings;
             _graphHelper = graphHelper;
@@ -68,7 +68,7 @@ namespace CSE.Automation.Processors
                 if (String.IsNullOrWhiteSpace(sp.AppId) || String.IsNullOrWhiteSpace(sp.DisplayName))
                     continue;
                 //TODO validation of service principal objects using FluentValidation
-
+                
                 var servicePrincipal = new ServicePrincipalModel()
                 {
                     AppId = sp.AppId,

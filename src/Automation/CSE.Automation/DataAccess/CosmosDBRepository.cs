@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using CSE.Automation.Config;
 using CSE.Automation.Interfaces;
@@ -167,6 +168,7 @@ namespace CSE.Automation.DataAccess
                 _logger.LogCritical(ex, $"Failed to find collection in CosmosDB {_settings.DatabaseName}:{this.CollectionName}");
                 return false;
             }
+
         }
 
         private async Task<IList<string>> GetContainerNames()
@@ -177,11 +179,14 @@ namespace CSE.Automation.DataAccess
             while (iter.HasMoreResults)
             {
                 var response = await iter.ReadNextAsync().ConfigureAwait(false);
+
                 containerNames.AddRange(response.Select(c => c.Id));
             }
 
             return containerNames;
         }
+
+            
 
         Container GetContainer(CosmosClient client)
         {
@@ -277,7 +282,6 @@ namespace CSE.Automation.DataAccess
         public async Task<TEntity> ReplaceDocumentAsync(string id, TEntity newDocument)
         {
             //PartitionKey pk = String.IsNullOrWhiteSpace(partitionKey) ? default : new PartitionKey(partitionKey);
-
             return await this.Container.ReplaceItemAsync<TEntity>(newDocument, id, ResolvePartitionKey(id)).ConfigureAwait(false);
         }
 
@@ -286,11 +290,22 @@ namespace CSE.Automation.DataAccess
             return await this.Container.CreateItemAsync<TEntity>(newDocument, partitionKey).ConfigureAwait(false);
         }
 
+       
+        public async Task<TEntity> UpsertDocumentAsync(TEntity newDocument, PartitionKey partitionKey)
+        {
+            return await this.Container.UpsertItemAsync<TEntity>(newDocument, partitionKey).ConfigureAwait(false);
+        }
 
         public async Task<bool> DoesExistsAsync(string id)
         {
+            //TODO: PartitionKey should be created from a column name not from a value specially ID value ???
             using ResponseMessage response = await this.Container.ReadItemStreamAsync(id, ResolvePartitionKey(id)).ConfigureAwait(false);
             return response.IsSuccessStatusCode;
+        }
+
+        public async Task<TEntity> DeleteDocumentAsync(string id, PartitionKey partitionKey)
+        {
+            return await this.Container.DeleteItemAsync<TEntity>(id, partitionKey).ConfigureAwait(false);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "Using lower case with cosmos queries as tested.")]
