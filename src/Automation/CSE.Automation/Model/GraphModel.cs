@@ -18,7 +18,7 @@ namespace CSE.Automation.Model
         public ObjectType ObjectType { get; set; }
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public Status Status { get; set; } 
+        public Status Status { get; set; }
     }
 
     public enum ObjectType

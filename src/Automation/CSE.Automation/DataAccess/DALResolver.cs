@@ -5,24 +5,19 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Security;
 using System.Text;
+using CSE.Automation.Model;
 
 namespace CSE.Automation.DataAccess
 {
-    public class DALResolver : IServiceResolver
+
+    class DALResolver : IServiceResolver
     {
         private ConcurrentDictionary<string, IDAL> _registeredDALs = new System.Collections.Concurrent.ConcurrentDictionary<string, IDAL>();
-        private ISecretClient _secretClient;
-        private readonly string _cosmosURL;
-        private readonly string _cosmosKey;
-        private readonly string _cosmosDatabaseName;
+        private readonly CosmosDBSettings _settings;
 
-        public DALResolver (ISecretClient secretClient)
+        public DALResolver(CosmosDBSettings settings)
         {
-            _secretClient = secretClient;
-
-            _cosmosURL = _secretClient.GetSecretValue(Constants.CosmosDBURLName);
-            _cosmosKey = _secretClient.GetSecretValue(Constants.CosmosDBKeyName);
-            _cosmosDatabaseName = _secretClient.GetSecretValue(Constants.CosmosDBDatabaseName);
+            _settings = settings;
         }
 
         private IDAL CreateDAL(DALCollection collectionName)
@@ -30,7 +25,8 @@ namespace CSE.Automation.DataAccess
             string collectionNameKey = default;
             string cosmosCollectionName = default;
 
-            switch (collectionName){
+            switch (collectionName)
+            {
                 case DALCollection.Audit:
                     collectionNameKey = Constants.CosmosDBAuditCollectionName;
                     break;
@@ -42,9 +38,7 @@ namespace CSE.Automation.DataAccess
                     break;
             }
 
-            cosmosCollectionName = _secretClient.GetSecretValue(collectionNameKey);
-
-            return new DAL(new Uri(_cosmosURL), _cosmosKey, _cosmosDatabaseName, cosmosCollectionName);
+            return new DAL(new Uri(_settings.Uri), _settings.Key, _settings.DatabaseName, _settings.CollectionName);
 
 
         }
@@ -58,13 +52,13 @@ namespace CSE.Automation.DataAccess
 
         public T GetService<T>(string keyName)
         {
-
-            if (typeof(T) != typeof(IDAL))
-                throw new InvalidCastException("For DAL resolver type T must be of type IDAL");
+            var targetInterface = typeof(IDAL);
+            if (typeof(T) != targetInterface)
+                throw new InvalidCastException($"For DAL resolver type T must be of type {targetInterface.Name}");
 
             DALCollection collectionName = Enum.Parse<DALCollection>(keyName);
-            
-            return (T) _registeredDALs.GetOrAdd(keyName, CreateDAL(collectionName)) ;
+
+            return (T)_registeredDALs.GetOrAdd(keyName, CreateDAL(collectionName));
         }
 
 

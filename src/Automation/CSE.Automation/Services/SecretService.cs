@@ -2,33 +2,39 @@
 using CSE.Automation.Base;
 using CSE.Automation.Interfaces;
 using System;
+using System.ComponentModel.DataAnnotations;
+using System.Configuration;
+using CSE.Automation.Extensions;
 
 namespace CSE.Automation.KeyVault
 {
+    public class SecretServiceSettings : ISettingsValidator
+    {
+        public string KeyVaultName { get; set; }
+        public void Validate()
+        {
+            if (this.KeyVaultName.IsNull()) throw new ConfigurationErrorsException($"{this.GetType().Name}: KeyVaultName is invalid");
+        }
+    }
+
     public class SecretService : KeyVaultBase, ISecretClient
     {
-        private SecretClient _secretClient;
-        private ICredentialService _credService;
+        private readonly SecretClient _secretClient;
 
-        public SecretService(string keyVaultName, ICredentialService credService)
+        public SecretService(SecretServiceSettings settings, ICredentialService credService)
         {
-            _credService = credService;
             //build URI
-            string keyVaultUri = default;
-            if (!KeyVaultHelper.BuildKeyVaultConnectionString(keyVaultName, out keyVaultUri))
+            if (!KeyVaultHelper.BuildKeyVaultConnectionString(settings.KeyVaultName, out var keyVaultUri))
             {
                 throw new Exception("Key vault name not Valid"); //TODO: place holder code ensure error message is good and contains input value
             }
             Uri = new Uri(keyVaultUri);
 
             //construct secret client
-            if (_credService != null)
-                _secretClient = new SecretClient(Uri, _credService.CurrentCredential);
-            else
-                throw new Exception("Credential Service is Null in SecretService");
+            _secretClient = new SecretClient(Uri, credService.CurrentCredential);
         }
 
-        public Uri Uri { get; set;}
+        public Uri Uri { get; set; }
 
         public KeyVaultSecret GetSecret(string secretName)
         {
