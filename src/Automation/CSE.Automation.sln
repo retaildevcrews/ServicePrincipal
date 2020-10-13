@@ -6,6 +6,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSE.Automation", "CSE.Autom
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSE.Automation.Tests", "CSE.Automation.Tests\CSE.Automation.Tests.csproj", "{5C515ED7-6CFE-462E-827F-68EADE6DB6B5}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionScripts", "SolutionScripts", "{FE98C1FA-9F10-4534-9495-BDEF87681EF9}"
+	ProjectSection(SolutionItems) = preProject
+		SolutionScripts\SolutionCommands.ps1 = SolutionScripts\SolutionCommands.ps1
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
