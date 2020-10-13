@@ -1,14 +1,3 @@
-terraform {
-  required_version = ">= 0.13"
-  backend "azurerm" {
-     #These values must be set during terraform init  
-    resource_group_name  = ""
-    storage_account_name = ""
-    container_name       = ""
-    key                  = ""
-  }
-}
-
 
 provider "azurerm" {
   version = "~>2.0"
@@ -99,4 +88,5 @@ module "web" {
   ACR_SP_SECRET       = var.ACR_SP_SECRET
   GRAPH_SP_ID           = var.GRAPH_SP_ID
   GRAPH_SP_SECRET       = var.GRAPH_SP_SECRET
+  ACR_URI             = module.acr.acr_uri 
 }
