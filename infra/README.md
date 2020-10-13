@@ -50,8 +50,8 @@ Make sure you are in the serviceprincipal/infra directory
 ### create tfvars file
 ./create-tf-vars.sh
 
-###  initialize
-terraform init
+###  initialize inline backend configuration
+terraform init -backend-config="resource_group_name=${svc_ppl_Name}-rg-${svc_ppl_Enviroment}" -backend-config="storage_account_name=${svc_ppl_Name}st${svc_ppl_Enviroment}" -backend-config="container_name=${svc_ppl_Name}citfstate${svc_ppl_Enviroment}" -backend-config="key=${svc_ppl_Name}.terraform.tfstate.${svc_ppl_Enviroment}"
 
 ###  validate
 terraform validate
