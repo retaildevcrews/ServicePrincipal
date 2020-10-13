@@ -1,14 +1,13 @@
-
-provider "azurerm" {
-  version = "~>2.0"
-  features {}
-
-  subscription_id = var.TF_SUB_ID
-  client_id       = var.TF_CLIENT_ID
-  client_secret   = var.TF_CLIENT_SECRET
-  tenant_id       = var.TF_TENANT_ID
+terraform {
+  required_version = ">= 0.13"
+  backend "azurerm" {
+     #These values must be set during terraform init  
+    resource_group_name  = ""
+    storage_account_name = ""
+    container_name       = ""
+    key                  = ""
+  }
 }
-
 
 
 # Create Resource Group - this is created when executing "create-tf-vars.sh" file
