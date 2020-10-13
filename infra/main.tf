@@ -9,6 +9,15 @@ terraform {
   }
 }
 
+provider "azurerm" {
+  version = "~>2.0"
+  features {}
+
+  subscription_id = var.TF_SUB_ID
+  client_id       = var.TF_CLIENT_ID
+  client_secret   = var.TF_CLIENT_SECRET
+  tenant_id       = var.TF_TENANT_ID
+}
 
 # Create Resource Group - this is created when executing "create-tf-vars.sh" file
 # resource "azurerm_resource_group" "rg" {
