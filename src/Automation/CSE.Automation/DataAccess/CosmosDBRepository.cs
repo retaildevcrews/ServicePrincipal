@@ -185,9 +185,7 @@ namespace CSE.Automation.DataAccess
 
             return containerNames;
         }
-
-            
-
+        
         Container GetContainer(CosmosClient client)
         {
             try

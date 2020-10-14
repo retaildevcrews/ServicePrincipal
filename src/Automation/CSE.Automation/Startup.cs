@@ -149,21 +149,17 @@ namespace CSE.Automation
             builder.Services
                 .AddSingleton<ICredentialService>(x => new CredentialService(x.GetRequiredService<CredentialServiceSettings>()))
                 .AddSingleton<ISecretClient>(x => new SecretService(x.GetRequiredService<SecretServiceSettings>(), x.GetRequiredService<ICredentialService>()))
-
                 // register the concrete as the singleton, then use forwarder pattern to register same singleton with alternate interfaces
                 .AddScoped<ConfigRepository>()
                 .AddScoped<IConfigRepository, ConfigRepository>()
                 .AddScoped<ICosmosDBRepository<ProcessorConfiguration>, ConfigRepository>()
-
                 .AddScoped<AuditRepository>()
                 .AddScoped<IAuditRepository, AuditRepository>()
                 .AddScoped<ICosmosDBRepository<AuditEntry>, AuditRepository>()
                 //.AddSingleton<IConfigRepository>(provider => provider.GetService<ConfigRepository>())
                 //.AddSingleton<ICosmosDBRepository>(provider => provider.GetService<ConfigRepository>())
-
                 .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>()
                 .AddScoped<IServicePrincipalProcessor, ServicePrincipalProcessor>()
-
                 .AddScoped<GraphDeltaProcessor>();
         }
 

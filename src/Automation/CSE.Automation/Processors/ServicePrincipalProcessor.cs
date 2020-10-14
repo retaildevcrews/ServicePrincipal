@@ -68,7 +68,6 @@ namespace CSE.Automation.Processors
                 if (String.IsNullOrWhiteSpace(sp.AppId) || String.IsNullOrWhiteSpace(sp.DisplayName))
                     continue;
                 //TODO validation of service principal objects using FluentValidation
-                
                 var servicePrincipal = new ServicePrincipalModel()
                 {
                     AppId = sp.AppId,
