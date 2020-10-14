@@ -11,7 +11,7 @@ namespace CSE.Automation.Model
     // Used name ServicePrincipalModel to disambiguate from Microsoft.Graph.ServicePrincipal
     public class ServicePrincipalModel : GraphModel, IGraphModel
     {
-        [JsonProperty(PropertyName = "appid")]
+        [JsonProperty(PropertyName = "appId")]
         public string AppId { get; set; }
 
         [JsonProperty(PropertyName = "appDisplayName")]
