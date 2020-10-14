@@ -111,6 +111,9 @@ namespace CSE.Automation
                 .AddSingleton<ConfigRespositorySettings>(x => new ConfigRespositorySettings(x.GetRequiredService<ISecretClient>()))
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ConfigRespositorySettings>())
 
+                .AddSingleton<AuditRespositorySettings>(x => new AuditRespositorySettings(x.GetRequiredService<ISecretClient>()))
+                .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<AuditRespositorySettings>())
+
                 .AddSingleton(x => new ServicePrincipalProcessorSettings(x.GetRequiredService<ISecretClient>())
                 {
                     ConfigurationId = Environment.GetEnvironmentVariable("configId").ToGuid(Guid.Parse("02a54ac9-441e-43f1-88ee-fde420db2559")),
@@ -146,17 +149,17 @@ namespace CSE.Automation
             builder.Services
                 .AddSingleton<ICredentialService>(x => new CredentialService(x.GetRequiredService<CredentialServiceSettings>()))
                 .AddSingleton<ISecretClient>(x => new SecretService(x.GetRequiredService<SecretServiceSettings>(), x.GetRequiredService<ICredentialService>()))
-
                 // register the concrete as the singleton, then use forwarder pattern to register same singleton with alternate interfaces
                 .AddScoped<ConfigRepository>()
                 .AddScoped<IConfigRepository, ConfigRepository>()
                 .AddScoped<ICosmosDBRepository<ProcessorConfiguration>, ConfigRepository>()
+                .AddScoped<AuditRepository>()
+                .AddScoped<IAuditRepository, AuditRepository>()
+                .AddScoped<ICosmosDBRepository<AuditEntry>, AuditRepository>()
                 //.AddSingleton<IConfigRepository>(provider => provider.GetService<ConfigRepository>())
                 //.AddSingleton<ICosmosDBRepository>(provider => provider.GetService<ConfigRepository>())
-
                 .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>()
                 .AddScoped<IServicePrincipalProcessor, ServicePrincipalProcessor>()
-
                 .AddScoped<GraphDeltaProcessor>();
         }
 
