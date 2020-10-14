@@ -19,7 +19,7 @@ namespace CSE.Automation.Base
             /// </summary>
             /// <param name="name">Key Vault Name</param>
             /// <returns>URL to Key Vault</returns>
-            public static bool BuildKeyVaultConnectionString( out string keyvaultConnection)
+            public static bool BuildKeyVaultConnectionString(out string keyvaultConnection)
             {
                 keyvaultConnection = Environment.GetEnvironmentVariable(Constants.KeyVaultName);
 
@@ -52,7 +52,7 @@ namespace CSE.Automation.Base
                     }
                     _keyVaultConnectionString = keyvaultConnection;
                 }
-                else 
+                else
                 {
                     keyvaultConnection = _keyVaultConnectionString;
                 }
