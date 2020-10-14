@@ -15,7 +15,6 @@ namespace CSE.Automation.Processors
     {
         public DeltaProcessorSettings(ISecretClient secretClient) : base(secretClient)
         {
-            
         }
         public Guid ConfigurationId { get; set; }
 
@@ -41,7 +40,7 @@ namespace CSE.Automation.Processors
         public abstract int QueueRecordProcessThreshold { get; }
         public abstract Guid ConfigurationId { get; }
 
-        protected DeltaProcessorBase (ICosmosDBRepository<ProcessorConfiguration> configRepository, ICosmosDBRepository<AuditEntry> auditRepository)
+        protected DeltaProcessorBase(ICosmosDBRepository<ProcessorConfiguration> configRepository, ICosmosDBRepository<AuditEntry> auditRepository)
         {
             _auditRepository = auditRepository;
             if (_auditRepository.Test().Result == false)
@@ -59,16 +58,16 @@ namespace CSE.Automation.Processors
         private protected void InitializeProcessor()
         {
             // Need the config for startup, so accepting the blocking call in the constructor.
-            _config = GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist();           
-        }       
+            _config = GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist();
+        }
 
         private ProcessorConfiguration GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist()
-        {            
+        {
             if (!_configRepository.DoesExistsAsync(this.ConfigurationId.ToString()).Result)
             {
 
                 if (Resources.InitialProcessorConfigurationDocument == null || Resources.InitialProcessorConfigurationDocument.Length == 0)
-                    throw new NullReferenceException("Null or empty initial Configuration Document resource.");                
+                    throw new NullReferenceException("Null or empty initial Configuration Document resource.");
                 var initalDocumentAsString = System.Text.Encoding.Default.GetString(Resources.InitialProcessorConfigurationDocument);
 
                 try

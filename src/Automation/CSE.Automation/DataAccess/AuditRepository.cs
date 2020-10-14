@@ -27,8 +27,7 @@ namespace CSE.Automation.DataAccess
         }
     }
 
-    internal interface IAuditRepository : ICosmosDBRepository<AuditEntry> {}
-
+    internal interface IAuditRepository : ICosmosDBRepository<AuditEntry> { }
     internal class AuditRepository : CosmosDBRepository<AuditEntry>, IAuditRepository
     {
         private readonly AuditRespositorySettings _settings;
@@ -51,6 +50,6 @@ namespace CSE.Automation.DataAccess
             return new PartitionKey(entityId);
         }
 
-        public override string CollectionName  => _settings.CollectionName;
+        public override string CollectionName => _settings.CollectionName;
     }
 }

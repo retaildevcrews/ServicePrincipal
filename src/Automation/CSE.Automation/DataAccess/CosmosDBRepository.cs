@@ -185,7 +185,7 @@ namespace CSE.Automation.DataAccess
 
             return containerNames;
         }
-        
+
         Container GetContainer(CosmosClient client)
         {
             try
@@ -288,7 +288,6 @@ namespace CSE.Automation.DataAccess
             return await this.Container.CreateItemAsync<TEntity>(newDocument, partitionKey).ConfigureAwait(false);
         }
 
-       
         public async Task<TEntity> UpsertDocumentAsync(TEntity newDocument, PartitionKey partitionKey)
         {
             return await this.Container.UpsertItemAsync<TEntity>(newDocument, partitionKey).ConfigureAwait(false);
