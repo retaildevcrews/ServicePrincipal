@@ -12,35 +12,49 @@ namespace CSE.Automation.Base
         public static class KeyVaultHelper
 #pragma warning restore CA1034 // Nested types should not be visible
         {
+            private static string _keyVaultConnectionString;
+
             /// <summary>
             /// Build the Key Vault URL from the name
             /// </summary>
             /// <param name="name">Key Vault Name</param>
             /// <returns>URL to Key Vault</returns>
-            public static bool BuildKeyVaultConnectionString(string name, out string keyvaultConnection)
+            public static bool BuildKeyVaultConnectionString( out string keyvaultConnection)
             {
-                keyvaultConnection = name?.Trim();
+                keyvaultConnection = Environment.GetEnvironmentVariable(Constants.KeyVaultName);
+
+                keyvaultConnection = keyvaultConnection?.Trim();
 
                 // name is required
-                if (string.IsNullOrEmpty(keyvaultConnection))
+                if (string.IsNullOrWhiteSpace(keyvaultConnection))
                 {
                     return false;
                 }
 
-                // build the URL
-                if (!keyvaultConnection.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-                {
-                    keyvaultConnection = "https://" + keyvaultConnection;
-                }
 
-                if (!keyvaultConnection.EndsWith(".vault.azure.net/", StringComparison.OrdinalIgnoreCase) && !keyvaultConnection.EndsWith(".vault.azure.net", StringComparison.OrdinalIgnoreCase))
+                if (string.IsNullOrWhiteSpace(_keyVaultConnectionString))
                 {
-                    keyvaultConnection += ".vault.azure.net/";
-                }
 
-                if (!keyvaultConnection.EndsWith("/", StringComparison.OrdinalIgnoreCase))
+                    // build the URL
+                    if (!keyvaultConnection.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                    {
+                        keyvaultConnection = "https://" + keyvaultConnection;
+                    }
+
+                    if (!keyvaultConnection.EndsWith(".vault.azure.net/", StringComparison.OrdinalIgnoreCase) && !keyvaultConnection.EndsWith(".vault.azure.net", StringComparison.OrdinalIgnoreCase))
+                    {
+                        keyvaultConnection += ".vault.azure.net/";
+                    }
+
+                    if (!keyvaultConnection.EndsWith("/", StringComparison.OrdinalIgnoreCase))
+                    {
+                        keyvaultConnection += "/";
+                    }
+                    _keyVaultConnectionString = keyvaultConnection;
+                }
+                else 
                 {
-                    keyvaultConnection += "/";
+                    keyvaultConnection = _keyVaultConnectionString;
                 }
 
                 return true;

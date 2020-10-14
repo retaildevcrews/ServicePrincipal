@@ -24,7 +24,7 @@ namespace CSE.Automation.KeyVault
         public SecretService(SecretServiceSettings settings, ICredentialService credService)
         {
             //build URI
-            if (!KeyVaultHelper.BuildKeyVaultConnectionString(settings.KeyVaultName, out var keyVaultUri))
+            if (!KeyVaultHelper.BuildKeyVaultConnectionString(out var keyVaultUri))
             {
                 throw new Exception("Key vault name not Valid"); //TODO: place holder code ensure error message is good and contains input value
             }

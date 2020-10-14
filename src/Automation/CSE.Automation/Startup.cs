@@ -88,9 +88,10 @@ namespace CSE.Automation
                 .AddJsonFile($"appsettings.{env}.json", true)
                 .AddJsonFile("local.settings.json", true)
                 .AddConfiguration(defaultConfig)
-                .AddAzureKeyVaultConfiguration("KeyVaultEndpoint");
+                .AddAzureKeyVaultConfiguration();
 
             var hostConfig = configBuilder.Build();
+
             builder.Services.Replace(ServiceDescriptor.Singleton(typeof(IConfiguration), hostConfig));
         }
 
