@@ -19,14 +19,15 @@ namespace CSE.Automation.Model
         public string ActionReason { get; set; }
 
         [JsonProperty(PropertyName = "actionDateTime")]
-        public DateTime ActionDateTime { get; set;}
+        public DateTime ActionDateTime { get; set; }
 
         [JsonProperty(PropertyName = "targetObject")]
-        public Object TargetObject { get; set;}
+        public Object TargetObject { get; set; }
         
         public AuditEntry()
         {
         }
+        
         public AuditEntry(object originalDocument)
         {
             if (originalDocument is null)
