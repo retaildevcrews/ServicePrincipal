@@ -13,6 +13,8 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
     public class ModelValidationTests
     {
 
+        var servicePrincipalValidator = new CreateServicePrincipalValidator();
+
         [Fact]
         public void ServicePrincipalModelValidate_ReturnsValidationFailuresIfInvalid()
         {
@@ -23,7 +25,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 DisplayName = "fake display name"
             };
 
-            var validationSuccess = servicePrincipal.Validate(new CreateServicePrincipalValidator(), out IEnumerable<ValidationFailure> errors);
+            var validationSuccess = servicePrincipal.Validate(servicePrincipalValidator, out IEnumerable<ValidationFailure> errors);
 
             Assert.False(validationSuccess);
             Assert.Contains(errors, x => x.PropertyName == "Notes");
@@ -54,7 +56,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 Notes = "super fake note"
             };
 
-            var validationSuccess = servicePrincipal.Validate(new CreateServicePrincipalValidator(), out IEnumerable<ValidationFailure> errors);
+            var validationSuccess = servicePrincipal.Validate(servicePrincipalValidator, out IEnumerable<ValidationFailure> errors);
 
             Assert.True(validationSuccess);
             Assert.Null(errors);
