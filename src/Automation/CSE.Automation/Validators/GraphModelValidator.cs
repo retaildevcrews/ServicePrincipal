@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Net.Mail;
 using CSE.Automation.Model;
 using FluentValidation;
 
@@ -25,6 +28,7 @@ namespace CSE.Automation.Validators
             RuleFor(m => m.Status)
                 .IsInEnum();
         }
+
         protected static bool BeValidModelDateSequence(List<DateTime> dateTimes)
         {
             if (dateTimes[1] == null)
@@ -35,6 +39,37 @@ namespace CSE.Automation.Validators
             {
                 return dateTimes[1] >= dateTimes[0] && dateTimes[2] > dateTimes[1];
             }
+        }
+
+        protected static bool BeValidJson(string json)
+        {
+            try
+            {
+                JsonSerializer.Deserialize<object>(json);
+                return true;
+            }
+            catch (JsonException)
+            {
+                return false;
+            }
+        }
+
+        protected static bool BeValidEmail(string email)
+        {
+            try
+            {
+                var address = new MailAddress(email).Address;
+                return true;
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
+        }
+
+        protected static bool BeValidAadUser(string user)
+        {
+            return true;
         }
     }
 }
