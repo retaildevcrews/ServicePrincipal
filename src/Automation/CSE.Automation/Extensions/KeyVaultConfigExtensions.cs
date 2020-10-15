@@ -13,12 +13,12 @@ namespace CSE.Automation.Extensions
 {
     public static class KeyVaultConfigExtensions
     {
-        public static IConfigurationBuilder AddAzureKeyVaultConfiguration(this IConfigurationBuilder configBuilder)
+        public static IConfigurationBuilder AddAzureKeyVaultConfiguration(this IConfigurationBuilder configBuilder, string keyVaultName)
         {
             // build a temporary configuration so we can extract the key vault urls
             if (configBuilder == null) throw new ArgumentNullException(nameof(configBuilder));
 
-            if (!KeyVaultHelper.BuildKeyVaultConnectionString(out var keyVaultUrlSettingName))
+            if (!KeyVaultHelper.BuildKeyVaultConnectionString(keyVaultName, out var keyVaultUrlSettingName))
             {
                 throw new InvalidDataException("Key vault name not Valid");
             }

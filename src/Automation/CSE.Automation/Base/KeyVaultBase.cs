@@ -12,18 +12,15 @@ namespace CSE.Automation.Base
         public static class KeyVaultHelper
 #pragma warning restore CA1034 // Nested types should not be visible
         {
-            private static string _keyVaultConnectionString;
 
             /// <summary>
             /// Build the Key Vault URL from the name
             /// </summary>
             /// <param name="name">Key Vault Name</param>
             /// <returns>URL to Key Vault</returns>
-            public static bool BuildKeyVaultConnectionString(out string keyvaultConnection)
+            public static bool BuildKeyVaultConnectionString(string keyVaultName, out string keyvaultConnection)
             {
-                keyvaultConnection = Environment.GetEnvironmentVariable(Constants.KeyVaultName);
-
-                keyvaultConnection = keyvaultConnection?.Trim();
+                keyvaultConnection = keyVaultName?.Trim();
 
                 // name is required
                 if (string.IsNullOrWhiteSpace(keyvaultConnection))
@@ -31,31 +28,11 @@ namespace CSE.Automation.Base
                     return false;
                 }
 
+                UriBuilder uriBuilder = new UriBuilder();
+                uriBuilder.Scheme = "https";
+                uriBuilder.Host = $"{keyVaultName}.vault.azure.net";
 
-                if (string.IsNullOrWhiteSpace(_keyVaultConnectionString))
-                {
-
-                    // build the URL
-                    if (!keyvaultConnection.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-                    {
-                        keyvaultConnection = "https://" + keyvaultConnection;
-                    }
-
-                    if (!keyvaultConnection.EndsWith(".vault.azure.net/", StringComparison.OrdinalIgnoreCase) && !keyvaultConnection.EndsWith(".vault.azure.net", StringComparison.OrdinalIgnoreCase))
-                    {
-                        keyvaultConnection += ".vault.azure.net/";
-                    }
-
-                    if (!keyvaultConnection.EndsWith("/", StringComparison.OrdinalIgnoreCase))
-                    {
-                        keyvaultConnection += "/";
-                    }
-                    _keyVaultConnectionString = keyvaultConnection;
-                }
-                else
-                {
-                    keyvaultConnection = _keyVaultConnectionString;
-                }
+                keyvaultConnection = uriBuilder.Uri.AbsoluteUri;
 
                 return true;
             }
