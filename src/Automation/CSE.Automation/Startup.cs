@@ -165,7 +165,9 @@ namespace CSE.Automation
                 .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>()
                 .AddScoped<IServicePrincipalProcessor, ServicePrincipalProcessor>()
 
-                .AddScoped<GraphDeltaProcessor>();
+                .AddScoped<GraphDeltaProcessor>()
+                
+                .AddTransient<IQueueServiceFactory, AzureQueueServiceFactory>();
         }
 
         /// <summary>
