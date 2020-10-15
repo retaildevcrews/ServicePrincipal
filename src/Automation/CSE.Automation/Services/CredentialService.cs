@@ -9,30 +9,30 @@ using Azure.Identity;
 namespace CSE.Automation.Services
 {
     public enum AuthenticationType { MI, CLI, VS }
+
+    class CredentialServiceSettings
+    {
+        public AuthenticationType AuthType { get; set; }
+    }
     class CredentialService : ICredentialService
     {
-        TokenCredential currentCredential;
+        readonly TokenCredential _currentCredential;
 
-        public CredentialService (string credType)
+        public CredentialService(CredentialServiceSettings settings)
         {
-            if (credType == "CLI")
+            _currentCredential = settings.AuthType switch
             {
-                currentCredential = new AzureCliCredential();
-            }
-            else if(credType == "MI")
-            {
-                currentCredential = new ManagedIdentityCredential();
-            }
-            else if(credType == "VS")
-            {
-                currentCredential = new VisualStudioCredential();
-            }
+                AuthenticationType.CLI => new AzureCliCredential(),
+                AuthenticationType.MI => new ManagedIdentityCredential(),
+                AuthenticationType.VS => new VisualStudioCredential(),
+                _ => _currentCredential
+            };
         }
 
         public TokenCredential CurrentCredential
-        { 
-            get { return currentCredential; }
+        {
+            get { return _currentCredential; }
         }
-        
+
     }
 }

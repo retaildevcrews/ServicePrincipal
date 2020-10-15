@@ -54,4 +54,3 @@ Field | Type | Range
 ------------ | ------------- | ------------- 
 | businessOwners | string[] | Valid AAD User
 
-

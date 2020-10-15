@@ -1,4 +1,6 @@
-﻿using CSE.Automation.Interfaces;
+﻿using CSE.Automation.Graph;
+using CSE.Automation.Interfaces;
+using Microsoft.Graph;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -7,17 +9,21 @@ using System.Text;
 namespace CSE.Automation.Processors
 {
     // TODO: Examine this and IDALResolve and see if they may be refactored to a single class.
-    public class ProcessorResolver:IServiceResolver
+    public class ProcessorResolver : IServiceResolver
     {
         private IDAL _configDAL;
+        private ISecretClient _secretService;
+        private GraphHelperBase<ServicePrincipal> _spGraphHelper;
         private ConcurrentDictionary<string, IDeltaProcessor> _registeredProcessors = new System.Collections.Concurrent.ConcurrentDictionary<string, IDeltaProcessor>();
 
-        public ProcessorResolver(IDAL configDAL)
+        public ProcessorResolver(IDAL configDAL, ISecretClient secretService, GraphHelperBase<ServicePrincipal> spGraphHelper)
         {
             _configDAL = configDAL;
+            _secretService = secretService;
+            _spGraphHelper = spGraphHelper;
         }
 
-        private IDeltaProcessor CreateProcessor (ProcessorType processorType)
+        private IDeltaProcessor CreateProcessor(ProcessorType processorType)
         {
 
             IDeltaProcessor returnProcessor = default;
@@ -25,7 +31,7 @@ namespace CSE.Automation.Processors
             switch (processorType)
             {
                 case ProcessorType.ServicePrincipal:
-                    returnProcessor = new ServicePrincipalProcessor(_configDAL);
+                    returnProcessor = new ServicePrincipalProcessor(_configDAL, _secretService, _spGraphHelper, 0, 0);
                     break;
                 case ProcessorType.User:
                     throw new NotImplementedException();

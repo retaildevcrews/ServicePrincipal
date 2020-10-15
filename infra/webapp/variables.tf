@@ -109,3 +109,18 @@ variable "STORAGE_NAME" {
   type        = string
   description = "The Azure Storage Account Name"
 }
+
+variable "GRAPH_SP_ID" {
+  type        = string
+  description = "The Graph client Service Principal"
+}
+
+variable "GRAPH_SP_SECRET" {
+  type        = string
+  description = "The Graph client Service Principal Secret"
+}
+
+variable "ACR_URI" {
+  type        = string
+  description = "Container Registry URI"  
+}

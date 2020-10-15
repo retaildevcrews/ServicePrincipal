@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Threading.Tasks;
 
 namespace CSE.Automation.Interfaces
 {
     public interface IDeltaProcessor
     {
-        public void ProcessDeltas();
+        public int VisibilityDelayGapSeconds { get; }
+        public int QueueRecordProcessThreshold { get; }
+
+        public Task<int> ProcessDeltas();
     }
 }

@@ -1,32 +1,31 @@
-using CSE.Automation.Interfaces;
-using CSE.Automation.Model;
 using CSE.Automation.Graph;
+using CSE.Automation.Interfaces;
+using CSE.Automation.Processors;
+using Microsoft.Graph;
 using NSubstitute;
 using Xunit;
-using CSE.Automation.DataAccess;
-using CSE.Automation.Processors;
 
-namespace CSE.Automation.Tests
+namespace CSE.Automation.Tests.FunctionsUnitTests
 {
     public class GraphDeltaProcessorFunctionsTests
     {
         private readonly GraphDeltaProcessor _subject;
-        private readonly ICredentialService _credService;
-        private readonly ISecretClient _secretService;
 
-        private readonly ServicePrincipalGraphHelper _graphHelper;
-        private readonly DALResolver _DALResolver;
-        private readonly ProcessorResolver _processorResolver;
+        private readonly ISecretClient _secretClient;
+        private readonly IGraphHelper<ServicePrincipal> _graphHelper;
+        private readonly IServicePrincipalProcessor _processor;
 
         public GraphDeltaProcessorFunctionsTests()
         {
-            _credService = Substitute.For<ICredentialService>();
-            _secretService = Substitute.For<ISecretClient>();
-            _graphHelper = Substitute.For<ServicePrincipalGraphHelper>();
-            _DALResolver = Substitute.For<DALResolver>();
-            _processorResolver = Substitute.For<ProcessorResolver>();
+            // TODO: Need to add an interfaces for these so we can mock them or come up with another way to instantiate 
+            // for testing. As it is right now the substitution won't work because the
+            // constructors will actually get called and GraphHelperBase will try to create a graph client.
+            //_processorResolver = Substitute.For<ProcessorResolver>();
+            _secretClient = Substitute.For<ISecretClient>();
+            _graphHelper = Substitute.For<IGraphHelper<ServicePrincipal>>();
+            _processor = Substitute.For<IServicePrincipalProcessor>();
 
-            _subject = new GraphDeltaProcessor(_secretService, _credService, _graphHelper, _DALResolver, _processorResolver);
+            _subject = new GraphDeltaProcessor(_processor);
         }
 
         [Fact]

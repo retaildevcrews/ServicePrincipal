@@ -56,8 +56,24 @@ jobs:
     - name: Build Container
       if: ${{ env.ACR_LOGGED_IN == 'true' }}
       run: |
+        if [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
+          # Strip git ref prefix and "v" from version
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e 's/^v//')
+        else
+          # Otherwise use 0.0.0-dev as default version
+          # We're adding pre-release version data specified by "-". See: https://semver.org/#spec-item-9
+          VERSION="0.0.0-dev"
+        fi
+        # Adding GitHash as version metadata
+        # We're adding version metedata with "+". See: https://semver.org/#spec-item-10
+        GIT_HASH=$( echo ${{ github.sha }} | cut -c1-7 )
+        FULL_VER_STRING="${VERSION}+${GIT_HASH}"
+        echo Building Version: ${FULL_VER_STRING}
         # Build Image
-        docker build --pull -t ${TEMP_IMG_NAME} -f src/Automation/CSE.Automation/Dockerfile src/Automation
+        docker build --pull -t ${TEMP_IMG_NAME} \
+                    --build-arg SP_AUTOMATION_VERSION=${FULL_VER_STRING} \
+                    --build-arg SP_AUTOMATION_GITHASH=${GIT_HASH} \
+                    -f src/Automation/CSE.Automation/Dockerfile src/Automation
         # Set variable is successful
         [[ $? == 0 ]] && echo "::set-env name=DKR_IMG_IS_BUILT::true"
 
@@ -66,23 +82,20 @@ jobs:
       run: |
         # build the complete image name
         ACR_IMAGE="${ACR_REG_REPO_URL}"
-        # build release image
-        docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:beta
         # Tag image based on repo tag if a github label
-        if [[ "${{ github.ref }}" == "refs/tags/"* ]]
-        then
-          # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-        
-          # Strip "v" prefix from tag name
-          VERSION=$(echo "${VERSION}" | sed -e 's/^v//')
-          
-          # Remove the beta tag
-          docker rmi ${ACR_IMAGE}:beta
+        GIT_HASH=$( echo ${{ github.sha }} | cut -c1-7 )
+        if [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
+          # Strip git ref prefix and "v" from version
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e 's/^v//')
 
-          # tag the image with :version and :stable
+          # tag the image with :version, :version-hash and :stable
           docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:${VERSION}
+          docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:${VERSION}-${GIT_HASH}
           docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:stable
+        else
+          # If it's not a git-tag, then use the "beta-hash" tag
+          docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:beta
+          docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:beta-${GIT_HASH}
         fi
         
         # push the repo

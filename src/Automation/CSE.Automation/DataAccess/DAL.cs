@@ -36,8 +36,6 @@ namespace CSE.Automation.DataAccess
             cosmosDetails = new CosmosConfig
             {
                 MaxRows = MaxPageSize,
-
-
                 Timeout = CosmosTimeout,
                 CosmosCollection = cosmosCollection,
                 CosmosDatabase = cosmosDatabase,
@@ -205,12 +203,38 @@ namespace CSE.Automation.DataAccess
             return results;
         }
 
-        public async Task<T> GetById<T>(string Id, string partitionKey)
+        public async Task<T> GetByIdAsync<T>(string id, string partitionKey)
         {
 
-            var response = await cosmosDetails.Container.ReadItemAsync<T>(Id, new PartitionKey(partitionKey)).ConfigureAwait(false);
+            var response = await cosmosDetails.Container.ReadItemAsync<T>(id, new PartitionKey(partitionKey)).ConfigureAwait(false);
             return response;
         }
+
+        public async Task<T> ReplaceDocumentAsync<T>(string id, T newDocument, string partitionKey = null)
+        {
+            var con = cosmosDetails.Client.GetContainer(cosmosDetails.CosmosDatabase, cosmosDetails.CosmosCollection);
+
+            //PartitionKey pk = String.IsNullOrWhiteSpace(partitionKey) ? default : new PartitionKey(partitionKey);
+
+            return await con.ReplaceItemAsync<T>(newDocument, id, null).ConfigureAwait(false);
+        }
+
+        public async Task<T> CreateDocumentAsync<T>(T newDocument, string partitionKey = null)
+        {
+            var con = cosmosDetails.Client.GetContainer(cosmosDetails.CosmosDatabase, cosmosDetails.CosmosCollection);
+
+            return await con.CreateItemAsync<T>(newDocument, new PartitionKey(partitionKey)).ConfigureAwait(false);
+        }
+
+        public async Task<bool> DoesExistsAsync(string id, string partitionKey)
+        {
+            using (ResponseMessage response = await cosmosDetails.Container.ReadItemStreamAsync(id, new PartitionKey(partitionKey)).ConfigureAwait(false))
+            {
+                return response.IsSuccessStatusCode;
+            }
+
+        }
+
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "Using lower case with cosmos queries as tested.")]
         public async Task<IEnumerable<T>> GetPagedAsync<T>(string q, int offset = 0, int limit = Constants.DefaultPageSize)
