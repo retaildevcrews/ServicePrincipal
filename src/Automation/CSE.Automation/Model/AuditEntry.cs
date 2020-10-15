@@ -3,7 +3,7 @@ using FluentValidation.Results;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-
+using System.Globalization;
 
 namespace CSE.Automation.Model
 {
@@ -21,6 +21,9 @@ namespace CSE.Automation.Model
         [JsonProperty(PropertyName = "actionDateTime")]
         public DateTime ActionDateTime { get; }
 
+        [JsonProperty(PropertyName = "auditMonthYear")]
+        public string AuditMonthYear { get; }
+
         [JsonProperty(PropertyName = "targetObject")]
         public Object TargetObject { get; }
 
@@ -31,6 +34,9 @@ namespace CSE.Automation.Model
 
             this.TargetObject = originalDocument;
             this.ActionDateTime = DateTime.UtcNow;
+            string currentMonth = this.ActionDateTime.Month.ToString(new CultureInfo("en-US"));
+            string currentYear = this.ActionDateTime.Year.ToString(new CultureInfo("en-US"));
+            this.AuditMonthYear = currentMonth + "_" + currentYear;
         }
         public bool Validate(AbstractValidator<AuditEntry> validator, out IEnumerable<ValidationFailure> errors)
         {
