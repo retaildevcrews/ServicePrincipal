@@ -34,11 +34,12 @@ resource "azurerm_app_service_plan" "app-plan" {
     name                = "${var.NAME}-plan-${var.ENV}"
     location            = var.LOCATION
     resource_group_name = var.APP_RG_NAME
+    reserved            = true
     
-    kind = "FunctionApp"
+    kind = "Linux"
     sku {
-        tier = "Dynamic"
-        size = "Y1"
+        tier = "ElasticPremium"
+        size = "EP1"
     }
 }
  
@@ -55,6 +56,7 @@ resource "azurerm_function_app" "fn-default" {
     app_service_plan_id = azurerm_app_service_plan.app-plan.id
     storage_account_name        = data.azurerm_storage_account.svc-ppl-storage-acc.name
     storage_account_access_key = data.azurerm_storage_account.svc-ppl-storage-acc.primary_access_key
+    version                    = "~3"
     
     identity  {
       type = "SystemAssigned"
@@ -62,19 +64,22 @@ resource "azurerm_function_app" "fn-default" {
 
     app_settings = {
         APPINSIGHTS_INSTRUMENTATIONKEY = "${azurerm_application_insights.svc-ppl-appi.instrumentation_key}"
-
         https_only = true
-
-        KeyVaultEndpoint = "${azurerm_key_vault.kv.vault_uri}"
-/*
-        FUNCTIONS_WORKER_RUNTIME = "node"
-        WEBSITE_NODE_DEFAULT_VERSION = "~10"
-        FUNCTION_APP_EDIT_MODE = "readonly"
         
-        HASH = "${base64encode(filesha256("${var.functionapp}"))}"
+        DOCKER_REGISTRY_SERVER_URL = "https://${var.ACR_URI}"
+        DOCKER_REGISTRY_SERVER_USERNAME = "${var.ACR_SP_ID}"
+        DOCKER_REGISTRY_SERVER_PASSWORD = "${var.ACR_SP_SECRET}"
+        DOCKER_CUSTOM_IMAGE_NAME = "${var.REPO}:latest"
+        WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
+        FUNCTION_APP_EDIT_MODE = "readonly"
 
-        WEBSITE_RUN_FROM_PACKAGE = "https://${azurerm_storage_account.storage.name}.blob.core.windows.net/${azurerm_storage_container.deployments.name}/${azurerm_storage_blob.appcode.name}${data.azurerm_storage_account_sas.sas.sas}"
-    */
+        AUTH_TYPE = "MI"
+        KeyVaultEndpoint = "${azurerm_key_vault.kv.vault_uri}"
+        KEYVAULT_NAME = "${azurerm_key_vault.kv.name}"
+    }
+
+    site_config {
+      linux_fx_version  = "DOCKER|${var.ACR_URI}/${var.REPO}:latest"
     }
   
 }
