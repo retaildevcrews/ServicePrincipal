@@ -29,7 +29,7 @@ namespace CSE.Automation.Model
         public AuditEntry()
         {
         }
-      
+
         public AuditEntry(object originalDocument)
         {
             if (originalDocument is null)
