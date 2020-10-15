@@ -25,7 +25,7 @@ namespace CSE.Automation.Model
         public string AuditMonthYear { get; }
 
         [JsonProperty(PropertyName = "targetObject")]
-        public Object TargetObject { get; }
+        public Object TargetObject { get; set; }
 
         public AuditEntry(object originalDocument)
         {
