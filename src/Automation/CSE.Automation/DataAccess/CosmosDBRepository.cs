@@ -46,9 +46,9 @@ namespace CSE.Automation.DataAccess
 
         public override void Validate()
         {
-            if (string.IsNullOrEmpty(this.Uri)) throw new ConfigurationErrorsException($"{this.GetType().Name}: Uri is invalid");
-            if (string.IsNullOrEmpty(this.Key)) throw new ConfigurationErrorsException($"{this.GetType().Name}: Key is invalid");
-            if (string.IsNullOrEmpty(this.DatabaseName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: DatabaseName is invalid");
+            if (string.IsNullOrWhiteSpace(this.Uri)) throw new ConfigurationErrorsException($"{this.GetType().Name}: Uri is invalid");
+            if (string.IsNullOrWhiteSpace(this.Key)) throw new ConfigurationErrorsException($"{this.GetType().Name}: Key is invalid");
+            if (string.IsNullOrWhiteSpace(this.DatabaseName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: DatabaseName is invalid");
         }
     }
 
@@ -119,53 +119,6 @@ namespace CSE.Automation.DataAccess
             }
         }
 
-#if OLDCODE
-        /// <summary>
-        /// Open and test the Cosmos Client / Container / Query
-        /// </summary>
-        /// <param name="cosmosUrl">Cosmos URL</param>
-        /// <param name="cosmosKey">Cosmos Key</param>
-        /// <param name="cosmosDatabase">Cosmos Database</param>
-        /// <param name="cosmosCollection">Cosmos Collection</param>
-        /// <returns>An open and validated CosmosClient</returns>
-        private CosmosClient OpenAndTestCosmosClient(Uri cosmosUrl, string cosmosKey, string cosmosDatabase, string cosmosCollection)
-        {
-            // validate required parameters
-            if (cosmosUrl == null)
-            {
-                throw new ArgumentNullException(nameof(cosmosUrl));
-            }
-
-            if (string.IsNullOrEmpty(cosmosKey))
-            {
-                throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, $"CosmosKey not set correctly {cosmosKey}"));
-            }
-
-            if (string.IsNullOrEmpty(cosmosDatabase))
-            {
-                throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, $"CosmosDatabase not set correctly {cosmosDatabase}"));
-            }
-
-            if (string.IsNullOrEmpty(cosmosCollection))
-            {
-                throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, $"CosmosCollection not set correctly {cosmosCollection}"));
-            }
-
-            // open and test a new client / container
-#pragma warning disable CA2000 // Dispose objects before losing scope.  Disabling as the container connection remains in scope.
-            var c = new CosmosClient(cosmosUrl.AbsoluteUri, cosmosKey, _cosmosOptions.CosmosClientOptions);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-            var con = c.GetContainer(cosmosDatabase, cosmosCollection);
-
-            //TODO: commenting out for the moment.  Need a good way to test that doesn't require a document
-            //await con.ReadItemAsync<dynamic>("action", new PartitionKey("0")).ConfigureAwait(false);
-
-            return c;
-        }
-
-#endif
-
-
         public async Task<bool> Test()
         {
             if (string.IsNullOrEmpty(this.CollectionName))
@@ -176,16 +129,25 @@ namespace CSE.Automation.DataAccess
             // open and test a new client / container
             try
             {
-                return (await GetContainerNames().ConfigureAwait(false)).Any(x => x == this.CollectionName);
+                var containers = await GetContainerNames().ConfigureAwait(false);
+                var containerNames = string.Join(',', containers);
+                _logger.LogDebug($"Test {this.Id} -- '{containerNames}'");
+                if (containers.Any(x => x == this.CollectionName) == false)
+                { 
+                    throw new ApplicationException();  // use same error path 
+                }
+                return true;
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)
 #pragma warning restore CA1031 // Do not catch general exception types
             {
-                _logger.LogCritical(ex, $"Failed to find collection in CosmosDB {_settings.DatabaseName}:{this.CollectionName}");
+                _logger.LogError(ex, $"Failed to find collection in CosmosDB {_settings.DatabaseName}:{this.CollectionName}");
                 return false;
             }
         }
+
+        public string Id => $"{DatabaseName}:{CollectionName}";
 
         private async Task<IList<string>> GetContainerNames()
         {
@@ -216,29 +178,7 @@ namespace CSE.Automation.DataAccess
             }
         }
 
-        /// <summary>
-        /// Compute the partition key based on input id
-        /// 
-        /// For this sample, the partitionkey is the id mod 10
-        /// 
-        /// In a full implementation, you would update the logic to determine the partition key
-        /// </summary>
-        /// <param name="id">document id</param>
-        /// <returns>the partition key</returns>
-        //public static string GetPartitionKey(string id)
-        //{
-        //    // validate id
-        //    if (!string.IsNullOrEmpty(id) &&
-        //        id.Length > 5 &&
-        //        (id.StartsWith("tt", StringComparison.OrdinalIgnoreCase) || id.StartsWith("nm", StringComparison.OrdinalIgnoreCase)) &&
-        //        int.TryParse(id.Substring(2), out int idInt))
-        //    {
-        //        return (idInt % 10).ToString(CultureInfo.InvariantCulture);
-        //    }
-
-        //    throw new ArgumentException("Invalid Partition Key");
-        //}
-
+   
         /// <summary>
         /// Generic function to be used by subclasses to execute arbitrary queries and return type T.
         /// </summary>

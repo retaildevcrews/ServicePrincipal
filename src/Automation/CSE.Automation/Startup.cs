@@ -83,12 +83,15 @@ namespace CSE.Automation
             var appDirectory = builder.GetContext().ApplicationRootPath;
             var defaultConfig = serviceProvider.GetRequiredService<IConfiguration>();
 
+            // order dependent.  Environment settings should override local configuration
+            //  The reasoning for the order is a local config file is more difficult to change
+            //  than an environment setting.  KeyVault settings should override any previous setting.
             var configBuilder = new ConfigurationBuilder()
                 .SetBasePath(appDirectory)
-                .AddConfiguration(defaultConfig)
                 .AddJsonFile($"appsettings.{env}.json", true)
                 .AddJsonFile("local.settings.json", true)
-                .AddAzureKeyVaultConfiguration("KeyVaultEndpoint");
+                .AddConfiguration(defaultConfig)
+                .AddAzureKeyVaultConfiguration(Constants.KeyVaultName);
 
             var hostConfig = configBuilder.Build();
             builder.Services.Replace(ServiceDescriptor.Singleton(typeof(IConfiguration), hostConfig));
@@ -111,7 +114,13 @@ namespace CSE.Automation
                 .AddTransient<GraphHelperSettings>()
                 .AddTransient<ISettingsValidator, GraphHelperSettings>()
 
-                .AddSingleton<ConfigRespositorySettings>(x => new ConfigRespositorySettings(x.GetRequiredService<ISecretClient>()))
+                .AddSingleton<ConfigRespositorySettings>(x => new ConfigRespositorySettings(x.GetRequiredService<ISecretClient>())
+                                                                    {
+                                                                        Uri = config[Constants.CosmosDBURLName],
+                                                                        Key = config[Constants.CosmosDBKeyName],
+                                                                        DatabaseName = config[Constants.CosmosDBDatabaseName],
+                                                                        CollectionName = config[Constants.CosmosDBConfigCollectionName]
+                                                                    })
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ConfigRespositorySettings>())
 
                 .AddSingleton(x => new ServicePrincipalProcessorSettings(x.GetRequiredService<ISecretClient>())
@@ -119,14 +128,15 @@ namespace CSE.Automation
                     ConfigurationId = config["configId"].ToGuid(Guid.Parse("02a54ac9-441e-43f1-88ee-fde420db2559")),
                     VisibilityDelayGapSeconds = config["visibilityDelayGapSeconds"].ToInt(8),
                     QueueRecordProcessThreshold = config["queueRecordProcessThreshold"].ToInt(10),
-                })
-                .AddSingleton<ICosmosDBSettings, CosmosDBSettings>(x => new CosmosDBSettings(x.GetRequiredService<ISecretClient>())
-                                                                                {
-                                                                                    Uri = config[Constants.CosmosDBURLName],
-                                                                                    Key = config[Constants.CosmosDBKeyName],
-                                                                                    DatabaseName = config[Constants.CosmosDBDatabaseName]
-                                                                                })
-                .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ICosmosDBSettings>());
+                });
+                //.AddSingleton<ICosmosDBSettings, CosmosDBSettings>(x => new CosmosDBSettings(x.GetRequiredService<ISecretClient>())
+                //                                                                {
+                //                                                                    Uri = config[Constants.CosmosDBURLName],
+                //                                                                    Key = config[Constants.CosmosDBKeyName],
+                //                                                                    DatabaseName = config[Constants.CosmosDBDatabaseName],
+                //                                                                })
+
+
         }
 
         private void ValidateSettings(IFunctionsHostBuilder builder)
@@ -138,6 +148,11 @@ namespace CSE.Automation
                 try
                 {
                     validator.Validate();
+                }
+                catch (Azure.Identity.CredentialUnavailableException credEx)
+                {
+                    _logger.LogCritical(credEx, $"Failed to validate application configuration: Azure Identity is incorrect.");
+                    throw;
                 }
                 catch (Exception ex)
                 {
@@ -159,6 +174,7 @@ namespace CSE.Automation
                 .AddScoped<ConfigRepository>()
                 .AddScoped<IConfigRepository, ConfigRepository>()
                 .AddScoped<ICosmosDBRepository<ProcessorConfiguration>, ConfigRepository>()
+                .AddScoped<IRepository, ConfigRepository>()
                 //.AddSingleton<IConfigRepository>(provider => provider.GetService<ConfigRepository>())
                 //.AddSingleton<ICosmosDBRepository>(provider => provider.GetService<ConfigRepository>())
 
@@ -180,14 +196,14 @@ namespace CSE.Automation
         //    {
         //        Trace.WriteLine($"{service.ServiceType.Name}");
         //    }
-            
+
         //    var provider = builder.Services.AddLogging(b =>
         //    {
         //        b.AddConsole();
         //        b.AddDebug();
         //    }).BuildServiceProvider();
 
-        //    var repositories = provider.GetServices<ICosmosDBRepository<>>();
+        //    var repositories = provider.GetServices<IRepository>();
         //    var hasFailingTest = false;
 
         //    foreach (var repository in repositories)
@@ -198,7 +214,7 @@ namespace CSE.Automation
         //        var result = testPassed
         //            ? "Passed"
         //            : "Failed";
-        //        var message = $"Repository test for {repository.DatabaseName}:{repository.CollectionName} {result}";
+        //        var message = $"Repository test for {repository.Id} {result}";
         //        if (testPassed)
         //        {
         //            _logger.LogInformation(message);

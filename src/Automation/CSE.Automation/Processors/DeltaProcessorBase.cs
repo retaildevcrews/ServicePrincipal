@@ -51,6 +51,7 @@ namespace CSE.Automation.Processors
         protected void EnsureInitialized()
         {
             if (_initialized) return;
+            Initialize();
         }
 
         private void Initialize()

@@ -8,35 +8,24 @@
 ##########################################################
 #
 
-
+# default location for storage emulator
 $global:StorageEmulatorLocation = "${Env:ProgramFiles(x86)}\microsoft sdks\azure\storage emulator\AzureStorageEmulator.exe"
+
+# default install path for emulator
 $global:CosmosDBRootLocation = "${Env:ProgramW6432}\Azure Cosmos DB Emulator"
+
+# default location for emulator 
 $global:CosmosDBExeLocation = Join-Path $global:CosmosDBRootLocation "Microsoft.Azure.Cosmos.Emulator.exe"
-$global:CosmosDBRootUri = "https://localhost:8081"
-$global:CosmosDBUri = "${global:CosmosDBRootUri}/_explorer/index.html"
-$global:CosmosKey = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="
 
-function global:ProvisionLocalResources()
-{
-$databaseName = "SPAutomate"
-	$collections = @{
-		"Config"= "/configType";
-		"Audit" = "";
-		"ObjectTracking" = "";
-	}
+# default URI for emulator
+$global:CosmosDBRootUri = "https://localhost:8081"	
 
-	$databases = GetCosmosDatabases
-	if ($databases -eq $null)
-	{
-		Write-Output "No Databases"
-		CreateCosmosDatabase $databaseName
-	}
+# root page for emulator
+$global:CosmosDBUri = "${global:CosmosDBRootUri}/_explorer/index.html"	
 
-	$existingCollections = GetCosmosDatabaseCollections $databaseName
-	$collections | % {
-		
-	}
-}
+# well known emulator key
+$global:CosmosKey = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="   
+
 
 function global:Setup-Environment()
 {
@@ -48,6 +37,39 @@ function global:Setup-Environment()
 
 	ProvisionLocalResources
 }
+
+# This function is solution specific - it provisions local resources specific for this application solution.
+function global:ProvisionLocalResources()
+{
+	$databaseName = "SPAutomate"
+	$collections = @{
+		"Configuration"= "/configType";
+		"Audit" = "/actionMonthYear";
+		"ObjectTracking" = "/objectType";
+	}
+
+	$databases = GetCosmosDatabases
+	if (($databases | select -ExpandProperty Id) -notcontains $databaseName)
+	{
+		Write-Output "Database $databaseName not found, creating."
+		CreateCosmosDatabase $databaseName | Out-Null
+	}
+
+	$existingCollections = GetCosmosDatabaseCollections $databaseName
+	$collectionNames = $existingCollections | select -ExpandProperty Id
+	$collections | % getEnumerator | % { 
+		if ($collectionNames -contains $_.key)
+		{
+			Write-Output "Collection $($_.key) exists."
+		}
+		else
+		{
+			Write-Output "Collection $($_.key) not found, creating."
+			CreateCosmosDatabaseCollection $databaseName $_.key $_.value | Out-Null
+		}
+	}
+}
+
 
 function global:Start-StorageEmulator()
 {
@@ -245,7 +267,7 @@ function global:CreateCosmosDatabase()
 
 	$verb = "POST"
 	$resourceType = "dbs"
-	$resourceId = "dbs/$databaseName"
+	$resourceId = ""
 
 	$authHeader = global:GenerateAuthToken $verb $resourceType $resourceId $utc_now
 	$headers = @{
@@ -254,7 +276,7 @@ function global:CreateCosmosDatabase()
 		Authorization = $authHeader
 	}
 	$body = "{""id"":""$databaseName""}"
-	Write-Output $body
+	#Write-Output $body
 	$result = Invoke-WebRequest -UseBasicParsing -Method $verb -Uri $uri -Headers $headers -Body $body
 	return $result
 }

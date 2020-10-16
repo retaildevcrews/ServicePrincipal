@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Threading.Tasks;
 using CSE.Automation.Graph;
@@ -9,6 +10,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Storage.Queue;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 
@@ -18,10 +21,11 @@ namespace CSE.Automation
     {
         private readonly IServicePrincipalProcessor _processor;
 
-        public GraphDeltaProcessor(IServicePrincipalProcessor processor)
+        public GraphDeltaProcessor(IServiceProvider serviceProvider, IServicePrincipalProcessor processor)
         {
             _processor = processor;
 
+            ValidateServices(serviceProvider);
         }
 
         //private async Task<int> LaunchSeedDeltaProcessor()
@@ -91,5 +95,35 @@ namespace CSE.Automation
             log.LogInformation("Incoming message from AAD queue");
             log.LogInformation($"C# AAD Queue trigger function processed: {msg.AsString}");
         }
+
+        #region RUNTIME VALIDATION
+        private static void ValidateServices(IServiceProvider serviceProvider)
+        {
+            var repositories = serviceProvider.GetServices<IRepository>();
+            var hasFailingTest = false;
+
+            foreach (var repository in repositories)
+            {
+                var testPassed = repository.Test().Result;
+                hasFailingTest = testPassed == false || hasFailingTest;
+
+                var result = testPassed
+                    ? "Passed"
+                    : "Failed";
+                var message = $"Repository test for {repository.Id} {result}";
+                if (testPassed)
+                {
+                    Trace.TraceInformation(message);
+                }
+                else
+                {
+                    Trace.TraceError(message);
+                }
+            }
+
+            if (hasFailingTest)
+                throw new ApplicationException($"One or more repositories failed test.");
+        }
+        #endregion
     }
 }

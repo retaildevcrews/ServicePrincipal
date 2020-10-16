@@ -13,21 +13,27 @@ namespace CSE.Automation.DataAccess
 {
     internal class ConfigRespositorySettings : CosmosDBSettings
     {
+        private string _collectionName;
+
         public ConfigRespositorySettings(ISecretClient secretClient) : base(secretClient)
         {
         }
 
         [Secret(Constants.CosmosDBConfigCollectionName)]
-        public string CollectionName => base.GetSecret();
+        public string CollectionName
+        {
+            get { return _collectionName ?? base.GetSecret(); }
+            set { _collectionName = value; }
+        }
 
         public override void Validate()
         {
             base.Validate();
-            if (string.IsNullOrEmpty(this.CollectionName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: CollectionName is invalid");
+            if (string.IsNullOrWhiteSpace(this.CollectionName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: CollectionName is invalid");
         }
     }
 
-    internal interface IConfigRepository : ICosmosDBRepository<ProcessorConfiguration> {}
+    internal interface IConfigRepository : ICosmosDBRepository<ProcessorConfiguration> { }
 
     internal class ConfigRepository : CosmosDBRepository<ProcessorConfiguration>, IConfigRepository
     {
@@ -47,6 +53,6 @@ namespace CSE.Automation.DataAccess
             return new PartitionKey($"ServicePrincipal");
         }
 
-        public override string CollectionName  => _settings.CollectionName;
+        public override string CollectionName => _settings.CollectionName;
     }
 }

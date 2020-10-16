@@ -48,11 +48,13 @@ namespace CSE.Automation.Graph
             }
 
             servicePrincipalSeedList.AddRange(servicePrincipalCollectionPage.CurrentPage);
+            _logger.LogDebug($"`tDiscovered {servicePrincipalCollectionPage.CurrentPage.Count} Service Principals");
 
             while (servicePrincipalCollectionPage.NextPageRequest != null)
             {
                 servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
                 servicePrincipalSeedList.AddRange(servicePrincipalCollectionPage.CurrentPage);
+                _logger.LogDebug($"`tDiscovered {servicePrincipalCollectionPage.CurrentPage.Count} Service Principals");
             }
 
             _logger.LogInformation($"Discovered {servicePrincipalSeedList.Count} delta objects.");

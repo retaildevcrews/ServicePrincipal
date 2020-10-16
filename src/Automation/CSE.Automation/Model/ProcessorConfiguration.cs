@@ -29,10 +29,10 @@ namespace CSE.Automation.Model
         public RunState RunState { get; set; }
 
         [JsonProperty(PropertyName ="lastDeltaRun")]
-        public DateTime LastDeltaRun { get; set; }
+        public DateTime? LastDeltaRun { get; set; }
 
         [JsonProperty(PropertyName ="lastSeedTime")]
-        public DateTime LastSeedTime { get; set; }
+        public DateTime? LastSeedTime { get; set; }
 
         [JsonProperty(PropertyName ="name")]
         public string Name { get; set; }
