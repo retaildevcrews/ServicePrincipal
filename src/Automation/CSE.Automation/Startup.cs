@@ -114,6 +114,9 @@ namespace CSE.Automation
                 .AddSingleton<AuditRespositorySettings>(x => new AuditRespositorySettings(x.GetRequiredService<ISecretClient>()))
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<AuditRespositorySettings>())
 
+                .AddSingleton<ObjectTrackingRepositorySettings>(x => new ObjectTrackingRepositorySettings(x.GetRequiredService<ISecretClient>()))
+                .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ObjectTrackingRepositorySettings>())
+
                 .AddSingleton(x => new ServicePrincipalProcessorSettings(x.GetRequiredService<ISecretClient>())
                 {
                     ConfigurationId = Environment.GetEnvironmentVariable("configId").ToGuid(Guid.Parse("02a54ac9-441e-43f1-88ee-fde420db2559")),
@@ -156,6 +159,9 @@ namespace CSE.Automation
                 .AddScoped<AuditRepository>()
                 .AddScoped<IAuditRepository, AuditRepository>()
                 .AddScoped<ICosmosDBRepository<AuditEntry>, AuditRepository>()
+                .AddScoped<ObjectTrackingRepository>()
+                .AddScoped<IObjectTrackingRepository, ObjectTrackingRepository>()
+                .AddScoped<ICosmosDBRepository<ServicePrincipalModel>, ObjectTrackingRepository>()
                 //.AddSingleton<IConfigRepository>(provider => provider.GetService<ConfigRepository>())
                 //.AddSingleton<ICosmosDBRepository>(provider => provider.GetService<ConfigRepository>())
                 .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>()
