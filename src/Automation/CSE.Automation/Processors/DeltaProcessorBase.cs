@@ -31,8 +31,7 @@ namespace CSE.Automation.Processors
     }
     abstract class DeltaProcessorBase : IDeltaProcessor
     {
-        protected readonly ICosmosDBRepository<ProcessorConfiguration> _configRepository;
-        protected readonly ICosmosDBRepository<AuditEntry> _auditRepository;
+         protected readonly IConfigService<ProcessorConfiguration> _configService;
 
         protected ProcessorConfiguration _config;
 
@@ -40,19 +39,9 @@ namespace CSE.Automation.Processors
         public abstract int QueueRecordProcessThreshold { get; }
         public abstract Guid ConfigurationId { get; }
 
-        protected DeltaProcessorBase(ICosmosDBRepository<ProcessorConfiguration> configRepository, ICosmosDBRepository<AuditEntry> auditRepository)
+        protected DeltaProcessorBase(IConfigService<ProcessorConfiguration> configService)
         {
-            _auditRepository = auditRepository;
-            if (_auditRepository.Test().Result == false)
-            {
-                throw new ApplicationException($"Repository {_auditRepository.DatabaseName}:{_auditRepository.CollectionName} failed connection test");
-            }
-
-            _configRepository = configRepository;
-            if (_configRepository.Test().Result == false)
-            {
-                throw new ApplicationException($"Repository {_configRepository.DatabaseName}:{_configRepository.CollectionName} failed connection test");
-            }
+            _configService = configService;
         }
 
         private protected void InitializeProcessor()
@@ -63,7 +52,7 @@ namespace CSE.Automation.Processors
 
         private ProcessorConfiguration GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist()
         {
-            if (!_configRepository.DoesExistsAsync(this.ConfigurationId.ToString()).Result)
+            if (!_configService.DoesExistsAsync(this.ConfigurationId.ToString()).Result)
             {
 
                 if (Resources.InitialProcessorConfigurationDocument == null || Resources.InitialProcessorConfigurationDocument.Length == 0)
@@ -73,7 +62,7 @@ namespace CSE.Automation.Processors
                 try
                 {
                     ProcessorConfiguration initialConfigDocumentAsJson = JsonConvert.DeserializeObject<ProcessorConfiguration>(initalDocumentAsString);
-                    return _configRepository.CreateDocumentAsync(initialConfigDocumentAsJson, _configRepository.ResolvePartitionKey(initialConfigDocumentAsJson.Id)).Result;
+                    return _configService.CreateDocumentAsync(initialConfigDocumentAsJson, new PartitionKey(initialConfigDocumentAsJson.Id)).Result;
                 }
                 catch (Exception ex)
                 {
@@ -82,7 +71,7 @@ namespace CSE.Automation.Processors
             }
             else
             {
-                return _configRepository.GetByIdAsync(this.ConfigurationId.ToString()).Result;
+                return _configService.GetByIdAsync(this.ConfigurationId.ToString()).Result;
             }
 
         }
