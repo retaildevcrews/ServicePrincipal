@@ -115,6 +115,9 @@ namespace CSE.Automation
                 .AddSingleton<AuditRespositorySettings>(x => new AuditRespositorySettings(x.GetRequiredService<ISecretClient>()))
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<AuditRespositorySettings>())
 
+                .AddSingleton<ObjectTrackingRepositorySettings>(x => new ObjectTrackingRepositorySettings(x.GetRequiredService<ISecretClient>()))
+                .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ObjectTrackingRepositorySettings>())
+
                 .AddSingleton(x => new ServicePrincipalProcessorSettings(x.GetRequiredService<ISecretClient>())
                 {
                     ConfigurationId = Environment.GetEnvironmentVariable("configId").ToGuid(Guid.Parse("02a54ac9-441e-43f1-88ee-fde420db2559")),
@@ -147,18 +150,28 @@ namespace CSE.Automation
 
         private static void RegisterServices(IFunctionsHostBuilder builder)
         {
+            // register the concrete as the singleton, then use forwarder pattern to register same singleton with alternate interfaces
+
+            // Moved commented lines from line 173 to avoid lint error in CI
+            // .AddSingleton<IConfigRepository>(provider => provider.GetService<ConfigRepository>())
+            // .AddSingleton<ICosmosDBRepository>(provider => provider.GetService<ConfigRepository>())
+
             builder.Services
                 .AddSingleton<ICredentialService>(x => new CredentialService(x.GetRequiredService<CredentialServiceSettings>()))
                 .AddSingleton<ISecretClient>(x => new SecretService(x.GetRequiredService<SecretServiceSettings>(), x.GetRequiredService<ICredentialService>()))
-                // register the concrete as the singleton, then use forwarder pattern to register same singleton with alternate interfaces
+
                 .AddScoped<ConfigRepository>()
                 .AddScoped<IConfigRepository, ConfigRepository>()
                 .AddScoped<ICosmosDBRepository<ProcessorConfiguration>, ConfigRepository>()
+
                 .AddScoped<AuditRepository>()
                 .AddScoped<IAuditRepository, AuditRepository>()
                 .AddScoped<ICosmosDBRepository<AuditEntry>, AuditRepository>()
-                //.AddSingleton<IConfigRepository>(provider => provider.GetService<ConfigRepository>())
-                //.AddSingleton<ICosmosDBRepository>(provider => provider.GetService<ConfigRepository>())
+
+                .AddScoped<ObjectTrackingRepository>()
+                .AddScoped<IObjectTrackingRepository, ObjectTrackingRepository>()
+                .AddScoped<ICosmosDBRepository<ServicePrincipalModel>, ObjectTrackingRepository>()
+
                 .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>()
                 .AddScoped<IServicePrincipalProcessor, ServicePrincipalProcessor>()
                 .AddScoped<GraphDeltaProcessor>();
