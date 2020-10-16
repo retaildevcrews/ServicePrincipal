@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 
@@ -6,18 +7,22 @@ namespace CSE.Automation.Model
 {
     public class GraphModel : IGraphModel
     {
+        [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
 
+        [JsonProperty(PropertyName = "created")]
         public DateTime Created { get; set; }
-
+        [JsonProperty(PropertyName = "deleted")]
         public DateTime Deleted { get; set; }
-
+        [JsonProperty(PropertyName = "lastUpdated")]
         public DateTime LastUpdated { get; set; }
 
-        [JsonConverter(typeof(JsonStringEnumConverter))]
+        [JsonProperty(PropertyName = "objectType")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(JsonStringEnumConverter))]
         public ObjectType ObjectType { get; set; }
 
-        [JsonConverter(typeof(JsonStringEnumConverter))]
+        [JsonProperty(PropertyName = "status")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(JsonStringEnumConverter))]
         public Status Status { get; set; }
     }
 

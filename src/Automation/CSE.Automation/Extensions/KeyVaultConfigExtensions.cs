@@ -4,91 +4,39 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
+using System.Configuration;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using static CSE.Automation.Base.KeyVaultBase;
 
 namespace CSE.Automation.Extensions
 {
     public static class KeyVaultConfigExtensions
     {
-        public static IConfiguration AddAzureKeyVaultConfiguration(this IWebJobsBuilder builder, string vaultEndpoint)
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            return builder.Services.AddAzureKeyVaultConfiguration(vaultEndpoint);
-        }
-
-        public static IConfiguration AddAzureKeyVaultConfiguration(this IFunctionsHostBuilder builder, string vaultEndpoint)
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            return builder.Services.AddAzureKeyVaultConfiguration(vaultEndpoint);
-        }
-
-        /* This is the meat of the logic. It finds the IConfiguration service that is already registered by the runtime, and then
-         * creates an instance of the concrete class if necessary. It loads all of the Key Vault secrets into the config, and then
-         * replaces the registered IConfiguration instance with the patched version.
-         * */
-
-        public static IConfiguration AddAzureKeyVaultConfiguration(this IServiceCollection services, string vaultEndpoint)
-        {
-            // get the IConfiguration that is already registered with the host
-            var configBuilder = new ConfigurationBuilder();
-            var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IConfiguration));
-            if (descriptor?.ImplementationInstance is IConfigurationRoot configuration)
-            {
-                configBuilder.AddConfiguration(configuration);
-            }
-            else if (descriptor?.ImplementationFactory != null)
-            {
-                var sp = services.BuildServiceProvider();
-                var constructedConfiguration = descriptor.ImplementationFactory.Invoke(sp) as IConfiguration;
-                configBuilder.AddConfiguration(constructedConfiguration);
-            }
-
-            // build a temporary configuration so we can extract the key vault urls
-            var tempConfig = configBuilder.Build();
-            var keyVaultUrls = tempConfig[vaultEndpoint]?.Split(',');
-
-            // add the key vault providers and build a new config
-            configBuilder.AddAzureKeyVaults(keyVaultUrls);
-            var config = configBuilder.Build();
-
-            // replace the existing IConfiguration instance with our new one
-            services.Replace(ServiceDescriptor.Singleton(typeof(IConfiguration), config));
-
-            return config;
-        }
-
-        public static IConfigurationBuilder AddAzureKeyVaultConfiguration(this IConfigurationBuilder configBuilder, string keyVaultUrlSettingName)
+        public static IConfigurationBuilder AddAzureKeyVaultConfiguration(this IConfigurationBuilder configBuilder, string keyVaultSettingName)
         {
             // build a temporary configuration so we can extract the key vault urls
             if (configBuilder == null) throw new ArgumentNullException(nameof(configBuilder));
 
-            var tempConfig = configBuilder.Build();
-            var keyVaultUrls = tempConfig[keyVaultUrlSettingName]?.Split(',');
-            configBuilder.AddAzureKeyVaults(keyVaultUrls);
+            // build the configuration so we merge the configuration providers into an IConfiguration
+            var tmpConfig = configBuilder.Build();
+            // get the config setting from IConfiguration, from whatever configuration provider specified the setting
+            var keyVaultName = tmpConfig[keyVaultSettingName];
+
+            if (string.IsNullOrWhiteSpace(keyVaultName))
+            {
+                throw new ConfigurationErrorsException($"Missing KeyVault configuration value {keyVaultSettingName}");
+            }
+
+            if (!KeyVaultHelper.BuildKeyVaultConnectionString(keyVaultName, out var keyVaultUrlSettingName))
+            {
+                throw new InvalidDataException("Key vault name not Valid");
+            }
+
+            configBuilder.AddAzureKeyVault(keyVaultUrlSettingName);
 
             return configBuilder;
-        }
-        public static IConfigurationBuilder AddAzureKeyVaults(this IConfigurationBuilder builder, params string[] keyVaultEndpoints)
-        {
-            if (builder != null && keyVaultEndpoints != null)
-            {
-                for (int i = 0; i < keyVaultEndpoints.Length; i++)
-                {
-                    var keyVaultEndpoint = keyVaultEndpoints[i];
-                    if (!string.IsNullOrWhiteSpace(keyVaultEndpoint))
-                        builder.AddAzureKeyVault(keyVaultEndpoints[i]);
-                }
-            }
-            return builder;
         }
 
         public static IConfigurationBuilder AddAzureKeyVaultConfiguration(IConfigurationBuilder configBuilder, Uri keyVaultUrlSettingName)

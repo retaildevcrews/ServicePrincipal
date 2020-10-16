@@ -6,7 +6,6 @@
     "AUTH_TYPE": "VS",
     "KEYVAULT_NAME": "",
     "visibilityDelayGapSeconds": "8",
-    "queueRecordProcessThreshold": "300",
-    "KeyVaultEndpoint": "https://sp-kv-dev.vault.azure.net/"
+    "queueRecordProcessThreshold": "300"
   }
 }

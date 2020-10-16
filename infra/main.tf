@@ -9,7 +9,6 @@ terraform {
   }
 }
 
-
 provider "azurerm" {
   version = "~>2.0"
   features {}
@@ -19,8 +18,6 @@ provider "azurerm" {
   client_secret   = var.TF_CLIENT_SECRET
   tenant_id       = var.TF_TENANT_ID
 }
-
-
 
 # Create Resource Group - this is created when executing "create-tf-vars.sh" file
 # resource "azurerm_resource_group" "rg" {
@@ -99,4 +96,5 @@ module "web" {
   ACR_SP_SECRET       = var.ACR_SP_SECRET
   GRAPH_SP_ID           = var.GRAPH_SP_ID
   GRAPH_SP_SECRET       = var.GRAPH_SP_SECRET
+  ACR_URI             = module.acr.acr_uri 
 }
