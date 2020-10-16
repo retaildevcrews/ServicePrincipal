@@ -151,8 +151,9 @@ namespace CSE.Automation
         {
             // register the concrete as the singleton, then use forwarder pattern to register same singleton with alternate interfaces
 
-            //.AddSingleton<IConfigRepository>(provider => provider.GetService<ConfigRepository>())
-            //.AddSingleton<ICosmosDBRepository>(provider => provider.GetService<ConfigRepository>())
+            // Moved commented lines from line 173 to avoid lint error in CI
+            // .AddSingleton<IConfigRepository>(provider => provider.GetService<ConfigRepository>())
+            // .AddSingleton<ICosmosDBRepository>(provider => provider.GetService<ConfigRepository>())
 
             builder.Services
                 .AddSingleton<ICredentialService>(x => new CredentialService(x.GetRequiredService<CredentialServiceSettings>()))
