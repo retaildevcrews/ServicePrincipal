@@ -20,17 +20,17 @@ namespace CSE.Automation.Base
             /// <returns>URL to Key Vault</returns>
             public static bool BuildKeyVaultConnectionString(string keyVaultName, out string keyvaultConnection)
             {
-                keyvaultConnection = keyVaultName?.Trim();
-
                 // name is required
-                if (string.IsNullOrWhiteSpace(keyvaultConnection))
+                if (string.IsNullOrWhiteSpace(keyVaultName))
                 {
-                    return false;
+                    throw new ArgumentNullException(nameof(keyVaultName));
                 }
 
-                UriBuilder uriBuilder = new UriBuilder();
-                uriBuilder.Scheme = "https";
-                uriBuilder.Host = $"{keyVaultName}.vault.azure.net";
+                var uriBuilder = new UriBuilder
+                {
+                    Scheme = Uri.UriSchemeHttps,
+                    Host = $"{keyVaultName}.vault.azure.net"
+                };
 
                 keyvaultConnection = uriBuilder.Uri.AbsoluteUri;
 
@@ -50,12 +50,7 @@ namespace CSE.Automation.Base
                 }
                 name = name.Trim();
 
-                if (name.Length < 3 || name.Length > 24)
-                {
-                    return false;
-                }
-
-                return true;
+                return name.Length >= 3 && name.Length <= 24;
             }
         }
     }
