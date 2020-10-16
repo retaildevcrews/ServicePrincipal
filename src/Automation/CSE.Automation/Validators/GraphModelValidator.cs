@@ -8,7 +8,7 @@ using FluentValidation;
 
 namespace CSE.Automation.Validators
 {
-    public class GraphModelValidator<T> : AbstractValidator<T> where T : GraphModel
+    public class GraphModelValidator : AbstractValidator<GraphModel>
     {
         public GraphModelValidator()
         {
@@ -22,7 +22,8 @@ namespace CSE.Automation.Validators
                 .NotEmpty()
                 .GreaterThan(new DateTime(1990, 1, 1));
             RuleFor(m => new List<DateTime> { m.Created, m.Deleted, m.LastUpdated })
-                .Must(BeValidModelDateSequence);
+                .Must(BeValidModelDateSequence)
+                .WithMessage("'Created', 'Deleted', 'LastUpdated' sequence invalid.");
             RuleFor(m => m.ObjectType)
                 .IsInEnum();
             RuleFor(m => m.Status)
@@ -45,7 +46,7 @@ namespace CSE.Automation.Validators
         {
             try
             {
-                JsonSerializer.Deserialize<object>(json);
+                JsonSerializer.Deserialize<object>(json); //bring in static settings
                 return true;
             }
             catch (JsonException)
@@ -65,11 +66,6 @@ namespace CSE.Automation.Validators
             {
                 return false;
             }
-        }
-
-        protected static bool BeValidAadUser(string user)
-        {
-            return true;
         }
     }
 }

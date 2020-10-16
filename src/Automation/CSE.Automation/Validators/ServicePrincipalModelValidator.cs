@@ -1,13 +1,13 @@
-﻿using System;
-using CSE.Automation.Model;
+﻿using CSE.Automation.Model;
 using FluentValidation;
 
 namespace CSE.Automation.Validators
 {
-    public class ServicePrincipleModelValidator : GraphModelValidator<ServicePrincipalModel>
+    public class ServicePrincipalModelValidator : AbstractValidator<ServicePrincipalModel>
     {
-        public ServicePrincipleModelValidator()
+        public ServicePrincipalModelValidator()
         {
+            Include(new GraphModelValidator());
             RuleFor(m => m.AppId)
                 .NotEmpty()
                 .MaximumLength(1000);
