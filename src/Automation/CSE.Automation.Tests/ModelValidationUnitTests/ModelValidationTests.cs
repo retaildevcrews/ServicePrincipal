@@ -15,6 +15,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
     {
 
         AbstractValidator<ServicePrincipalModel> servicePrincipalValidator = new ServicePrincipalModelValidator();
+        AbstractValidator<AuditEntry> auditEntryValidator = new AuditEntryValidator();
 
         [Fact]
         public void ServicePrincipalModelValidate_ReturnsValidationFailuresIfInvalid()
@@ -71,34 +72,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 ActionReason = null
             };
 
-            var validationSuccess = auditItem.Validate(new CreateAuditValidator(), out IEnumerable<ValidationFailure> errors);
-
-            Assert.False(validationSuccess);
-            Assert.Contains(errors, x => x.PropertyName == "CorrelationId");
-            Assert.Contains(errors, x => x.PropertyName == "ActionType");
-            Assert.Contains(errors, x => x.PropertyName == "ActionReason");
-        }
-
-        [Fact]
-        public void AuditEntryModelValidate_ThrowsArgumentNullExceptionIfValidatorNotPassedIn()
-        {
-            var servicePrincipal = new ServicePrincipalModel()
-            {
-                Id = "fake id",
-                AppId = "fake app id",
-                AppDisplayName = "fake app display name",
-                DisplayName = "fake display name"
-            };
-
-            var auditItem = new AuditEntry(servicePrincipal)
-            {
-                CorrelationId = null,
-                ActionType = string.Empty,
-                ActionReason = null
-            };
-
-            var exception = Record.Exception(() => auditItem.Validate(null, out IEnumerable<ValidationFailure> errors));
-            Assert.IsType<ArgumentNullException>(exception);
+            var results = auditEntryValidator.Validate(auditItem);
+            Assert.True(results.IsValid);
+            Assert.True(results.Errors.Count == 0);
+            Assert.False(results.IsValid);
+            Assert.Contains(results.Errors, x => x.PropertyName == "CorrelationId");
+            Assert.Contains(results.Errors, x => x.PropertyName == "ActionType");
+            Assert.Contains(results.Errors, x => x.PropertyName == "ActionReason");
         }
 
         [Fact]
@@ -119,10 +99,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 ActionReason = "fake action reason"
             };
 
-            var validationSuccess = auditItem.Validate(new CreateAuditValidator(), out IEnumerable<ValidationFailure> errors);
+            var results = auditEntryValidator.Validate(auditItem);
 
-            Assert.True(validationSuccess);
-            Assert.Null(errors);
+            Assert.True(results.IsValid);
+            Assert.Null(results.Errors.Count == 0);
         }
     }
 }
