@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace CSE.Automation.Validators
 {
-    public class ServicePrincipalModelValidator : AbstractValidator<ServicePrincipalModel>
+    public class ServicePrincipalModelValidator : AbstractValidator<ServicePrincipalModel>, IModelValidator<ServicePrincipalModel>
     {
         public ServicePrincipalModelValidator()
         {

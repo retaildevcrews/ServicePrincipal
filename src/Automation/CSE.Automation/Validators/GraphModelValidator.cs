@@ -8,7 +8,7 @@ using FluentValidation;
 
 namespace CSE.Automation.Validators
 {
-    public class GraphModelValidator : AbstractValidator<GraphModel>
+    public class GraphModelValidator : AbstractValidator<GraphModel>, IModelValidator<GraphModel>
     {
         public GraphModelValidator()
         {

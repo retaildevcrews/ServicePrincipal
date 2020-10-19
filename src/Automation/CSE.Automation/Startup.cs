@@ -177,8 +177,10 @@ namespace CSE.Automation
                 .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>()
                 .AddScoped<IServicePrincipalProcessor, ServicePrincipalProcessor>()
 
-                .AddScoped<AbstractValidator<GraphModel>, GraphModelValidator>()
-                .AddScoped<AbstractValidator<ServicePrincipalModel>, ServicePrincipalModelValidator>()
+                .AddScoped<IModelValidator<GraphModel>, GraphModelValidator>()
+                .AddScoped<IModelValidator<ServicePrincipalModel>, ServicePrincipalModelValidator>()
+                .AddScoped<IModelValidator<AuditEntry>, AuditEntryValidator>()
+                .AddSingleton<IModelValidatorFactory, ModelValidatorFactory>()
 
                 .AddScoped<GraphDeltaProcessor>();
         }
