@@ -43,6 +43,7 @@ namespace CSE.Automation.Processors
         public abstract int QueueRecordProcessThreshold { get; }
         public abstract Guid ConfigurationId { get; }
         public abstract ProcessorType ProcessorType { get; }
+        protected abstract byte[] DefaultConfigurationResource { get; }
 
         protected DeltaProcessorBase(ICosmosDBRepository<ProcessorConfiguration> configRepository, ICosmosDBRepository<AuditEntry> auditRepository)
         {
@@ -72,8 +73,6 @@ namespace CSE.Automation.Processors
             _config = GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist();
             _initialized = true;
         }
-
-        protected abstract byte[] DefaultConfigurationResource { get; }
 
         private ProcessorConfiguration GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist()
         {

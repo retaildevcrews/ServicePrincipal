@@ -122,6 +122,12 @@ namespace CSE.Automation.Processors
         /// <returns></returns>
         public async Task Evaluate(ActivityContext context, ServicePrincipalModel entity)
         {
+            /*
+             * 1. Validate entity model
+             * 2. If new object, just update OTS
+             * 3. if missing Notes field, Update from last known good
+             * 4.     .....
+             */ 
             await Task.CompletedTask.ConfigureAwait(false);
         }
 
