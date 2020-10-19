@@ -63,9 +63,9 @@ namespace CSE.Automation.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] InitialProcessorConfigurationDocument {
+        internal static byte[] ServicePrincipalProcessorConfiguration {
             get {
-                object obj = ResourceManager.GetObject("InitialProcessorConfigurationDocument", resourceCulture);
+                object obj = ResourceManager.GetObject("ServicePrincipalProcessorConfiguration", resourceCulture);
                 return ((byte[])(obj));
             }
         }
