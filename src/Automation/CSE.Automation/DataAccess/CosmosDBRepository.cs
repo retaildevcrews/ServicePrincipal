@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading;
 using System.Threading.Tasks;
 using CSE.Automation.Config;
 using CSE.Automation.Interfaces;
@@ -43,8 +45,10 @@ namespace CSE.Automation.DataAccess
         private readonly CosmosConfig _options;
         private static CosmosClient _client;
         private Container _container;
+        private ContainerProperties _containerProperties;
         private readonly ICosmosDBSettings _settings;
         private readonly ILogger _logger;
+        private PropertyInfo _partitionKeyPI;
 
         /// <summary>
         /// Data Access Layer Constructor
@@ -53,11 +57,6 @@ namespace CSE.Automation.DataAccess
         /// <param name="logger"></param>
         protected CosmosDBRepository(ICosmosDBSettings settings, ILogger logger)
         {
-            if (settings.Uri == null)
-            {
-                throw new ArgumentException("settings.Uri cannot be null");
-            }
-
             _settings = settings;
             _logger = logger;
 
@@ -80,7 +79,7 @@ namespace CSE.Automation.DataAccess
         private Container Container => _container ??= GetContainer(Client);
 
         public abstract string GenerateId(TEntity entity);
-        public virtual PartitionKey ResolvePartitionKey(string entityId) => PartitionKey.Null;
+        
 
         /// <summary>
         /// Recreate the Cosmos Client / Container (after a key rotation)
@@ -102,51 +101,19 @@ namespace CSE.Automation.DataAccess
             }
         }
 
-#if OLDCODE
-        /// <summary>
-        /// Open and test the Cosmos Client / Container / Query
-        /// </summary>
-        /// <param name="cosmosUrl">Cosmos URL</param>
-        /// <param name="cosmosKey">Cosmos Key</param>
-        /// <param name="cosmosDatabase">Cosmos Database</param>
-        /// <param name="cosmosCollection">Cosmos Collection</param>
-        /// <returns>An open and validated CosmosClient</returns>
-        private CosmosClient OpenAndTestCosmosClient(Uri cosmosUrl, string cosmosKey, string cosmosDatabase, string cosmosCollection)
+        public virtual PartitionKey ResolvePartitionKey(TEntity entity)
         {
-            // validate required parameters
-            if (cosmosUrl == null)
+            try
             {
-                throw new ArgumentNullException(nameof(cosmosUrl));
+                return new PartitionKey(_partitionKeyPI.GetValue(entity).ToString());
             }
-
-            if (string.IsNullOrEmpty(cosmosKey))
+            catch (Exception ex)
             {
-                throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, $"CosmosKey not set correctly {cosmosKey}"));
+                ex.Data["partitionKeyPath"] = _containerProperties.PartitionKeyPath;
+                ex.Data["entityType"] = typeof(TEntity);
+                throw;
             }
-
-            if (string.IsNullOrEmpty(cosmosDatabase))
-            {
-                throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, $"CosmosDatabase not set correctly {cosmosDatabase}"));
-            }
-
-            if (string.IsNullOrEmpty(cosmosCollection))
-            {
-                throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, $"CosmosCollection not set correctly {cosmosCollection}"));
-            }
-
-            // open and test a new client / container
-#pragma warning disable CA2000 // Dispose objects before losing scope.  Disabling as the container connection remains in scope.
-            var c = new CosmosClient(cosmosUrl.AbsoluteUri, cosmosKey, _cosmosOptions.CosmosClientOptions);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-            var con = c.GetContainer(cosmosDatabase, cosmosCollection);
-
-            //TODO: commenting out for the moment.  Need a good way to test that doesn't require a document
-            //await con.ReadItemAsync<dynamic>("action", new PartitionKey("0")).ConfigureAwait(false);
-
-            return c;
         }
-
-#endif
 
 
         public async Task<bool> Test()
@@ -159,7 +126,8 @@ namespace CSE.Automation.DataAccess
             // open and test a new client / container
             try
             {
-                return (await GetContainerNames().ConfigureAwait(false)).Any(x => x == this.CollectionName);
+                var containerNames = await GetContainerNames().ConfigureAwait(false);
+                return containerNames.Any(x => x == this.CollectionName);
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)
@@ -171,6 +139,10 @@ namespace CSE.Automation.DataAccess
 
         }
 
+        /// <summary>
+        /// Query the database for all the containers defined and return a list of the container names.
+        /// </summary>
+        /// <returns></returns>
         private async Task<IList<string>> GetContainerNames()
         {
             var containerNames = new List<string>();
@@ -186,11 +158,21 @@ namespace CSE.Automation.DataAccess
             return containerNames;
         }
 
+        /// <summary>
+        /// Get a proxy to the container.
+        /// </summary>
+        /// <param name="client">An instance of <see cref="CosmosClient"/></param>
+        /// <returns>An instance of <see cref="Container"/>.</returns>
         Container GetContainer(CosmosClient client)
         {
             try
             {
                 var container = client.GetContainer(_settings.DatabaseName, this.CollectionName);
+
+                _containerProperties = GetContainerProperties(container).Result;
+                _partitionKeyPI = typeof(TEntity).GetProperty(_containerProperties.PartitionKeyPath.TrimStart('/'), BindingFlags.IgnoreCase);
+
+                _logger.LogDebug($"{CollectionName} partition key path {_containerProperties.PartitionKeyPath}");
 
                 return container;
             }
@@ -202,27 +184,23 @@ namespace CSE.Automation.DataAccess
         }
 
         /// <summary>
-        /// Compute the partition key based on input id
-        /// 
-        /// For this sample, the partitionkey is the id mod 10
-        /// 
-        /// In a full implementation, you would update the logic to determine the partition key
+        /// Get the properties for the container.
         /// </summary>
-        /// <param name="id">document id</param>
-        /// <returns>the partition key</returns>
-        //public static string GetPartitionKey(string id)
-        //{
-        //    // validate id
-        //    if (!string.IsNullOrEmpty(id) &&
-        //        id.Length > 5 &&
-        //        (id.StartsWith("tt", StringComparison.OrdinalIgnoreCase) || id.StartsWith("nm", StringComparison.OrdinalIgnoreCase)) &&
-        //        int.TryParse(id.Substring(2), out int idInt))
-        //    {
-        //        return (idInt % 10).ToString(CultureInfo.InvariantCulture);
-        //    }
+        /// <returns>An instance of <see cref="ContainerProperties"/> or null.</returns>
+        protected async Task<ContainerProperties> GetContainerProperties(Container container=null)
+        {
+            return (await (container ?? Container).ReadContainerAsync().ConfigureAwait(false)).Resource;
 
-        //    throw new ArgumentException("Invalid Partition Key");
-        //}
+            //var query = new QueryDefinition("select * from c where c.id = @id").WithParameter("@id", this.CollectionName);
+            //using var iter = this.Container.Database.GetContainerQueryIterator<ContainerProperties>(query);
+            //while (iter.HasMoreResults)
+            //{
+            //    var response = await iter.ReadNextAsync().ConfigureAwait(false);
+
+            //    return response.First();
+            //}
+            //return null;
+        }
 
         /// <summary>
         /// Generic function to be used by subclasses to execute arbitrary queries and return type T.
@@ -254,10 +232,10 @@ namespace CSE.Automation.DataAccess
         /// <typeparam name="T">POCO type to which results are serialized and returned.</typeparam>
         /// <param name="sql">Query to be executed.</param>
         /// <returns>Enumerable list of objects of type T.</returns>
-        private async Task<IEnumerable<TEntity>> InternalCosmosDBSqlQuery(string sql)
+        private async Task<IEnumerable<TEntity>> InternalCosmosDBSqlQuery(string sql, QueryRequestOptions options = null)
         {
             // run query
-            var query = this.Container.GetItemQueryIterator<TEntity>(sql, requestOptions: _options.QueryRequestOptions);
+            var query = this.Container.GetItemQueryIterator<TEntity>(sql, requestOptions: options ?? _options.QueryRequestOptions);
 
             var results = new List<TEntity>();
 
@@ -271,38 +249,53 @@ namespace CSE.Automation.DataAccess
             return results;
         }
 
-        public async Task<TEntity> GetByIdAsync(string id)
+        public async Task<TEntity> GetByIdAsync(string id, string partitionKey)
         {
-            var response = await this.Container.ReadItemAsync<TEntity>(id, ResolvePartitionKey(id)).ConfigureAwait(false);
-            return response;
+            TEntity entity = null;
+            try
+            {
+                var result = await this.Container.ReadItemAsync<TEntity>(id, new PartitionKey(partitionKey)).ConfigureAwait(true);
+
+                entity= result.Resource;
+            }
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch (Exception)
+#pragma warning restore CA1031 // Do not catch general exception types
+            {
+                // swallow exception
+            }
+            return entity;
         }
 
         public async Task<TEntity> ReplaceDocumentAsync(string id, TEntity newDocument)
         {
-            //PartitionKey pk = String.IsNullOrWhiteSpace(partitionKey) ? default : new PartitionKey(partitionKey);
-            return await this.Container.ReplaceItemAsync<TEntity>(newDocument, id, ResolvePartitionKey(id)).ConfigureAwait(false);
+            return await this.Container.ReplaceItemAsync<TEntity>(newDocument, id, ResolvePartitionKey(newDocument)).ConfigureAwait(false);
         }
 
-        public async Task<TEntity> CreateDocumentAsync(TEntity newDocument, PartitionKey partitionKey)
+        public async Task<TEntity> CreateDocumentAsync(TEntity newDocument)
         {
-            return await this.Container.CreateItemAsync<TEntity>(newDocument, partitionKey).ConfigureAwait(false);
+            return await this.Container.CreateItemAsync<TEntity>(newDocument, ResolvePartitionKey(newDocument)).ConfigureAwait(false);
         }
 
-        public async Task<TEntity> UpsertDocumentAsync(TEntity newDocument, PartitionKey partitionKey)
+        public async Task<TEntity> UpsertDocumentAsync(TEntity newDocument)
         {
-            return await this.Container.UpsertItemAsync<TEntity>(newDocument, partitionKey).ConfigureAwait(false);
+            return await this.Container.UpsertItemAsync<TEntity>(newDocument, ResolvePartitionKey(newDocument)).ConfigureAwait(false);
         }
 
-        public async Task<bool> DoesExistsAsync(string id)
-        {
-            //TODO: PartitionKey should be created from a column name not from a value specially ID value ???
-            using ResponseMessage response = await this.Container.ReadItemStreamAsync(id, ResolvePartitionKey(id)).ConfigureAwait(false);
-            return response.IsSuccessStatusCode;
-        }
+        //public async Task<bool> DoesExistsAsync(string id)
+        //{
+        //    //TODO: PartitionKey should be created from a column name not from a value specially ID value ???
+        //    using ResponseMessage response = await this.Container.ReadItemStreamAsync(id, ResolvePartitionKey(id)).ConfigureAwait(false);
+        //    return response.IsSuccessStatusCode;
+        //}
 
-        public async Task<TEntity> DeleteDocumentAsync(string id, PartitionKey partitionKey)
+        public async Task<TEntity> DeleteDocumentAsync(string id, string partitionKey)
         {
-            return await this.Container.DeleteItemAsync<TEntity>(id, partitionKey).ConfigureAwait(false);
+            var query = new QueryDefinition("delete from c where c.id = @id").WithParameter("@id", id);
+            
+            var result = await InternalCosmosDBSqlQuery(query).ConfigureAwait(false);
+
+            return await this.Container.DeleteItemAsync<TEntity>(id, new PartitionKey(partitionKey)).ConfigureAwait(false);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "Using lower case with cosmos queries as tested.")]

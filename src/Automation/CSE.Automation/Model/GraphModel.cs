@@ -11,11 +11,11 @@ namespace CSE.Automation.Model
         public string Id { get; set; }
 
         [JsonProperty(PropertyName = "created")]
-        public DateTime Created { get; set; }
+        public DateTimeOffset Created { get; set; }
         [JsonProperty(PropertyName = "deleted")]
-        public DateTime Deleted { get; set; }
+        public DateTimeOffset? Deleted { get; set; }
         [JsonProperty(PropertyName = "lastUpdated")]
-        public DateTime LastUpdated { get; set; }
+        public DateTimeOffset LastUpdated { get; set; }
 
         [JsonProperty(PropertyName = "objectType")]
         [System.Text.Json.Serialization.JsonConverter(typeof(JsonStringEnumConverter))]

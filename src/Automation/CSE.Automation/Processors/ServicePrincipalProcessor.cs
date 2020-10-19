@@ -12,7 +12,10 @@ using System.Threading.Tasks;
 
 namespace CSE.Automation.Processors
 {
-    public interface IServicePrincipalProcessor : IDeltaProcessor { }
+    public interface IServicePrincipalProcessor : IDeltaProcessor 
+    {
+        Task Evaluate(ActivityContext context, ServicePrincipalModel entity);
+    }
 
     class ServicePrincipalProcessorSettings : DeltaProcessorSettings
     {
@@ -47,9 +50,15 @@ namespace CSE.Automation.Processors
         public override int VisibilityDelayGapSeconds => _settings.VisibilityDelayGapSeconds;
         public override int QueueRecordProcessThreshold => _settings.QueueRecordProcessThreshold;
         public override Guid ConfigurationId => _settings.ConfigurationId;
+        public override ProcessorType ProcessorType => ProcessorType.ServicePrincipal;
 
+        // DISCOVER
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Console.WriteLine will be changed to logs")]
-        public override async Task<int> ProcessDeltas()
+        public override async Task<int> DiscoverDeltas(ActivityContext context)
         {
             var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects("appId,displayName,notes", _config).ConfigureAwait(false);
 
@@ -101,5 +110,26 @@ namespace CSE.Automation.Processors
             return servicePrincipalCount;
         }
 
+        // EVALUATE
+        /// <summary>
+        /// Evalute the ServicePrincipal to determine if any changes are required.
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public async Task Evaluate(ActivityContext context, ServicePrincipalModel entity)
+        {
+            await Task.CompletedTask.ConfigureAwait(false);
+        }
+
+        // REMEDIATE
+        /// <summary>
+        /// Update AAD with any of the changes determined in the EVALUATE step
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public async Task UpdateServicePrincipal(ActivityContext context)
+        {
+            await Task.CompletedTask.ConfigureAwait(false);
+        }
     }
 }

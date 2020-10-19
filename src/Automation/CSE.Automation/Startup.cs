@@ -170,7 +170,7 @@ namespace CSE.Automation
 
                 .AddScoped<ObjectTrackingRepository>()
                 .AddScoped<IObjectTrackingRepository, ObjectTrackingRepository>()
-                .AddScoped<ICosmosDBRepository<ServicePrincipalModel>, ObjectTrackingRepository>()
+                .AddScoped<ICosmosDBRepository<TrackingModel>, ObjectTrackingRepository>()
 
                 .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>()
                 .AddScoped<IServicePrincipalProcessor, ServicePrincipalProcessor>()

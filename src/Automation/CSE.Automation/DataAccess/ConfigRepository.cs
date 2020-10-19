@@ -13,12 +13,18 @@ namespace CSE.Automation.DataAccess
 {
     internal class ConfigRespositorySettings : CosmosDBSettings
     {
+        private string _collectionName;
+
         public ConfigRespositorySettings(ISecretClient secretClient) : base(secretClient)
         {
         }
 
         [Secret(Constants.CosmosDBConfigCollectionName)]
-        public string CollectionName => base.GetSecret();
+        public string CollectionName
+        {
+            get { return _collectionName ?? base.GetSecret(); }
+            set { _collectionName = value; }
+        }
 
         public override void Validate()
         {
@@ -40,11 +46,6 @@ namespace CSE.Automation.DataAccess
         public override string GenerateId(ProcessorConfiguration entity)
         {
             return entity.Id;
-        }
-
-        public override PartitionKey ResolvePartitionKey(string entityId)
-        {
-            return new PartitionKey($"ServicePrincipal");
         }
 
         public override string CollectionName => _settings.CollectionName;

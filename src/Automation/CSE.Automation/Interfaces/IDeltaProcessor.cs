@@ -1,12 +1,14 @@
-﻿using System.Threading.Tasks;
+﻿using CSE.Automation.Model;
+using System;
+using System.Threading.Tasks;
 
 namespace CSE.Automation.Interfaces
 {
     public interface IDeltaProcessor
     {
-        public int VisibilityDelayGapSeconds { get; }
-        public int QueueRecordProcessThreshold { get; }
+        int VisibilityDelayGapSeconds { get; }
+        int QueueRecordProcessThreshold { get; }
 
-        public Task<int> ProcessDeltas();
+        Task<int> DiscoverDeltas(ActivityContext context);
     }
 }

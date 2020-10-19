@@ -39,6 +39,7 @@ namespace CSE.Automation.Processors
         public abstract int VisibilityDelayGapSeconds { get; }
         public abstract int QueueRecordProcessThreshold { get; }
         public abstract Guid ConfigurationId { get; }
+        public abstract ProcessorType ProcessorType { get; }
 
         protected DeltaProcessorBase(ICosmosDBRepository<ProcessorConfiguration> configRepository, ICosmosDBRepository<AuditEntry> auditRepository)
         {
@@ -63,7 +64,8 @@ namespace CSE.Automation.Processors
 
         private ProcessorConfiguration GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist()
         {
-            if (!_configRepository.DoesExistsAsync(this.ConfigurationId.ToString()).Result)
+            ProcessorConfiguration configuration = _configRepository.GetByIdAsync(ConfigurationId.ToString(), ProcessorType.ToString()).GetAwaiter().GetResult();
+            if (configuration == null)
             {
 
                 if (Resources.InitialProcessorConfigurationDocument == null || Resources.InitialProcessorConfigurationDocument.Length == 0)
@@ -72,22 +74,20 @@ namespace CSE.Automation.Processors
 
                 try
                 {
-                    ProcessorConfiguration initialConfigDocumentAsJson = JsonConvert.DeserializeObject<ProcessorConfiguration>(initalDocumentAsString);
-                    return _configRepository.CreateDocumentAsync(initialConfigDocumentAsJson, _configRepository.ResolvePartitionKey(initialConfigDocumentAsJson.Id)).Result;
+                    ProcessorConfiguration defaultConfiguration = JsonConvert.DeserializeObject<ProcessorConfiguration>(initalDocumentAsString);
+                    return _configRepository.CreateDocumentAsync(defaultConfiguration).Result;
                 }
                 catch (Exception ex)
                 {
                     throw new InvalidDataException("Unable to deserialize Initial Configuration Document.", ex);
                 }
             }
-            else
-            {
-                return _configRepository.GetByIdAsync(this.ConfigurationId.ToString()).Result;
-            }
+
+            return configuration;
 
         }
 
-        public abstract Task<int> ProcessDeltas();
+        public abstract Task<int> DiscoverDeltas(ActivityContext context);
 
     }
 }
