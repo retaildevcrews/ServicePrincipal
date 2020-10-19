@@ -17,7 +17,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         private readonly IGraphHelper<ServicePrincipal> _graphHelper;
         private readonly IServicePrincipalProcessor _processor;
         IServiceProvider _serviceProvider;
-        ILogger _logger;
+        ILogger<GraphDeltaProcessor> _logger;
 
         public GraphDeltaProcessorFunctionsTests()
         {
@@ -29,7 +29,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _graphHelper = Substitute.For<IGraphHelper<ServicePrincipal>>();
             _processor = Substitute.For<IServicePrincipalProcessor>();
             _serviceProvider = Substitute.For<IServiceProvider>();
-            _logger = Substitute.For<ILogger>();
+            _logger = Substitute.For<ILogger<GraphDeltaProcessor>>();
 
             _subject = new GraphDeltaProcessor(_serviceProvider, _processor, _logger);
         }

@@ -38,7 +38,7 @@ namespace CSE.Automation.Processors
         private readonly IGraphHelper<ServicePrincipal> _graphHelper;
         private readonly ServicePrincipalProcessorSettings _settings;
         private readonly IQueueServiceFactory _queueServiceFactory;
-        public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings, IGraphHelper<ServicePrincipal> graphHelper, IQueueServiceFactory queueServiceFactory, IConfigRepository repository) : base(repository)
+        public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings, IGraphHelper<ServicePrincipal> graphHelper, IQueueServiceFactory queueServiceFactory, IConfigRepository configRepository, IAuditRepository auditRepository) : base(configRepository, auditRepository)
         {
             _settings = settings;
             _graphHelper = graphHelper;

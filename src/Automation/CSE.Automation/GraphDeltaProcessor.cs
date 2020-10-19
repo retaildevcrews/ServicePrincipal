@@ -20,11 +20,11 @@ namespace CSE.Automation
     public class GraphDeltaProcessor
     {
         private readonly IServicePrincipalProcessor _processor;
-
-        public GraphDeltaProcessor(IServiceProvider serviceProvider, IServicePrincipalProcessor processor)
+        private readonly ILogger _logger;
+        public GraphDeltaProcessor(IServiceProvider serviceProvider, IServicePrincipalProcessor processor, ILogger<GraphDeltaProcessor> logger)
         {
             _processor = processor;
-
+            _logger = logger;
             ValidateServices(serviceProvider);
         }
 
