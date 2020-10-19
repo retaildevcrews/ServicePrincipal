@@ -47,7 +47,7 @@
     <PackageReference Include="Azure.Storage.Queues" Version="12.4.2" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\ServicePrincipalProcessorConfiguration.json" />
+    <Resource Include="Resources\serviceprincipalprocessorconfiguration.json" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
