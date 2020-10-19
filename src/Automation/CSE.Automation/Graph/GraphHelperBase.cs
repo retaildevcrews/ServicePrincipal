@@ -46,18 +46,18 @@ namespace CSE.Automation.Graph
         protected GraphHelperBase(GraphHelperSettings settings, ILogger logger)
         {
             _logger = logger;
-           IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
+            IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
 #pragma warning disable CA1062 // Validate arguments of public methods, settings is injected from parent via Container
                                                                                .Create(settings.GraphAppClientId)
 #pragma warning restore CA1062 // Validate arguments of public methods
                                                                                .WithTenantId(settings.GraphAppTenantId)
-                                                                               .WithClientSecret(settings.GraphAppClientSecret)
-                                                                               .Build();
+                                                                                .WithClientSecret(settings.GraphAppClientSecret)
+                                                                                .Build();
 
             ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
             graphClient = new GraphServiceClient(authProvider);
         }
 
-        public abstract Task<(string,IEnumerable<T>)> GetDeltaGraphObjects(string selectFields,ProcessorConfiguration config);
+        public abstract Task<(string, IEnumerable<T>)> GetDeltaGraphObjects(string selectFields, ProcessorConfiguration config);
     }
 }

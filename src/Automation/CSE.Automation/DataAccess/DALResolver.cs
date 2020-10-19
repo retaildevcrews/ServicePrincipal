@@ -9,13 +9,13 @@ using CSE.Automation.Model;
 
 namespace CSE.Automation.DataAccess
 {
-   
+
     class DALResolver : IServiceResolver
     {
         private ConcurrentDictionary<string, IDAL> _registeredDALs = new System.Collections.Concurrent.ConcurrentDictionary<string, IDAL>();
         private readonly CosmosDBSettings _settings;
 
-        public DALResolver (CosmosDBSettings settings)
+        public DALResolver(CosmosDBSettings settings)
         {
             _settings = settings;
         }
@@ -25,7 +25,8 @@ namespace CSE.Automation.DataAccess
             string collectionNameKey = default;
             string cosmosCollectionName = default;
 
-            switch (collectionName){
+            switch (collectionName)
+            {
                 case DALCollection.Audit:
                     collectionNameKey = Constants.CosmosDBAuditCollectionName;
                     break;
@@ -56,8 +57,8 @@ namespace CSE.Automation.DataAccess
                 throw new InvalidCastException($"For DAL resolver type T must be of type {targetInterface.Name}");
 
             DALCollection collectionName = Enum.Parse<DALCollection>(keyName);
-            
-            return (T) _registeredDALs.GetOrAdd(keyName, CreateDAL(collectionName)) ;
+
+            return (T)_registeredDALs.GetOrAdd(keyName, CreateDAL(collectionName));
         }
 
 

@@ -205,18 +205,18 @@ namespace CSE.Automation.DataAccess
 
         public async Task<T> GetByIdAsync<T>(string id, string partitionKey)
         {
-            
+
             var response = await cosmosDetails.Container.ReadItemAsync<T>(id, new PartitionKey(partitionKey)).ConfigureAwait(false);
             return response;
         }
 
-        public async Task<T> ReplaceDocumentAsync<T>(string id, T newDocument,string partitionKey=null)
+        public async Task<T> ReplaceDocumentAsync<T>(string id, T newDocument, string partitionKey = null)
         {
             var con = cosmosDetails.Client.GetContainer(cosmosDetails.CosmosDatabase, cosmosDetails.CosmosCollection);
 
             //PartitionKey pk = String.IsNullOrWhiteSpace(partitionKey) ? default : new PartitionKey(partitionKey);
 
-            return await con.ReplaceItemAsync<T>(newDocument, id,null).ConfigureAwait(false);
+            return await con.ReplaceItemAsync<T>(newDocument, id, null).ConfigureAwait(false);
         }
 
         public async Task<T> CreateDocumentAsync<T>(T newDocument, string partitionKey = null)

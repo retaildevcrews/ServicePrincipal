@@ -119,3 +119,8 @@ variable "GRAPH_SP_SECRET" {
   type        = string
   description = "The Graph client Service Principal Secret"
 }
+
+variable "ACR_URI" {
+  type        = string
+  description = "Container Registry URI"  
+}

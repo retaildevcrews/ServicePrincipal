@@ -29,7 +29,7 @@ namespace CSE.Automation.Graph
                 config.RunState == RunState.SeedAndRun ||
                 String.IsNullOrEmpty(config.DeltaLink))
             {
-                _logger.LogInformation("Seeding Service Principal objects from Graph..."); 
+                _logger.LogInformation("Seeding Service Principal objects from Graph...");
 
                 servicePrincipalCollectionPage = await graphClient.ServicePrincipals
                 .Delta()

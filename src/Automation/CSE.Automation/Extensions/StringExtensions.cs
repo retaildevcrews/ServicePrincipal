@@ -8,33 +8,33 @@ namespace CSE.Automation.Extensions
     static class StringExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TEnum As<TEnum>(this string? value, TEnum? defaultValue=null) where TEnum : struct, Enum
+        public static TEnum As<TEnum>(this string? value, TEnum? defaultValue = null) where TEnum : struct, Enum
         {
             if (string.IsNullOrEmpty(value))
             {
                 if (defaultValue == null) throw new InvalidEnumArgumentException($"Cannot coerce {value} to {typeof(TEnum).Name}");
                 return defaultValue.Value;
             }
-            
+
             if (Enum.TryParse<TEnum>(value, true, out var enumValue)) return enumValue;
             throw new InvalidEnumArgumentException($"Cannot coerce {value} to {typeof(TEnum).Name}");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int ToInt(this string? value, int? defaultValue=null) 
+        public static int ToInt(this string? value, int? defaultValue = null)
         {
             if (string.IsNullOrEmpty(value))
             {
                 if (defaultValue == null) throw new InvalidEnumArgumentException($"Cannot coerce {value} to int");
                 return defaultValue.Value;
             }
-            
+
             if (int.TryParse(value, out var realValue)) return realValue;
             throw new InvalidEnumArgumentException($"Cannot coerce {value} to int");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Guid ToGuid(this string? value, Guid defaultValue=default) 
+        public static Guid ToGuid(this string? value, Guid defaultValue = default)
         {
             if (string.IsNullOrEmpty(value))
             {

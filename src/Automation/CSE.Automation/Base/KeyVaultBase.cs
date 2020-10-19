@@ -12,36 +12,27 @@ namespace CSE.Automation.Base
         public static class KeyVaultHelper
 #pragma warning restore CA1034 // Nested types should not be visible
         {
+
             /// <summary>
             /// Build the Key Vault URL from the name
             /// </summary>
             /// <param name="name">Key Vault Name</param>
             /// <returns>URL to Key Vault</returns>
-            public static bool BuildKeyVaultConnectionString(string name, out string keyvaultConnection)
+            public static bool BuildKeyVaultConnectionString(string keyVaultName, out string keyvaultConnection)
             {
-                keyvaultConnection = name?.Trim();
-
                 // name is required
-                if (string.IsNullOrEmpty(keyvaultConnection))
+                if (string.IsNullOrWhiteSpace(keyVaultName))
                 {
-                    return false;
+                    throw new ArgumentNullException(nameof(keyVaultName));
                 }
 
-                // build the URL
-                if (!keyvaultConnection.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                var uriBuilder = new UriBuilder
                 {
-                    keyvaultConnection = "https://" + keyvaultConnection;
-                }
+                    Scheme = Uri.UriSchemeHttps,
+                    Host = $"{keyVaultName}.vault.azure.net"
+                };
 
-                if (!keyvaultConnection.EndsWith(".vault.azure.net/", StringComparison.OrdinalIgnoreCase) && !keyvaultConnection.EndsWith(".vault.azure.net", StringComparison.OrdinalIgnoreCase))
-                {
-                    keyvaultConnection += ".vault.azure.net/";
-                }
-
-                if (!keyvaultConnection.EndsWith("/", StringComparison.OrdinalIgnoreCase))
-                {
-                    keyvaultConnection += "/";
-                }
+                keyvaultConnection = uriBuilder.Uri.AbsoluteUri;
 
                 return true;
             }
@@ -59,12 +50,7 @@ namespace CSE.Automation.Base
                 }
                 name = name.Trim();
 
-                if (name.Length < 3 || name.Length > 24)
-                {
-                    return false;
-                }
-
-                return true;
+                return name.Length >= 3 && name.Length <= 24;
             }
         }
     }
