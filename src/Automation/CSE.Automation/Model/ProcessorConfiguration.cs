@@ -28,10 +28,10 @@ namespace CSE.Automation.Model
         [JsonConverter(typeof(StringEnumConverter))]
         public RunState RunState { get; set; }
 
-        [JsonProperty(PropertyName ="lastDeltaRun")]
+        [JsonProperty(PropertyName = "lastDeltaRun")]
         public DateTime? LastDeltaRun { get; set; }
 
-        [JsonProperty(PropertyName ="lastSeedTime")]
+        [JsonProperty(PropertyName = "lastSeedTime")]
         public DateTime? LastSeedTime { get; set; }
 
         [JsonProperty(PropertyName = "name")]

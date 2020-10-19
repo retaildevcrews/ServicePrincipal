@@ -83,7 +83,7 @@ namespace CSE.Automation.Processors
                 {
                     throw new NullReferenceException("Null or empty initial Configuration Document resource.");
                 }
-                
+
                 var initalDocumentAsString = System.Text.Encoding.Default.GetString(defaultConfig);
 
                 try

@@ -134,7 +134,7 @@ namespace CSE.Automation.DataAccess
                 var containerNames = string.Join(',', containers);
                 _logger.LogDebug($"Test {this.Id} -- '{containerNames}'");
                 if (containers.Any(x => x == this.CollectionName) == false)
-                { 
+                {
                     throw new ApplicationException();  // use same error path 
                 }
                 return true;
@@ -181,7 +181,7 @@ namespace CSE.Automation.DataAccess
             }
         }
 
-   
+
         /// <summary>
         /// Generic function to be used by subclasses to execute arbitrary queries and return type T.
         /// </summary>

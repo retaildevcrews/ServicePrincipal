@@ -105,7 +105,7 @@ namespace CSE.Automation
 
             // SERVICES SETTINGS
             var secretServiceSettings = new SecretServiceSettings() { KeyVaultName = config[Constants.KeyVaultName] };
-            var credServiceSettings = new CredentialServiceSettings() { AuthType = config[Constants.AuthType].As<AuthenticationType>()};
+            var credServiceSettings = new CredentialServiceSettings() { AuthType = config[Constants.AuthType].As<AuthenticationType>() };
 
             builder.Services
                 .AddSingleton(credServiceSettings)
@@ -116,12 +116,12 @@ namespace CSE.Automation
                 .AddTransient<ISettingsValidator, GraphHelperSettings>()
 
                 .AddSingleton<ConfigRespositorySettings>(x => new ConfigRespositorySettings(x.GetRequiredService<ISecretClient>())
-                                                                    {
-                                                                        Uri = config[Constants.CosmosDBURLName],
-                                                                        Key = config[Constants.CosmosDBKeyName],
-                                                                        DatabaseName = config[Constants.CosmosDBDatabaseName],
-                                                                        CollectionName = config[Constants.CosmosDBConfigCollectionName]
-                                                                    })
+                {
+                    Uri = config[Constants.CosmosDBURLName],
+                    Key = config[Constants.CosmosDBKeyName],
+                    DatabaseName = config[Constants.CosmosDBDatabaseName],
+                    CollectionName = config[Constants.CosmosDBConfigCollectionName]
+                })
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ConfigRespositorySettings>())
 
                 .AddSingleton<AuditRespositorySettings>(x => new AuditRespositorySettings(x.GetRequiredService<ISecretClient>()))
@@ -136,12 +136,12 @@ namespace CSE.Automation
                     VisibilityDelayGapSeconds = config["visibilityDelayGapSeconds"].ToInt(8),
                     QueueRecordProcessThreshold = config["queueRecordProcessThreshold"].ToInt(10),
                 });
-                //.AddSingleton<ICosmosDBSettings, CosmosDBSettings>(x => new CosmosDBSettings(x.GetRequiredService<ISecretClient>())
-                //                                                                {
-                //                                                                    Uri = config[Constants.CosmosDBURLName],
-                //                                                                    Key = config[Constants.CosmosDBKeyName],
-                //                                                                    DatabaseName = config[Constants.CosmosDBDatabaseName],
-                //                                                                })
+            //.AddSingleton<ICosmosDBSettings, CosmosDBSettings>(x => new CosmosDBSettings(x.GetRequiredService<ISecretClient>())
+            //                                                                {
+            //                                                                    Uri = config[Constants.CosmosDBURLName],
+            //                                                                    Key = config[Constants.CosmosDBKeyName],
+            //                                                                    DatabaseName = config[Constants.CosmosDBDatabaseName],
+            //                                                                })
 
 
         }
@@ -199,7 +199,7 @@ namespace CSE.Automation
                 .AddScoped<IServicePrincipalProcessor, ServicePrincipalProcessor>()
 
                 .AddScoped<GraphDeltaProcessor>()
-                
+
                 .AddTransient<IQueueServiceFactory, AzureQueueServiceFactory>();
         }
 
