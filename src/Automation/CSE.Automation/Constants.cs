@@ -32,5 +32,8 @@
         //Queueing Constants
         public const int MaxVisibilityDelayGapSeconds = 500;
         public const int MaxQueueRecordProcessThreshold = 3000;
+        
+        // Validation Constants
+        public const int MaxStringLength = 1000;
     }
 }
