@@ -31,7 +31,7 @@ namespace CSE.Automation.Processors
     }
     abstract class DeltaProcessorBase : IDeltaProcessor
     {
-         protected readonly IConfigService<ProcessorConfiguration> _configService;
+        protected readonly IConfigService<ProcessorConfiguration> _configService;
 
         protected ProcessorConfiguration _config;
 
@@ -47,35 +47,8 @@ namespace CSE.Automation.Processors
         private protected void InitializeProcessor()
         {
             // Need the config for startup, so accepting the blocking call in the constructor.
-            _config = GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist();
+            _config = _configService.GetConfig(this.ConfigurationId.ToString());
         }
-
-        private ProcessorConfiguration GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist()
-        {
-            if (!_configService.DoesExistsAsync(this.ConfigurationId.ToString()).Result)
-            {
-
-                if (Resources.InitialProcessorConfigurationDocument == null || Resources.InitialProcessorConfigurationDocument.Length == 0)
-                    throw new NullReferenceException("Null or empty initial Configuration Document resource.");
-                var initalDocumentAsString = System.Text.Encoding.Default.GetString(Resources.InitialProcessorConfigurationDocument);
-
-                try
-                {
-                    ProcessorConfiguration initialConfigDocumentAsJson = JsonConvert.DeserializeObject<ProcessorConfiguration>(initalDocumentAsString);
-                    return _configService.CreateDocumentAsync(initialConfigDocumentAsJson, new PartitionKey(initialConfigDocumentAsJson.Id)).Result;
-                }
-                catch (Exception ex)
-                {
-                    throw new InvalidDataException("Unable to deserialize Initial Configuration Document.", ex);
-                }
-            }
-            else
-            {
-                return _configService.GetByIdAsync(this.ConfigurationId.ToString()).Result;
-            }
-
-        }
-
         public abstract Task<int> ProcessDeltas();
 
     }

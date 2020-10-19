@@ -1,9 +1,12 @@
 ﻿using CSE.Automation.DataAccess;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
+using CSE.Automation.Properties;
 using Microsoft.Azure.Cosmos;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,8 +15,8 @@ namespace CSE.Automation.Services
     internal class ConfigService : IConfigService<ProcessorConfiguration>
     {
         private ConfigRepository _configRepository;
-
-        public ConfigService(ConfigRepository configRepository)
+      
+        public ConfigService(ConfigRepository configRepository) 
         {
             this._configRepository = configRepository;
             if (this._configRepository.Test().Result == false)
@@ -23,35 +26,36 @@ namespace CSE.Automation.Services
 
         }
 
-        public async Task<ProcessorConfiguration> GetByIdAsync(string id)
+        public ProcessorConfiguration GetConfig(string id)
         {
-            var response = await this._configRepository.GetByIdAsync(id).ConfigureAwait(false);
-            return response;
+            if (!_configRepository.DoesExistsAsync(id).Result)
+            {
+
+                if (Resources.InitialProcessorConfigurationDocument == null || Resources.InitialProcessorConfigurationDocument.Length == 0)
+                    throw new NullReferenceException("Null or empty initial Configuration Document resource.");
+                var initalDocumentAsString = System.Text.Encoding.Default.GetString(Resources.InitialProcessorConfigurationDocument);
+
+                try
+                {
+                    ProcessorConfiguration initialConfigDocumentAsJson = JsonConvert.DeserializeObject<ProcessorConfiguration>(initalDocumentAsString);
+                    return _configRepository.CreateDocumentAsync(initialConfigDocumentAsJson, new PartitionKey(initialConfigDocumentAsJson.Id)).Result;
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidDataException("Unable to deserialize Initial Configuration Document.", ex);
+                }
+            }
+            else
+            {
+                return _configRepository.GetByIdAsync(id).Result;
+            }
         }
 
-        public async Task<ProcessorConfiguration> ReplaceDocumentAsync(string id, ProcessorConfiguration newDocument)
+       
+        public async Task<ProcessorConfiguration> Update(ProcessorConfiguration newDocument)
         {
-            return await this._configRepository.ReplaceDocumentAsync(id, newDocument).ConfigureAwait(false);
+            return await _configRepository.ReplaceDocumentAsync(newDocument.Id, newDocument).ConfigureAwait(false);
         }
-
-        public async Task<ProcessorConfiguration> CreateDocumentAsync(ProcessorConfiguration newDocument, PartitionKey partitionKey)
-        {
-            return await this._configRepository.CreateDocumentAsync(newDocument, partitionKey).ConfigureAwait(false);
-        }
-
-        public async Task<ProcessorConfiguration> UpsertDocumentAsync(ProcessorConfiguration newDocument, PartitionKey partitionKey)
-        {
-            return await this._configRepository.UpsertDocumentAsync(newDocument, partitionKey).ConfigureAwait(false);
-        }
-
-        public async Task<bool> DoesExistsAsync(string id)
-        {
-            return await this._configRepository.DoesExistsAsync(id).ConfigureAwait(false);
-        }
-
-        public async Task<ProcessorConfiguration> DeleteDocumentAsync(string id, PartitionKey partitionKey)
-        {
-            return await this._configRepository.DeleteDocumentAsync(id, partitionKey).ConfigureAwait(false);
-        }
+       
     }
 }

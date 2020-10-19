@@ -95,7 +95,7 @@ namespace CSE.Automation.Processors
             _config.LastSeedTime = DateTime.Now;
             _config.RunState = RunState.DeltaRun;
 
-            await _configRepository.ReplaceDocumentAsync(_config.Id, _config).ConfigureAwait(false);
+            await _configService.Update(_config).ConfigureAwait(false);
 
             Console.WriteLine($"Finished Processing {servicePrincipalCount} Service Principal Objects."); //TODO change this to log
             return servicePrincipalCount;
