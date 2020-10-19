@@ -42,6 +42,7 @@ namespace CSE.Automation.Processors
         public abstract int VisibilityDelayGapSeconds { get; }
         public abstract int QueueRecordProcessThreshold { get; }
         public abstract Guid ConfigurationId { get; }
+        protected abstract byte[] DefaultConfigurationResource { get; }
 
         protected DeltaProcessorBase(ICosmosDBRepository<ProcessorConfiguration> configRepository, ICosmosDBRepository<AuditEntry> auditRepository)
         {
@@ -72,7 +73,6 @@ namespace CSE.Automation.Processors
             _initialized = true;
         }
 
-        protected abstract byte[] DefaultConfigurationResource { get; }
 
         private ProcessorConfiguration GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist()
         {

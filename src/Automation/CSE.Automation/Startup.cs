@@ -205,8 +205,6 @@ namespace CSE.Automation
                 .AddScoped<IModelValidator<AuditEntry>, AuditEntryValidator>()
                 .AddSingleton<IModelValidatorFactory, ModelValidatorFactory>()
 
-                .AddScoped<GraphDeltaProcessor>();
-
                 .AddScoped<GraphDeltaProcessor>()
 
                 .AddTransient<IQueueServiceFactory, AzureQueueServiceFactory>();

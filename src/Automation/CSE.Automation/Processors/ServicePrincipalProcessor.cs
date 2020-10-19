@@ -41,9 +41,15 @@ namespace CSE.Automation.Processors
         private readonly ServicePrincipalProcessorSettings _settings;
         private readonly IModelValidatorFactory _modelValidatorFactory;
         private readonly ILogger _logger;
-        public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings, IGraphHelper<ServicePrincipal> graphHelper, IConfigRepository repository, IAuditRepository auditRepository, IModelValidatorFactory modelValidatorFactory, ILogger<ServicePrincipalProcessor> logger) : base(repository, auditRepository)
         private readonly IQueueServiceFactory _queueServiceFactory;
-        public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings, IGraphHelper<ServicePrincipal> graphHelper, IQueueServiceFactory queueServiceFactory, IConfigRepository configRepository, IAuditRepository auditRepository) : base(configRepository, auditRepository)
+
+        public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings, 
+                                            IGraphHelper<ServicePrincipal> graphHelper, 
+                                            IQueueServiceFactory queueServiceFactory, 
+                                            IConfigRepository configRepository, 
+                                            IAuditRepository auditRepository,
+                                            IModelValidatorFactory modelValidatorFactory, 
+                                            ILogger<ServicePrincipalProcessor> logger) : base(configRepository, auditRepository)
         {
             _settings = settings;
             _graphHelper = graphHelper;
