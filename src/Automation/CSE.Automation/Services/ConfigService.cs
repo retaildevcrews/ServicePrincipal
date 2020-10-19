@@ -31,9 +31,9 @@ namespace CSE.Automation.Services
             if (!_configRepository.DoesExistsAsync(id).Result)
             {
 
-                if (Resources.InitialProcessorConfigurationDocument == null || Resources.InitialProcessorConfigurationDocument.Length == 0)
+                if (Resources.ServicePrincipalProcessorConfiguration == null || Resources.ServicePrincipalProcessorConfiguration.Length == 0)
                     throw new NullReferenceException("Null or empty initial Configuration Document resource.");
-                var initalDocumentAsString = System.Text.Encoding.Default.GetString(Resources.InitialProcessorConfigurationDocument);
+                var initalDocumentAsString = System.Text.Encoding.Default.GetString(Resources.ServicePrincipalProcessorConfiguration);
 
                 try
                 {

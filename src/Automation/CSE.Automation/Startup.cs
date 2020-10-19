@@ -9,7 +9,9 @@ using CSE.Automation.KeyVault;
 using CSE.Automation.Model;
 using CSE.Automation.Processors;
 using CSE.Automation.Services;
+using CSE.Automation.Validators;
 
+using FluentValidation;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -83,6 +85,9 @@ namespace CSE.Automation
             var appDirectory = builder.GetContext().ApplicationRootPath;
             var defaultConfig = serviceProvider.GetRequiredService<IConfiguration>();
 
+            // order dependent.  Environment settings should override local configuration
+            //  The reasoning for the order is a local config file is more difficult to change
+            //  than an environment setting.  KeyVault settings should override any previous setting.
             var configBuilder = new ConfigurationBuilder()
                 .SetBasePath(appDirectory)
                 .AddJsonFile($"appsettings.{env}.json", true)
@@ -97,9 +102,12 @@ namespace CSE.Automation
 
         private static void RegisterSettings(IFunctionsHostBuilder builder)
         {
+            var serviceProvider = builder.Services.BuildServiceProvider();
+            var config = serviceProvider.GetRequiredService<IConfiguration>();
+
             // SERVICES SETTINGS
-            var secretServiceSettings = new SecretServiceSettings() { KeyVaultName = Environment.GetEnvironmentVariable(Constants.KeyVaultName) };
-            var credServiceSettings = new CredentialServiceSettings() { AuthType = Environment.GetEnvironmentVariable(Constants.AuthType).As<AuthenticationType>() };
+            var secretServiceSettings = new SecretServiceSettings() { KeyVaultName = config[Constants.KeyVaultName] };
+            var credServiceSettings = new CredentialServiceSettings() { AuthType = config[Constants.AuthType].As<AuthenticationType>() };
 
             builder.Services
                 .AddSingleton(credServiceSettings)
@@ -109,20 +117,35 @@ namespace CSE.Automation
                 .AddTransient<GraphHelperSettings>()
                 .AddTransient<ISettingsValidator, GraphHelperSettings>()
 
-                .AddSingleton<ConfigRespositorySettings>(x => new ConfigRespositorySettings(x.GetRequiredService<ISecretClient>()))
+                .AddSingleton<ConfigRespositorySettings>(x => new ConfigRespositorySettings(x.GetRequiredService<ISecretClient>())
+                {
+                    Uri = config[Constants.CosmosDBURLName],
+                    Key = config[Constants.CosmosDBKeyName],
+                    DatabaseName = config[Constants.CosmosDBDatabaseName],
+                    CollectionName = config[Constants.CosmosDBConfigCollectionName]
+                })
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ConfigRespositorySettings>())
 
                 .AddSingleton<AuditRespositorySettings>(x => new AuditRespositorySettings(x.GetRequiredService<ISecretClient>()))
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<AuditRespositorySettings>())
 
+                .AddSingleton<ObjectTrackingRepositorySettings>(x => new ObjectTrackingRepositorySettings(x.GetRequiredService<ISecretClient>()))
+                .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ObjectTrackingRepositorySettings>())
+
                 .AddSingleton(x => new ServicePrincipalProcessorSettings(x.GetRequiredService<ISecretClient>())
                 {
-                    ConfigurationId = Environment.GetEnvironmentVariable("configId").ToGuid(Guid.Parse("02a54ac9-441e-43f1-88ee-fde420db2559")),
-                    VisibilityDelayGapSeconds = Environment.GetEnvironmentVariable("visibilityDelayGapSeconds").ToInt(8),
-                    QueueRecordProcessThreshold = Environment.GetEnvironmentVariable("queueRecordProcessThreshold").ToInt(10),
-                })
-                .AddSingleton<ICosmosDBSettings, CosmosDBSettings>(x => new CosmosDBSettings(x.GetRequiredService<ISecretClient>()))
-                .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ICosmosDBSettings>());
+                    ConfigurationId = config["configId"].ToGuid(Guid.Parse("02a54ac9-441e-43f1-88ee-fde420db2559")),
+                    VisibilityDelayGapSeconds = config["visibilityDelayGapSeconds"].ToInt(8),
+                    QueueRecordProcessThreshold = config["queueRecordProcessThreshold"].ToInt(10),
+                });
+            //.AddSingleton<ICosmosDBSettings, CosmosDBSettings>(x => new CosmosDBSettings(x.GetRequiredService<ISecretClient>())
+            //                                                                {
+            //                                                                    Uri = config[Constants.CosmosDBURLName],
+            //                                                                    Key = config[Constants.CosmosDBKeyName],
+            //                                                                    DatabaseName = config[Constants.CosmosDBDatabaseName],
+            //                                                                })
+
+
         }
 
         private void ValidateSettings(IFunctionsHostBuilder builder)
@@ -134,6 +157,11 @@ namespace CSE.Automation
                 try
                 {
                     validator.Validate();
+                }
+                catch (Azure.Identity.CredentialUnavailableException credEx)
+                {
+                    _logger.LogCritical(credEx, $"Failed to validate application configuration: Azure Identity is incorrect.");
+                    throw;
                 }
                 catch (Exception ex)
                 {
@@ -147,25 +175,42 @@ namespace CSE.Automation
 
         private static void RegisterServices(IFunctionsHostBuilder builder)
         {
+            // register the concrete as the singleton, then use forwarder pattern to register same singleton with alternate interfaces
+
+            // Moved commented lines from line 173 to avoid lint error in CI
+            // .AddSingleton<IConfigRepository>(provider => provider.GetService<ConfigRepository>())
+            // .AddSingleton<ICosmosDBRepository>(provider => provider.GetService<ConfigRepository>())
+
             builder.Services
                 .AddSingleton<ICredentialService>(x => new CredentialService(x.GetRequiredService<CredentialServiceSettings>()))
                 .AddSingleton<ISecretClient>(x => new SecretService(x.GetRequiredService<SecretServiceSettings>(), x.GetRequiredService<ICredentialService>()))
-                // register the concrete as the singleton, then use forwarder pattern to register same singleton with alternate interfaces
+
                 .AddScoped<ConfigRepository>()
                 .AddScoped<IConfigRepository, ConfigRepository>()
                 .AddScoped<ICosmosDBRepository<ProcessorConfiguration>, ConfigRepository>()
-
+                
                 .AddScoped<ConfigService>()
                 .AddScoped<IConfigService<ProcessorConfiguration>, ConfigService>()
 
                 .AddScoped<AuditRepository>()
                 .AddScoped<IAuditRepository, AuditRepository>()
                 .AddScoped<ICosmosDBRepository<AuditEntry>, AuditRepository>()
-                //.AddSingleton<IConfigRepository>(provider => provider.GetService<ConfigRepository>())
-                //.AddSingleton<ICosmosDBRepository>(provider => provider.GetService<ConfigRepository>())
+
+                .AddScoped<ObjectTrackingRepository>()
+                .AddScoped<IObjectTrackingRepository, ObjectTrackingRepository>()
+                .AddScoped<ICosmosDBRepository<ServicePrincipalModel>, ObjectTrackingRepository>()
+
                 .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>()
                 .AddScoped<IServicePrincipalProcessor, ServicePrincipalProcessor>()
-                .AddScoped<GraphDeltaProcessor>();
+
+                .AddScoped<IModelValidator<GraphModel>, GraphModelValidator>()
+                .AddScoped<IModelValidator<ServicePrincipalModel>, ServicePrincipalModelValidator>()
+                .AddScoped<IModelValidator<AuditEntry>, AuditEntryValidator>()
+                .AddSingleton<IModelValidatorFactory, ModelValidatorFactory>()
+
+                .AddScoped<GraphDeltaProcessor>()
+
+                .AddTransient<IQueueServiceFactory, AzureQueueServiceFactory>();
         }
 
         /// <summary>
@@ -185,7 +230,7 @@ namespace CSE.Automation
         //        b.AddDebug();
         //    }).BuildServiceProvider();
 
-        //    var repositories = provider.GetServices<ICosmosDBRepository<>>();
+        //    var repositories = provider.GetServices<IRepository>();
         //    var hasFailingTest = false;
 
         //    foreach (var repository in repositories)
@@ -196,7 +241,7 @@ namespace CSE.Automation
         //        var result = testPassed
         //            ? "Passed"
         //            : "Failed";
-        //        var message = $"Repository test for {repository.DatabaseName}:{repository.CollectionName} {result}";
+        //        var message = $"Repository test for {repository.Id} {result}";
         //        if (testPassed)
         //        {
         //            _logger.LogInformation(message);

@@ -8,6 +8,8 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using SettingsBase = CSE.Automation.Model.SettingsBase;
+using Microsoft.Identity.Client;
+using System.Net.WebSockets;
 
 namespace CSE.Automation.Processors
 {
@@ -34,22 +36,36 @@ namespace CSE.Automation.Processors
         protected readonly IConfigService<ProcessorConfiguration> _configService;
 
         protected ProcessorConfiguration _config;
+        private bool _initialized;
 
         public abstract int VisibilityDelayGapSeconds { get; }
         public abstract int QueueRecordProcessThreshold { get; }
         public abstract Guid ConfigurationId { get; }
+        protected abstract byte[] DefaultConfigurationResource { get; }
 
         protected DeltaProcessorBase(IConfigService<ProcessorConfiguration> configService)
         {
             _configService = configService;
+
+
         }
 
-        private protected void InitializeProcessor()
+        protected void EnsureInitialized()
+        {
+            if (_initialized) return;
+            Initialize();
+        }
+
+        private void Initialize()
         {
             // Need the config for startup, so accepting the blocking call in the constructor.
             _config = _configService.GetConfig(this.ConfigurationId.ToString());
+         
+            _initialized = true;
         }
-        public abstract Task<int> ProcessDeltas();
+
+
+       public abstract Task<int> ProcessDeltas();
 
     }
 }
