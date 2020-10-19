@@ -14,14 +14,14 @@ namespace CSE.Automation.Validators
         {
             RuleFor(m => m.Id)
                 .NotEmpty()
-                .MaximumLength(1000);
+                .MaximumLength(Constants.MaxStringLength);
             RuleFor(m => m.Created)
                 .NotEmpty()
                 .GreaterThan(new DateTime(1990, 1, 1));
             RuleFor(m => m.LastUpdated)
                 .NotEmpty()
                 .GreaterThan(new DateTime(1990, 1, 1));
-            RuleFor(m => new List<DateTime> { m.Created, m.Deleted, m.LastUpdated })
+            RuleFor(m => m)
                 .Must(BeValidModelDateSequence)
                 .WithMessage("'Created', 'Deleted', 'LastUpdated' sequence invalid.");
             RuleFor(m => m.ObjectType)
@@ -30,15 +30,15 @@ namespace CSE.Automation.Validators
                 .IsInEnum();
         }
 
-        protected static bool BeValidModelDateSequence(List<DateTime> dateTimes)
+        protected static bool BeValidModelDateSequence(GraphModel model)
         {
-            if (dateTimes[1] == null)
+            if (model.Deleted == null)
             {
-                return dateTimes[2] > dateTimes[0];
+                return model.LastUpdated >= model.Created;
             }
             else
             {
-                return dateTimes[1] >= dateTimes[0] && dateTimes[2] > dateTimes[1];
+                return model.LastUpdated >= model.Deleted && model.Deleted >= model.Created;
             }
         }
 
