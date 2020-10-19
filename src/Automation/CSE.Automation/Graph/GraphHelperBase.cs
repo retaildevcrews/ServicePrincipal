@@ -41,6 +41,8 @@ namespace CSE.Automation.Graph
     public abstract class GraphHelperBase<T> : IGraphHelper<T>
     {
         protected GraphServiceClient graphClient { get; }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1051:Do not declare visible instance fields", Justification = "Used to super-classes")]
         protected readonly ILogger _logger;
 
         protected GraphHelperBase(GraphHelperSettings settings, ILogger logger)

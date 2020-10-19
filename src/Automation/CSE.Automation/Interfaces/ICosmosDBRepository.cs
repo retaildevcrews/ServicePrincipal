@@ -12,7 +12,6 @@ namespace CSE.Automation.Interfaces
         Task<TEntity> GetByIdAsync(string id, string partitionKey);
         Task<IEnumerable<TEntity>> GetPagedAsync(string q, int offset = 0, int limit = 0);
         Task<IEnumerable<TEntity>> GetAllAsync(TypeFilter filter = TypeFilter.any);
-        PartitionKey ResolvePartitionKey(string entityId);
         string GenerateId(TEntity entity);
         Task<TEntity> ReplaceDocumentAsync(string id, TEntity newDocument);
         Task<TEntity> CreateDocumentAsync(TEntity newDocument);
