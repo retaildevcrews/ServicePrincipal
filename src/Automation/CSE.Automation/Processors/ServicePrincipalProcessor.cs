@@ -9,6 +9,7 @@ using System.Configuration;
 using System.Text;
 using CSE.Automation.DataAccess;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace CSE.Automation.Processors
 {
@@ -36,10 +37,14 @@ namespace CSE.Automation.Processors
     {
         private readonly IGraphHelper<ServicePrincipal> _graphHelper;
         private readonly ServicePrincipalProcessorSettings _settings;
-        public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings, IGraphHelper<ServicePrincipal> graphHelper, IConfigRepository repository, IAuditRepository auditRepository) : base(repository, auditRepository)
+        private readonly IModelValidatorFactory _modelValidatorFactory;
+        private readonly ILogger _logger;
+        public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings, IGraphHelper<ServicePrincipal> graphHelper, IConfigRepository repository, IAuditRepository auditRepository, IModelValidatorFactory modelValidatorFactory, ILogger<ServicePrincipalProcessor> logger) : base(repository, auditRepository)
         {
             _settings = settings;
             _graphHelper = graphHelper;
+            _modelValidatorFactory = modelValidatorFactory;
+            _logger = logger;
 
             InitializeProcessor();
         }
@@ -48,7 +53,6 @@ namespace CSE.Automation.Processors
         public override int QueueRecordProcessThreshold => _settings.QueueRecordProcessThreshold;
         public override Guid ConfigurationId => _settings.ConfigurationId;
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Console.WriteLine will be changed to logs")]
         public override async Task<int> ProcessDeltas()
         {
             var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects("appId,displayName,notes", _config).ConfigureAwait(false);
@@ -61,19 +65,29 @@ namespace CSE.Automation.Processors
             int servicePrincipalCount = default;
             int visibilityDelay = default;
 
-            Console.WriteLine($"Processing Service Principal objects..."); //TODO change this to log
+            _logger.LogInformation($"Processing Service Principal objects...");
+
+            var validators = _modelValidatorFactory.Get<ServicePrincipalModel>();
 
             foreach (var sp in servicePrincipalList)
             {
                 if (String.IsNullOrWhiteSpace(sp.AppId) || String.IsNullOrWhiteSpace(sp.DisplayName))
                     continue;
-                //TODO validation of service principal objects using FluentValidation
+                
                 var servicePrincipal = new ServicePrincipalModel()
                 {
                     AppId = sp.AppId,
                     DisplayName = sp.DisplayName,
                     Notes = sp.Notes
                 };
+
+                foreach (var validator in validators)
+                {
+                    var results = validator.Validate(servicePrincipal);
+                    if(!results.IsValid){
+                        _logger.LogWarning(results.Errors.ToString());
+                    }
+                }
 
                 var myMessage = new QueueMessage()
                 {
@@ -84,7 +98,7 @@ namespace CSE.Automation.Processors
 
                 if (servicePrincipalCount % QueueRecordProcessThreshold == 0 && servicePrincipalCount != 0)
                 {
-                    Console.WriteLine($"Processed {servicePrincipalCount} Service Principal Objects."); //TODO change this to log
+                    _logger.LogInformation($"Processed {servicePrincipalCount} Service Principal Objects.");
                     visibilityDelay += VisibilityDelayGapSeconds;
                 }
                 await azureQueue.Send(myMessage, visibilityDelay).ConfigureAwait(false);
@@ -97,7 +111,7 @@ namespace CSE.Automation.Processors
 
             await _configRepository.ReplaceDocumentAsync(_config.Id, _config).ConfigureAwait(false);
 
-            Console.WriteLine($"Finished Processing {servicePrincipalCount} Service Principal Objects."); //TODO change this to log
+            _logger.LogInformation($"Finished Processing {servicePrincipalCount} Service Principal Objects.");
             return servicePrincipalCount;
         }
 
