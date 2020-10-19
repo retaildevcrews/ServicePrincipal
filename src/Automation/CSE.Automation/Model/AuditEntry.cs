@@ -37,9 +37,9 @@ namespace CSE.Automation.Model
 
             this.TargetObject = originalDocument;
             this.ActionDateTime = DateTime.UtcNow;
-            string currentMonth = this.ActionDateTime.Month.ToString(new CultureInfo("en-US"));
-            string currentYear = this.ActionDateTime.Year.ToString(new CultureInfo("en-US"));
-            this.AuditMonthYear = currentMonth + "_" + currentYear;
+            int currentMonth = this.ActionDateTime.Month;
+            int currentYear = this.ActionDateTime.Year;
+            this.AuditMonthYear = $"{currentMonth}_{currentYear}";
         }
         public bool Validate(AbstractValidator<AuditEntry> validator, out IEnumerable<ValidationFailure> errors)
         {
