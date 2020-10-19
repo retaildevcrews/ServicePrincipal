@@ -63,7 +63,6 @@ namespace CSE.Automation.Processors
             _initialized = true;
         }
 
-
-       public abstract Task<int> ProcessDeltas();
+        public abstract Task<int> ProcessDeltas();
     }
 }
