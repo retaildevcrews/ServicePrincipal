@@ -6,6 +6,7 @@ using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
 using System.Text;
 using CSE.Automation.DataAccess;
 using System.Threading.Tasks;
@@ -82,14 +83,9 @@ namespace CSE.Automation.Processors
                     Notes = sp.Notes
                 };
 
-                foreach (var validator in validators)
-                {
-                    var results = validator.Validate(servicePrincipal);
-                    if (!results.IsValid)
-                    {
-                        _logger.LogWarning(results.Errors.ToString());
-                    }
-                }
+
+
+                _logger.LogWarning(validators.SelectMany(v => v.Validate(servicePrincipal).Errors).ToString());
 
                 var myMessage = new QueueMessage()
                 {
