@@ -73,8 +73,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             };
 
             var results = auditEntryValidator.Validate(auditItem);
-            Assert.True(results.IsValid);
-            Assert.True(results.Errors.Count == 0);
             Assert.False(results.IsValid);
             Assert.Contains(results.Errors, x => x.PropertyName == "CorrelationId");
             Assert.Contains(results.Errors, x => x.PropertyName == "ActionType");
@@ -102,7 +100,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             var results = auditEntryValidator.Validate(auditItem);
 
             Assert.True(results.IsValid);
-            Assert.Null(results.Errors.Count == 0);
+            Assert.True(results.Errors.Count == 0);
         }
     }
 }
