@@ -14,9 +14,8 @@ namespace CSE.Automation.Services
 {
     internal class ConfigService : IConfigService<ProcessorConfiguration>
     {
-        private ConfigRepository _configRepository;
-      
-        public ConfigService(ConfigRepository configRepository) 
+        private ConfigRepository _configRepository;      
+        public ConfigService(ConfigRepository configRepository)
         {
             this._configRepository = configRepository;
             if (this._configRepository.Test().Result == false)
@@ -49,13 +48,10 @@ namespace CSE.Automation.Services
             {
                 return _configRepository.GetByIdAsync(id).Result;
             }
-        }
-
-       
+        }        
         public async Task<ProcessorConfiguration> Update(ProcessorConfiguration newDocument)
         {
             return await _configRepository.ReplaceDocumentAsync(newDocument.Id, newDocument).ConfigureAwait(false);
-        }
-       
+        }       
     }
 }

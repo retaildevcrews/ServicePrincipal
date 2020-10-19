@@ -60,12 +60,10 @@ namespace CSE.Automation.Processors
         {
             // Need the config for startup, so accepting the blocking call in the constructor.
             _config = _configService.GetConfig(this.ConfigurationId.ToString());
-         
             _initialized = true;
         }
 
 
        public abstract Task<int> ProcessDeltas();
-
     }
 }
