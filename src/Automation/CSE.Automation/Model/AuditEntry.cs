@@ -41,37 +41,6 @@ namespace CSE.Automation.Model
             int currentYear = this.ActionDateTime.Year;
             this.AuditMonthYear = $"{currentMonth}_{currentYear}";
         }
-        public bool Validate(AbstractValidator<AuditEntry> validator, out IEnumerable<ValidationFailure> errors)
-        {
-            errors = null;
-
-            if (validator == null)
-            {
-                throw new ArgumentNullException(nameof(validator));
-            }
-
-            var validationResults = validator.Validate(this);
-
-            if (!validationResults.IsValid)
-            {
-                errors = validationResults.Errors;
-                return false;
-            }
-
-            return true;
-        }
-    }
-
-    public class CreateAuditValidator : AbstractValidator<AuditEntry>
-    {
-        public CreateAuditValidator()
-        {
-            RuleFor(x => x.TargetObject).NotNull();
-            RuleFor(x => x.CorrelationId).NotNull().NotEmpty();
-            RuleFor(x => x.ActionReason).NotNull().NotEmpty();
-            RuleFor(x => x.ActionType).NotNull().NotEmpty();
-            RuleFor(x => x.ActionDateTime).NotEqual(DateTime.MinValue);
-        }
     }
 }
 

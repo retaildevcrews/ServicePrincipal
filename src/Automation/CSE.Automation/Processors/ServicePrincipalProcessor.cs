@@ -6,9 +6,11 @@ using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
 using System.Text;
 using CSE.Automation.DataAccess;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using CSE.Automation.Properties;
 
 namespace CSE.Automation.Processors
@@ -40,11 +42,23 @@ namespace CSE.Automation.Processors
     {
         private readonly IGraphHelper<ServicePrincipal> _graphHelper;
         private readonly ServicePrincipalProcessorSettings _settings;
+        private readonly IModelValidatorFactory _modelValidatorFactory;
+        private readonly ILogger _logger;
         private readonly IQueueServiceFactory _queueServiceFactory;
-        public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings, IGraphHelper<ServicePrincipal> graphHelper, IQueueServiceFactory queueServiceFactory, IConfigRepository configRepository, IAuditRepository auditRepository) : base(configRepository, auditRepository)
+
+        public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings,
+                                            IGraphHelper<ServicePrincipal> graphHelper,
+                                            IQueueServiceFactory queueServiceFactory,
+                                            IConfigRepository configRepository,
+                                            IAuditRepository auditRepository,
+                                            IModelValidatorFactory modelValidatorFactory,
+                                            ILogger<ServicePrincipalProcessor> logger) : base(configRepository, auditRepository)
         {
             _settings = settings;
             _graphHelper = graphHelper;
+            _modelValidatorFactory = modelValidatorFactory;
+            _logger = logger;
+
             _queueServiceFactory = queueServiceFactory;
         }
 
@@ -74,19 +88,26 @@ namespace CSE.Automation.Processors
             int servicePrincipalCount = default;
             int visibilityDelay = default;
 
-            Console.WriteLine($"Processing Service Principal objects..."); //TODO change this to log
+            _logger.LogInformation($"Processing Service Principal objects...");
+
+            var validators = _modelValidatorFactory.Get<ServicePrincipalModel>();
 
             foreach (var sp in servicePrincipalList)
             {
                 if (String.IsNullOrWhiteSpace(sp.AppId) || String.IsNullOrWhiteSpace(sp.DisplayName))
+                {
                     continue;
-                //TODO validation of service principal objects using FluentValidation
+                }
                 var servicePrincipal = new ServicePrincipalModel()
                 {
                     AppId = sp.AppId,
                     DisplayName = sp.DisplayName,
                     Notes = sp.Notes
                 };
+
+
+
+                _logger.LogWarning(validators.SelectMany(v => v.Validate(servicePrincipal).Errors).ToString());
 
                 var myMessage = new QueueMessage()
                 {
@@ -97,7 +118,7 @@ namespace CSE.Automation.Processors
 
                 if (servicePrincipalCount % QueueRecordProcessThreshold == 0 && servicePrincipalCount != 0)
                 {
-                    Console.WriteLine($"Processed {servicePrincipalCount} Service Principal Objects."); //TODO change this to log
+                    _logger.LogInformation($"Processed {servicePrincipalCount} Service Principal Objects.");
                     visibilityDelay += VisibilityDelayGapSeconds;
                 }
                 await queueService.Send(myMessage, visibilityDelay).ConfigureAwait(false);
@@ -110,7 +131,7 @@ namespace CSE.Automation.Processors
 
             await _configRepository.ReplaceDocumentAsync(_config.Id, _config).ConfigureAwait(false);
 
-            Console.WriteLine($"Finished Processing {servicePrincipalCount} Service Principal Objects."); //TODO change this to log
+            _logger.LogInformation($"Finished Processing {servicePrincipalCount} Service Principal Objects.");
             return servicePrincipalCount;
         }
 

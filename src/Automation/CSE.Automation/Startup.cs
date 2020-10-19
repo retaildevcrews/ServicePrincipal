@@ -9,7 +9,9 @@ using CSE.Automation.KeyVault;
 using CSE.Automation.Model;
 using CSE.Automation.Processors;
 using CSE.Automation.Services;
+using CSE.Automation.Validators;
 
+using FluentValidation;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -197,6 +199,11 @@ namespace CSE.Automation
 
                 .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>()
                 .AddScoped<IServicePrincipalProcessor, ServicePrincipalProcessor>()
+
+                .AddScoped<IModelValidator<GraphModel>, GraphModelValidator>()
+                .AddScoped<IModelValidator<ServicePrincipalModel>, ServicePrincipalModelValidator>()
+                .AddScoped<IModelValidator<AuditEntry>, AuditEntryValidator>()
+                .AddSingleton<IModelValidatorFactory, ModelValidatorFactory>()
 
                 .AddScoped<GraphDeltaProcessor>()
 
