@@ -8,7 +8,7 @@ namespace CSE.Automation.Interfaces
 {
     public interface IConfigService<TConfig> where TConfig : class
     {
-        Task<TConfig> Update(TConfig newDocument);
-        TConfig GetConfig(string id);
+        Task<TConfig> Put(TConfig newDocument);
+        TConfig Get(string id);
     }
 }

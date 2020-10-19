@@ -118,7 +118,7 @@ namespace CSE.Automation.Processors
             _config.LastSeedTime = DateTime.Now;
             _config.RunState = RunState.DeltaRun;
 
-            await _configService.Update(_config).ConfigureAwait(false);
+            await _configService.Put(_config).ConfigureAwait(false);
 
             _logger.LogInformation($"Finished Processing {servicePrincipalCount} Service Principal Objects.");
             return servicePrincipalCount;

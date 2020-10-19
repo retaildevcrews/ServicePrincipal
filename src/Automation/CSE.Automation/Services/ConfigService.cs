@@ -25,7 +25,7 @@ namespace CSE.Automation.Services
 
         }
 
-        public ProcessorConfiguration GetConfig(string id)
+        public ProcessorConfiguration Get(string id)
         {
             if (!_configRepository.DoesExistsAsync(id).Result)
             {
@@ -49,7 +49,7 @@ namespace CSE.Automation.Services
                 return _configRepository.GetByIdAsync(id).Result;
             }
         }
-        public async Task<ProcessorConfiguration> Update(ProcessorConfiguration newDocument)
+        public async Task<ProcessorConfiguration> Put(ProcessorConfiguration newDocument)
         {
             return await _configRepository.ReplaceDocumentAsync(newDocument.Id, newDocument).ConfigureAwait(false);
         }
