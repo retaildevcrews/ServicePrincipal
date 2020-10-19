@@ -8,6 +8,8 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using SettingsBase = CSE.Automation.Model.SettingsBase;
+using Microsoft.Identity.Client;
+using System.Net.WebSockets;
 
 namespace CSE.Automation.Processors
 {
@@ -35,6 +37,7 @@ namespace CSE.Automation.Processors
         protected readonly ICosmosDBRepository<AuditEntry> _auditRepository;
 
         protected ProcessorConfiguration _config;
+        private bool _initialized;
 
         public abstract int VisibilityDelayGapSeconds { get; }
         public abstract int QueueRecordProcessThreshold { get; }
@@ -50,27 +53,40 @@ namespace CSE.Automation.Processors
             }
 
             _configRepository = configRepository;
-            if (_configRepository.Test().Result == false)
-            {
-                throw new ApplicationException($"Repository {_configRepository.DatabaseName}:{_configRepository.CollectionName} failed connection test");
-            }
+
         }
 
-        private protected void InitializeProcessor()
+        protected void EnsureInitialized()
+        {
+            if (_initialized) return;
+            Initialize();
+        }
+
+        private void Initialize()
         {
             // Need the config for startup, so accepting the blocking call in the constructor.
+            if (_configRepository.Test().Result == false)
+            {
+                throw new ApplicationException($"Repository {_configRepository.DatabaseName}:{_configRepository.CollectionName} failed connection test during {this.GetType().Name}::ctor");
+            }
             _config = GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist();
+            _initialized = true;
         }
+
+        protected abstract byte[] DefaultConfigurationResource { get; }
 
         private ProcessorConfiguration GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist()
         {
             ProcessorConfiguration configuration = _configRepository.GetByIdAsync(ConfigurationId.ToString(), ProcessorType.ToString()).GetAwaiter().GetResult();
             if (configuration == null)
             {
-
-                if (Resources.InitialProcessorConfigurationDocument == null || Resources.InitialProcessorConfigurationDocument.Length == 0)
+                var defaultConfig = DefaultConfigurationResource;
+                if (defaultConfig == null || defaultConfig.Length == 0)
+                {
                     throw new NullReferenceException("Null or empty initial Configuration Document resource.");
-                var initalDocumentAsString = System.Text.Encoding.Default.GetString(Resources.InitialProcessorConfigurationDocument);
+                }
+
+                var initalDocumentAsString = System.Text.Encoding.Default.GetString(defaultConfig);
 
                 try
                 {

@@ -19,21 +19,39 @@ namespace CSE.Automation.DataAccess
 
     class CosmosDBSettings : SettingsBase, ICosmosDBSettings
     {
+        private string _uri;
+        private string _key;
+        private string _databaseName;
+
         public CosmosDBSettings(ISecretClient secretClient) : base(secretClient) { }
 
         [Secret(Constants.CosmosDBURLName)]
-        public string Uri => base.GetSecret();
+        public string Uri
+        {
+            get { return _uri ?? base.GetSecret(); }
+            set { _uri = value; }
+        }
 
         [Secret(Constants.CosmosDBKeyName)]
-        public string Key => base.GetSecret();
+        public string Key
+        {
+            get { return _key ?? base.GetSecret(); }
+            set { _key = value; }
+        }
+
         [Secret(Constants.CosmosDBDatabaseName)]
-        public string DatabaseName => base.GetSecret();
+        public string DatabaseName
+        {
+            get { return _databaseName ?? base.GetSecret(); }
+            set { _databaseName = value; }
+        }
+
 
         public override void Validate()
         {
-            if (string.IsNullOrEmpty(this.Uri)) throw new ConfigurationErrorsException($"{this.GetType().Name}: Uri is invalid");
-            if (string.IsNullOrEmpty(this.Key)) throw new ConfigurationErrorsException($"{this.GetType().Name}: Key is invalid");
-            if (string.IsNullOrEmpty(this.DatabaseName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: DatabaseName is invalid");
+            if (string.IsNullOrWhiteSpace(this.Uri)) throw new ConfigurationErrorsException($"{this.GetType().Name}: Uri is invalid");
+            if (string.IsNullOrWhiteSpace(this.Key)) throw new ConfigurationErrorsException($"{this.GetType().Name}: Key is invalid");
+            if (string.IsNullOrWhiteSpace(this.DatabaseName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: DatabaseName is invalid");
         }
     }
 
@@ -126,18 +144,26 @@ namespace CSE.Automation.DataAccess
             // open and test a new client / container
             try
             {
-                var containerNames = await GetContainerNames().ConfigureAwait(false);
-                return containerNames.Any(x => x == this.CollectionName);
+                var containers = await GetContainerNames().ConfigureAwait(false);
+                var containerNames = string.Join(',', containers);
+                _logger.LogDebug($"Test {this.Id} -- '{containerNames}'");
+                if (containers.Any(x => x == this.CollectionName) == false)
+                {
+                    throw new ApplicationException();  // use same error path 
+                }
+                return true;
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)
 #pragma warning restore CA1031 // Do not catch general exception types
             {
-                _logger.LogCritical(ex, $"Failed to find collection in CosmosDB {_settings.DatabaseName}:{this.CollectionName}");
+                _logger.LogError(ex, $"Failed to find collection in CosmosDB {_settings.DatabaseName}:{this.CollectionName}");
                 return false;
             }
 
         }
+
+        public string Id => $"{DatabaseName}:{CollectionName}";
 
         /// <summary>
         /// Query the database for all the containers defined and return a list of the container names.

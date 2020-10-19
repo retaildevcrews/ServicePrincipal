@@ -9,6 +9,7 @@ using System.Configuration;
 using System.Text;
 using CSE.Automation.DataAccess;
 using System.Threading.Tasks;
+using CSE.Automation.Properties;
 
 namespace CSE.Automation.Processors
 {
@@ -39,18 +40,19 @@ namespace CSE.Automation.Processors
     {
         private readonly IGraphHelper<ServicePrincipal> _graphHelper;
         private readonly ServicePrincipalProcessorSettings _settings;
-        public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings, IGraphHelper<ServicePrincipal> graphHelper, IConfigRepository repository, IAuditRepository auditRepository) : base(repository, auditRepository)
+        private readonly IQueueServiceFactory _queueServiceFactory;
+        public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings, IGraphHelper<ServicePrincipal> graphHelper, IQueueServiceFactory queueServiceFactory, IConfigRepository configRepository, IAuditRepository auditRepository) : base(configRepository, auditRepository)
         {
             _settings = settings;
             _graphHelper = graphHelper;
-
-            InitializeProcessor();
+            _queueServiceFactory = queueServiceFactory;
         }
 
         public override int VisibilityDelayGapSeconds => _settings.VisibilityDelayGapSeconds;
         public override int QueueRecordProcessThreshold => _settings.QueueRecordProcessThreshold;
         public override Guid ConfigurationId => _settings.ConfigurationId;
         public override ProcessorType ProcessorType => ProcessorType.ServicePrincipal;
+        protected override byte[] DefaultConfigurationResource => Resources.ServicePrincipalProcessorConfiguration;
 
         // DISCOVER
         /// <summary>
@@ -60,12 +62,14 @@ namespace CSE.Automation.Processors
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Console.WriteLine will be changed to logs")]
         public override async Task<int> DiscoverDeltas(ActivityContext context)
         {
-            var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects("appId,displayName,notes", _config).ConfigureAwait(false);
+            EnsureInitialized();
+
+            var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects(string.Join(',', _config.SelectFields), _config).ConfigureAwait(false);
 
             string updatedDeltaLink = servicePrincipalResult.Item1; //TODO save this back in Config
             var servicePrincipalList = servicePrincipalResult.Item2;
 
-            IAzureQueueService azureQueue = new AzureQueueService(_settings.QueueConnectionString, _settings.QueueName);
+            IAzureQueueService queueService = _queueServiceFactory.Create(_settings.QueueConnectionString, _settings.QueueName);
 
             int servicePrincipalCount = default;
             int visibilityDelay = default;
@@ -96,7 +100,7 @@ namespace CSE.Automation.Processors
                     Console.WriteLine($"Processed {servicePrincipalCount} Service Principal Objects."); //TODO change this to log
                     visibilityDelay += VisibilityDelayGapSeconds;
                 }
-                await azureQueue.Send(myMessage, visibilityDelay).ConfigureAwait(false);
+                await queueService.Send(myMessage, visibilityDelay).ConfigureAwait(false);
                 servicePrincipalCount++;
             }
 

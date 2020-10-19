@@ -29,7 +29,7 @@ namespace CSE.Automation.DataAccess
         public override void Validate()
         {
             base.Validate();
-            if (string.IsNullOrEmpty(this.CollectionName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: CollectionName is invalid");
+            if (string.IsNullOrWhiteSpace(this.CollectionName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: CollectionName is invalid");
         }
     }
 
