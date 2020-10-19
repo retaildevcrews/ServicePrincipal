@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using FluentValidation;
 using FluentValidation.Results;
@@ -12,7 +12,8 @@ namespace CSE.Automation.Model
         ValidationResult Validate(T model);
     }
 
-    interface IModelValidatorFactory {
+    interface IModelValidatorFactory
+    {
         IEnumerable<IModelValidator<TEntity>> Get<TEntity>();
     }
 
@@ -23,11 +24,10 @@ namespace CSE.Automation.Model
         {
             _serviceProvider = serviceProvider;
         }
-        
+
         public IEnumerable<IModelValidator<T>> Get<T>()
         {
             return _serviceProvider.GetServices<IModelValidator<T>>();
         }
     }
 }
-

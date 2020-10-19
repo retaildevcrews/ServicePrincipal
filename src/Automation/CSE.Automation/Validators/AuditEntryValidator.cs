@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using CSE.Automation.Model;
 using FluentValidation;
 

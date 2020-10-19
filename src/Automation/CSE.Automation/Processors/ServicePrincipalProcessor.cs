@@ -72,8 +72,9 @@ namespace CSE.Automation.Processors
             foreach (var sp in servicePrincipalList)
             {
                 if (String.IsNullOrWhiteSpace(sp.AppId) || String.IsNullOrWhiteSpace(sp.DisplayName))
+                {
                     continue;
-                
+                }
                 var servicePrincipal = new ServicePrincipalModel()
                 {
                     AppId = sp.AppId,
@@ -84,7 +85,8 @@ namespace CSE.Automation.Processors
                 foreach (var validator in validators)
                 {
                     var results = validator.Validate(servicePrincipal);
-                    if(!results.IsValid){
+                    if (!results.IsValid)
+                    {
                         _logger.LogWarning(results.Errors.ToString());
                     }
                 }
