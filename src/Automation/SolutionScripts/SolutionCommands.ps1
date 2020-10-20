@@ -56,8 +56,8 @@ function global:ProvisionStorageResources(){
 	# Creates queues
 	foreach ($queueName in $queues){
 		$url = "http://127.0.0.1:10001/$StorageAccount/$queueName"
-		$signature = GenerateStorageAuthToken "PUT" $StorageAccount $queueName
-	  $utc_now = (Get-Date).ToUniversalTime().ToString("R").ToLower();
+		$utc_now = (Get-Date).ToUniversalTime().ToString("R").ToLower();
+		$signature = GenerateStorageAuthToken "PUT" $queueName $utc_now
 	  $headers = @{
 			Authorization = "SharedKeyLite ${StorageAccount}:$signature"
 			"x-ms-date" = $utc_now
@@ -372,11 +372,13 @@ function global:GenerateCosmosAuthToken()
 	return $value
 }
 
-function global:GenerateStorageAuthToken($method, $storageAccount, $resource)
+function global:GenerateStorageAuthToken($method, $resource, $GMTTime)
 {
-  $GMTTime = (Get-Date).ToUniversalTime().toString('R')
+	$method = $method.ToLowerInvariant()
+	$contenttype = "application/xml"
+	$version = "2017-04-17"
   $canonheaders = "x-ms-date:$GMTTime`nx-ms-version:$version`n"
-  $stringToSign = "$method`n`n$contenttype`n`n$canonheaders/$storageAccount/$resource"
+  $stringToSign = "$method`n`n$contenttype`n`n$canonheaders/$StorageAccount/$resource"
   $hmacsha = New-Object System.Security.Cryptography.HMACSHA256
   $hmacsha.key = [Convert]::FromBase64String($StorageKey)
   $signature = $hmacsha.ComputeHash([Text.Encoding]::UTF8.GetBytes($stringToSign))
