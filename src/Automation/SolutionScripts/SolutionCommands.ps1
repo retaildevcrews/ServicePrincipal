@@ -381,7 +381,10 @@ function global:GenerateCosmosAuthToken()
 
 function global:GenerateStorageAuthToken($method, $Resource, $GMTTime)
 {
-	$payload = "{0}`n`n`n{1}`n`n{2}`n{3}`n{4}`n{5}" -f $method, "0", "application/xml", "x-ms-date:$GMTTime", "x-ms-version:$StorageVersion", "/$StorageAccount/$Resource"
+	#VERB`nContent-Encoding`nContent-Language`nContent-Length`nContent-MD5`nContent-Type`nDate`nIf-Modified-Since`nIf-Match`nIf-None-Match`nIf-Unmodified-Since`nRange`nCanonicalizedHeaders CanonicalizedResource;
+	$canonicalizedHeaders = "x-ms-date:$GMTTime`nx-ms-version:$StorageVersion`n"
+	$canonicalizedResource = "/$StorageAccount/$Resource"
+	$payload = "VERB`n`n`n0`n`n`n`n`n`n`n`n`n$canonicalizedHeaders$canonicalizedResource;"
 	$hmacsha = New-Object System.Security.Cryptography.HMACSHA256
 	$hmacsha.key = [System.Convert]::FromBase64String($StorageKey)
 	$signature = $hmacsha.ComputeHash([Text.Encoding]::ASCII.GetBytes($payload))
