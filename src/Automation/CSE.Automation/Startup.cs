@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-
+using System.Linq;
 using CSE.Automation.DataAccess;
 using CSE.Automation.Extensions;
 using CSE.Automation.Graph;
@@ -81,7 +81,7 @@ namespace CSE.Automation
         {
             // CONFIGURATION
             var serviceProvider = builder.Services.BuildServiceProvider();
-            var env = builder.GetContext().EnvironmentName;
+            var envName = builder.GetContext().EnvironmentName;
             var appDirectory = builder.GetContext().ApplicationRootPath;
             var defaultConfig = serviceProvider.GetRequiredService<IConfiguration>();
 
@@ -90,13 +90,12 @@ namespace CSE.Automation
             //  than an environment setting.  KeyVault settings should override any previous setting.
             var configBuilder = new ConfigurationBuilder()
                 .SetBasePath(appDirectory)
-                .AddJsonFile($"appsettings.{env}.json", true)
-                .AddJsonFile("local.settings.json", true)
                 .AddConfiguration(defaultConfig)
-                .AddAzureKeyVaultConfiguration(Constants.KeyVaultName);
+                .AddAzureKeyVaultConfiguration(Constants.KeyVaultName)
+                .AddJsonFile($"appsettings.{envName}.json", true);
 
             var hostConfig = configBuilder.Build();
-
+            var value = hostConfig[Constants.CosmosDBURLName];
             builder.Services.Replace(ServiceDescriptor.Singleton(typeof(IConfiguration), hostConfig));
         }
 

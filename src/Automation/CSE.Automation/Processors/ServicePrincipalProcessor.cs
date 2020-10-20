@@ -143,12 +143,28 @@ namespace CSE.Automation.Processors
         /// <returns></returns>
         public async Task Evaluate(ActivityContext context, ServicePrincipalModel entity)
         {
-            /*
-             * 1. Validate entity model
-             * 2. If new object, just update OTS
-             * 3. if missing Notes field, Update from last known good
-             * 4.     .....
-             */ 
+            
+            // 1. if Notes field is blank
+            //      - update Notes field from Owners
+            //      - write audit
+            // 2. if Notes field is not blank
+            //      - if value is not email 
+            //          set value to owners field
+            //          write audit
+            //      - if value is email
+            //          validate the value is a valid AAD user
+            //          if value fails AAD check
+            //              set value to owners field
+            //              write audit
+            if (string.IsNullOrWhiteSpace(entity.Notes))
+            {
+                //entity.Notes = entity.Owner;
+            }
+            else
+            {
+
+            }
+
             await Task.CompletedTask.ConfigureAwait(false);
         }
 

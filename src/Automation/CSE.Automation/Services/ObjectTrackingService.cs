@@ -42,6 +42,7 @@ namespace CSE.Automation.Services
         public async Task<TrackingModel> Put(TrackingModel entity)
         {
             _objectRepository.GenerateId(entity);
+            entity.LastUpdated = DateTimeOffset.Now;
             return await _objectRepository.UpsertDocumentAsync(entity).ConfigureAwait(false);
         }
 
