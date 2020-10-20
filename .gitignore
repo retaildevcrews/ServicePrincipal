@@ -13,6 +13,7 @@
 .vscode/
 
 local.settings.json
+appsettings.Development.json
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
