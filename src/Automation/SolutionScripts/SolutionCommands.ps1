@@ -32,6 +32,9 @@ $global:StorageKey = "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4
 # default storage account name
 $global:StorageAccount = "devstoreaccount1"
 
+# Storage Queue Endpoint Version
+$global:StorageVersion = "2014-02-14"
+
 function global:Setup-Environment()
 {
 	Ensure-StorageEmulatorInstalled
@@ -56,16 +59,16 @@ function global:ProvisionStorageResources(){
 	# Creates queues
 	foreach ($queueName in $queues){
 		$url = "http://127.0.0.1:10001/$StorageAccount/$queueName"
-		$utc_now = (Get-Date).ToUniversalTime().ToString("R").ToLowerInvariant();
+		$utc_now = (Get-Date).ToUniversalTime().ToString("R")
 		$signature = GenerateStorageAuthToken "PUT" $queueName $utc_now
-
 		Write-Output "Signature: $signature "
 	  $headers = @{
-			Authorization = "SharedKey ${StorageAccount}:$signature"
-			Date = $utc_now
-	};
-	     Write-Output "Headers: $($headers.Keys | % ToString) "
-	    Write-Output "Headers: $($headers.Values | % ToString) "
+			Authorization = "SharedKey ${StorageAccount}:$signature";
+			"x-ms-date" = $utc_now;
+			"x-ms-version" = $StorageVersion
+		};
+	  Write-Output "Headers: $($headers.Keys | % ToString) "
+	  Write-Output "Headers: $($headers.Values | % ToString) "
 		Invoke-RestMethod -Method PUT -Uri $url -Headers $headers
 	}
 }
@@ -376,17 +379,14 @@ function global:GenerateCosmosAuthToken()
 	return $value
 }
 
-function global:GenerateStorageAuthToken($method, $resource, $GMTTime)
+function global:GenerateStorageAuthToken($method, $Resource, $GMTTime)
 {
-	$method = $method.ToLower()
-	$contenttype = "application/xml"
-	$version = "2017-04-17"
-  $canonheaders = "x-ms-date:$GMTTime`nx-ms-version:$version`n"
-  $stringToSign = "$method`n`n$contenttype`n`n$canonheaders/$StorageAccount/$resource"
-  $hmacsha = New-Object System.Security.Cryptography.HMACSHA256
-  $hmacsha.key = [Convert]::FromBase64String($StorageKey)
-  $signature = $hmacsha.ComputeHash([Text.Encoding]::UTF8.GetBytes($stringToSign))
+	$payload = "{0}`n`n`n{1}`n`n{2}`n{3}`n{4}`n{5}" -f $method, "0", "application/xml", "x-ms-date:$GMTTime", "x-ms-version:$StorageVersion", "/$StorageAccount/$Resource"
+	$hmacsha = New-Object System.Security.Cryptography.HMACSHA256
+	$hmacsha.key = [System.Convert]::FromBase64String($StorageKey)
+	$signature = $hmacsha.ComputeHash([Text.Encoding]::ASCII.GetBytes($payload))
 	$signature = [Convert]::ToBase64String($signature)
+
 	return $signature
 }
 
