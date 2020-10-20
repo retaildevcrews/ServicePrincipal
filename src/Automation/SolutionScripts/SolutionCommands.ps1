@@ -26,6 +26,14 @@ $global:CosmosDBUri = "${global:CosmosDBRootUri}/_explorer/index.html"
 # well known emulator key
 $global:CosmosKey = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="   
 
+# probable storage key
+$global:StorageKey = "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw=="
+
+# default storage account name
+$global:StorageAccount = "devstoreaccount1"
+
+# Storage Queue Endpoint Version
+$global:StorageVersion = "2014-02-14"
 
 function global:Setup-Environment()
 {
@@ -41,6 +49,31 @@ function global:Setup-Environment()
 # This function is solution specific - it provisions local resources specific for this application solution.
 function global:ProvisionLocalResources()
 {
+	ProvisionCosmosResources
+	ProvisionStorageResources
+}
+
+function global:ProvisionStorageResources(){
+	$queues = "evaluate", "update"
+	
+	# Creates queues
+	foreach ($queueName in $queues){
+		$url = "http://127.0.0.1:10001/$StorageAccount/$queueName"
+		$utc_now = (Get-Date).ToUniversalTime().ToString("R")
+		$signature = GenerateStorageAuthToken "PUT" $queueName $utc_now
+		Write-Output "Signature: $signature "
+	  $headers = @{
+			Authorization = "SharedKey ${StorageAccount}:$signature";
+			"x-ms-date" = $utc_now;
+			"x-ms-version" = $StorageVersion
+		};
+	  Write-Output "Headers: $($headers.Keys | % ToString) "
+	  Write-Output "Headers: $($headers.Values | % ToString) "
+		Invoke-RestMethod -Method PUT -Uri $url -Headers $headers
+	}
+}
+
+function global:ProvisionCosmosResources(){
 	$databaseName = "SPAutomate"
 	$collections = @{
 		"Configuration"= "/configType";
@@ -69,7 +102,6 @@ function global:ProvisionLocalResources()
 		}
 	}
 }
-
 
 function global:Start-StorageEmulator()
 {
@@ -214,7 +246,7 @@ function global:GetCosmosDatabases()
 	$resourceType = "dbs"
 	$resourceId = ""
 	
-	$authHeader = global:GenerateAuthToken $verb $resourceType $resourceId $utc_now
+	$authHeader = global:GenerateCosmosAuthToken $verb $resourceType $resourceId $utc_now
 	$headers = @{
 		"x-ms-date" = $utc_now;
 		"x-ms-version" = "2015-08-06";
@@ -242,7 +274,7 @@ function global:GetCosmosDatabaseCollections()
 	$resourceType = "colls"
 	$resourceId = "dbs/$databaseName"
 	
-	$authHeader = global:GenerateAuthToken $verb $resourceType $resourceId $utc_now
+	$authHeader = global:GenerateCosmosAuthToken $verb $resourceType $resourceId $utc_now
 	$headers = @{
 		"x-ms-date" = $utc_now;
 		"x-ms-version" = "2015-08-06";
@@ -269,7 +301,7 @@ function global:CreateCosmosDatabase()
 	$resourceType = "dbs"
 	$resourceId = ""
 
-	$authHeader = global:GenerateAuthToken $verb $resourceType $resourceId $utc_now
+	$authHeader = global:GenerateCosmosAuthToken $verb $resourceType $resourceId $utc_now
 	$headers = @{
 		"x-ms-date" = $utc_now;
 		"x-ms-version" = "2015-08-06";
@@ -301,7 +333,7 @@ function global:CreateCosmosDatabaseCollection()
 	$resourceType = "colls"
 	$resourceId = "dbs/$databaseName"
 
-	$authHeader = global:GenerateAuthToken $verb $resourceType $resourceId $utc_now
+	$authHeader = global:GenerateCosmosAuthToken $verb $resourceType $resourceId $utc_now
 	$headers = @{
 		"x-ms-date" = $utc_now;
 		"x-ms-version" = "2015-08-06";
@@ -313,7 +345,7 @@ function global:CreateCosmosDatabaseCollection()
 	return $result
 }
 
-function global:GenerateAuthToken()
+function global:GenerateCosmosAuthToken()
 {
 	param (
 		[string]$verb,
@@ -347,5 +379,18 @@ function global:GenerateAuthToken()
 	return $value
 }
 
+function global:GenerateStorageAuthToken($method, $Resource, $GMTTime)
+{
+	#VERB`nContent-Encoding`nContent-Language`nContent-Length`nContent-MD5`nContent-Type`nDate`nIf-Modified-Since`nIf-Match`nIf-None-Match`nIf-Unmodified-Since`nRange`nCanonicalizedHeaders CanonicalizedResource;
+	$canonicalizedHeaders = "x-ms-date:$GMTTime`nx-ms-version:$StorageVersion`n"
+	$canonicalizedResource = "/$StorageAccount/$Resource"
+	$payload = "VERB`n`n`n0`n`n`n`n`n`n`n`n`n$canonicalizedHeaders$canonicalizedResource;"
+	$hmacsha = New-Object System.Security.Cryptography.HMACSHA256
+	$hmacsha.key = [System.Convert]::FromBase64String($StorageKey)
+	$signature = $hmacsha.ComputeHash([Text.Encoding]::ASCII.GetBytes($payload))
+	$signature = [Convert]::ToBase64String($signature)
+
+	return $signature
+}
 
 Write-Output "SolutionCommands loaded."
