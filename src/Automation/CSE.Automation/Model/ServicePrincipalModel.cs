@@ -23,5 +23,7 @@ namespace CSE.Automation.Model
         [JsonProperty(PropertyName = "notes")]
         public string Notes { get; set; }
 
+        [JsonProperty(PropertyName = "owners")]
+        public IEnumerable<string> Owners { get; set; }
     }
 }

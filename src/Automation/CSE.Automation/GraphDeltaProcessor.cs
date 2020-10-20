@@ -31,20 +31,20 @@ namespace CSE.Automation
         }
 
 
-        [FunctionName("Discover Deltas")]
+        [FunctionName("DiscoverDeltas")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Will add specific error in time.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1801:Review unused parameters", Justification = "Required as part of Trigger declaration.")]
-        public async Task<int> Deltas([TimerTrigger("0 */30 * * * *")] TimerInfo myTimer, ILogger log)
+        public async Task Deltas([TimerTrigger("0 */30 * * * *")] TimerInfo myTimer, ILogger log)
         {
             var context = new ActivityContext();
             log.LogDebug("Executing SeedDeltaProcessorTimer Function");
 
 
             var result = await _processor.DiscoverDeltas(context).ConfigureAwait(false);
-            return result;
+            log.LogInformation($"Deltas: {result} ServicePrincipals discovered.");
         }
 
-        [FunctionName("Full Seed")]
+        [FunctionName("FullSeed")]
         public async Task<IActionResult> FullSeed([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req, ILogger log)
         {
             log.LogDebug("Executing SeedDeltaProcessor HttpTrigger Function");
@@ -79,7 +79,7 @@ namespace CSE.Automation
             log.LogInformation($"Queue trigger function processed: {msg.Id}");
         }
 
-        [FunctionName("Update AAD")]
+        [FunctionName("UpdateAAD")]
         [StorageAccount(Constants.SPStorageConnectionString)]
         public static void UpdateAAD([QueueTrigger(Constants.SPAADUpdateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
         {

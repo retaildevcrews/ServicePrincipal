@@ -196,7 +196,7 @@ namespace CSE.Automation.DataAccess
                 var container = client.GetContainer(_settings.DatabaseName, this.CollectionName);
 
                 _containerProperties = GetContainerProperties(container).Result;
-                _partitionKeyPI = typeof(TEntity).GetProperty(_containerProperties.PartitionKeyPath.TrimStart('/'), BindingFlags.IgnoreCase);
+                _partitionKeyPI = typeof(TEntity).GetProperty(_containerProperties.PartitionKeyPath.TrimStart('/'), BindingFlags.Public|BindingFlags.Instance|BindingFlags.IgnoreCase);
 
                 _logger.LogDebug($"{CollectionName} partition key path {_containerProperties.PartitionKeyPath}");
 

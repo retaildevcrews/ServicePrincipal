@@ -15,19 +15,32 @@ using CSE.Automation.Properties;
 
 namespace CSE.Automation.Processors
 {
-    public interface IServicePrincipalProcessor : IDeltaProcessor 
+    public interface IServicePrincipalProcessor : IDeltaProcessor
     {
         Task Evaluate(ActivityContext context, ServicePrincipalModel entity);
     }
 
     class ServicePrincipalProcessorSettings : DeltaProcessorSettings
     {
+        private string _queueConnectionString;
+        private string _queueName;
+
         public ServicePrincipalProcessorSettings(ISecretClient secretClient) : base(secretClient) { }
 
         [Secret(Constants.SPStorageConnectionString)]
-        public string QueueConnectionString => base.GetSecret();
-        [Secret(Constants.SPTrackingUpdateQueue)]
-        public string QueueName => base.GetSecret();
+        public string QueueConnectionString
+        {
+            get { return _queueConnectionString ?? base.GetSecret(); }
+            set { _queueConnectionString = value; }
+        }
+
+        [Secret(Constants.EvaluationQueueAppSetting)]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1304:Specify CultureInfo", Justification = "Not a localizable setting")]
+        public string QueueName
+        {
+            get { return _queueName ?? base.GetSecret().ToLower(); }
+            set { _queueName = value.ToLower(); }
+        }
 
         public override void Validate()
         {
@@ -78,15 +91,17 @@ namespace CSE.Automation.Processors
         {
             EnsureInitialized();
 
-            var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects(string.Join(',', _config.SelectFields), _config).ConfigureAwait(false);
+            IAzureQueueService queueService = _queueServiceFactory.Create(_settings.QueueConnectionString, _settings.QueueName);
+
+            var selectFields = new[] { "appId", "displayName", "notes", "owners", "notificationEmailAddresses"};
+            var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects(_config, string.Join(',', selectFields)).ConfigureAwait(false);
 
             string updatedDeltaLink = servicePrincipalResult.Item1; //TODO save this back in Config
             var servicePrincipalList = servicePrincipalResult.Item2;
 
-            IAzureQueueService queueService = _queueServiceFactory.Create(_settings.QueueConnectionString, _settings.QueueName);
 
-            int servicePrincipalCount = default;
-            int visibilityDelay = default;
+            int servicePrincipalCount = 0;
+            int visibilityDelay = 0;
 
             _logger.LogInformation($"Processing Service Principal objects...");
 
@@ -102,12 +117,18 @@ namespace CSE.Automation.Processors
                 {
                     AppId = sp.AppId,
                     DisplayName = sp.DisplayName,
-                    Notes = sp.Notes
+                    Notes = sp.Notes,
+                    Owners = sp.Owners?.Select(x => x.Id).ToList()
                 };
 
 
-
-                _logger.LogWarning(validators.SelectMany(v => v.Validate(servicePrincipal).Errors).ToString());
+                var errors = validators.SelectMany(v => v.Validate(servicePrincipal).Errors).ToList();
+                if (errors.Count > 0)
+                {
+                    _logger.LogWarning(string.Join('\n', errors));
+                    //errors.ForEach(x => _logger.LogWarning(x.ToString()));
+                    // audit errors
+                }
 
                 var myMessage = new QueueMessage()
                 {
@@ -143,7 +164,7 @@ namespace CSE.Automation.Processors
         /// <returns></returns>
         public async Task Evaluate(ActivityContext context, ServicePrincipalModel entity)
         {
-            
+
             // 1. if Notes field is blank
             //      - update Notes field from Owners
             //      - write audit

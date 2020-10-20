@@ -95,7 +95,6 @@ namespace CSE.Automation
                 .AddJsonFile($"appsettings.{envName}.json", true);
 
             var hostConfig = configBuilder.Build();
-            var value = hostConfig[Constants.CosmosDBURLName];
             builder.Services.Replace(ServiceDescriptor.Singleton(typeof(IConfiguration), hostConfig));
         }
 
@@ -113,7 +112,10 @@ namespace CSE.Automation
                 .AddSingleton(secretServiceSettings)
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<SecretServiceSettings>())
 
-                .AddTransient<GraphHelperSettings>()
+                .AddTransient<GraphHelperSettings>(x => new GraphHelperSettings(x.GetRequiredService<ISecretClient>())
+                {
+                    ScanLimit = config["ScanLimit"].ToInt()
+                })
                 .AddTransient<ISettingsValidator, GraphHelperSettings>()
 
                 .AddSingleton<ConfigRespositorySettings>(x => new ConfigRespositorySettings(x.GetRequiredService<ISecretClient>())
@@ -133,10 +135,13 @@ namespace CSE.Automation
 
                 .AddSingleton(x => new ServicePrincipalProcessorSettings(x.GetRequiredService<ISecretClient>())
                 {
+                    QueueConnectionString = config[Constants.SPStorageConnectionString],
+                    QueueName = config[Constants.EvaluationQueueAppSetting],
                     ConfigurationId = config["configId"].ToGuid(Guid.Parse("02a54ac9-441e-43f1-88ee-fde420db2559")),
                     VisibilityDelayGapSeconds = config["visibilityDelayGapSeconds"].ToInt(8),
                     QueueRecordProcessThreshold = config["queueRecordProcessThreshold"].ToInt(10),
-                });
+                })
+                .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ServicePrincipalProcessorSettings>());
             //.AddSingleton<ICosmosDBSettings, CosmosDBSettings>(x => new CosmosDBSettings(x.GetRequiredService<ISecretClient>())
             //                                                                {
             //                                                                    Uri = config[Constants.CosmosDBURLName],
