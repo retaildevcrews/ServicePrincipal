@@ -30,7 +30,7 @@ $global:CosmosKey = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8m
 $global:StorageKey = "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw=="
 
 # default storage account name
-$gloabl:StorageAccount = "devstoreaccount1"
+$global:StorageAccount = "devstoreaccount1"
 
 function global:Setup-Environment()
 {
@@ -56,12 +56,16 @@ function global:ProvisionStorageResources(){
 	# Creates queues
 	foreach ($queueName in $queues){
 		$url = "http://127.0.0.1:10001/$StorageAccount/$queueName"
-		$utc_now = (Get-Date).ToUniversalTime().ToString("R").ToLower();
+		$utc_now = (Get-Date).ToUniversalTime().ToString("R").ToLowerInvariant();
 		$signature = GenerateStorageAuthToken "PUT" $queueName $utc_now
+
+		Write-Output "Signature: $signature "
 	  $headers = @{
-			Authorization = "SharedKeyLite ${StorageAccount}:$signature"
-			"x-ms-date" = $utc_now
+			Authorization = "SharedKey ${StorageAccount}:$signature"
+			Date = $utc_now
 	};
+	     Write-Output "Headers: $($headers.Keys | % ToString) "
+	    Write-Output "Headers: $($headers.Values | % ToString) "
 		Invoke-RestMethod -Method PUT -Uri $url -Headers $headers
 	}
 }
@@ -374,7 +378,7 @@ function global:GenerateCosmosAuthToken()
 
 function global:GenerateStorageAuthToken($method, $resource, $GMTTime)
 {
-	$method = $method.ToLowerInvariant()
+	$method = $method.ToLower()
 	$contenttype = "application/xml"
 	$version = "2017-04-17"
   $canonheaders = "x-ms-date:$GMTTime`nx-ms-version:$version`n"
