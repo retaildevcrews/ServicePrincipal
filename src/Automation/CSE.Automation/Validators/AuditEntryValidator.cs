@@ -12,7 +12,7 @@ namespace CSE.Automation.Validators
             RuleFor(x => x.CorrelationId).NotNull().NotEmpty();
             RuleFor(x => x.ActionReason).NotNull().NotEmpty();
             RuleFor(x => x.ActionType).NotNull().NotEmpty();
-            RuleFor(x => x.ActionDateTime).NotEqual(DateTime.MinValue);
+            RuleFor(x => x.ActionDateTime).NotEqual(DateTimeOffset.MinValue);
         }
     }
 }

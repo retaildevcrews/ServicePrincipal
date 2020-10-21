@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using System.Net.Mail;
 using CSE.Automation.Model;
 using FluentValidation;
+using System.Diagnostics;
 
 namespace CSE.Automation.Validators
 {
@@ -12,18 +13,19 @@ namespace CSE.Automation.Validators
     {
         public GraphModelValidator()
         {
+            var minDate = new DateTimeOffset(new DateTime(1990, 1, 1), TimeSpan.Zero);
             RuleFor(m => m.Id)
                 .NotEmpty()
                 .MaximumLength(Constants.MaxStringLength);
             RuleFor(m => m.Created)
                 .NotEmpty()
-                .GreaterThan(new DateTime(1990, 1, 1));
+                .GreaterThan(minDate);
             RuleFor(m => m.LastUpdated)
                 .NotEmpty()
-                .GreaterThan(new DateTime(1990, 1, 1));
+                .GreaterThan(minDate);
             RuleFor(m => m)
                 .Must(BeValidModelDateSequence)
-                .WithMessage("'Created', 'Deleted', 'LastUpdated' sequence invalid.");
+                .WithMessage("'Created', 'Deleted', 'LastUpdated'");
             RuleFor(m => m.ObjectType)
                 .IsInEnum();
             RuleFor(m => m.Status)
@@ -32,13 +34,15 @@ namespace CSE.Automation.Validators
 
         protected static bool BeValidModelDateSequence(GraphModel model)
         {
-            if (model.Deleted == null)
+            if (model == null) throw new ArgumentNullException(nameof(model));
+
+            if (model.Deleted.HasValue)
             {
-                return model.LastUpdated >= model.Created;
+                return model.LastUpdated >= model.Deleted && model.Deleted >= model.Created;
             }
             else
             {
-                return model.LastUpdated >= model.Deleted && model.Deleted >= model.Created;
+                return model.LastUpdated >= model.Created;
             }
         }
 

@@ -48,11 +48,6 @@ namespace CSE.Automation.DataAccess
             return entity.Id;
         }
 
-        public override PartitionKey ResolvePartitionKey(string entityId)
-        {
-            return new PartitionKey($"ServicePrincipal");
-        }
-
         public override string CollectionName => _settings.CollectionName;
     }
 }

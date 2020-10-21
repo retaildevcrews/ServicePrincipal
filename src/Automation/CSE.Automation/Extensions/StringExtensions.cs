@@ -55,5 +55,16 @@ namespace CSE.Automation.Extensions
         {
             return string.IsNullOrEmpty(value);
         }
+
+        public static string ToCamelCase(this string? value)
+        {
+            if (value == null) return String.Empty;
+
+            var str = value.Replace(" ", string.Empty, StringComparison.OrdinalIgnoreCase);
+
+            str = char.ToLowerInvariant(str[0]) + str.Substring(1);
+
+            return str;
+        }
     }
 }
