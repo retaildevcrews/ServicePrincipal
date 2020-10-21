@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Threading.Tasks;
 using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
+using CSE.Automation.Model;
 using CSE.Automation.Processors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -14,10 +15,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
+using Newtonsoft.Json;
 
 namespace CSE.Automation
 {
-    public class GraphDeltaProcessor
+    internal class GraphDeltaProcessor
     {
         private readonly IServicePrincipalProcessor _processor;
         private readonly ILogger _logger;
@@ -28,64 +30,58 @@ namespace CSE.Automation
             ValidateServices(serviceProvider);
         }
 
-        //private async Task<int> LaunchSeedDeltaProcessor()
-        //{
-        //    int visibilityDelayGapSeconds = int.Parse(Environment.GetEnvironmentVariable("visibilityDelayGapSeconds"), CultureInfo.InvariantCulture);
-        //    int queueRecordProcessThreshold = int.Parse(Environment.GetEnvironmentVariable("queueRecordProcessThreshold"), CultureInfo.InvariantCulture);
-        //    _processor.VisibilityDelayGapSeconds = visibilityDelayGapSeconds;
-        //    _processor.QueueRecordProcessThreshold = queueRecordProcessThreshold;
 
-        //    return await _processor.ProcessDeltas().ConfigureAwait(false);
-        //}
-
-        [FunctionName("SeedDeltaProcessorTimer")]
+        [FunctionName("DiscoverDeltas")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Will add specific error in time.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1801:Review unused parameters", Justification = "Required as part of Trigger declaration.")]
-        public async Task<int> SeedDeltaProcessorTimer([TimerTrigger("0 */30 * * * *")] TimerInfo myTimer, ILogger log)
+        public async Task Deltas([TimerTrigger("0 */30 * * * *")] TimerInfo myTimer, ILogger log)
         {
+            var context = new ActivityContext();
             log.LogDebug("Executing SeedDeltaProcessorTimer Function");
 
 
-            var result = await _processor.ProcessDeltas().ConfigureAwait(false);
-            return result;
+            var result = await _processor.DiscoverDeltas(context, false).ConfigureAwait(false);
+            log.LogInformation($"Deltas: {result} ServicePrincipals discovered.");
         }
 
-        [FunctionName("SeedDeltaProcessor")]
-        public async Task<IActionResult> SeedDeltaProcessor(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
-            ILogger log)
+        [FunctionName("FullSeed")]
+        public async Task<IActionResult> FullSeed([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req, ILogger log)
         {
             log.LogDebug("Executing SeedDeltaProcessor HttpTrigger Function");
 
+            var context = new ActivityContext();
 
             // TODO: If we end up with now request params needed for the seed function then remove the param and this check.
             if (req is null)
                 throw new ArgumentNullException(nameof(req));
-
-            int objectCount = await _processor.ProcessDeltas().ConfigureAwait(false);
+            
+            int objectCount = await _processor.DiscoverDeltas(context, true).ConfigureAwait(false);
 
             return new OkObjectResult($"Service Principal Objects Processed: {objectCount}");
         }
 
-        [FunctionName("SPTrackingQueueTrigger")]
+        [FunctionName("Evaluate")]
         [StorageAccount(Constants.SPStorageConnectionString)]
-        public static async Task SPTrackingQueueTrigger([QueueTrigger(Constants.SPTrackingUpdateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
+        public async Task Evaluate([QueueTrigger(Constants.EvaluateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
         {
+            var context = new ActivityContext();
+
             if (msg == null)
             {
                 throw new ArgumentNullException(nameof(msg));
             }
 
             log.LogInformation("Incoming message from SPTracking queue");
+            var message = JsonConvert.DeserializeObject<QueueMessage<ServicePrincipalModel>>(msg.AsString);
 
-            // Made this async to adhere with Function being declared async Task.  Remove once actual processing logic is added.
-            await Task.Run(() => { log.LogInformation($"Queue trigger function processed: {msg.Id}"); }).ConfigureAwait(false);
+            await _processor.Evaluate(context, message.Document as ServicePrincipalModel).ConfigureAwait(false);
 
+            log.LogInformation($"Queue trigger function processed: {msg.Id}");
         }
 
-        [FunctionName("SPAADQueueTrigger")]
+        [FunctionName("UpdateAAD")]
         [StorageAccount(Constants.SPStorageConnectionString)]
-        public static void SPAADQueueTrigger([QueueTrigger(Constants.SPAADUpdateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
+        public static void UpdateAAD([QueueTrigger(Constants.SPAADUpdateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
         {
             if (msg == null)
             {

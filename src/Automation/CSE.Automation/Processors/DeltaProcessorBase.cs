@@ -41,13 +41,12 @@ namespace CSE.Automation.Processors
         public abstract int VisibilityDelayGapSeconds { get; }
         public abstract int QueueRecordProcessThreshold { get; }
         public abstract Guid ConfigurationId { get; }
+        public abstract ProcessorType ProcessorType { get; }
         protected abstract byte[] DefaultConfigurationResource { get; }
 
         protected DeltaProcessorBase(IConfigService<ProcessorConfiguration> configService)
         {
             _configService = configService;
-
-
         }
 
         protected void EnsureInitialized()
@@ -58,11 +57,10 @@ namespace CSE.Automation.Processors
 
         private void Initialize()
         {
-            // Need the config for startup, so accepting the blocking call in the constructor.
-            _config = _configService.Get(this.ConfigurationId.ToString(), DefaultConfigurationResource);
+            _config = _configService.Get(this.ConfigurationId.ToString(), ProcessorType, DefaultConfigurationResource);
             _initialized = true;
         }
 
-        public abstract Task<int> ProcessDeltas();
+        public abstract Task<int> DiscoverDeltas(ActivityContext context, bool forceReseed = false);
     }
 }

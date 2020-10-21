@@ -14,35 +14,37 @@ namespace CSE.Automation.Services
 {
     internal class ConfigService : IConfigService<ProcessorConfiguration>
     {
-        private ConfigRepository _configRepository;
-        public ConfigService(ConfigRepository configRepository)
+        private IConfigRepository _configRepository;
+        public ConfigService(IConfigRepository configRepository)
         {
             this._configRepository = configRepository;
         }
 
-        public ProcessorConfiguration Get(string id, byte[] defaultConfig)
+        public ProcessorConfiguration Get(string id, ProcessorType processorType, byte[] defaultConfig)
         {
-            if (!_configRepository.DoesExistsAsync(id).Result)
+            ProcessorConfiguration configuration = _configRepository.GetByIdAsync(id, processorType.ToString()).GetAwaiter().GetResult();
+            if (configuration == null)
             {
-
                 if (defaultConfig == null || defaultConfig.Length == 0)
+                {
                     throw new NullReferenceException("Null or empty initial Configuration Document resource.");
+                }
+
                 var initalDocumentAsString = System.Text.Encoding.Default.GetString(defaultConfig);
 
                 try
                 {
-                    ProcessorConfiguration initialConfigDocumentAsJson = JsonConvert.DeserializeObject<ProcessorConfiguration>(initalDocumentAsString);
-                    return _configRepository.CreateDocumentAsync(initialConfigDocumentAsJson, new PartitionKey(initialConfigDocumentAsJson.Id)).Result;
+                    ProcessorConfiguration defaultConfiguration = JsonConvert.DeserializeObject<ProcessorConfiguration>(initalDocumentAsString);
+                    return _configRepository.CreateDocumentAsync(defaultConfiguration).Result;
                 }
                 catch (Exception ex)
                 {
                     throw new InvalidDataException("Unable to deserialize Initial Configuration Document.", ex);
                 }
             }
-            else
-            {
-                return _configRepository.GetByIdAsync(id).Result;
-            }
+
+            return configuration;
+
         }
         public async Task<ProcessorConfiguration> Put(ProcessorConfiguration newDocument)
         {

@@ -13,13 +13,18 @@ namespace CSE.Automation.DataAccess
 {
     internal class ObjectTrackingRepositorySettings : CosmosDBSettings
     {
+        private string _collectionName;
+
         public ObjectTrackingRepositorySettings(ISecretClient secretClient) : base(secretClient)
         {
         }
 
-        [Secret(Constants.CosmosDBOjbectTrackingCollectionName)]
-        public string CollectionName => base.GetSecret();
-
+        [Secret(Constants.CosmosDBObjectTrackingCollectionName)]
+        public string CollectionName
+        {
+            get { return _collectionName ?? base.GetSecret(); }
+            set { _collectionName = value; }
+        }
         public override void Validate()
         {
             base.Validate();
@@ -27,8 +32,8 @@ namespace CSE.Automation.DataAccess
         }
     }
 
-    internal interface IObjectTrackingRepository : ICosmosDBRepository<ServicePrincipalModel> { }
-    internal class ObjectTrackingRepository : CosmosDBRepository<ServicePrincipalModel>, IObjectTrackingRepository
+    internal interface IObjectTrackingRepository : ICosmosDBRepository<TrackingModel>  { }
+    internal class ObjectTrackingRepository : CosmosDBRepository<TrackingModel>, IObjectTrackingRepository
     {
         private readonly ObjectTrackingRepositorySettings _settings;
         public ObjectTrackingRepository(ObjectTrackingRepositorySettings settings, ILogger<ObjectTrackingRepository> logger) : base(settings, logger)
@@ -36,7 +41,7 @@ namespace CSE.Automation.DataAccess
             _settings = settings;
         }
 
-        public override string GenerateId(ServicePrincipalModel entity)
+        public override string GenerateId(TrackingModel entity)
         {
             if (string.IsNullOrWhiteSpace(entity.Id))
             {
@@ -45,11 +50,7 @@ namespace CSE.Automation.DataAccess
             return entity.Id;
         }
 
-        public override PartitionKey ResolvePartitionKey(string entityId)
-        {
-            return new PartitionKey(entityId);
-        }
-
         public override string CollectionName => _settings.CollectionName;
+        
     }
 }

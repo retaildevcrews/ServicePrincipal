@@ -3,14 +3,16 @@ using System.Text.Json.Serialization;
 
 namespace CSE.Automation.Model
 {
-
-    public class QueueMessage
+    public abstract class QueueMessage
     {
         public QueueMessageType QueueMessageType { get; set; }
 
         public int Attempt { get; set; }
 
-        public GraphModel Document { get; set; }
+    }
+    public class QueueMessage<TDocument> : QueueMessage
+    {
+        public TDocument Document { get; set; }
     }
 
     public enum QueueMessageType

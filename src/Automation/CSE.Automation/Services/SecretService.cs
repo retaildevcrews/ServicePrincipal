@@ -21,6 +21,7 @@ namespace CSE.Automation.KeyVault
     {
         private readonly SecretClient _secretClient;
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "Instances are injected via DI and are guaranteed to be non-null")]
         public SecretService(SecretServiceSettings settings, ICredentialService credService)
         {
             //build URI
