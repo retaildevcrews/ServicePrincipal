@@ -25,22 +25,17 @@ namespace CSE.Automation.Graph
             {
                 selectFields = string.Join(',', config.SelectFields);
             }
+
             IServicePrincipalDeltaCollectionPage servicePrincipalCollectionPage;
+            var servicePrincipalList = new List<ServicePrincipal>();
 
-            var servicePrincipalSeedList = new List<ServicePrincipal>();
-
-            if (config.RunState == RunState.Seedonly ||
-                config.RunState == RunState.SeedAndRun ||
-                String.IsNullOrEmpty(config.DeltaLink))
+            if (IsSeedRun(config))
             {
                 _logger.LogInformation("Seeding Service Principal objects from Graph...");
 
                 servicePrincipalCollectionPage = await graphClient.ServicePrincipals
                 .Delta()
                 .Request()
-                .Expand("Owners")
-                .Top(500)
-                //.Request(new[] { new QueryOption("$top", "500") })
                 //.Select(selectFields)
                 .GetAsync()
                 .ConfigureAwait(false);
@@ -54,25 +49,46 @@ namespace CSE.Automation.Graph
                 servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
             }
 
-            servicePrincipalSeedList.AddRange(servicePrincipalCollectionPage.CurrentPage);
+            servicePrincipalList.AddRange(servicePrincipalCollectionPage.CurrentPage);
             _logger.LogDebug($"\tDiscovered {servicePrincipalCollectionPage.CurrentPage.Count} Service Principals");
 
+            var totalRetrieved = servicePrincipalList.Count;
             while (servicePrincipalCollectionPage.NextPageRequest != null)
             {
-                servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
-                servicePrincipalSeedList.AddRange(servicePrincipalCollectionPage.CurrentPage);
-                _logger.LogDebug($"\tDiscovered {servicePrincipalCollectionPage.CurrentPage.Count} Service Principals");
-                if (_settings.ScanLimit.HasValue && servicePrincipalSeedList.Count > _settings.ScanLimit) break;
+                servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.Top(500).GetAsync().ConfigureAwait(false);
+                
+                var pageList = servicePrincipalCollectionPage.CurrentPage;
+                var count = pageList.Count;
+                totalRetrieved += count;
+                _logger.LogDebug($"\tDiscovered {count} Service Principals");
+                if (IsSeedRun(config))
+                {
+                    _logger.LogInformation($"Trimming removed service principals for seed run.");
+                    pageList = pageList.Where(x => x.AdditionalData.Keys.Contains("@removed") == false).ToList();
+                    _logger.LogInformation($"\tTrimmed {count-pageList.Count} service principals.");
+                }
+
+                servicePrincipalList.AddRange(pageList);
+                //if (_settings.ScanLimit.HasValue && totalRetrieved > _settings.ScanLimit) break;
             }
 
-            _logger.LogInformation($"Discovered {servicePrincipalSeedList.Count} delta objects.");
+            _logger.LogInformation($"Discovered {servicePrincipalList.Count} delta objects.");
 
-            var foundItem = servicePrincipalSeedList.FirstOrDefault(x => string.Equals(x.Id, "ea016769-ea50-4b6e-a691-23996eaf378a", StringComparison.OrdinalIgnoreCase));
-            var ownedItems = servicePrincipalSeedList.Where(x => x.Owners != null).ToList();
+            var foundItem = servicePrincipalList.FirstOrDefault(x => string.Equals(x.Id, "ea016769-ea50-4b6e-a691-23996eaf378a", StringComparison.OrdinalIgnoreCase));
+            //var removedItems = servicePrincipalSeedList.Where(x => x.AdditionalData.Keys.Contains("@removed")).ToList();
 
             servicePrincipalCollectionPage.AdditionalData.TryGetValue("@odata.deltaLink", out object updatedDeltaLink);
 
-            return (updatedDeltaLink?.ToString(), servicePrincipalSeedList);
+
+            return (updatedDeltaLink?.ToString(), servicePrincipalList);
+        }
+
+        private static bool IsSeedRun(ProcessorConfiguration config)
+        {
+            return
+                config.RunState == RunState.Seedonly ||
+                config.RunState == RunState.SeedAndRun ||
+                String.IsNullOrEmpty(config.DeltaLink);
         }
     }
 }

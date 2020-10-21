@@ -102,7 +102,7 @@ namespace CSE.Automation.Processors
 
         }
 
-        public abstract Task<int> DiscoverDeltas(ActivityContext context);
+        public abstract Task<int> DiscoverDeltas(ActivityContext context, bool forceReseed = false);
 
     }
 }

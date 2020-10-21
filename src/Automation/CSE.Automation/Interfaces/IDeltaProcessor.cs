@@ -9,6 +9,6 @@ namespace CSE.Automation.Interfaces
         int VisibilityDelayGapSeconds { get; }
         int QueueRecordProcessThreshold { get; }
 
-        Task<int> DiscoverDeltas(ActivityContext context);
+        Task<int> DiscoverDeltas(ActivityContext context, bool forceReseed = false);
     }
 }

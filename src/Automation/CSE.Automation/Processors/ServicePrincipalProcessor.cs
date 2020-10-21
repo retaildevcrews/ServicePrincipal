@@ -34,12 +34,12 @@ namespace CSE.Automation.Processors
             set { _queueConnectionString = value; }
         }
 
-        [Secret(Constants.EvaluationQueueAppSetting)]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1304:Specify CultureInfo", Justification = "Not a localizable setting")]
+        [Secret(Constants.EvaluateQueueAppSetting)]
         public string QueueName
         {
             get { return _queueName ?? base.GetSecret().ToLower(); }
-            set { _queueName = value.ToLower(); }
+            set { _queueName = value?.ToLower(); }
         }
 
         public override void Validate()
@@ -87,10 +87,14 @@ namespace CSE.Automation.Processors
         /// </summary>
         /// <returns></returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Console.WriteLine will be changed to logs")]
-        public override async Task<int> DiscoverDeltas(ActivityContext context)
+        public override async Task<int> DiscoverDeltas(ActivityContext context, bool forceReseed=false)
         {
             EnsureInitialized();
 
+            if (forceReseed)
+            {
+                _config.RunState = RunState.SeedAndRun;
+            }
             IAzureQueueService queueService = _queueServiceFactory.Create(_settings.QueueConnectionString, _settings.QueueName);
 
             var selectFields = new[] { "appId", "displayName", "notes", "owners", "notificationEmailAddresses"};
@@ -115,22 +119,22 @@ namespace CSE.Automation.Processors
                 }
                 var servicePrincipal = new ServicePrincipalModel()
                 {
+                    Id = sp.Id,
                     AppId = sp.AppId,
                     DisplayName = sp.DisplayName,
                     Notes = sp.Notes,
-                    Owners = sp.Owners?.Select(x => x.Id).ToList()
                 };
 
 
-                var errors = validators.SelectMany(v => v.Validate(servicePrincipal).Errors).ToList();
-                if (errors.Count > 0)
-                {
-                    _logger.LogWarning(string.Join('\n', errors));
-                    //errors.ForEach(x => _logger.LogWarning(x.ToString()));
-                    // audit errors
-                }
+                //var errors = validators.SelectMany(v => v.Validate(servicePrincipal).Errors).ToList();
+                //if (errors.Count > 0)
+                //{
+                //    _logger.LogWarning(string.Join('\n', errors));
+                //    //errors.ForEach(x => _logger.LogWarning(x.ToString()));
+                //    // audit errors
+                //}
 
-                var myMessage = new QueueMessage()
+                var myMessage = new QueueMessage<ServicePrincipalModel>()
                 {
                     QueueMessageType = QueueMessageType.Data,
                     Document = servicePrincipal,

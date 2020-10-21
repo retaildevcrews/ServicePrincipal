@@ -33,7 +33,7 @@ $global:StorageKey = "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4
 $global:StorageAccount = "devstoreaccount1"
 
 # Storage Queue Endpoint Version
-$global:StorageVersion = "2014-02-14"
+$global:StorageVersion = "2019-12-12"
 
 function global:Setup-Environment()
 {
@@ -54,22 +54,24 @@ function global:ProvisionLocalResources()
 }
 
 function global:ProvisionStorageResources(){
-	$queues = "evaluate", "update"
+	$queues = "evaluate"#, "update"
 	
 	# Creates queues
-	foreach ($queueName in $queues){
-		$url = "http://127.0.0.1:10001/$StorageAccount/$queueName"
+	$queues | % {
+		$url = "http://127.0.0.1:10001/${StorageAccount}/$_"
 		$utc_now = (Get-Date).ToUniversalTime().ToString("R")
-		$signature = GenerateStorageAuthToken "PUT" $queueName $utc_now
-		Write-Output "Signature: $signature "
-	  $headers = @{
-			Authorization = "SharedKey ${StorageAccount}:$signature";
+		$signature = GenerateStorageAuthToken "PUT" "" $utc_now
+		#Write-Output "Signature: $signature "
+		$authHeader = "SharedKey ${StorageAccount}:${signature}"
+		Write-Output $authHeader
+		$headers = @{
+			Authorization = $authHeader;
 			"x-ms-date" = $utc_now;
 			"x-ms-version" = $StorageVersion
-		};
-	  Write-Output "Headers: $($headers.Keys | % ToString) "
-	  Write-Output "Headers: $($headers.Values | % ToString) "
-		Invoke-RestMethod -Method PUT -Uri $url -Headers $headers
+		}
+	  #Write-Output "Headers: $($headers.Keys | % ToString) "
+	  #Write-Output "Headers: $($headers.Values | % ToString) "
+		Invoke-WebRequest -UseBasicParsing -Method PUT -Uri $url -Headers $headers
 	}
 }
 
@@ -305,7 +307,7 @@ function global:CreateCosmosDatabase()
 	$headers = @{
 		"x-ms-date" = $utc_now;
 		"x-ms-version" = "2015-08-06";
-		Authorization = $authHeader
+		Authorization = $authHeader;
 	}
 	$body = "{""id"":""$databaseName""}"
 	#Write-Output $body
@@ -337,7 +339,7 @@ function global:CreateCosmosDatabaseCollection()
 	$headers = @{
 		"x-ms-date" = $utc_now;
 		"x-ms-version" = "2015-08-06";
-		Authorization = $authHeader
+		Authorization = $authHeader;
 	}
 	$body = "{""id"":""$collectionName"", ""partitionKey"": { ""paths"": [ ""$partitionKey""],""kind"":""Hash"",""version"": 1 } }"
 	#Write-Output $body
@@ -382,9 +384,11 @@ function global:GenerateCosmosAuthToken()
 function global:GenerateStorageAuthToken($method, $Resource, $GMTTime)
 {
 	#VERB`nContent-Encoding`nContent-Language`nContent-Length`nContent-MD5`nContent-Type`nDate`nIf-Modified-Since`nIf-Match`nIf-None-Match`nIf-Unmodified-Since`nRange`nCanonicalizedHeaders CanonicalizedResource;
-	$canonicalizedHeaders = "x-ms-date:$GMTTime`nx-ms-version:$StorageVersion`n"
-	$canonicalizedResource = "/$StorageAccount/$Resource"
-	$payload = "VERB`n`n`n0`n`n`n`n`n`n`n`n`n$canonicalizedHeaders$canonicalizedResource;"
+	$canonicalizedHeaders = "x-ms-date:$($GMTTime)`nx-ms-version:$($StorageVersion)`n"
+	$canonicalizedResource = "${Resource}"
+	$payload = "$($method)`n`n`n`n`n`n`n`n`n`n`n`n$($canonicalizedHeaders)$($canonicalizedResource)"
+	#Write-Output $payload
+	
 	$hmacsha = New-Object System.Security.Cryptography.HMACSHA256
 	$hmacsha.key = [System.Convert]::FromBase64String($StorageKey)
 	$signature = $hmacsha.ComputeHash([Text.Encoding]::ASCII.GetBytes($payload))

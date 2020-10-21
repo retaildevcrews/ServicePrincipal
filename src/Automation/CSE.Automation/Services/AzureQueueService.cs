@@ -38,9 +38,9 @@ namespace CSE.Automation.Services
                 try
                 {
                     message.Attempt = numOfAttempts;
-
+                    var payload = JsonConvert.SerializeObject(message);
                     await _queueClient
-                        .SendMessageAsync(JsonConvert.SerializeObject(message), TimeSpan.FromSeconds(visibilityDelay))
+                        .SendMessageAsync(Base64Encode(payload), TimeSpan.FromSeconds(visibilityDelay))
                         .ConfigureAwait(false);
                     messageSent = true;
                 }
@@ -50,6 +50,11 @@ namespace CSE.Automation.Services
                 }
                 numOfAttempts++;
             }
+        }
+        private static string Base64Encode(string plainText)
+        {
+            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
+            return System.Convert.ToBase64String(plainTextBytes);
         }
     }
 }

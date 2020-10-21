@@ -16,7 +16,7 @@ namespace CSE.Automation.Model
 
         public SecretAttribute(string name)
         {
-            _name = name;
+            _name = name.Trim('%');
         }
 
         public string SecretName => _name;

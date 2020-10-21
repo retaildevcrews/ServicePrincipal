@@ -24,8 +24,8 @@
 
         // Azure Storage Queue Constants
         public const string SPStorageConnectionString = "SPStorageConnectionString";
-        public const string EvaluationQueueAppSetting = "SPEvaluationQueue";
-        public const string SPAADUpdateQueueAppSetting = "SPAADUpdateQueue";
+        public const string EvaluateQueueAppSetting = "%SPEvaluateQueue%";
+        public const string SPAADUpdateQueueAppSetting = "%SPAADUpdateQueue%";
 
         //Queueing Constants
         public const int MaxVisibilityDelayGapSeconds = 500;

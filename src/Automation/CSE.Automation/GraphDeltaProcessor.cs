@@ -40,7 +40,7 @@ namespace CSE.Automation
             log.LogDebug("Executing SeedDeltaProcessorTimer Function");
 
 
-            var result = await _processor.DiscoverDeltas(context).ConfigureAwait(false);
+            var result = await _processor.DiscoverDeltas(context, false).ConfigureAwait(false);
             log.LogInformation($"Deltas: {result} ServicePrincipals discovered.");
         }
 
@@ -55,14 +55,14 @@ namespace CSE.Automation
             if (req is null)
                 throw new ArgumentNullException(nameof(req));
             
-            int objectCount = await _processor.DiscoverDeltas(context).ConfigureAwait(false);
+            int objectCount = await _processor.DiscoverDeltas(context, true).ConfigureAwait(false);
 
             return new OkObjectResult($"Service Principal Objects Processed: {objectCount}");
         }
 
         [FunctionName("Evaluate")]
         [StorageAccount(Constants.SPStorageConnectionString)]
-        public async Task Evaluate([QueueTrigger(Constants.EvaluationQueueAppSetting)] CloudQueueMessage msg, ILogger log)
+        public async Task Evaluate([QueueTrigger(Constants.EvaluateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
         {
             var context = new ActivityContext();
 
@@ -72,7 +72,7 @@ namespace CSE.Automation
             }
 
             log.LogInformation("Incoming message from SPTracking queue");
-            var message = JsonConvert.DeserializeObject<QueueMessage>(msg.AsString);
+            var message = JsonConvert.DeserializeObject<QueueMessage<ServicePrincipalModel>>(msg.AsString);
 
             await _processor.Evaluate(context, message.Document as ServicePrincipalModel).ConfigureAwait(false);
 
