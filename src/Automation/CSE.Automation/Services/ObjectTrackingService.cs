@@ -2,6 +2,7 @@
 using CSE.Automation.Extensions;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
+using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
@@ -12,7 +13,7 @@ namespace CSE.Automation.Services
     {
         private readonly IObjectTrackingRepository _objectRepository;
         private readonly IAuditService _auditService;
-        private readonly ILogger<ObjectTrackingService> _logger;
+        private readonly ILogger _logger;
 
         public ObjectTrackingService(IObjectTrackingRepository objectRepository, IAuditService auditService, ILogger<ObjectTrackingService> logger)
         {
@@ -21,7 +22,7 @@ namespace CSE.Automation.Services
             _logger = logger;
         }
 
-        public async Task<TrackingModel> Get<TEntity>(string id)
+        public async Task<TrackingModel> Get<TEntity>(string id) where TEntity : GraphModel
         {
             var entity = await _objectRepository
                                     .GetByIdAsync(id, EntityToObjectType(typeof(TEntity)).ToString().ToCamelCase())
@@ -48,11 +49,11 @@ namespace CSE.Automation.Services
 
         public async Task<TrackingModel> Put<TEntity>(TEntity entity) where TEntity : GraphModel
         {
-            var model = new TrackingModel
+            var model = new TrackingModel<TEntity>
             {
                 Created = DateTimeOffset.Now,
                 LastUpdated = DateTimeOffset.Now,
-                Entity = entity,
+                TypedEntity = entity,
             };
             _objectRepository.GenerateId(model);
             return await _objectRepository.UpsertDocumentAsync(model).ConfigureAwait(false);

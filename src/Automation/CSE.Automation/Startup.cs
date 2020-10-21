@@ -130,7 +130,13 @@ namespace CSE.Automation
                 .AddSingleton<AuditRespositorySettings>(x => new AuditRespositorySettings(x.GetRequiredService<ISecretClient>()))
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<AuditRespositorySettings>())
 
-                .AddSingleton<ObjectTrackingRepositorySettings>(x => new ObjectTrackingRepositorySettings(x.GetRequiredService<ISecretClient>()))
+                .AddSingleton<ObjectTrackingRepositorySettings>(x => new ObjectTrackingRepositorySettings(x.GetRequiredService<ISecretClient>())
+                {
+                    Uri = config[Constants.CosmosDBURLName],
+                    Key = config[Constants.CosmosDBKeyName],
+                    DatabaseName = config[Constants.CosmosDBDatabaseName],
+                    CollectionName = config[Constants.CosmosDBObjectTrackingCollectionName]
+                })
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ObjectTrackingRepositorySettings>())
 
                 .AddSingleton(x => new ServicePrincipalProcessorSettings(x.GetRequiredService<ISecretClient>())
@@ -189,20 +195,22 @@ namespace CSE.Automation
                 .AddSingleton<ICredentialService>(x => new CredentialService(x.GetRequiredService<CredentialServiceSettings>()))
                 .AddSingleton<ISecretClient>(x => new SecretService(x.GetRequiredService<SecretServiceSettings>(), x.GetRequiredService<ICredentialService>()))
 
-                .AddScoped<ConfigRepository>()
-                .AddScoped<IConfigRepository, ConfigRepository>()
-                .AddScoped<ICosmosDBRepository<ProcessorConfiguration>, ConfigRepository>()
+                .AddSingleton<ConfigRepository>()
+                .AddSingleton<IConfigRepository, ConfigRepository>(provider => provider.GetRequiredService<ConfigRepository>())
+                .AddSingleton<ICosmosDBRepository<ProcessorConfiguration>, ConfigRepository>(provider => provider.GetRequiredService<ConfigRepository>())
 
-                .AddScoped<AuditRepository>()
-                .AddScoped<IAuditRepository, AuditRepository>()
-                .AddScoped<ICosmosDBRepository<AuditEntry>, AuditRepository>()
+                .AddSingleton<AuditRepository>()
+                .AddSingleton<IAuditRepository, AuditRepository>(provider => provider.GetRequiredService<AuditRepository>())
+                .AddSingleton<ICosmosDBRepository<AuditEntry>, AuditRepository>(provider => provider.GetRequiredService<AuditRepository>())
 
-                .AddScoped<ObjectTrackingRepository>()
-                .AddScoped<IObjectTrackingRepository, ObjectTrackingRepository>()
-                .AddScoped<ICosmosDBRepository<TrackingModel>, ObjectTrackingRepository>()
+                .AddSingleton<ObjectTrackingRepository>()
+                .AddSingleton<IObjectTrackingRepository, ObjectTrackingRepository>(provider => provider.GetRequiredService<ObjectTrackingRepository>())
+                .AddSingleton<ICosmosDBRepository<TrackingModel>, ObjectTrackingRepository>(provider => provider.GetRequiredService<ObjectTrackingRepository>())
 
                 .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>()
                 .AddScoped<IServicePrincipalProcessor, ServicePrincipalProcessor>()
+
+                .AddScoped<IObjectTrackingService, ObjectTrackingService>()
 
                 .AddScoped<IModelValidator<GraphModel>, GraphModelValidator>()
                 .AddScoped<IModelValidator<ServicePrincipalModel>, ServicePrincipalModelValidator>()

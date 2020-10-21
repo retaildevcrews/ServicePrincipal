@@ -1,17 +1,16 @@
-﻿using System;
+﻿using CSE.Automation.Config;
+using CSE.Automation.Interfaces;
+using CSE.Automation.Model;
+using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Fluent;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading;
 using System.Threading.Tasks;
-using CSE.Automation.Config;
-using CSE.Automation.Interfaces;
-using CSE.Automation.Model;
-using Microsoft.Azure.Cosmos;
-using Microsoft.Extensions.Logging;
 using SettingsBase = CSE.Automation.Model.SettingsBase;
 
 namespace CSE.Automation.DataAccess
@@ -92,12 +91,23 @@ namespace CSE.Automation.DataAccess
         public int CosmosMaxRetries { get; set; } = 10;
         public abstract string CollectionName { get; }
         public string DatabaseName => _settings.DatabaseName;
+        private object lockObj = new object();
 
-        CosmosClient Client => _client ??= new CosmosClient(_settings.Uri, _settings.Key, _options.CosmosClientOptions);
-        private Container Container => _container ??= GetContainer(Client);
+        // NOTE: CosmosDB library currently wraps the Newtonsoft JSON serializer.  Align Attributes and Converters to Newtonsoft on the domain models.
+        CosmosClient Client => _client ??= new CosmosClientBuilder(_settings.Uri, _settings.Key)
+                                                    .WithRequestTimeout(TimeSpan.FromSeconds(CosmosTimeout))
+                                                    .WithThrottlingRetryOptions(TimeSpan.FromSeconds(CosmosTimeout), CosmosMaxRetries)
+                                                    .WithSerializerOptions(new CosmosSerializationOptions { 
+                                                                                PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase,
+                                                                                Indented = false,
+                                                                                IgnoreNullValues = true
+                                                                            })
+                                                    .Build();
+        private Container Container { get { lock (lockObj) { return _container ??= GetContainer(Client); } } }
+
 
         public abstract string GenerateId(TEntity entity);
-        
+
 
         /// <summary>
         /// Recreate the Cosmos Client / Container (after a key rotation)
@@ -123,7 +133,8 @@ namespace CSE.Automation.DataAccess
         {
             try
             {
-                return new PartitionKey(_partitionKeyPI.GetValue(entity).ToString());
+                var value = new PartitionKey(_partitionKeyPI.GetValue(entity).ToString());
+                return value;
             }
             catch (Exception ex)
             {
@@ -196,7 +207,12 @@ namespace CSE.Automation.DataAccess
                 var container = client.GetContainer(_settings.DatabaseName, this.CollectionName);
 
                 _containerProperties = GetContainerProperties(container).Result;
-                _partitionKeyPI = typeof(TEntity).GetProperty(_containerProperties.PartitionKeyPath.TrimStart('/'), BindingFlags.Public|BindingFlags.Instance|BindingFlags.IgnoreCase);
+                var partitionKeyName = _containerProperties.PartitionKeyPath.TrimStart('/');
+                _partitionKeyPI = typeof(TEntity).GetProperty(partitionKeyName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                if (_partitionKeyPI is null)
+                {
+                    throw new ApplicationException($"Failed to find partition key property {partitionKeyName} on {typeof(TEntity).Name}.  Collection definition does not match Entity definition");
+                }
 
                 _logger.LogDebug($"{CollectionName} partition key path {_containerProperties.PartitionKeyPath}");
 
@@ -213,7 +229,7 @@ namespace CSE.Automation.DataAccess
         /// Get the properties for the container.
         /// </summary>
         /// <returns>An instance of <see cref="ContainerProperties"/> or null.</returns>
-        protected async Task<ContainerProperties> GetContainerProperties(Container container=null)
+        protected async Task<ContainerProperties> GetContainerProperties(Container container = null)
         {
             return (await (container ?? Container).ReadContainerAsync().ConfigureAwait(false)).Resource;
 
@@ -282,7 +298,7 @@ namespace CSE.Automation.DataAccess
             {
                 var result = await this.Container.ReadItemAsync<TEntity>(id, new PartitionKey(partitionKey)).ConfigureAwait(true);
 
-                entity= result.Resource;
+                entity = result.Resource;
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception)
@@ -305,6 +321,16 @@ namespace CSE.Automation.DataAccess
 
         public async Task<TEntity> UpsertDocumentAsync(TEntity newDocument)
         {
+            // TEST CODE
+            //var container = this.Container;
+            //var partitionKey = ResolvePartitionKey(newDocument);
+            //using (var stream = new StreamReader(this.Client.ClientOptions.Serializer.ToStream(newDocument)))
+            //{
+            //    var objString = stream.ReadToEnd();
+            //    _logger.LogDebug(objString);
+
+            //}
+            //return await container.UpsertItemAsync<TEntity>(newDocument, partitionKey).ConfigureAwait(false);
             return await this.Container.UpsertItemAsync<TEntity>(newDocument, ResolvePartitionKey(newDocument)).ConfigureAwait(false);
         }
 
@@ -318,7 +344,7 @@ namespace CSE.Automation.DataAccess
         public async Task<TEntity> DeleteDocumentAsync(string id, string partitionKey)
         {
             var query = new QueryDefinition("delete from c where c.id = @id").WithParameter("@id", id);
-            
+
             var result = await InternalCosmosDBSqlQuery(query).ConfigureAwait(false);
 
             return await this.Container.DeleteItemAsync<TEntity>(id, new PartitionKey(partitionKey)).ConfigureAwait(false);

@@ -19,7 +19,7 @@ namespace CSE.Automation.DataAccess
         {
         }
 
-        [Secret(Constants.CosmosDBOjbectTrackingCollectionName)]
+        [Secret(Constants.CosmosDBObjectTrackingCollectionName)]
         public string CollectionName
         {
             get { return _collectionName ?? base.GetSecret(); }
@@ -32,7 +32,7 @@ namespace CSE.Automation.DataAccess
         }
     }
 
-    internal interface IObjectTrackingRepository : ICosmosDBRepository<TrackingModel> { }
+    internal interface IObjectTrackingRepository : ICosmosDBRepository<TrackingModel>  { }
     internal class ObjectTrackingRepository : CosmosDBRepository<TrackingModel>, IObjectTrackingRepository
     {
         private readonly ObjectTrackingRepositorySettings _settings;

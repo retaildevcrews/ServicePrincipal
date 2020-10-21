@@ -12,6 +12,7 @@ using CSE.Automation.DataAccess;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using CSE.Automation.Properties;
+using System.Text.RegularExpressions;
 
 namespace CSE.Automation.Processors
 {
@@ -53,26 +54,33 @@ namespace CSE.Automation.Processors
 
     internal class ServicePrincipalProcessor : DeltaProcessorBase, IServicePrincipalProcessor
     {
+        const string _emailRegexPattern = @"^((?!\.)[\w-_.]*[^.])(@\w+)(\.\w+(\.\w+)?[^.\W])$";
         private readonly IGraphHelper<ServicePrincipal> _graphHelper;
         private readonly ServicePrincipalProcessorSettings _settings;
         private readonly IModelValidatorFactory _modelValidatorFactory;
         private readonly ILogger _logger;
         private readonly IQueueServiceFactory _queueServiceFactory;
+        private readonly IObjectTrackingService _objectService;
+        private readonly Regex _emailRegex;
 
         public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings,
                                             IGraphHelper<ServicePrincipal> graphHelper,
                                             IQueueServiceFactory queueServiceFactory,
                                             IConfigRepository configRepository,
                                             IAuditRepository auditRepository,
+                                            IObjectTrackingService objectService,
                                             IModelValidatorFactory modelValidatorFactory,
                                             ILogger<ServicePrincipalProcessor> logger) : base(configRepository, auditRepository)
         {
             _settings = settings;
             _graphHelper = graphHelper;
+            _objectService = objectService;
             _modelValidatorFactory = modelValidatorFactory;
             _logger = logger;
 
             _queueServiceFactory = queueServiceFactory;
+
+            _emailRegex = new Regex(_emailRegexPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.CultureInvariant);
         }
 
         public override int VisibilityDelayGapSeconds => _settings.VisibilityDelayGapSeconds;
@@ -168,7 +176,6 @@ namespace CSE.Automation.Processors
         /// <returns></returns>
         public async Task Evaluate(ActivityContext context, ServicePrincipalModel entity)
         {
-
             // 1. if Notes field is blank
             //      - update Notes field from Owners
             //      - write audit
@@ -181,18 +188,71 @@ namespace CSE.Automation.Processors
             //          if value fails AAD check
             //              set value to owners field
             //              write audit
-            var sp = await _graphHelper.GetGraphObject(entity.Id).ConfigureAwait(false);
+            await UpdateLastKnownGood(entity).ConfigureAwait(false);
+/*
             if (string.IsNullOrWhiteSpace(entity.Notes))
             {
-                _logger.LogDebug($"{sp.Owners}");
-                //entity.Notes = entity.Owner;
+                await RevertToLastKnownGood(entity).ConfigureAwait(false);
             }
             else
             {
+                // match the contents, make sure they are email addresses
+                var tokens = entity.Notes.Split(',', ';');
+                var errorsFound = false;
+                foreach (var token in tokens)
+                {
+                    if (_emailRegex.Match(token).Success == false)
+                    {
+                        _logger.LogInformation($"Email Addres Mismatch: {entity.Id}:{token}");
+                        await RevertToLastKnownGood(entity).ConfigureAwait(false);
+                        errorsFound = true;
+                    }
+                    else
+                    {
+                        _logger.LogDebug($"{entity.Id} - Email match {token}");
+                    }
+                }
 
+                if (errorsFound == false)
+                {
+                    await UpdateLastKnownGood(entity).ConfigureAwait(false);
+                }
             }
 
             await Task.CompletedTask.ConfigureAwait(false);
+*/
+        }
+
+
+        async Task RevertToLastKnownGood(ServicePrincipalModel entity)
+        {
+            var lastKnownGood = await _objectService.GetAndUnwrap<ServicePrincipalModel>(entity.Id).ConfigureAwait(false);
+            if (lastKnownGood != null)
+            {
+                entity.Notes = lastKnownGood.Notes;
+                await CommandAADUpdate(entity).ConfigureAwait(false);
+            }
+
+            // oops, bad SP Notes and no last known good.  ERROR? AUDIT ERROR? DATA STEWARD LOG?
+            else
+            {
+                await AlertInvalidPrincipal(entity).ConfigureAwait(false);
+            }
+        }
+
+        async Task CommandAADUpdate(ServicePrincipalModel entity)
+        {
+            await Task.CompletedTask.ConfigureAwait(false);
+        }
+
+        async Task AlertInvalidPrincipal(ServicePrincipalModel entity)
+        {
+            await Task.CompletedTask.ConfigureAwait(false);
+        }
+
+        async Task UpdateLastKnownGood(ServicePrincipalModel entity)
+        {
+            await _objectService.Put(entity).ConfigureAwait(false);
         }
 
         // REMEDIATE
