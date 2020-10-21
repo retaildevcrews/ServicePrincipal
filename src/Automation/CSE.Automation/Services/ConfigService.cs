@@ -18,21 +18,16 @@ namespace CSE.Automation.Services
         public ConfigService(ConfigRepository configRepository)
         {
             this._configRepository = configRepository;
-            if (this._configRepository.Test().Result == false)
-            {
-                throw new ApplicationException($"Repository {_configRepository.DatabaseName}:{_configRepository.CollectionName} failed connection test");
-            }
-
         }
 
-        public ProcessorConfiguration Get(string id)
+        public ProcessorConfiguration Get(string id, byte[] defaultConfig)
         {
             if (!_configRepository.DoesExistsAsync(id).Result)
             {
 
-                if (Resources.ServicePrincipalProcessorConfiguration == null || Resources.ServicePrincipalProcessorConfiguration.Length == 0)
+                if (defaultConfig == null || defaultConfig.Length == 0)
                     throw new NullReferenceException("Null or empty initial Configuration Document resource.");
-                var initalDocumentAsString = System.Text.Encoding.Default.GetString(Resources.ServicePrincipalProcessorConfiguration);
+                var initalDocumentAsString = System.Text.Encoding.Default.GetString(defaultConfig);
 
                 try
                 {

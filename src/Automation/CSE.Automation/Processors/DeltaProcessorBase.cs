@@ -59,7 +59,7 @@ namespace CSE.Automation.Processors
         private void Initialize()
         {
             // Need the config for startup, so accepting the blocking call in the constructor.
-            _config = _configService.Get(this.ConfigurationId.ToString());
+            _config = _configService.Get(this.ConfigurationId.ToString(), DefaultConfigurationResource);
             _initialized = true;
         }
 
