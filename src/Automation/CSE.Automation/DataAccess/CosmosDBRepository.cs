@@ -319,7 +319,7 @@ namespace CSE.Automation.DataAccess
             return await this.Container.CreateItemAsync<TEntity>(newDocument, ResolvePartitionKey(newDocument)).ConfigureAwait(false);
         }
 
-        public async Task<TEntity> UpsertDocumentAsync(TEntity newDocument)
+        public async Task<TEntity> UpsertDocumentAsync(TEntity newDocument) 
         {
             // TEST CODE
             //var container = this.Container;

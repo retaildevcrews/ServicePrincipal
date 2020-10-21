@@ -10,7 +10,7 @@ namespace CSE.Automation.Model
 
         public DateTimeOffset? Deleted { get; set; }
 
-        public DateTimeOffset LastUpdated { get; set; }
+        public DateTimeOffset? LastUpdated { get; set; }
 
         public ObjectType ObjectType { get; set; }
 

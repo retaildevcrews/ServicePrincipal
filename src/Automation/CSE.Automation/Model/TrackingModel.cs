@@ -16,6 +16,11 @@ namespace CSE.Automation.Model
         public ObjectType ObjectType { get; set; }
 
         public object Entity { get; set; }
+
+        public static TEntity Unwrap<TEntity>(TrackingModel entity) where TEntity : class
+        {
+            return entity?.Entity as TEntity;
+        }
     }
 
     class TrackingModel<TEntity> : TrackingModel where TEntity : GraphModel
@@ -37,5 +42,7 @@ namespace CSE.Automation.Model
                 }
             }
         }
+
+
     }
 }

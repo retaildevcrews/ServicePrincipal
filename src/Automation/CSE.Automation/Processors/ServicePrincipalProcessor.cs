@@ -54,14 +54,12 @@ namespace CSE.Automation.Processors
 
     internal class ServicePrincipalProcessor : DeltaProcessorBase, IServicePrincipalProcessor
     {
-        const string _emailRegexPattern = @"^((?!\.)[\w-_.]*[^.])(@\w+)(\.\w+(\.\w+)?[^.\W])$";
         private readonly IGraphHelper<ServicePrincipal> _graphHelper;
         private readonly ServicePrincipalProcessorSettings _settings;
-        private readonly IModelValidatorFactory _modelValidatorFactory;
         private readonly ILogger _logger;
         private readonly IQueueServiceFactory _queueServiceFactory;
         private readonly IObjectTrackingService _objectService;
-        private readonly Regex _emailRegex;
+        private readonly IEnumerable<IModelValidator<ServicePrincipalModel>> _validators;
 
         public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings,
                                             IGraphHelper<ServicePrincipal> graphHelper,
@@ -74,12 +72,12 @@ namespace CSE.Automation.Processors
             _settings = settings;
             _graphHelper = graphHelper;
             _objectService = objectService;
-            _modelValidatorFactory = modelValidatorFactory;
             _logger = logger;
 
             _queueServiceFactory = queueServiceFactory;
 
-            _emailRegex = new Regex(_emailRegexPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+            _validators = modelValidatorFactory.Get<ServicePrincipalModel>();
+
         }
 
         public override int VisibilityDelayGapSeconds => _settings.VisibilityDelayGapSeconds;
@@ -94,7 +92,7 @@ namespace CSE.Automation.Processors
         /// </summary>
         /// <returns></returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Console.WriteLine will be changed to logs")]
-        public override async Task<int> DiscoverDeltas(ActivityContext context, bool forceReseed=false)
+        public override async Task<int> DiscoverDeltas(ActivityContext context, bool forceReseed = false)
         {
             EnsureInitialized();
 
@@ -104,7 +102,7 @@ namespace CSE.Automation.Processors
             }
             IAzureQueueService queueService = _queueServiceFactory.Create(_settings.QueueConnectionString, _settings.QueueName);
 
-            var selectFields = new[] { "appId", "displayName", "notes", "owners", "notificationEmailAddresses"};
+            var selectFields = new[] { "appId", "displayName", "notes", "owners", "notificationEmailAddresses" };
             var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects(_config, string.Join(',', selectFields)).ConfigureAwait(false);
 
             string updatedDeltaLink = servicePrincipalResult.Item1; //TODO save this back in Config
@@ -116,35 +114,29 @@ namespace CSE.Automation.Processors
 
             _logger.LogInformation($"Processing Service Principal objects...");
 
-            var validators = _modelValidatorFactory.Get<ServicePrincipalModel>();
-
             foreach (var sp in servicePrincipalList)
             {
                 if (String.IsNullOrWhiteSpace(sp.AppId) || String.IsNullOrWhiteSpace(sp.DisplayName))
                 {
                     continue;
                 }
-                var servicePrincipal = new ServicePrincipalModel()
-                {
-                    Id = sp.Id,
-                    AppId = sp.AppId,
-                    DisplayName = sp.DisplayName,
-                    Notes = sp.Notes,
-                };
 
-
-                //var errors = validators.SelectMany(v => v.Validate(servicePrincipal).Errors).ToList();
-                //if (errors.Count > 0)
-                //{
-                //    _logger.LogWarning(string.Join('\n', errors));
-                //    //errors.ForEach(x => _logger.LogWarning(x.ToString()));
-                //    // audit errors
-                //}
 
                 var myMessage = new QueueMessage<ServicePrincipalModel>()
                 {
                     QueueMessageType = QueueMessageType.Data,
-                    Document = servicePrincipal,
+                    Document = new ServicePrincipalModel()
+                    {
+                        Id = sp.Id,
+                        AppId = sp.AppId,
+                        DisplayName = sp.DisplayName,
+                        Notes = sp.Notes,
+#pragma warning disable CA1305 // Specify IFormatProvider
+                        Created = DateTimeOffset.Parse(sp.AdditionalData["createdDateTime"].ToString()),
+#pragma warning restore CA1305 // Specify IFormatProvider
+                        Deleted = sp.DeletedDateTime,
+                        // we don't have owners yet
+                    },
                     Attempt = 0
                 };
 
@@ -187,55 +179,65 @@ namespace CSE.Automation.Processors
             //          if value fails AAD check
             //              set value to owners field
             //              write audit
-            await UpdateLastKnownGood(entity).ConfigureAwait(false);
-/*
-            if (string.IsNullOrWhiteSpace(entity.Notes))
+            //await UpdateLastKnownGood(entity).ConfigureAwait(false);
+
+            var errors = _validators.SelectMany(v => v.Validate(entity).Errors).ToList();
+            if (errors.Count > 0)
             {
+                _logger.LogError(string.Join('\n', errors));
                 await RevertToLastKnownGood(entity).ConfigureAwait(false);
             }
             else
             {
-                // match the contents, make sure they are email addresses
-                var tokens = entity.Notes.Split(',', ';');
-                var errorsFound = false;
-                foreach (var token in tokens)
-                {
-                    if (_emailRegex.Match(token).Success == false)
-                    {
-                        _logger.LogInformation($"Email Addres Mismatch: {entity.Id}:{token}");
-                        await RevertToLastKnownGood(entity).ConfigureAwait(false);
-                        errorsFound = true;
-                    }
-                    else
-                    {
-                        _logger.LogDebug($"{entity.Id} - Email match {token}");
-                    }
-                }
-
-                if (errorsFound == false)
-                {
-                    await UpdateLastKnownGood(entity).ConfigureAwait(false);
-                }
+                await UpdateLastKnownGood(entity).ConfigureAwait(false);
             }
 
-            await Task.CompletedTask.ConfigureAwait(false);
-*/
         }
 
 
         async Task RevertToLastKnownGood(ServicePrincipalModel entity)
         {
-            var lastKnownGood = await _objectService.GetAndUnwrap<ServicePrincipalModel>(entity.Id).ConfigureAwait(false);
+            var lastKnownGoodWrapper = await _objectService.Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(false);
+            var lastKnownGood = TrackingModel.Unwrap<ServicePrincipalModel>(lastKnownGoodWrapper);
             if (lastKnownGood != null)
             {
+                // TODO: AUDIT CHANGE 
                 entity.Notes = lastKnownGood.Notes;
                 await CommandAADUpdate(entity).ConfigureAwait(false);
             }
 
-            // oops, bad SP Notes and no last known good.  ERROR? AUDIT ERROR? DATA STEWARD LOG?
+            // oops, bad SP Notes and no last known good.  
             else
             {
-                await AlertInvalidPrincipal(entity).ConfigureAwait(false);
+                var sp = await _graphHelper.GetGraphObject(entity.Id).ConfigureAwait(false);
+
+                // no notes, no owners in SP, this is an governance error
+                if (sp.Owners == null || sp.Owners.Count == 0)
+                {
+                    await AlertInvalidPrincipal(entity).ConfigureAwait(false);
+                }
+                // update entity, update last known good
+                else
+                {
+                    var owners = sp.Owners.Select(x => (x as User)?.UserPrincipalName);
+                    var ownersList = string.Join(';', owners);
+                    // TODO: AUDIT CHANGE 
+                    entity.Notes = ownersList;
+                    // TODO: AUDIT CHANGE 
+                    if (lastKnownGood is null)
+                    {
+                        lastKnownGood = entity;
+                        await _objectService.Put(lastKnownGood).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        lastKnownGood.Notes = ownersList;
+                        await _objectService.Put(lastKnownGoodWrapper).ConfigureAwait(false);
+                    }
+
+                    // make sure to write the wrapper back to get the same document updated
+                    
+                }
             }
         }
 
