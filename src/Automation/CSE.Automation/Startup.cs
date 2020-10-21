@@ -198,7 +198,6 @@ namespace CSE.Automation
                 .AddSingleton<ConfigRepository>()
                 .AddSingleton<IConfigRepository, ConfigRepository>(provider => provider.GetRequiredService<ConfigRepository>())
                 .AddSingleton<ICosmosDBRepository<ProcessorConfiguration>, ConfigRepository>(provider => provider.GetRequiredService<ConfigRepository>())
-
                 .AddSingleton<AuditRepository>()
                 .AddSingleton<IAuditRepository, AuditRepository>(provider => provider.GetRequiredService<AuditRepository>())
                 .AddSingleton<ICosmosDBRepository<AuditEntry>, AuditRepository>(provider => provider.GetRequiredService<AuditRepository>())
@@ -206,6 +205,9 @@ namespace CSE.Automation
                 .AddSingleton<ObjectTrackingRepository>()
                 .AddSingleton<IObjectTrackingRepository, ObjectTrackingRepository>(provider => provider.GetRequiredService<ObjectTrackingRepository>())
                 .AddSingleton<ICosmosDBRepository<TrackingModel>, ObjectTrackingRepository>(provider => provider.GetRequiredService<ObjectTrackingRepository>())
+
+                .AddScoped<ConfigService>()
+                .AddScoped<IConfigService<ProcessorConfiguration>, ConfigService>()
 
                 .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>()
                 .AddScoped<IServicePrincipalProcessor, ServicePrincipalProcessor>()
