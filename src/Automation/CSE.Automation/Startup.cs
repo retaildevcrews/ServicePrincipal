@@ -187,6 +187,8 @@ namespace CSE.Automation
                 .AddScoped<ConfigRepository>()
                 .AddScoped<IConfigRepository, ConfigRepository>()
                 .AddScoped<ICosmosDBRepository<ProcessorConfiguration>, ConfigRepository>()
+                .AddScoped<ConfigService>()
+                .AddScoped<IConfigService<ProcessorConfiguration>, ConfigService>()
 
                 .AddScoped<AuditRepository>()
                 .AddScoped<IAuditRepository, AuditRepository>()

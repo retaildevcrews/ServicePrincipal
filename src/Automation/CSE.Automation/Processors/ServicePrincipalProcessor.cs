@@ -46,10 +46,9 @@ namespace CSE.Automation.Processors
         public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings,
                                             IGraphHelper<ServicePrincipal> graphHelper,
                                             IQueueServiceFactory queueServiceFactory,
-                                            IConfigRepository configRepository,
-                                            IAuditRepository auditRepository,
+                                            IConfigService<ProcessorConfiguration> configService,
                                             IModelValidatorFactory modelValidatorFactory,
-                                            ILogger<ServicePrincipalProcessor> logger) : base(configRepository, auditRepository)
+                                            ILogger<ServicePrincipalProcessor> logger) : base(configService)
         {
             _settings = settings;
             _graphHelper = graphHelper;
@@ -119,7 +118,7 @@ namespace CSE.Automation.Processors
             _config.LastSeedTime = DateTime.Now;
             _config.RunState = RunState.DeltaRun;
 
-            await _configRepository.ReplaceDocumentAsync(_config.Id, _config).ConfigureAwait(false);
+            await _configService.Put(_config).ConfigureAwait(false);
 
             _logger.LogInformation($"Finished Processing {servicePrincipalCount} Service Principal Objects.");
             return servicePrincipalCount;

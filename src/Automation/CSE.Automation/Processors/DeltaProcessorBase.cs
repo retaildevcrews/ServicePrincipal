@@ -33,8 +33,7 @@ namespace CSE.Automation.Processors
     }
     abstract class DeltaProcessorBase : IDeltaProcessor
     {
-        protected readonly ICosmosDBRepository<ProcessorConfiguration> _configRepository;
-        protected readonly ICosmosDBRepository<AuditEntry> _auditRepository;
+        protected readonly IConfigService<ProcessorConfiguration> _configService;
 
         protected ProcessorConfiguration _config;
         private bool _initialized;
@@ -44,15 +43,10 @@ namespace CSE.Automation.Processors
         public abstract Guid ConfigurationId { get; }
         protected abstract byte[] DefaultConfigurationResource { get; }
 
-        protected DeltaProcessorBase(ICosmosDBRepository<ProcessorConfiguration> configRepository, ICosmosDBRepository<AuditEntry> auditRepository)
+        protected DeltaProcessorBase(IConfigService<ProcessorConfiguration> configService)
         {
-            _auditRepository = auditRepository;
-            if (_auditRepository.Test().Result == false)
-            {
-                throw new ApplicationException($"Repository {_auditRepository.DatabaseName}:{_auditRepository.CollectionName} failed connection test");
-            }
+            _configService = configService;
 
-            _configRepository = configRepository;
 
         }
 
@@ -65,45 +59,10 @@ namespace CSE.Automation.Processors
         private void Initialize()
         {
             // Need the config for startup, so accepting the blocking call in the constructor.
-            if (_configRepository.Test().Result == false)
-            {
-                throw new ApplicationException($"Repository {_configRepository.DatabaseName}:{_configRepository.CollectionName} failed connection test during {this.GetType().Name}::ctor");
-            }
-            _config = GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist();
+            _config = _configService.Get(this.ConfigurationId.ToString(), DefaultConfigurationResource);
             _initialized = true;
         }
 
-
-        private ProcessorConfiguration GetConfigDocumentOrCreateInitialDocumentIfDoesNotExist()
-        {
-            if (!_configRepository.DoesExistsAsync(this.ConfigurationId.ToString()).Result)
-            {
-                var defaultConfig = DefaultConfigurationResource;
-                if (defaultConfig == null || defaultConfig.Length == 0)
-                {
-                    throw new NullReferenceException("Null or empty initial Configuration Document resource.");
-                }
-
-                var initalDocumentAsString = System.Text.Encoding.Default.GetString(defaultConfig);
-
-                try
-                {
-                    ProcessorConfiguration initialConfigDocumentAsJson = JsonConvert.DeserializeObject<ProcessorConfiguration>(initalDocumentAsString);
-                    return _configRepository.CreateDocumentAsync(initialConfigDocumentAsJson, _configRepository.ResolvePartitionKey(initialConfigDocumentAsJson.Id)).Result;
-                }
-                catch (Exception ex)
-                {
-                    throw new InvalidDataException("Unable to deserialize Initial Configuration Document.", ex);
-                }
-            }
-            else
-            {
-                return _configRepository.GetByIdAsync(this.ConfigurationId.ToString()).Result;
-            }
-
-        }
-
         public abstract Task<int> ProcessDeltas();
-
     }
 }
