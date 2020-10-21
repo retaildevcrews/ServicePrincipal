@@ -84,7 +84,7 @@ namespace CSE.Automation.Graph
             return (updatedDeltaLink?.ToString(), servicePrincipalList);
         }
 
-        public async override Task<ServicePrincipal> GetGraphObject(ProcessorConfiguration config, string id)
+        public async override Task<ServicePrincipal> GetGraphObject(string id)
         {
             var entity = await graphClient.ServicePrincipals[id]
                 .Request()
