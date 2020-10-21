@@ -90,10 +90,9 @@ namespace CSE.Automation
             //  than an environment setting.  KeyVault settings should override any previous setting.
             var configBuilder = new ConfigurationBuilder()
                 .SetBasePath(appDirectory)
-                .AddJsonFile($"appsettings.{env}.json", true)
-                .AddJsonFile("local.settings.json", true)
                 .AddConfiguration(defaultConfig)
-                .AddAzureKeyVaultConfiguration(Constants.KeyVaultName);
+                .AddAzureKeyVaultConfiguration(Constants.KeyVaultName)
+                .AddJsonFile($"appsettings.{env}.json", true);
 
             var hostConfig = configBuilder.Build();
 
