@@ -181,8 +181,10 @@ namespace CSE.Automation.Processors
             //          if value fails AAD check
             //              set value to owners field
             //              write audit
+            var sp = await _graphHelper.GetGraphObject(_config, entity.Id).ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(entity.Notes))
             {
+                _logger.LogDebug($"{sp.Owners}");
                 //entity.Notes = entity.Owner;
             }
             else

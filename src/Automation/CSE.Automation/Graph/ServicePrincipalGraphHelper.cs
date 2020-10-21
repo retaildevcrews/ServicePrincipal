@@ -36,7 +36,7 @@ namespace CSE.Automation.Graph
                 servicePrincipalCollectionPage = await graphClient.ServicePrincipals
                 .Delta()
                 .Request()
-                //.Select(selectFields)
+                .Top(500)
                 .GetAsync()
                 .ConfigureAwait(false);
             }
@@ -80,7 +80,19 @@ namespace CSE.Automation.Graph
             servicePrincipalCollectionPage.AdditionalData.TryGetValue("@odata.deltaLink", out object updatedDeltaLink);
 
 
+            //return (updatedDeltaLink?.ToString(), new[] { foundItem } );
             return (updatedDeltaLink?.ToString(), servicePrincipalList);
+        }
+
+        public async override Task<ServicePrincipal> GetGraphObject(ProcessorConfiguration config, string id)
+        {
+            var entity = await graphClient.ServicePrincipals[id]
+                .Request()
+                .Expand("Owners")
+                .GetAsync()
+                .ConfigureAwait(false);
+
+            return entity;
         }
 
         private static bool IsSeedRun(ProcessorConfiguration config)
