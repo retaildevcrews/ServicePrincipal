@@ -75,6 +75,7 @@ function global:ProvisionStorageResources(){
 	}
 }
 
+
 function global:ProvisionCosmosResources(){
 	$databaseName = "SPAutomate"
 	$collections = @{
@@ -103,6 +104,40 @@ function global:ProvisionCosmosResources(){
 			CreateCosmosDatabaseCollection $databaseName $_.key $_.value | Out-Null
 		}
 	}
+}
+
+function global:Create-AppSettings()
+{
+	[CmdletBinding()]
+	Param (
+		[ValidateSet("Development")]
+		[string]$environment = "Development",
+
+		[switch]$force
+	)
+
+	$settingsFileName = "appsettings.${environment}.json"
+	$settingsFullPath = Join-Path "CSE.Automation" $settingsFileName
+	$templateFileName = Join-Path "SolutionScripts" ($settingsFileName + ".template")
+	Write-Verbose "Settings File: $settingsFileName"
+	Write-Verbose "Template File: $templateFileName"
+
+	if (-not (Test-Path $settingsFullPath))
+	{
+		Write-Output "Settings file $settingsFullPath does not exist, copying from $templateFileName"
+		Copy-Item $templateFileName $settingsFullPath
+	}
+	elseif ($force)
+	{
+		Write-Output "Settings file $settingsFullPath exists and Force was requested, copying from $templateFileName with overwrite"
+		Copy-Item $templateFileName $settingsFullPath -Force
+	}
+	else
+	{
+		Write-Output "Settings file $settingsFullPath already exists."
+	}
+	Write-Output "`tDone."
+
 }
 
 function global:Start-StorageEmulator()
