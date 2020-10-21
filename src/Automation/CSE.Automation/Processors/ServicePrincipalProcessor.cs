@@ -151,7 +151,7 @@ namespace CSE.Automation.Processors
             }
 
             _config.DeltaLink = updatedDeltaLink;
-            _config.LastSeedTime = DateTime.Now;
+            _config.LastSeedTime = DateTimeOffset.Now;
             _config.RunState = RunState.DeltaRun;
 
             await _configRepository.ReplaceDocumentAsync(_config.Id, _config).ConfigureAwait(false);
@@ -181,7 +181,7 @@ namespace CSE.Automation.Processors
             //          if value fails AAD check
             //              set value to owners field
             //              write audit
-            var sp = await _graphHelper.GetGraphObject(_config, entity.Id).ConfigureAwait(false);
+            var sp = await _graphHelper.GetGraphObject(entity.Id).ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(entity.Notes))
             {
                 _logger.LogDebug($"{sp.Owners}");
