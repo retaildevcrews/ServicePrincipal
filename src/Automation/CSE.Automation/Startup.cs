@@ -99,7 +99,7 @@ namespace CSE.Automation
             if (string.Equals(envName, "Development", StringComparison.OrdinalIgnoreCase))
             {
                 configBuilder
-                    .AddJsonFile($"appsettings.Development.json", true);    
+                    .AddJsonFile($"appsettings.Development.json", true);
             }
 
             var hostConfig = configBuilder.Build();
