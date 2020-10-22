@@ -106,6 +106,12 @@ function global:ProvisionCosmosResources(){
 	}
 }
 
+function global:Create-Settings
+{
+	Create-AppSettings
+	Create-LocalSettings
+}
+
 function global:Create-AppSettings()
 {
 	[CmdletBinding()]
@@ -113,10 +119,32 @@ function global:Create-AppSettings()
 		[ValidateSet("Development")]
 		[string]$environment = "Development",
 
-		[switch]$force
+		[switch]$Force
 	)
 
 	$settingsFileName = "appsettings.${environment}.json"
+	Create-SettingsFile $settingsFileName -force:$Force
+}
+
+function global:Create-LocalSettings()
+{
+	[CmdletBinding()]
+	Param (
+		[switch]$Force
+	)
+
+	$settingsFileName = "local.settings.json"
+	Create-SettingsFile $settingsFileName -force:$Force
+}
+
+function global:Create-SettingsFile()
+{
+	[CmdletBinding()]
+	Param (
+		[string]$settingsFileName,
+		[switch]$Force
+	)
+
 	$settingsFullPath = Join-Path "CSE.Automation" $settingsFileName
 	$templateFileName = Join-Path "SolutionScripts" ($settingsFileName + ".template")
 	Write-Verbose "Settings File: $settingsFileName"
@@ -127,7 +155,7 @@ function global:Create-AppSettings()
 		Write-Output "Settings file $settingsFullPath does not exist, copying from $templateFileName"
 		Copy-Item $templateFileName $settingsFullPath
 	}
-	elseif ($force)
+	elseif ($Force)
 	{
 		Write-Output "Settings file $settingsFullPath exists and Force was requested, copying from $templateFileName with overwrite"
 		Copy-Item $templateFileName $settingsFullPath -Force

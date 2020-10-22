@@ -9,6 +9,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionScripts", "SolutionScripts", "{FE98C1FA-9F10-4534-9495-BDEF87681EF9}"
 	ProjectSection(SolutionItems) = preProject
 		SolutionScripts\appsettings.Development.json.template = SolutionScripts\appsettings.Development.json.template
+		SolutionScripts\local.settings.json.template = SolutionScripts\local.settings.json.template
 		SolutionScripts\SolutionCommands.ps1 = SolutionScripts\SolutionCommands.ps1
 	EndProjectSection
 EndProject
