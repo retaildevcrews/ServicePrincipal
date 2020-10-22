@@ -23,7 +23,8 @@ namespace CSE.Automation.Model
         [JsonIgnore]
         public TEntity TypedEntity
         {
-            get { 
+            get
+            {
                 return base.Entity is null
                     ? null
                     : JsonConvert.DeserializeObject<TEntity>(base.Entity.ToString());
