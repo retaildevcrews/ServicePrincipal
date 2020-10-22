@@ -94,7 +94,7 @@ namespace CSE.Automation.Processors
         /// </summary>
         /// <returns></returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Console.WriteLine will be changed to logs")]
-        public override async Task<int> DiscoverDeltas(ActivityContext context, bool forceReseed=false)
+        public override async Task<int> DiscoverDeltas(ActivityContext context, bool forceReseed = false)
         {
             EnsureInitialized();
 
@@ -104,7 +104,7 @@ namespace CSE.Automation.Processors
             }
             IAzureQueueService queueService = _queueServiceFactory.Create(_settings.QueueConnectionString, _settings.QueueName);
 
-            var selectFields = new[] { "appId", "displayName", "notes", "owners", "notificationEmailAddresses"};
+            var selectFields = new[] { "appId", "displayName", "notes", "owners", "notificationEmailAddresses" };
             var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects(_config, string.Join(',', selectFields)).ConfigureAwait(false);
 
             string updatedDeltaLink = servicePrincipalResult.Item1; //TODO save this back in Config
@@ -188,38 +188,38 @@ namespace CSE.Automation.Processors
             //              set value to owners field
             //              write audit
             await UpdateLastKnownGood(entity).ConfigureAwait(false);
-/*
-            if (string.IsNullOrWhiteSpace(entity.Notes))
-            {
-                await RevertToLastKnownGood(entity).ConfigureAwait(false);
-            }
-            else
-            {
-                // match the contents, make sure they are email addresses
-                var tokens = entity.Notes.Split(',', ';');
-                var errorsFound = false;
-                foreach (var token in tokens)
-                {
-                    if (_emailRegex.Match(token).Success == false)
-                    {
-                        _logger.LogInformation($"Email Addres Mismatch: {entity.Id}:{token}");
-                        await RevertToLastKnownGood(entity).ConfigureAwait(false);
-                        errorsFound = true;
-                    }
-                    else
-                    {
-                        _logger.LogDebug($"{entity.Id} - Email match {token}");
-                    }
-                }
+            /*
+                        if (string.IsNullOrWhiteSpace(entity.Notes))
+                        {
+                            await RevertToLastKnownGood(entity).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            // match the contents, make sure they are email addresses
+                            var tokens = entity.Notes.Split(',', ';');
+                            var errorsFound = false;
+                            foreach (var token in tokens)
+                            {
+                                if (_emailRegex.Match(token).Success == false)
+                                {
+                                    _logger.LogInformation($"Email Addres Mismatch: {entity.Id}:{token}");
+                                    await RevertToLastKnownGood(entity).ConfigureAwait(false);
+                                    errorsFound = true;
+                                }
+                                else
+                                {
+                                    _logger.LogDebug($"{entity.Id} - Email match {token}");
+                                }
+                            }
 
-                if (errorsFound == false)
-                {
-                    await UpdateLastKnownGood(entity).ConfigureAwait(false);
-                }
-            }
+                            if (errorsFound == false)
+                            {
+                                await UpdateLastKnownGood(entity).ConfigureAwait(false);
+                            }
+                        }
 
-            await Task.CompletedTask.ConfigureAwait(false);
-*/
+                        await Task.CompletedTask.ConfigureAwait(false);
+            */
         }
 
 

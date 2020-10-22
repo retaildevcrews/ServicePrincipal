@@ -54,7 +54,7 @@ namespace CSE.Automation
             // TODO: If we end up with now request params needed for the seed function then remove the param and this check.
             if (req is null)
                 throw new ArgumentNullException(nameof(req));
-            
+
             int objectCount = await _processor.DiscoverDeltas(context, true).ConfigureAwait(false);
 
             return new OkObjectResult($"Service Principal Objects Processed: {objectCount}");
