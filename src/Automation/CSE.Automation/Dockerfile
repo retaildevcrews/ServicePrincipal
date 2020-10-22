@@ -5,6 +5,10 @@ RUN dotnet restore "CSE.Automation/CSE.Automation.csproj"
 COPY . .
 WORKDIR /home/site/wwwroot
 ARG SP_AUTOMATION_VERSION
+ARG ACR_REG_REPO_URL
+ARG SERVICE_PRINCIPAL_ID
+RUN echo ${ACR_REG_REPO_URL}
+RUN echo ${SERVICE_PRINCIPAL_ID}
 RUN [ ! -z ${SP_AUTOMATION_VERSION} ] && echo Specified Version: ${SP_AUTOMATION_VERSION} \
     && VER_ARG="/p:Version=${SP_AUTOMATION_VERSION}" \
     || echo "Version not specified in docker arg." \

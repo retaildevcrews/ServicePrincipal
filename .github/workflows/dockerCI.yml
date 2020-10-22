@@ -73,6 +73,8 @@ jobs:
         docker build --pull -t ${TEMP_IMG_NAME} \
                     --build-arg SP_AUTOMATION_VERSION=${FULL_VER_STRING} \
                     --build-arg SP_AUTOMATION_GITHASH=${GIT_HASH} \
+                    --build-arg ACR_REG_REPO_URL=${ACR_REG_REPO_URL} \
+                    --build-arg SERVICE_PRINCIPAL_ID=${SERVICE_PRINCIPAL_ID} \
                     -f src/Automation/CSE.Automation/Dockerfile src/Automation
         # Set variable is successful
         [[ $? == 0 ]] && echo "::set-env name=DKR_IMG_IS_BUILT::true"
@@ -82,7 +84,6 @@ jobs:
       run: |
         # build the complete image name
         ACR_IMAGE="${ACR_REG_REPO_URL}"
-        echo "Pushing to: ${ACR_REG_REPO_URL}"
         # Tag image based on repo tag if a github label
         GIT_HASH=$( echo ${{ github.sha }} | cut -c1-7 )
         if [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
