@@ -1,0 +1,19 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "ASPNETCORE_ENVIRONMENT": "Development",
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "SPStorageConnectionString": "UseDevelopmentStorage=true",
+
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "AUTH_TYPE": "VS",
+    "KEYVAULT_NAME": "sp-kv-dev",
+    "configId": "02a54ac9-441e-43f1-88ee-fde420db2559",
+    "visibilityDelayGapSeconds": "8",
+    "queueRecordProcessThreshold": "300",
+
+    "AzureWebJobs.DiscoverDeltas.Disabled": "True",
+    "AzureWebJobs.Evaluate.Disabled": "False",
+    "AzureWebJobs.UpdateAAD.Disabled": "True"
+  }
+}
