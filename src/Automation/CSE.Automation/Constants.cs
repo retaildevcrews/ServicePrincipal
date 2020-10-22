@@ -27,6 +27,9 @@
         public const string EvaluateQueueAppSetting = "%SPEvaluateQueue%";
         public const string SPAADUpdateQueueAppSetting = "%SPAADUpdateQueue%";
 
+        // Azure Timer Function Constants
+        public const string DeltaDiscoverySchedule = "%SPDeltaDiscoverySchedule%";
+
         //Queueing Constants
         public const int MaxVisibilityDelayGapSeconds = 500;
         public const int MaxQueueRecordProcessThreshold = 3000;
