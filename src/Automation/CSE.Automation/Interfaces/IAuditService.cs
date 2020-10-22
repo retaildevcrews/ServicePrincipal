@@ -11,7 +11,7 @@ namespace CSE.Automation.Interfaces
     internal interface IAuditService
     {
         Task<AuditEntry> Put(object originalDocument, string actionType = "", string actionReason = "");
-        //Task Fail(ActivityContext context, string objectId, string attributeName, string attributeValue, string reason);
+        //Task Fail(ActivityContext context, string objectId, string attributeName, string attributeValue, string reason, DateTimeOffset? auditTime=null);
 
 
     }

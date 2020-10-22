@@ -80,7 +80,7 @@ function global:ProvisionCosmosResources(){
 	$databaseName = "SPAutomate"
 	$collections = @{
 		"Configuration"= "/configType";
-		"Audit" = "/actionMonthYear";
+		"Audit" = "/auditYearMonth";
 		"ObjectTracking" = "/objectType";
 	}
 

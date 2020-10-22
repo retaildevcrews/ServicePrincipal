@@ -26,7 +26,7 @@ namespace CSE.Automation.Model
 
         public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.Now;
 
-        public string PartitionKey { get; set; }
+        public string AuditYearMonth { get; set; }
 
         public string AttributeName { get; set; }
         public string ExistingAttributeValue { get; set; }
