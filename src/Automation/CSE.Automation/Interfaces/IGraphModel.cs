@@ -6,11 +6,11 @@ namespace CSE.Automation.Model
     {
         public string Id { get; set; }
 
-        public DateTime Created { get; set; }
+        public DateTimeOffset Created { get; set; }
 
-        public DateTime Deleted { get; set; }
+        public DateTimeOffset? Deleted { get; set; }
 
-        public DateTime LastUpdated { get; set; }
+        public DateTimeOffset LastUpdated { get; set; }
 
         public ObjectType ObjectType { get; set; }
 

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace CSE.Automation.Interfaces
 {
-    public interface IAuditService
+    internal interface IAuditService
     {
     }
 }

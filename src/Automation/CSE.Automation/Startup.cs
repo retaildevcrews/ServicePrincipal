@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-
+using System.Linq;
 using CSE.Automation.DataAccess;
 using CSE.Automation.Extensions;
 using CSE.Automation.Graph;
@@ -81,7 +81,7 @@ namespace CSE.Automation
         {
             // CONFIGURATION
             var serviceProvider = builder.Services.BuildServiceProvider();
-            var env = builder.GetContext().EnvironmentName;
+            var envName = builder.GetContext().EnvironmentName;
             var appDirectory = builder.GetContext().ApplicationRootPath;
             var defaultConfig = serviceProvider.GetRequiredService<IConfiguration>();
 
@@ -90,13 +90,11 @@ namespace CSE.Automation
             //  than an environment setting.  KeyVault settings should override any previous setting.
             var configBuilder = new ConfigurationBuilder()
                 .SetBasePath(appDirectory)
-                .AddJsonFile($"appsettings.{env}.json", true)
-                .AddJsonFile("local.settings.json", true)
                 .AddConfiguration(defaultConfig)
-                .AddAzureKeyVaultConfiguration(Constants.KeyVaultName);
+                .AddAzureKeyVaultConfiguration(Constants.KeyVaultName)
+                .AddJsonFile($"appsettings.{envName}.json", true);
 
             var hostConfig = configBuilder.Build();
-
             builder.Services.Replace(ServiceDescriptor.Singleton(typeof(IConfiguration), hostConfig));
         }
 
@@ -114,7 +112,10 @@ namespace CSE.Automation
                 .AddSingleton(secretServiceSettings)
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<SecretServiceSettings>())
 
-                .AddTransient<GraphHelperSettings>()
+                .AddTransient<GraphHelperSettings>(x => new GraphHelperSettings(x.GetRequiredService<ISecretClient>())
+                {
+                    ScanLimit = config["ScanLimit"].ToInt()
+                })
                 .AddTransient<ISettingsValidator, GraphHelperSettings>()
 
                 .AddSingleton<ConfigRespositorySettings>(x => new ConfigRespositorySettings(x.GetRequiredService<ISecretClient>())
@@ -129,15 +130,24 @@ namespace CSE.Automation
                 .AddSingleton<AuditRespositorySettings>(x => new AuditRespositorySettings(x.GetRequiredService<ISecretClient>()))
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<AuditRespositorySettings>())
 
-                .AddSingleton<ObjectTrackingRepositorySettings>(x => new ObjectTrackingRepositorySettings(x.GetRequiredService<ISecretClient>()))
+                .AddSingleton<ObjectTrackingRepositorySettings>(x => new ObjectTrackingRepositorySettings(x.GetRequiredService<ISecretClient>())
+                {
+                    Uri = config[Constants.CosmosDBURLName],
+                    Key = config[Constants.CosmosDBKeyName],
+                    DatabaseName = config[Constants.CosmosDBDatabaseName],
+                    CollectionName = config[Constants.CosmosDBObjectTrackingCollectionName]
+                })
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ObjectTrackingRepositorySettings>())
 
                 .AddSingleton(x => new ServicePrincipalProcessorSettings(x.GetRequiredService<ISecretClient>())
                 {
+                    QueueConnectionString = config[Constants.SPStorageConnectionString],
+                    QueueName = config[Constants.EvaluateQueueAppSetting.Trim('%')],
                     ConfigurationId = config["configId"].ToGuid(Guid.Parse("02a54ac9-441e-43f1-88ee-fde420db2559")),
                     VisibilityDelayGapSeconds = config["visibilityDelayGapSeconds"].ToInt(8),
                     QueueRecordProcessThreshold = config["queueRecordProcessThreshold"].ToInt(10),
-                });
+                })
+                .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ServicePrincipalProcessorSettings>());
             //.AddSingleton<ICosmosDBSettings, CosmosDBSettings>(x => new CosmosDBSettings(x.GetRequiredService<ISecretClient>())
             //                                                                {
             //                                                                    Uri = config[Constants.CosmosDBURLName],
@@ -185,20 +195,24 @@ namespace CSE.Automation
                 .AddSingleton<ICredentialService>(x => new CredentialService(x.GetRequiredService<CredentialServiceSettings>()))
                 .AddSingleton<ISecretClient>(x => new SecretService(x.GetRequiredService<SecretServiceSettings>(), x.GetRequiredService<ICredentialService>()))
 
-                .AddScoped<ConfigRepository>()
-                .AddScoped<IConfigRepository, ConfigRepository>()
-                .AddScoped<ICosmosDBRepository<ProcessorConfiguration>, ConfigRepository>()
+                .AddSingleton<ConfigRepository>()
+                .AddSingleton<IConfigRepository, ConfigRepository>(provider => provider.GetRequiredService<ConfigRepository>())
+                .AddSingleton<ICosmosDBRepository<ProcessorConfiguration>, ConfigRepository>(provider => provider.GetRequiredService<ConfigRepository>())
+                .AddSingleton<AuditRepository>()
+                .AddSingleton<IAuditRepository, AuditRepository>(provider => provider.GetRequiredService<AuditRepository>())
+                .AddSingleton<ICosmosDBRepository<AuditEntry>, AuditRepository>(provider => provider.GetRequiredService<AuditRepository>())
 
-                .AddScoped<AuditRepository>()
-                .AddScoped<IAuditRepository, AuditRepository>()
-                .AddScoped<ICosmosDBRepository<AuditEntry>, AuditRepository>()
+                .AddSingleton<ObjectTrackingRepository>()
+                .AddSingleton<IObjectTrackingRepository, ObjectTrackingRepository>(provider => provider.GetRequiredService<ObjectTrackingRepository>())
+                .AddSingleton<ICosmosDBRepository<TrackingModel>, ObjectTrackingRepository>(provider => provider.GetRequiredService<ObjectTrackingRepository>())
 
-                .AddScoped<ObjectTrackingRepository>()
-                .AddScoped<IObjectTrackingRepository, ObjectTrackingRepository>()
-                .AddScoped<ICosmosDBRepository<ServicePrincipalModel>, ObjectTrackingRepository>()
+                .AddScoped<ConfigService>()
+                .AddScoped<IConfigService<ProcessorConfiguration>, ConfigService>()
 
                 .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>()
                 .AddScoped<IServicePrincipalProcessor, ServicePrincipalProcessor>()
+
+                .AddScoped<IObjectTrackingService, ObjectTrackingService>()
 
                 .AddScoped<IModelValidator<GraphModel>, GraphModelValidator>()
                 .AddScoped<IModelValidator<ServicePrincipalModel>, ServicePrincipalModelValidator>()

@@ -4,7 +4,10 @@
   "selectFields": [
     "appId",
     "displayName",
-    "notes"
+    "notes",
+    "owners",
+    "notificationEmailAddresses"
+
   ],
   "deltaLink": "",
   "runState": "seedAndRun",

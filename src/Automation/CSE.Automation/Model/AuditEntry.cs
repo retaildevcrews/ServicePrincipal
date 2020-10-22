@@ -19,7 +19,7 @@ namespace CSE.Automation.Model
         public string ActionReason { get; set; }
 
         [JsonProperty(PropertyName = "actionDateTime")]
-        public DateTime ActionDateTime { get; set; }
+        public DateTimeOffset ActionDateTime { get; set; }
         [JsonProperty(PropertyName = "auditMonthYear")]
         public string AuditMonthYear { get; set; }
 
@@ -36,10 +36,8 @@ namespace CSE.Automation.Model
                 throw new ArgumentNullException(nameof(originalDocument));
 
             this.TargetObject = originalDocument;
-            this.ActionDateTime = DateTime.UtcNow;
-            int currentMonth = this.ActionDateTime.Month;
-            int currentYear = this.ActionDateTime.Year;
-            this.AuditMonthYear = $"{currentMonth}_{currentYear}";
+            this.ActionDateTime = DateTimeOffset.Now;
+            this.AuditMonthYear = this.ActionDateTime.ToString("yyyyMM", CultureInfo.InvariantCulture);
         }
     }
 }

@@ -1,46 +1,35 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
-using System.Runtime.Serialization;
-using System.Text.Json.Serialization;
+
 
 namespace CSE.Automation.Model
 {
     public class GraphModel : IGraphModel
     {
-        [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
 
-        [JsonProperty(PropertyName = "created")]
-        public DateTime Created { get; set; }
-        [JsonProperty(PropertyName = "deleted")]
-        public DateTime Deleted { get; set; }
-        [JsonProperty(PropertyName = "lastUpdated")]
-        public DateTime LastUpdated { get; set; }
+        public DateTimeOffset Created { get; set; }
+        public DateTimeOffset? Deleted { get; set; }
+        public DateTimeOffset LastUpdated { get; set; }
 
-        [JsonProperty(PropertyName = "objectType")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(JsonStringEnumConverter))]
         public ObjectType ObjectType { get; set; }
 
-        [JsonProperty(PropertyName = "status")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(JsonStringEnumConverter))]
         public Status Status { get; set; }
     }
 
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum ObjectType
     {
-        [EnumMember(Value = "servicePrincipal")]
         ServicePrincipal
     }
 
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum Status
     {
-        [EnumMember(Value = "valid")]
         Valid,
-        [EnumMember(Value = "invalid")]
         Invalid,
-        [EnumMember(Value = "deleted")]
         Deleted,
-        [EnumMember(Value = "remediated")]
         Remediated
     }
 }
