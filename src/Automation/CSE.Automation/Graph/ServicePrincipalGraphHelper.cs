@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using System.Linq;
+using CSE.Automation.Interfaces;
 
 #pragma warning disable CA1031 // Do not catch general exception types
 
@@ -12,10 +13,10 @@ namespace CSE.Automation.Graph
 {
     public class ServicePrincipalGraphHelper : GraphHelperBase<ServicePrincipal>
     {
-        public ServicePrincipalGraphHelper(GraphHelperSettings settings, ILogger<ServicePrincipalGraphHelper> logger) : base(settings, logger) { }
+        public ServicePrincipalGraphHelper(GraphHelperSettings settings, IAuditService auditService, ILogger<ServicePrincipalGraphHelper> logger) : base(settings, auditService, logger) { }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Console.WriteLine will be changed to logs")]
-        public override async Task<(string, IEnumerable<ServicePrincipal>)> GetDeltaGraphObjects(ProcessorConfiguration config, string selectFields = null)
+        public override async Task<(string, IEnumerable<ServicePrincipal>)> GetDeltaGraphObjects(ProcessorConfiguration config, ActivityContext context, string selectFields = null)
         {
             if (config == null)
             {
@@ -65,6 +66,12 @@ namespace CSE.Automation.Graph
                 {
                     _logger.LogInformation($"Trimming removed service principals for seed run.");
                     pageList = pageList.Where(x => x.AdditionalData.Keys.Contains("@removed") == false).ToList();
+                    pageList.ToList().ForEach(sp => _auditService.PutIgnore(
+                        context: context,
+                        objectId: sp.Id,
+                        attributeName: "AdditionalData",
+                        existingAttributeValue: "@removed",
+                        reason: "Service Principal Ignored Since Previously Removed"));
                     _logger.LogInformation($"\tTrimmed {count - pageList.Count} service principals.");
                 }
 
