@@ -29,9 +29,10 @@ namespace CSE.Automation.Model
         public string AuditYearMonth { get; set; }
 
         public string AttributeName { get; set; }
-        public string ExistingAttributeValue { get; set; }
-        public string UpdatedAttributeValue { get; set; }
 
+        public string ExistingAttributeValue { get; set; }
+
+        public string UpdatedAttributeValue { get; set; }
 
     }
 }

@@ -10,22 +10,14 @@ namespace CSE.Automation.Interfaces
 {
     internal interface IAuditService
     {
-        Task<AuditEntry> Put(object originalDocument, string actionType = "", string actionReason = "");
-        //Task Fail(ActivityContext context, string objectId, string attributeName, string attributeValue, string reason, DateTimeOffset? auditTime=null);
+        Task PutFail(string attributeName, string existingAttributeValue, string reason, ActivityContext context = null, string objectId = null, DateTimeOffset? auditTime = null);
+
+        Task PutPass(string attributeName, string existingAttributeValue, string reason, ActivityContext context = null, string objectId = null, DateTimeOffset? auditTime = null);
+
+        Task PutChange(string attributeName, string existingAttributeValue, string updatedAttributeValue, string reason, ActivityContext context = null, string objectId = null, DateTimeOffset? auditTime = null);
+
+        Task PutFailThenChange(string attributeName, string existingAttributeValue, string updatedAttributeValue, string reason, ActivityContext context = null, string objectId = null, DateTimeOffset? auditTime = null);
 
 
     }
-    /*
-    class blah
-    {
-        void func()
-        {
-            IAuditService svc;
-
-            svc.Fail(context).ForObject(id).AndAttribute(attrName).AndValue(attrValue).WithReason(reason);
-
-            svc.Fail(context, id, attrName, attrValue, reason);
-        }
-    }
-    */
 }

@@ -5,6 +5,7 @@ using CSE.Automation.Model;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Globalization;
 using System.Threading.Tasks;
 
 namespace CSE.Automation.Services
@@ -20,14 +21,71 @@ namespace CSE.Automation.Services
             _logger = logger;
         }
 
-        public async Task<AuditEntry> Put(object originalDocument, string actionType = "", string actionReason = "")
+        public async Task PutFail(string attributeName, string existingAttributeValue, string reason,
+            ActivityContext context = null, string objectId = null, DateTimeOffset? auditTime = null)
         {
-          var entry = new AuditEntry(originalDocument);
-          entry.ActionType = actionType;
-          entry.ActionReason = actionReason;
-          _auditRepository.GenerateId(entry);
-          _logger.LogInformation($"{actionType ?? "unknown action"}: {actionReason ?? "unknown reason" }");
-          return await _auditRepository.CreateDocumentAsync(entry);
+            var entry = new AuditEntry();
+            context ??= new ActivityContext();
+            entry.CorrelationId = objectId ?? context.ActivityId.ToString();
+            entry.Type = AuditActionType.Fail;
+            entry.Reason = reason;
+            entry.Timestamp = auditTime ?? entry.Timestamp;
+            entry.AuditYearMonth = entry.Timestamp.ToString("yyyyMM", CultureInfo.InvariantCulture);
+            entry.AttributeName = attributeName;
+            entry.ExistingAttributeValue = existingAttributeValue;
+            await _auditRepository.CreateDocumentAsync(entry).ConfigureAwait(false);
+        }
+
+        public async Task PutPass(string attributeName, string existingAttributeValue, string reason,
+            ActivityContext context = null, string objectId = null, DateTimeOffset? auditTime = null)
+        {
+            var entry = new AuditEntry();
+            context ??= new ActivityContext();
+            entry.CorrelationId = objectId ?? context.ActivityId.ToString();
+            entry.Type = AuditActionType.Pass;
+            entry.Reason = reason;
+            entry.Timestamp = auditTime ?? entry.Timestamp;
+            entry.AuditYearMonth = entry.Timestamp.ToString("yyyyMM", CultureInfo.InvariantCulture);
+            entry.AttributeName = attributeName;
+            entry.ExistingAttributeValue = existingAttributeValue;
+            await _auditRepository.CreateDocumentAsync(entry).ConfigureAwait(false);
+        }
+
+        public async Task PutChange(string attributeName, string existingAttributeValue, string updatedAttributeValue, string reason,
+            ActivityContext context = null, string objectId = null, DateTimeOffset? auditTime = null)
+        {
+            var entry = new AuditEntry();
+            context ??= new ActivityContext();
+            entry.CorrelationId = objectId ?? context.ActivityId.ToString();
+            entry.Type = AuditActionType.Change;
+            entry.Reason = reason;
+            entry.Timestamp = auditTime ?? entry.Timestamp;
+            entry.AuditYearMonth = entry.Timestamp.ToString("yyyyMM", CultureInfo.InvariantCulture);
+            entry.AttributeName = attributeName;
+            entry.ExistingAttributeValue = existingAttributeValue;
+            entry.UpdatedAttributeValue = updatedAttributeValue;
+            await _auditRepository.CreateDocumentAsync(entry).ConfigureAwait(false);
+        }
+
+        public async Task PutFailThenChange(string attributeName, string existingAttributeValue, string updatedAttributeValue, string reason,
+            ActivityContext context = null, string objectId = null, DateTimeOffset? auditTime = null)
+        {
+            var entry = new AuditEntry();
+            context ??= new ActivityContext();
+            entry.CorrelationId = objectId ?? context.ActivityId.ToString();
+            entry.Type = AuditActionType.Fail;
+            entry.Reason = reason;
+            entry.Timestamp = auditTime ?? entry.Timestamp;
+            entry.AuditYearMonth = entry.Timestamp.ToString("yyyyMM", CultureInfo.InvariantCulture);
+            entry.AttributeName = attributeName;
+            entry.ExistingAttributeValue = existingAttributeValue;
+            entry.UpdatedAttributeValue = updatedAttributeValue;
+            await _auditRepository.CreateDocumentAsync(entry).ConfigureAwait(false);
+
+            entry.UpdatedAttributeValue = updatedAttributeValue;
+            entry.Type = AuditActionType.Fail;
+
+            await _auditRepository.CreateDocumentAsync(entry).ConfigureAwait(false);
         }
     }
 }
