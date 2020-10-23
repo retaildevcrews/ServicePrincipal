@@ -36,7 +36,7 @@ resource "azurerm_cosmosdb_sql_container" "cosmosdb-audit" {
   resource_group_name = var.APP_RG_NAME 
   account_name        = azurerm_cosmosdb_account.cosmosacct.name
   database_name       = azurerm_cosmosdb_sql_database.cosmosdb.name
-  partition_key_path  = "/auditMonthYear"
+  partition_key_path  = "/auditYearMonth"
 }
 
 resource "azurerm_cosmosdb_sql_container" "cosmosdb-config" {

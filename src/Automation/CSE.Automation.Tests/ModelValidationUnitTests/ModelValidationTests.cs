@@ -57,44 +57,28 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         [Fact]
         public void AuditEntryModelValidate_ReturnsValidationFailuresIfInvalid()
         {
-            var servicePrincipal = new ServicePrincipalModel()
-            {
-                Id = "fake id",
-                AppId = "fake app id",
-                AppDisplayName = "fake app display name",
-                DisplayName = "fake display name"
-            };
-
-            var auditItem = new AuditEntry(servicePrincipal)
-            {
-                CorrelationId = null,
-                ActionType = string.Empty,
-                ActionReason = null
-            };
+            var auditItem = new AuditEntry();
 
             var results = auditEntryValidator.Validate(auditItem);
             Assert.False(results.IsValid);
             Assert.Contains(results.Errors, x => x.PropertyName == "CorrelationId");
-            Assert.Contains(results.Errors, x => x.PropertyName == "ActionType");
-            Assert.Contains(results.Errors, x => x.PropertyName == "ActionReason");
+            Assert.Contains(results.Errors, x => x.PropertyName == "Type");
+            Assert.Contains(results.Errors, x => x.PropertyName == "Reason");
         }
 
         [Fact]
         public void AuditEntryModelValidate_ReturnsTrueIfValid()
         {
-            var servicePrincipal = new ServicePrincipalModel()
-            {
-                Id = "fake id",
-                AppId = "fake app id",
-                AppDisplayName = "fake app display name",
-                DisplayName = "fake display name"
-            };
+            var context = new ActivityContext();
 
-            var auditItem = new AuditEntry(servicePrincipal)
+            var auditItem = new AuditEntry()
             {
                 CorrelationId = "fake correlation id",
-                ActionType = "fake action type",
-                ActionReason = "fake action reason"
+                Type = AuditActionType.Change,
+                Reason = "fake action reason",
+                AuditYearMonth = "qweradsf",
+                AttributeName = "asdf",
+                ExistingAttributeValue = "asdf"
             };
 
             var results = auditEntryValidator.Validate(auditItem);

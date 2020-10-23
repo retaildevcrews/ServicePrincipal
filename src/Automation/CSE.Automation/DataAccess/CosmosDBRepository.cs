@@ -97,11 +97,12 @@ namespace CSE.Automation.DataAccess
         CosmosClient Client => _client ??= new CosmosClientBuilder(_settings.Uri, _settings.Key)
                                                     .WithRequestTimeout(TimeSpan.FromSeconds(CosmosTimeout))
                                                     .WithThrottlingRetryOptions(TimeSpan.FromSeconds(CosmosTimeout), CosmosMaxRetries)
-                                                    .WithSerializerOptions(new CosmosSerializationOptions { 
-                                                                                PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase,
-                                                                                Indented = false,
-                                                                                IgnoreNullValues = true
-                                                                            })
+                                                    .WithSerializerOptions(new CosmosSerializationOptions
+                                                    {
+                                                        PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase,
+                                                        Indented = false,
+                                                        IgnoreNullValues = true
+                                                    })
                                                     .Build();
         private Container Container { get { lock (lockObj) { return _container ??= GetContainer(Client); } } }
 
@@ -319,7 +320,7 @@ namespace CSE.Automation.DataAccess
             return await this.Container.CreateItemAsync<TEntity>(newDocument, ResolvePartitionKey(newDocument)).ConfigureAwait(false);
         }
 
-        public async Task<TEntity> UpsertDocumentAsync(TEntity newDocument) 
+        public async Task<TEntity> UpsertDocumentAsync(TEntity newDocument)
         {
             // TEST CODE
             //var container = this.Container;
