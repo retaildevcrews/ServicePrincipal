@@ -59,6 +59,7 @@ namespace CSE.Automation.Processors
         private readonly ILogger _logger;
         private readonly IQueueServiceFactory _queueServiceFactory;
         private readonly IObjectTrackingService _objectService;
+        private readonly IAuditService _auditService;
         private readonly IEnumerable<IModelValidator<ServicePrincipalModel>> _validators;
 
         public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings,
@@ -66,12 +67,14 @@ namespace CSE.Automation.Processors
                                             IQueueServiceFactory queueServiceFactory,
                                             IConfigService<ProcessorConfiguration> configService,
                                             IObjectTrackingService objectService,
+                                            IAuditService auditService,
                                             IModelValidatorFactory modelValidatorFactory,
                                             ILogger<ServicePrincipalProcessor> logger) : base(configService)
         {
             _settings = settings;
             _graphHelper = graphHelper;
             _objectService = objectService;
+            _auditService = auditService;
             _logger = logger;
 
             _queueServiceFactory = queueServiceFactory;
@@ -185,7 +188,7 @@ namespace CSE.Automation.Processors
             if (errors.Count > 0)
             {
                 _logger.LogError(string.Join('\n', errors));
-                await RevertToLastKnownGood(entity).ConfigureAwait(false);
+                await RevertToLastKnownGood(entity, context).ConfigureAwait(false);
             }
             else
             {
@@ -195,13 +198,18 @@ namespace CSE.Automation.Processors
         }
 
 
-        async Task RevertToLastKnownGood(ServicePrincipalModel entity)
+        async Task RevertToLastKnownGood(ServicePrincipalModel entity, ActivityContext context)
         {
             var lastKnownGoodWrapper = await _objectService.Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(false);
             var lastKnownGood = TrackingModel.Unwrap<ServicePrincipalModel>(lastKnownGoodWrapper);
             if (lastKnownGood != null)
             {
-                // TODO: AUDIT CHANGE 
+                await _auditService.PutFailThenChange(
+                    attributeName: "Notes",
+                    existingAttributeValue: entity.Notes,
+                    updatedAttributeValue: lastKnownGood.Notes,
+                    reason: "Only Valid Email Addresses Can Be Present, Repopulating From Last Known Value",
+                    context: context).ConfigureAwait(false);
                 entity.Notes = lastKnownGood.Notes;
                 await CommandAADUpdate(entity).ConfigureAwait(false);
             }
@@ -221,9 +229,15 @@ namespace CSE.Automation.Processors
                 {
                     var owners = sp.Owners.Select(x => (x as User)?.UserPrincipalName);
                     var ownersList = string.Join(';', owners);
-                    // TODO: AUDIT CHANGE 
+                    await _auditService.PutFailThenChange(
+                    attributeName: "Notes",
+                    existingAttributeValue: entity.Notes,
+                    updatedAttributeValue: ownersList,
+                    reason: "Only Valid Email Addresses Can Be Present, Repopulating From Owners",
+                    context: context).ConfigureAwait(false);
+
                     entity.Notes = ownersList;
-                    // TODO: AUDIT CHANGE 
+
                     if (lastKnownGood is null)
                     {
                         lastKnownGood = entity;
