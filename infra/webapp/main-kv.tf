@@ -68,18 +68,6 @@ resource "azurerm_key_vault_access_policy" "fn-default-pol" {
   ]
 }
 
-
-resource "azurerm_key_vault_secret" "cosmosurl" {
-
-  depends_on = [
-    azurerm_key_vault_access_policy.terraform-sp
-  ]
-
-  name         = "SPCosmosURL"
-  value        = var.COSMOS_URL
-  key_vault_id = azurerm_key_vault.kv.id
-}
-
 resource "azurerm_key_vault_secret" "cosmosrwkey" {
 
   depends_on = [
@@ -90,54 +78,6 @@ resource "azurerm_key_vault_secret" "cosmosrwkey" {
   value        = var.COSMOS_RW_KEY
   key_vault_id = azurerm_key_vault.kv.id
 }
-
-
-resource "azurerm_key_vault_secret" "cosmosdatabase" {
-
-  depends_on = [
-    azurerm_key_vault_access_policy.terraform-sp
-  ]
-
-  name         = "SPCosmosDatabase"
-  value        = "${var.COSMOS_DB}-cosmos-${var.ENV}"
-  key_vault_id = azurerm_key_vault.kv.id
-}
-
-
-resource "azurerm_key_vault_secret" "cosmosauditcol" {
-
-  depends_on = [
-    azurerm_key_vault_access_policy.terraform-sp
-  ]
-
-  name         = "SPAuditCollection"
-  value        = var.COSMOS_AUDIT_COL
-  key_vault_id = azurerm_key_vault.kv.id
-}
-
-
-resource "azurerm_key_vault_secret" "cosmosconfigcol" {
-
-  depends_on = [
-    azurerm_key_vault_access_policy.terraform-sp
-  ]
-
-  name         = "SPConfigurationCollection"
-  value        = var.COSMOS_CONFIG_COL
-  key_vault_id = azurerm_key_vault.kv.id
-}
-
-resource "azurerm_key_vault_secret" "cosmosobktrackingcol" {
-
-  depends_on = [
-    azurerm_key_vault_access_policy.terraform-sp
-  ]
-
-  name         = "SPObjectTrackingCollection"
-  value        = var.COSMOS_OBJ_TRACKING_COL
-  key_vault_id = azurerm_key_vault.kv.id
-}
-
 
 resource "azurerm_key_vault_secret" "appinsights" {
 
@@ -158,28 +98,6 @@ resource "azurerm_key_vault_secret" "storageaccpk" {
 
   name         = "SPStorageAccountPrimaryKey"
   value        = data.azurerm_storage_account.svc-ppl-storage-acc.primary_access_key
-  key_vault_id = azurerm_key_vault.kv.id
-}
-
-resource "azurerm_key_vault_secret" "evaluatequeue" {
-
-  depends_on = [
-    azurerm_key_vault_access_policy.terraform-sp
-  ]
-
-  name         = "SPEvaluateQueue"
-  value        = var.EVALUATE_QUEUE_NAME
-  key_vault_id = azurerm_key_vault.kv.id
-}
-
-resource "azurerm_key_vault_secret" "updatequeue" {
-
-  depends_on = [
-    azurerm_key_vault_access_policy.terraform-sp
-  ]
-
-  name         = "SPUpdateQueue"
-  value        = var.UPDATE_QUEUE_NAME
   key_vault_id = azurerm_key_vault.kv.id
 }
 
