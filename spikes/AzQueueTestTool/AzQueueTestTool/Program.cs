@@ -1,4 +1,6 @@
-﻿using System;
+﻿using AzQueueTestTool.TestCases;
+using AzQueueTestTool.TestCases.Queues;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -12,6 +14,33 @@ namespace AzQueueTestTool
         //Create test utility to inject messages directly into the 'evaluate' queue and 'update' queue.
 
         static void Main(string[] args)
+        {
+            GenerateMessagesForTesting();
+        }
+
+        private static void GenerateMessagesForTesting()
+        {
+            using (var queueSettings = new QueueSettings())
+            {
+
+                ConfirmationMessage(queueSettings);
+
+                Stopwatch stopWatch = new Stopwatch();
+                stopWatch.Start();
+
+                using (TestCaseManager testCaseManager = new TestCaseManager(queueSettings))
+                {
+                    testCaseManager.GenerateMessagesForAllRules();
+                }
+
+                stopWatch.Stop();
+                Console.Clear();
+                //Console.WriteLine(sb.ToString());
+                Console.WriteLine($"{Environment.NewLine}Process completed!, time elapsed - {stopWatch.Elapsed}");
+            }
+        }
+
+        private static void InsertMessages()
         {
             using (var queueSettings = new QueueSettings())
             {
@@ -36,14 +65,35 @@ namespace AzQueueTestTool
                 Console.WriteLine(sb.ToString());
                 Console.WriteLine($"{Environment.NewLine}Process completed!, time elapsed - {stopWatch.Elapsed}");
             }
-
         }
-
         private static void ShouldProceed(QueueSettings queueSettings)
         {
             string accountName = GetAccountName(queueSettings.StorageConnectionString);
 
             Console.WriteLine($"Your target Storage Account is [{accountName}] and [{queueSettings.MessageCount}] messages will be pushed to each Queue [{queueSettings.QueueNames}]{Environment.NewLine}{Environment.NewLine}Enter 'Y' to continue?");
+
+            try
+            {
+                string toContinue = Console.ReadLine();
+
+                if (toContinue.Trim() != "Y")
+                {
+                    Console.WriteLine("Request was cancelled,  Goodbye!");
+                    Environment.Exit(0);
+                }
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Could not undestand your answer, please try again, Goodbye!");
+                Environment.Exit(-1);
+            }
+        }
+
+        private static void ConfirmationMessage(QueueSettings queueSettings)
+        {
+            string accountName = GetAccountName(queueSettings.StorageConnectionString);
+
+            Console.WriteLine($"Your target Storage Account is [{accountName}] and [{queueSettings.MessageCount}] messages will be pushed to Queue [Evaluate]{Environment.NewLine}{Environment.NewLine}Enter 'Y' to continue?");
 
             try
             {

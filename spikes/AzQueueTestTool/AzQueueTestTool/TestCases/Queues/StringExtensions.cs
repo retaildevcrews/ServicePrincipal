@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace AzQueueTestTool
+namespace AzQueueTestTool.TestCases.Queues
 {
     public static class StringExtensions
     {

@@ -4,9 +4,9 @@ using System.Configuration;
 using System.Linq;
 using System.Text;
 
-namespace AzQueueTestTool
+namespace AzQueueTestTool.TestCases.Queues
 {
-    internal class QueueSettings : IDisposable
+    public class QueueSettings : IDisposable
     {
         public string StorageConnectionString { get; }
         public int MessageCount { get; }

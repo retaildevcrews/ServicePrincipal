@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -6,8 +6,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\src\Automation\CSE.Automation\Interfaces\IAzureQueueService.cs" Link="TestCases\Services\IAzureQueueService.cs" />
+    <Compile Include="..\..\..\src\Automation\CSE.Automation\Interfaces\IGraphModel.cs" Link="TestCases\ServicePrincipals\Model\IGraphModel.cs" />
+    <Compile Include="..\..\..\src\Automation\CSE.Automation\Model\GraphModel.cs" Link="TestCases\ServicePrincipals\Model\GraphModel.cs" />
+    <Compile Include="..\..\..\src\Automation\CSE.Automation\Model\QueueMessage.cs" Link="TestCases\Queues\Model\QueueMessage.cs" />
+    <Compile Include="..\..\..\src\Automation\CSE.Automation\Model\ServicePrincipalModel.cs" Link="TestCases\ServicePrincipals\Model\ServicePrincipalModel.cs" />
+    <Compile Include="..\..\..\src\Automation\CSE.Automation\Services\AzureQueueService.cs" Link="TestCases\Services\AzureQueueService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Azure.Storage.Common" Version="12.5.2" />
     <PackageReference Include="Azure.Storage.Queues" Version="12.4.2" />
+    <PackageReference Include="FluentValidation" Version="9.2.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.1.9" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.9" />
+    <PackageReference Include="Microsoft.Graph" Version="3.18.0" />
+    <PackageReference Include="Microsoft.Graph.Auth" Version="1.0.0-preview.5" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
   </ItemGroup>
 
@@ -15,6 +29,12 @@
     <None Update="App.secrets.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="TestCases\Services\" />
+    <Folder Include="TestCases\Queues\Model\" />
+    <Folder Include="TestCases\ServicePrincipals\Model\" />
   </ItemGroup>
 
 </Project>
