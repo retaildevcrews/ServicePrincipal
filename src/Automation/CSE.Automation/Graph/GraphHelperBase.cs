@@ -41,7 +41,7 @@ namespace CSE.Automation.Graph
         Task<T> GetGraphObject(string id);
     }
 
-    public abstract class GraphHelperBase<TEntity> : IGraphHelper<TEntity>
+    internal abstract class GraphHelperBase<TEntity> : IGraphHelper<TEntity>
     {
         protected GraphServiceClient graphClient { get; }
 
