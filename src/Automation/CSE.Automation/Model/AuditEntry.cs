@@ -13,18 +13,21 @@ namespace CSE.Automation.Model
     {
         Pass,
         Fail,
-        Change
+        Change,
+        Ignore
     }
 
     public class AuditEntry
     {
         public string CorrelationId { get; set; }
 
+        public string ObjectId { get; set; }
+
         public AuditActionType Type { get; set; }
 
         public string Reason { get; set; }
 
-        public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.Now;
+        public DateTimeOffset Timestamp { get; set; }
 
         public string AuditYearMonth { get; set; }
 

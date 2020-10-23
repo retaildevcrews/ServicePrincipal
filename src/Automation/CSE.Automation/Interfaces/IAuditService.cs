@@ -10,14 +10,14 @@ namespace CSE.Automation.Interfaces
 {
     internal interface IAuditService
     {
-        Task PutFail(string attributeName, string existingAttributeValue, string reason, ActivityContext context = null, string objectId = null, DateTimeOffset? auditTime = null);
+        Task PutFail(ActivityContext context, string objectId, string attributeName, string existingAttributeValue, string reason, DateTimeOffset? auditTime = null);
 
-        Task PutPass(string attributeName, string existingAttributeValue, string reason, ActivityContext context = null, string objectId = null, DateTimeOffset? auditTime = null);
+        Task PutPass(ActivityContext context, string objectId, string attributeName, string existingAttributeValue, string reason, DateTimeOffset? auditTime = null);
 
-        Task PutChange(string attributeName, string existingAttributeValue, string updatedAttributeValue, string reason, ActivityContext context = null, string objectId = null, DateTimeOffset? auditTime = null);
+        Task PutIgnore(ActivityContext context, string objectId, string attributeName, string existingAttributeValue, string reason, DateTimeOffset? auditTime = null);
 
-        Task PutFailThenChange(string attributeName, string existingAttributeValue, string updatedAttributeValue, string reason, ActivityContext context = null, string objectId = null, DateTimeOffset? auditTime = null);
+        Task PutChange(ActivityContext context, string objectId, string attributeName, string existingAttributeValue, string updatedAttributeValue, string reason, DateTimeOffset? auditTime = null);
 
-
+        Task PutFailThenChange(ActivityContext context, string objectId, string attributeName, string existingAttributeValue, string updatedAttributeValue, string reason, DateTimeOffset? auditTime = null);
     }
 }

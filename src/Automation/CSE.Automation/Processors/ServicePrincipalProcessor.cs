@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using CSE.Automation.Properties;
 using System.Text.RegularExpressions;
+using FluentValidation.Results;
 
 namespace CSE.Automation.Processors
 {
@@ -106,7 +107,7 @@ namespace CSE.Automation.Processors
             IAzureQueueService queueService = _queueServiceFactory.Create(_settings.QueueConnectionString, _settings.QueueName);
 
             var selectFields = new[] { "appId", "displayName", "notes", "owners", "notificationEmailAddresses" };
-            var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects(_config, string.Join(',', selectFields)).ConfigureAwait(false);
+            var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects(_config, context, string.Join(',', selectFields)).ConfigureAwait(false);
 
             string updatedDeltaLink = servicePrincipalResult.Item1; //TODO save this back in Config
             var servicePrincipalList = servicePrincipalResult.Item2;
@@ -188,7 +189,7 @@ namespace CSE.Automation.Processors
             if (errors.Count > 0)
             {
                 _logger.LogError(string.Join('\n', errors));
-                await RevertToLastKnownGood(entity, context).ConfigureAwait(false);
+                await RevertToLastKnownGood(entity, context, errors).ConfigureAwait(false);
             }
             else
             {
@@ -198,18 +199,19 @@ namespace CSE.Automation.Processors
         }
 
 
-        async Task RevertToLastKnownGood(ServicePrincipalModel entity, ActivityContext context)
+        async Task RevertToLastKnownGood(ServicePrincipalModel entity, ActivityContext context, List<ValidationFailure> errors)
         {
             var lastKnownGoodWrapper = await _objectService.Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(false);
             var lastKnownGood = TrackingModel.Unwrap<ServicePrincipalModel>(lastKnownGoodWrapper);
             if (lastKnownGood != null)
             {
-                await _auditService.PutFailThenChange(
-                    attributeName: "Notes",
-                    existingAttributeValue: entity.Notes,
-                    updatedAttributeValue: lastKnownGood.Notes,
-                    reason: "Only Valid Email Addresses Can Be Present, Repopulating From Last Known Value",
-                    context: context).ConfigureAwait(false);
+                errors.ForEach(async error => await _auditService.PutFailThenChange(
+                   context: context,
+                   objectId: entity.Id,
+                   attributeName: error.PropertyName,
+                   existingAttributeValue: error.AttemptedValue.ToString(),
+                   updatedAttributeValue: lastKnownGood.Notes,
+                   reason: error.ErrorMessage).ConfigureAwait(false));
                 entity.Notes = lastKnownGood.Notes;
                 await CommandAADUpdate(entity).ConfigureAwait(false);
             }
@@ -229,12 +231,15 @@ namespace CSE.Automation.Processors
                 {
                     var owners = sp.Owners.Select(x => (x as User)?.UserPrincipalName);
                     var ownersList = string.Join(';', owners);
+
                     await _auditService.PutFailThenChange(
-                    attributeName: "Notes",
-                    existingAttributeValue: entity.Notes,
-                    updatedAttributeValue: ownersList,
-                    reason: "Only Valid Email Addresses Can Be Present, Repopulating From Owners",
-                    context: context).ConfigureAwait(false);
+                        context: context,
+                        objectId: entity.Id,
+                        attributeName: "Notes",
+                        existingAttributeValue: entity.Notes,
+                        updatedAttributeValue: ownersList,
+                        reason: "Only Valid Email Addresses Can Be Present, Repopulating From Owners"
+                        ).ConfigureAwait(false);
 
                     entity.Notes = ownersList;
 

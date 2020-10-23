@@ -21,69 +21,95 @@ namespace CSE.Automation.Services
             _logger = logger;
         }
 
-        public async Task PutFail(string attributeName, string existingAttributeValue, string reason,
-            ActivityContext context = null, string objectId = null, DateTimeOffset? auditTime = null)
+        public async Task PutFail(ActivityContext context, string objectId, string attributeName, string existingAttributeValue, string reason, DateTimeOffset? auditTime = null)
         {
-            var entry = new AuditEntry();
-            context ??= new ActivityContext();
-            entry.CorrelationId = objectId ?? context.ActivityId.ToString();
-            entry.Type = AuditActionType.Fail;
-            entry.Reason = reason;
-            entry.Timestamp = auditTime ?? entry.Timestamp;
+            var entry = new AuditEntry
+            {
+                CorrelationId = context.ActivityId.ToString(),
+                ObjectId = objectId,
+                Type = AuditActionType.Fail,
+                Reason = reason,
+                Timestamp = auditTime ?? DateTimeOffset.Now,
+                AttributeName = attributeName,
+                ExistingAttributeValue = existingAttributeValue
+
+            };
             entry.AuditYearMonth = entry.Timestamp.ToString("yyyyMM", CultureInfo.InvariantCulture);
-            entry.AttributeName = attributeName;
-            entry.ExistingAttributeValue = existingAttributeValue;
             await _auditRepository.CreateDocumentAsync(entry).ConfigureAwait(false);
         }
 
-        public async Task PutPass(string attributeName, string existingAttributeValue, string reason,
-            ActivityContext context = null, string objectId = null, DateTimeOffset? auditTime = null)
+        public async Task PutPass(ActivityContext context, string objectId, string attributeName, string existingAttributeValue, string reason, DateTimeOffset? auditTime = null)
         {
-            var entry = new AuditEntry();
-            context ??= new ActivityContext();
-            entry.CorrelationId = objectId ?? context.ActivityId.ToString();
-            entry.Type = AuditActionType.Pass;
-            entry.Reason = reason;
-            entry.Timestamp = auditTime ?? entry.Timestamp;
+            var entry = new AuditEntry
+            {
+                CorrelationId = context.ActivityId.ToString(),
+                ObjectId = objectId,
+                Type = AuditActionType.Pass,
+                Reason = reason,
+                Timestamp = auditTime ?? DateTimeOffset.Now,
+                AttributeName = attributeName,
+                ExistingAttributeValue = existingAttributeValue
+
+            };
             entry.AuditYearMonth = entry.Timestamp.ToString("yyyyMM", CultureInfo.InvariantCulture);
-            entry.AttributeName = attributeName;
-            entry.ExistingAttributeValue = existingAttributeValue;
             await _auditRepository.CreateDocumentAsync(entry).ConfigureAwait(false);
         }
 
-        public async Task PutChange(string attributeName, string existingAttributeValue, string updatedAttributeValue, string reason,
-            ActivityContext context = null, string objectId = null, DateTimeOffset? auditTime = null)
+        public async Task PutIgnore(ActivityContext context, string objectId, string attributeName, string existingAttributeValue, string reason, DateTimeOffset? auditTime = null)
         {
-            var entry = new AuditEntry();
-            context ??= new ActivityContext();
-            entry.CorrelationId = objectId ?? context.ActivityId.ToString();
+            var entry = new AuditEntry
+            {
+                CorrelationId = context.ActivityId.ToString(),
+                ObjectId = objectId,
+                Type = AuditActionType.Ignore,
+                Reason = reason,
+                Timestamp = auditTime ?? DateTimeOffset.Now,
+                AttributeName = attributeName,
+                ExistingAttributeValue = existingAttributeValue
+
+            };
+            entry.AuditYearMonth = entry.Timestamp.ToString("yyyyMM", CultureInfo.InvariantCulture);
+            await _auditRepository.CreateDocumentAsync(entry).ConfigureAwait(false);
+        }
+
+        public async Task PutChange(ActivityContext context, string objectId, string attributeName, string existingAttributeValue, string updatedAttributeValue, string reason, DateTimeOffset? auditTime = null)
+        {
+            var entry = new AuditEntry
+            {
+                CorrelationId = context.ActivityId.ToString(),
+                ObjectId = objectId,
+                Type = AuditActionType.Change,
+                Reason = reason,
+                Timestamp = auditTime ?? DateTimeOffset.Now,
+                AttributeName = attributeName,
+                ExistingAttributeValue = existingAttributeValue,
+                UpdatedAttributeValue = updatedAttributeValue,
+            };
+            entry.AuditYearMonth = entry.Timestamp.ToString("yyyyMM", CultureInfo.InvariantCulture);
+            await _auditRepository.CreateDocumentAsync(entry).ConfigureAwait(false);
+        }
+
+        public async Task PutFailThenChange(ActivityContext context, string objectId, string attributeName, string existingAttributeValue, string updatedAttributeValue, string reason, DateTimeOffset? auditTime = null)
+        {
+            var entry = new AuditEntry
+            {
+                CorrelationId = context.ActivityId.ToString(),
+                ObjectId = objectId,
+                Type = AuditActionType.Fail,
+                Reason = reason,
+                Timestamp = auditTime ?? DateTimeOffset.Now,
+                AttributeName = attributeName,
+                ExistingAttributeValue = existingAttributeValue,
+                UpdatedAttributeValue = updatedAttributeValue,
+
+            };
+            entry.AuditYearMonth = entry.Timestamp.ToString("yyyyMM", CultureInfo.InvariantCulture);
+
+            // reassign entry to ensure fail gets written before change
+            entry = await _auditRepository.CreateDocumentAsync(entry).ConfigureAwait(false);
+
+            entry.UpdatedAttributeValue = updatedAttributeValue;
             entry.Type = AuditActionType.Change;
-            entry.Reason = reason;
-            entry.Timestamp = auditTime ?? entry.Timestamp;
-            entry.AuditYearMonth = entry.Timestamp.ToString("yyyyMM", CultureInfo.InvariantCulture);
-            entry.AttributeName = attributeName;
-            entry.ExistingAttributeValue = existingAttributeValue;
-            entry.UpdatedAttributeValue = updatedAttributeValue;
-            await _auditRepository.CreateDocumentAsync(entry).ConfigureAwait(false);
-        }
-
-        public async Task PutFailThenChange(string attributeName, string existingAttributeValue, string updatedAttributeValue, string reason,
-            ActivityContext context = null, string objectId = null, DateTimeOffset? auditTime = null)
-        {
-            var entry = new AuditEntry();
-            context ??= new ActivityContext();
-            entry.CorrelationId = objectId ?? context.ActivityId.ToString();
-            entry.Type = AuditActionType.Fail;
-            entry.Reason = reason;
-            entry.Timestamp = auditTime ?? entry.Timestamp;
-            entry.AuditYearMonth = entry.Timestamp.ToString("yyyyMM", CultureInfo.InvariantCulture);
-            entry.AttributeName = attributeName;
-            entry.ExistingAttributeValue = existingAttributeValue;
-            entry.UpdatedAttributeValue = updatedAttributeValue;
-            await _auditRepository.CreateDocumentAsync(entry).ConfigureAwait(false);
-
-            entry.UpdatedAttributeValue = updatedAttributeValue;
-            entry.Type = AuditActionType.Fail;
 
             await _auditRepository.CreateDocumentAsync(entry).ConfigureAwait(false);
         }
