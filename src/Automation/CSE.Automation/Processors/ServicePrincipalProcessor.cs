@@ -72,7 +72,6 @@ namespace CSE.Automation.Processors
             _settings = settings;
             _graphHelper = graphHelper;
             _objectService = objectService;
-            _modelValidatorFactory = modelValidatorFactory;
             _logger = logger;
 
             _queueServiceFactory = queueServiceFactory;
