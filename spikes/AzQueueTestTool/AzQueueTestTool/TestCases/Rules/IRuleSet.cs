@@ -1,4 +1,5 @@
-﻿using Microsoft.Graph;
+﻿using CSE.Automation.Model;
+using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -12,6 +13,6 @@ namespace AzQueueTestTool.TestCases.Rules
         bool ValidOwners { get; }
         bool ValidNotes { get; }
         List<ServicePrincipal> ServicePrincipals { get; set; }
-        void CreateServicePrincipals();
+        void Execute(List<ServicePrincipal> targetServicePrincipals);
     }
 }

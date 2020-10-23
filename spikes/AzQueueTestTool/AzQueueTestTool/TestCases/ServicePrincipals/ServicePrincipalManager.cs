@@ -1,4 +1,6 @@
-﻿using Microsoft.Graph.Auth;
+﻿using CSE.Automation.Model;
+using Microsoft.Graph;
+using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
@@ -15,6 +17,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
         public ServicePrincipalManager(ServicePrincipalSettings spSettings)
         {
             _spSettings = spSettings;
+
             IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
             .Create(_spSettings.ClientID)
             .WithTenantId(_spSettings.TenantId)
@@ -26,20 +29,53 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
             // Initialize Graph client
             GraphHelper.Initialize(authProvider);
         }
-        public void CreateServicePrincipals()
+       
+
+        public List<ServicePrincipal> GetOrCreateServicePrincipals()
         {
-            if (!DoServicePrincipalExist(out List<string> missingServicePrincipalList))
-                GenerateServicePrincipal();// need to pass SP list 
+            //check if we have enought SP objects created in AAD 
+            //
+            //Get SP objects or create the missing ones
+
+            var servicePrincipalList = GraphHelper.GetAllServicePrincipalsAsync($"{_spSettings.ServicePrincipalPrefix}-{ _spSettings.ServicePrincipalBaseName}").Result;
+
+            int testCasesCount = 11;/// this numnber correct as off as of 10/23/2020
+
+            int numberOfServicePrincipalToCreate = (testCasesCount * _spSettings.NumberOfSPObjectsToCreatePerTestCase) - servicePrincipalList.Count;
+
+            
+            if (servicePrincipalList.Count == 0 )// nono SP exist, create them all 
+            {
+                GraphHelper.CreateServicePrincipalAsync($"{_spSettings.ServicePrincipalPrefix}-{ _spSettings.ServicePrincipalBaseName}", numberOfServicePrincipalToCreate);
+
+                servicePrincipalList = GraphHelper.GetAllServicePrincipalsAsync($"{_spSettings.ServicePrincipalPrefix}-{ _spSettings.ServicePrincipalBaseName}").Result;
+            }
+            else if (numberOfServicePrincipalToCreate  < 0)// if lees that zero we need to create more SPs , else if greater than zero means we have more SPs than needed so we are OK
+            {
+                //Delete all and recreate them , this should not really happen but it is 
+                int maxSpId = GetMaxServicePrincipalId(servicePrincipalList);
+
+                GraphHelper.CreateServicePrincipalAsync($"{_spSettings.ServicePrincipalPrefix}-{ _spSettings.ServicePrincipalBaseName}", numberOfServicePrincipalToCreate, maxSpId + 1);
+
+                servicePrincipalList = GraphHelper.GetAllServicePrincipalsAsync($"{_spSettings.ServicePrincipalPrefix}-{ _spSettings.ServicePrincipalBaseName}").Result;
+            }
+            
+
+            return servicePrincipalList;
         }
 
-        private bool DoServicePrincipalExist(out List<string> missingServicePrincipalList)
+        private int GetMaxServicePrincipalId(IList<ServicePrincipal> servicePrincipalList)
         {
-            missingServicePrincipalList = new List<string>();
-            //How about if only some of the SPs exist, we need to create the missing ones?
-            return true;
+            List<int> sequenceList = new List<int>();
+            foreach(var sp in servicePrincipalList)
+            {
+                var index = int.Parse(sp.DisplayName.Split('-').ToList().Last());
+                sequenceList.Add(index);
+            }
+            return sequenceList.Max();
         }
 
-        public void DeleteServicePrincipal()
+        private void DeleteServicePrincipal()
         {
 
             var servicePrincipalList = GraphHelper.GetAllServicePrincipalsAsync($"{_spSettings.ServicePrincipalPrefix}-{ _spSettings.ServicePrincipalBaseName}").Result;
@@ -53,16 +89,8 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
 
         }
 
-        public void GenerateServicePrincipal()
-        {
-            GraphHelper.CreateServicePrincipalAsync($"{_spSettings.ServicePrincipalPrefix}-{ _spSettings.ServicePrincipalBaseName}", _spSettings.NumberOfServicePrincipalToCreate);
 
-            // Should we create Owners (AAD users) ??????
-            // TODO Assign owners 
-
-        }
-
-        public void GetServicePrincipalAndRegisteredAppsCount()
+        private void GetServicePrincipalAndRegisteredAppsCount()
         {
 
             var servicePrincipalList = GraphHelper.GetAllServicePrincipalsAsync($"{_spSettings.ServicePrincipalPrefix}-{ _spSettings.ServicePrincipalBaseName}").Result;
@@ -75,8 +103,6 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
 
             Console.ReadKey();
         }
-
-
 
         public  void GetCountForServicePrincipalsWithNotes()
         {

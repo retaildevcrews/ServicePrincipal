@@ -1,4 +1,5 @@
-﻿using Microsoft.Graph;
+﻿using AzQueueTestTool.TestCases.ServicePrincipals;
+using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,11 +17,14 @@ namespace AzQueueTestTool.TestCases.Rules
 
         public bool ValidNotes => false;
 
-        public void CreateServicePrincipals()
+        public void Execute(List<ServicePrincipal> targetServicePrincipals)
         {
-            //Create X service principals or re-uses existing ones matching the SP pattern 
             //-DO NOT set owners 
             //Empty out Notes field
+
+            GraphHelper.ClearNotesFiled(targetServicePrincipals);
+
+            GraphHelper.ClearOwners(targetServicePrincipals);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Graph;
+﻿using AzQueueTestTool.TestCases.ServicePrincipals;
+using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,7 +9,7 @@ namespace AzQueueTestTool.TestCases.Rules
 {
     class RuleSet1 : IRuleSet
     {
-        //serviv
+        
         public CaseId TestCaseId { get => CaseId.TC1; }
         public List<ServicePrincipal> ServicePrincipals { get; set; }
 
@@ -16,11 +17,26 @@ namespace AzQueueTestTool.TestCases.Rules
 
         public bool ValidNotes => true;
 
-        public void CreateServicePrincipals()
+        public void Execute(List<ServicePrincipal> targetServicePrincipals)
         {
-            //Create X service principals or re-uses existing ones matching the SP pattern 
+
+            ServicePrincipals = targetServicePrincipals;
+
             //-set owners 
+            GraphHelper.SetOwners(targetServicePrincipals);
+
             //-populated Notes field with owners AAD emails
+            GraphHelper.UpdateNotesFieldWithAADOwnersEmail(targetServicePrincipals);
+
+            // other methos used for othes TC
+            /*
+            GraphHelper.UpdateNotesFieldWithValidEmail(targetServicePrincipals);
+            GraphHelper.ClearNotesFiled(targetServicePrincipals);
+
+            GraphHelper.ClearOwners(targetServicePrincipals);
+            */
+
+
         }
     }
 }

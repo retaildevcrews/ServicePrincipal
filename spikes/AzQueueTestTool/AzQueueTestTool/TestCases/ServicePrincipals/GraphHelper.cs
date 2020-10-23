@@ -23,7 +23,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
         }
 
         //https://stackoverflow.com/questions/56707404/microsoft-graph-only-returning-the-first-100-users
-        public static async Task<IList<ServicePrincipal>> GetAllServicePrincipalsAsync(string spNamePefix, int count= 0)
+        public static async Task<List<ServicePrincipal>> GetAllServicePrincipalsAsync(string spNamePefix, int count= 0)
         {
             try
             {
@@ -64,7 +64,32 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
             }
         }
 
-        public static async Task<IList<Application>> GetAllApplicationAsync(string spNamePefix, int count = 0)
+        internal static void ClearOwners(List<ServicePrincipal> targetServicePrincipals)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal static void ClearNotesFiled(List<ServicePrincipal> targetServicePrincipals)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal static void UpdateNotesFieldWithValidEmail(List<ServicePrincipal> targetServicePrincipals)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal static void UpdateNotesFieldWithAADOwnersEmail(List<ServicePrincipal> targetServicePrincipals)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal static void SetOwners(List<ServicePrincipal> targetServicePrincipals)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static async Task<List<Application>> GetAllApplicationAsync(string spNamePefix, int count = 0)
         {
             try
             {
@@ -107,7 +132,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
         }
 
 
-        public static void CreateServicePrincipalAsync(string spNamePefix, int count)
+        public static void CreateServicePrincipalAsync(string spNamePefix, int count, int lowerLimit = 1)
         {
 
             //IList<Application> applicationList = new List<Application>();
@@ -115,7 +140,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
             var appRegistrationTasks = new List<Task<Application>>();
 
 
-            Parallel.For(1, count + 1, (i, state) =>
+            Parallel.For(lowerLimit, count + 1, (i, state) =>
             //for (int i = 1; i<=count; i++)
             {
 
@@ -151,8 +176,6 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                     AppId = app.Result.AppId
                 };
                 
-                //
-                //servicePrincipal.Owners.Add();
 
                 Task thisTask = Task.Run(() => _graphClient.ServicePrincipals.Request().AddAsync(servicePrincipal));
 

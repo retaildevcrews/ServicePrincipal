@@ -30,7 +30,7 @@ namespace AzQueueTestTool
 
                 using (TestCaseManager testCaseManager = new TestCaseManager(queueSettings))
                 {
-                    testCaseManager.GenerateMessagesForAllRules();
+                    testCaseManager.Start();
                 }
 
                 stopWatch.Stop();

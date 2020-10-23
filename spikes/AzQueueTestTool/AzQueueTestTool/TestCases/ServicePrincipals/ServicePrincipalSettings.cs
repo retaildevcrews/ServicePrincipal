@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AzQueueTestTool.TestCases.ServicePrincipals
 {
-    public class ServicePrincipalSettings
+    public class ServicePrincipalSettings  : IDisposable
     {
         public string ServicePrincipalPrefix
         {
@@ -46,13 +46,11 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
             }
         }
 
-        public int NumberOfServicePrincipalToCreate
-        {
-            get
-            {
-                return int.Parse(ConfigurationManager.AppSettings.Get("numberOfServicePrincipalToCreate")); 
-            }
-        }
+        public int NumberOfSPObjectsToCreatePerTestCase => int.Parse(ConfigurationManager.AppSettings.Get("numberOfServicePrincipalObjectsToCreatePerTestCase"));
 
+        public void Dispose()
+        {
+            //throw new NotImplementedException();
+        }
     }
 }
