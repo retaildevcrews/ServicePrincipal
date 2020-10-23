@@ -37,7 +37,7 @@ namespace CSE.Automation.Services
                                     .GetByIdAsync(id, EntityToObjectType(typeof(TEntity)).ToString().ToCamelCase())
                                     .ConfigureAwait(false);
 
-            return entity.Entity as TEntity;
+            return entity?.Entity as TEntity;
         }
 
         public async Task<TrackingModel> Put(TrackingModel entity)

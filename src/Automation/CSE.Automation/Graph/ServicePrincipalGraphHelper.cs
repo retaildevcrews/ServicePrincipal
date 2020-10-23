@@ -15,7 +15,7 @@ namespace CSE.Automation.Graph
         public ServicePrincipalGraphHelper(GraphHelperSettings settings, ILogger<ServicePrincipalGraphHelper> logger) : base(settings, logger) { }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Console.WriteLine will be changed to logs")]
-        public override async Task<(string, IEnumerable<ServicePrincipal>)> GetDeltaGraphObjects(ProcessorConfiguration config, string selectFields = null)
+        public override async Task<(string, IEnumerable<ServicePrincipal>)> GetDeltaGraphObjects(ProcessorConfiguration config, string selectFields=null)
         {
             if (config == null)
             {
@@ -56,7 +56,7 @@ namespace CSE.Automation.Graph
             while (servicePrincipalCollectionPage.NextPageRequest != null)
             {
                 servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.Top(500).GetAsync().ConfigureAwait(false);
-
+                
                 var pageList = servicePrincipalCollectionPage.CurrentPage;
                 var count = pageList.Count;
                 totalRetrieved += count;
@@ -65,7 +65,7 @@ namespace CSE.Automation.Graph
                 {
                     _logger.LogInformation($"Trimming removed service principals for seed run.");
                     pageList = pageList.Where(x => x.AdditionalData.Keys.Contains("@removed") == false).ToList();
-                    _logger.LogInformation($"\tTrimmed {count - pageList.Count} service principals.");
+                    _logger.LogInformation($"\tTrimmed {count-pageList.Count} service principals.");
                 }
 
                 servicePrincipalList.AddRange(pageList);
