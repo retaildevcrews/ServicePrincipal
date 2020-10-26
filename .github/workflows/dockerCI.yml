@@ -30,7 +30,9 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ACR_REG_REPO_URL : ${{ secrets.ACR_REG }}.azurecr.io/${{ secrets.ACR_REPO }}
+      ACR_NAME         : svcpplacrdev
+      IMAGE_NAME       : serviceprincipal
+      ACR_REG_REPO_URL : ${{ ACR_NAME }}.azurecr.io/${{ IMAGE_NAME }}
       # These are used in if: conditions
       ACR_LOGGED_IN    : false
       DKR_IMG_IS_BUILT : false
@@ -45,8 +47,6 @@ jobs:
       # You must add the following secrets to github repo
       #    SERVICE_PRINCIPAL_ID     - ServicePrincipal Application ID
       #    SERVICE_PRINCIPAL_SECRET - Access Secret for the ServicePrincipal
-      #    ACR_REG_REPO_URL         - Azure Registry/repository name in the form: registry.azurecr.io/repository
-      # Overall azure reg/repo address will be in the form : $ACR_REG.azurecr.io/$ACR_REPO
       run: |
         # Login to Azure registry
         echo "${{ secrets.SERVICE_PRINCIPAL_SECRET }}" | docker login "${ACR_REG_REPO_URL}" -u ${{ secrets.SERVICE_PRINCIPAL_ID }} --password-stdin
@@ -73,31 +73,18 @@ jobs:
         docker build --pull -t ${TEMP_IMG_NAME} \
                     --build-arg SP_AUTOMATION_VERSION=${FULL_VER_STRING} \
                     --build-arg SP_AUTOMATION_GITHASH=${GIT_HASH} \
+                    --label "githash"="${GIT_HASH}"
                     -f src/Automation/CSE.Automation/Dockerfile src/Automation
         # Set variable is successful
         [[ $? == 0 ]] && echo "::set-env name=DKR_IMG_IS_BUILT::true"
 
     - name: Docker Push
-      if: ${{ env.DKR_IMG_IS_BUILT == 'true' }}
+      if: ${{ env.DKR_IMG_IS_BUILT == 'true' && github.event.pull_request.merged }}
       run: |
-        # build the complete image name
-        ACR_IMAGE="${ACR_REG_REPO_URL}"
-        # Tag image based on repo tag if a github label
-        GIT_HASH=$( echo ${{ github.sha }} | cut -c1-7 )
-        if [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
-          # Strip git ref prefix and "v" from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e 's/^v//')
+        # tag images based on PR number for version
+        PR_NUMBER=PR$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
+        docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:${PR_NUMBER}
+        docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:latest
 
-          # tag the image with :version, :version-hash and :stable
-          docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:${VERSION}
-          docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:${VERSION}-${GIT_HASH}
-          docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:stable
-        else
-          # If it's not a git-tag, then use the "beta-hash" tag
-          docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:beta
-          docker tag ${TEMP_IMG_NAME} ${ACR_IMAGE}:beta-${GIT_HASH}
-        fi
-        
-        # push the repo
-        # Here it will push either :beta or :stable and :version
-        docker push ${ACR_IMAGE}
+        # Push images after merge
+        docker push ${ACR_REG_REPO_URL}
