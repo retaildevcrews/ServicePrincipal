@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CSE.Automation.Interfaces
 {
-    internal interface IObjectTrackingService 
+    internal interface IObjectTrackingService
     {
         Task<TrackingModel> Get<TEntity>(string id) where TEntity : GraphModel;
         Task<TEntity> GetAndUnwrap<TEntity>(string id) where TEntity : GraphModel;

@@ -32,7 +32,7 @@ namespace CSE.Automation.DataAccess
         }
     }
 
-    internal interface IObjectTrackingRepository : ICosmosDBRepository<TrackingModel>  { }
+    internal interface IObjectTrackingRepository : ICosmosDBRepository<TrackingModel> { }
     internal class ObjectTrackingRepository : CosmosDBRepository<TrackingModel>, IObjectTrackingRepository
     {
         private readonly ObjectTrackingRepositorySettings _settings;
@@ -51,6 +51,5 @@ namespace CSE.Automation.DataAccess
         }
 
         public override string CollectionName => _settings.CollectionName;
-        
     }
 }

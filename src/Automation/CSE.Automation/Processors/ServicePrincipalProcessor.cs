@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using CSE.Automation.Properties;
 using System.Text.RegularExpressions;
+using FluentValidation.Results;
 
 namespace CSE.Automation.Processors
 {
@@ -68,6 +69,7 @@ namespace CSE.Automation.Processors
         private readonly ILogger _logger;
         private readonly IQueueServiceFactory _queueServiceFactory;
         private readonly IObjectTrackingService _objectService;
+        private readonly IAuditService _auditService;
         private readonly IEnumerable<IModelValidator<ServicePrincipalModel>> _validators;
 
         public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings,
@@ -75,12 +77,14 @@ namespace CSE.Automation.Processors
                                             IQueueServiceFactory queueServiceFactory,
                                             IConfigService<ProcessorConfiguration> configService,
                                             IObjectTrackingService objectService,
+                                            IAuditService auditService,
                                             IModelValidatorFactory modelValidatorFactory,
                                             ILogger<ServicePrincipalProcessor> logger) : base(configService)
         {
             _settings = settings;
             _graphHelper = graphHelper;
             _objectService = objectService;
+            _auditService = auditService;
             _logger = logger;
 
             _queueServiceFactory = queueServiceFactory;
@@ -112,7 +116,7 @@ namespace CSE.Automation.Processors
             IAzureQueueService queueService = _queueServiceFactory.Create(_settings.QueueConnectionString, _settings.EvaluateQueueName);
 
             var selectFields = new[] { "appId", "displayName", "notes", "owners", "notificationEmailAddresses" };
-            var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects(_config, string.Join(',', selectFields)).ConfigureAwait(false);
+            var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects(_config, context, string.Join(',', selectFields)).ConfigureAwait(false);
 
             string updatedDeltaLink = servicePrincipalResult.Item1; //TODO save this back in Config
             var servicePrincipalList = servicePrincipalResult.Item2;
@@ -197,6 +201,7 @@ namespace CSE.Automation.Processors
             {
                 _logger.LogError(string.Join('\n', errors));
                 await RevertToLastKnownGood(entity, queueService).ConfigureAwait(false);
+                await RevertToLastKnownGood(entity, context, errors).ConfigureAwait(false);
             }
             else
             {
@@ -206,13 +211,20 @@ namespace CSE.Automation.Processors
         }
 
 
+        async Task RevertToLastKnownGood(ServicePrincipalModel entity, ActivityContext context, List<ValidationFailure> errors)
         async Task RevertToLastKnownGood(ServicePrincipalModel entity, IAzureQueueService queueService)
         {
             var lastKnownGoodWrapper = await _objectService.Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(false);
             var lastKnownGood = TrackingModel.Unwrap<ServicePrincipalModel>(lastKnownGoodWrapper);
             if (lastKnownGood != null)
             {
-                // TODO: AUDIT CHANGE 
+                errors.ForEach(async error => await _auditService.PutFailThenChange(
+                   context: context,
+                   objectId: entity.Id,
+                   attributeName: error.PropertyName,
+                   existingAttributeValue: error.AttemptedValue.ToString(),
+                   updatedAttributeValue: lastKnownGood.Notes,
+                   reason: error.ErrorMessage).ConfigureAwait(false));
                 entity.Notes = lastKnownGood.Notes;
                 await CommandAADUpdate(entity, queueService).ConfigureAwait(false);
             }
@@ -232,9 +244,18 @@ namespace CSE.Automation.Processors
                 {
                     var owners = sp.Owners.Select(x => (x as User)?.UserPrincipalName);
                     var ownersList = string.Join(';', owners);
-                    // TODO: AUDIT CHANGE 
+
+                    await _auditService.PutFailThenChange(
+                        context: context,
+                        objectId: entity.Id,
+                        attributeName: "Notes",
+                        existingAttributeValue: entity.Notes,
+                        updatedAttributeValue: ownersList,
+                        reason: "Only Valid Email Addresses Can Be Present, Repopulating From Owners"
+                        ).ConfigureAwait(false);
+
                     entity.Notes = ownersList;
-                    // TODO: AUDIT CHANGE 
+
                     if (lastKnownGood is null)
                     {
                         lastKnownGood = entity;
@@ -247,7 +268,7 @@ namespace CSE.Automation.Processors
                     }
 
                     // make sure to write the wrapper back to get the same document updated
-                    
+
                 }
             }
         }

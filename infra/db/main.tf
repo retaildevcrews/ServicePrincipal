@@ -4,7 +4,7 @@
 resource "azurerm_cosmosdb_account" "cosmosacct" {
   name                = "${var.NAME}-cosmosa-${var.ENV}"
   location            = var.LOCATION
-  resource_group_name = var.APP_RG_NAME 
+  resource_group_name = var.APP_RG_NAME
   kind                = "GlobalDocumentDB"
   offer_type          = "Standard"
   consistency_policy {
@@ -23,7 +23,7 @@ resource "azurerm_cosmosdb_account" "cosmosacct" {
 # ---->>>>  Create a Database
 resource "azurerm_cosmosdb_sql_database" "cosmosdb" {
   name                = "${var.COSMOS_DB}-cosmos-${var.ENV}"
-  resource_group_name = var.APP_RG_NAME 
+  resource_group_name = var.APP_RG_NAME
   account_name        = azurerm_cosmosdb_account.cosmosacct.name
   throughput          = var.COSMOS_RU
 
@@ -33,15 +33,15 @@ resource "azurerm_cosmosdb_sql_database" "cosmosdb" {
 
 resource "azurerm_cosmosdb_sql_container" "cosmosdb-audit" {
   name                = var.COSMOS_AUDIT_COL
-  resource_group_name = var.APP_RG_NAME 
+  resource_group_name = var.APP_RG_NAME
   account_name        = azurerm_cosmosdb_account.cosmosacct.name
   database_name       = azurerm_cosmosdb_sql_database.cosmosdb.name
-  partition_key_path  = "/auditMonthYear"
+  partition_key_path  = "/auditYearMonth"
 }
 
 resource "azurerm_cosmosdb_sql_container" "cosmosdb-config" {
   name                = var.COSMOS_CONFIG_COL
-  resource_group_name = var.APP_RG_NAME 
+  resource_group_name = var.APP_RG_NAME
   account_name        = azurerm_cosmosdb_account.cosmosacct.name
   database_name       = azurerm_cosmosdb_sql_database.cosmosdb.name
   partition_key_path  = "/configType"
@@ -49,7 +49,7 @@ resource "azurerm_cosmosdb_sql_container" "cosmosdb-config" {
 
 resource "azurerm_cosmosdb_sql_container" "cosmosdb-objtracking" {
   name                = var.COSMOS_OBJ_TRACKING_COL
-  resource_group_name = var.APP_RG_NAME 
+  resource_group_name = var.APP_RG_NAME
   account_name        = azurerm_cosmosdb_account.cosmosacct.name
   database_name       = azurerm_cosmosdb_sql_database.cosmosdb.name
   partition_key_path  = "/objectType"

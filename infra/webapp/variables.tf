@@ -76,14 +76,14 @@ variable "ENV" {
 }
 
 
-variable "AADUPDATE_QUEUE_NAME" {
+variable "EVALUATE_QUEUE_NAME" {
   type        = string
-  description = "The AAD Update queue name"
+  description = "The Evaluate queue name"
 }
 
-variable "TRACKING_QUEUE_NAME" {
+variable "UPDATE_QUEUE_NAME" {
   type        = string
-  description = "The Tracking Update queue name"
+  description = "The Update queue name"
 }
 
 variable "TF_CLIENT_SP_ID" {
@@ -122,5 +122,5 @@ variable "GRAPH_SP_SECRET" {
 
 variable "ACR_URI" {
   type        = string
-  description = "Container Registry URI"  
+  description = "Container Registry URI"
 }

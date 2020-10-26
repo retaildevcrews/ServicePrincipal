@@ -221,6 +221,7 @@ namespace CSE.Automation
                 .AddScoped<IServicePrincipalProcessor, ServicePrincipalProcessor>()
 
                 .AddScoped<IObjectTrackingService, ObjectTrackingService>()
+                .AddScoped<IAuditService, AuditService>()
 
                 .AddScoped<IModelValidator<GraphModel>, GraphModelValidator>()
                 .AddScoped<IModelValidator<ServicePrincipalModel>, ServicePrincipalModelValidator>()
