@@ -9,6 +9,10 @@
       "newBatchThreshold": 1
     }
   },
+  "tracing": {
+    "consoleLevel": "verbose",
+    "fileLoggingMode": "debugOnly"
+  },
   "logging": {
     "fileLoggingMode": "always",
     "logLevel": {
