@@ -3,7 +3,7 @@ name: Docker CI
 on:
   push:
     branches:
-      - main
+      - dummy-main
 
     paths-ignore:
       - 'docs/**'
@@ -16,7 +16,7 @@ on:
   pull_request:
     types: [ opened, reopened, synchronize, closed ]
     branches:
-      - main
+      - dummy-main
 
     paths-ignore:
     - 'docs/**'
