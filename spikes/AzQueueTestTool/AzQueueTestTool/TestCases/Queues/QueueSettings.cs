@@ -18,7 +18,7 @@ namespace AzQueueTestTool.TestCases.Queues
             StorageConnectionString = ConfigurationManager.AppSettings.Get("storageConnectionString");
             MessageBase = ConfigurationManager.AppSettings.Get("messageBase");
             QueueNames = ConfigurationManager.AppSettings.Get("queueNames");
-            QueueNamesList = QueueNames.Split(',').ToList();
+            QueueNamesList = QueueNames.Split(',').Select(s => s.Trim()).ToList();
             MessageCount = int.Parse(ConfigurationManager.AppSettings.Get("messageCount"));
         }
 

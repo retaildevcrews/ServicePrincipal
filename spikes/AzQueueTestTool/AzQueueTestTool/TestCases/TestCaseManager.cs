@@ -25,15 +25,23 @@ namespace AzQueueTestTool.TestCases
             GenerateMessagesForAllRules(availableServicePrincipals);
         }
 
+        internal void Cleanup()
+        {
+            using (ServicePrincipalManager ServicePrincipalManager = new ServicePrincipalManager(_spSettings))
+            {
+                ServicePrincipalManager.DeleteServicePrincipals();
+            }
+        }
+
         private void GenerateMessagesForAllRules(List<ServicePrincipal> availableServicePrincipals)
         {
             using (RulesManager rulesManager = new RulesManager(availableServicePrincipals, _spSettings.NumberOfSPObjectsToCreatePerTestCase))
             {
-                rulesManager.ExecuteAllRules();
+                rulesManager.ExecuteAllRules(_spSettings.TargetTestCaseList);
 
                 using (var queueServiceManager = new QueueServiceManager("evaluate", _queueSettings.StorageConnectionString))
                 {
-                    queueServiceManager.GenerateMessageForRules(rulesManager.RuleSetsList);
+                    _ = queueServiceManager.GenerateMessageForRulesAsync(rulesManager.RuleSetsList);
                 }
             }
         }
@@ -50,13 +58,10 @@ namespace AzQueueTestTool.TestCases
 
         internal void DeleteServicePrincipals()
         {
-            //using (ServicePrincipalSettings spSettings = new ServicePrincipalSettings())
-            //{
-            //    using (ServicePrincipalManager ServicePrincipalManager = new ServicePrincipalManager(spSettings))
-            //    {
-            //     
-            //    }
-            //}
+            using (ServicePrincipalManager ServicePrincipalManager = new ServicePrincipalManager(_spSettings))
+            {
+                ServicePrincipalManager.DeleteServicePrincipals();
+            }
         }
 
 

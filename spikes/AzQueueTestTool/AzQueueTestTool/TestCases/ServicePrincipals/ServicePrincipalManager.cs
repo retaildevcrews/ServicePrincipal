@@ -37,18 +37,26 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
             //
             //Get SP objects or create the missing ones
 
-            var servicePrincipalList = GraphHelper.GetAllServicePrincipalsAsync($"{_spSettings.ServicePrincipalPrefix}-{ _spSettings.ServicePrincipalBaseName}").Result;
+            var servicePrincipalList = GraphHelper.GetAllServicePrincipals($"{_spSettings.ServicePrincipalPrefix}-{_spSettings.ServicePrincipalBaseName}").Result;
 
             int testCasesCount = 11;/// this numnber correct as off as of 10/23/2020
-
-            int numberOfServicePrincipalToCreate = (testCasesCount * _spSettings.NumberOfSPObjectsToCreatePerTestCase) - servicePrincipalList.Count;
+            int totalSPObjects = (testCasesCount * _spSettings.NumberOfSPObjectsToCreatePerTestCase);
+            int numberOfServicePrincipalToCreate = totalSPObjects - servicePrincipalList.Count;
 
             
             if (servicePrincipalList.Count == 0 )// nono SP exist, create them all 
             {
-                GraphHelper.CreateServicePrincipalAsync($"{_spSettings.ServicePrincipalPrefix}-{ _spSettings.ServicePrincipalBaseName}", numberOfServicePrincipalToCreate);
+                GraphHelper.CreateServicePrincipalAsync($"{_spSettings.ServicePrincipalPrefix}-{_spSettings.ServicePrincipalBaseName}", numberOfServicePrincipalToCreate);
 
-                servicePrincipalList = GraphHelper.GetAllServicePrincipalsAsync($"{_spSettings.ServicePrincipalPrefix}-{ _spSettings.ServicePrincipalBaseName}").Result;
+                servicePrincipalList = GraphHelper.GetAllServicePrincipals($"{_spSettings.ServicePrincipalPrefix}-{_spSettings.ServicePrincipalBaseName}").Result;
+
+                var applicationsList = GraphHelper.GetAllApplicationAsync($"{_spSettings.ServicePrincipalPrefix}-{_spSettings.ServicePrincipalBaseName}").Result;
+
+                if (servicePrincipalList.Count != applicationsList.Count || totalSPObjects != servicePrincipalList.Count)
+                {
+                    throw new Exception($"Service Principal Count [{servicePrincipalList.Count}] mismatch Application Count [{applicationsList.Count}]");
+                }
+
             }
             else if (numberOfServicePrincipalToCreate  < 0)// if lees that zero we need to create more SPs , else if greater than zero means we have more SPs than needed so we are OK
             {
@@ -57,11 +65,23 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
 
                 GraphHelper.CreateServicePrincipalAsync($"{_spSettings.ServicePrincipalPrefix}-{ _spSettings.ServicePrincipalBaseName}", numberOfServicePrincipalToCreate, maxSpId + 1);
 
-                servicePrincipalList = GraphHelper.GetAllServicePrincipalsAsync($"{_spSettings.ServicePrincipalPrefix}-{ _spSettings.ServicePrincipalBaseName}").Result;
+                servicePrincipalList = GraphHelper.GetAllServicePrincipals($"{_spSettings.ServicePrincipalPrefix}-{_spSettings.ServicePrincipalBaseName}").Result;
             }
             
 
             return servicePrincipalList;
+        }
+
+        internal void DeleteServicePrincipals()
+        {
+            var servicePrincipalList = GraphHelper.GetAllServicePrincipals($"{_spSettings.ServicePrincipalPrefix}-{_spSettings.ServicePrincipalBaseName}").Result;
+
+            var applicationsList = GraphHelper.GetAllApplicationAsync($"{_spSettings.ServicePrincipalPrefix}-{_spSettings.ServicePrincipalBaseName}").Result;
+
+
+            GraphHelper.DeleteServicePrincipalsAsync(servicePrincipalList);
+
+            GraphHelper.DeleteRegisteredApplicationsAsync(applicationsList);
         }
 
         private int GetMaxServicePrincipalId(IList<ServicePrincipal> servicePrincipalList)
@@ -78,7 +98,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
         private void DeleteServicePrincipal()
         {
 
-            var servicePrincipalList = GraphHelper.GetAllServicePrincipalsAsync($"{_spSettings.ServicePrincipalPrefix}-{ _spSettings.ServicePrincipalBaseName}").Result;
+            var servicePrincipalList = GraphHelper.GetAllServicePrincipals($"{_spSettings.ServicePrincipalPrefix}-{ _spSettings.ServicePrincipalBaseName}").Result;
 
             var applicationsList = GraphHelper.GetAllApplicationAsync($"{_spSettings.ServicePrincipalPrefix}-{ _spSettings.ServicePrincipalBaseName}").Result;
 
@@ -93,9 +113,9 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
         private void GetServicePrincipalAndRegisteredAppsCount()
         {
 
-            var servicePrincipalList = GraphHelper.GetAllServicePrincipalsAsync($"{_spSettings.ServicePrincipalPrefix}-{ _spSettings.ServicePrincipalBaseName}").Result;
+            var servicePrincipalList = GraphHelper.GetAllServicePrincipals($"{_spSettings.ServicePrincipalPrefix}-{_spSettings.ServicePrincipalBaseName}").Result;
 
-            var applicationsList = GraphHelper.GetAllApplicationAsync($"{_spSettings.ServicePrincipalPrefix}-{ _spSettings.ServicePrincipalBaseName}").Result;
+            var applicationsList = GraphHelper.GetAllApplicationAsync($"{_spSettings.ServicePrincipalPrefix}-{_spSettings.ServicePrincipalBaseName}").Result;
 
 
             Console.WriteLine("Service Principal Objects Count: " + servicePrincipalList.Count());
@@ -111,6 +131,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
             Console.WriteLine("Service Principal Objects with Notes : " + servicePrincipalList.Count());
             Console.ReadKey();
         }
+
 
         public void Dispose()
         {

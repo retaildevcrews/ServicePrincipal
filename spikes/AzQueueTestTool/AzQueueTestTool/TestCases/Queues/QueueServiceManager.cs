@@ -21,11 +21,15 @@ namespace AzQueueTestTool.TestCases.Queues
             _azureQueueService = new AzureQueueService(storageConnectionString, queueName.Trim());
         }
 
-        public void GenerateMessageForRules(List<IRuleSet> ruleSetsList)
+        public async Task GenerateMessageForRulesAsync(List<IRuleSet> ruleSetsList)
         {
             foreach(var ruleSet in ruleSetsList)
             {
-                Parallel.ForEach(ruleSet.ServicePrincipals, async sp =>
+                if (ruleSet.ServicePrincipals?.Count == 0)
+                    continue;
+
+                foreach(var sp in ruleSet.ServicePrincipals)
+                //Parallel.ForEach(ruleSet.ServicePrincipals, async sp =>
                 {
                     var servicePrincipal = new ServicePrincipalModel()
                     {
@@ -43,7 +47,7 @@ namespace AzQueueTestTool.TestCases.Queues
                     };
 
                     await _azureQueueService.Send(myMessage, 3).ConfigureAwait(false);
-                });
+                }
             }
         }
 

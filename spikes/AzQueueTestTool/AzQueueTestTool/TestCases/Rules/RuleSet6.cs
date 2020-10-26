@@ -3,6 +3,7 @@ using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using static AzQueueTestTool.TestCases.Rules.RulesManager;
 
 namespace AzQueueTestTool.TestCases.Rules
@@ -23,9 +24,11 @@ namespace AzQueueTestTool.TestCases.Rules
             // set owners 
             //Empty out Notes field
 
-            GraphHelper.SetOwners(targetServicePrincipals);
+            GraphHelper.ClearOwners(targetServicePrincipals);
 
-            GraphHelper.ClearNotesFiled(targetServicePrincipals);
+            Task task = GraphHelper.SetOwnersAsync(targetServicePrincipals);
+            task.Wait();
+            GraphHelper.ClearNotesField(targetServicePrincipals);
 
        }
     }

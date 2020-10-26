@@ -37,7 +37,7 @@ namespace AzQueueTestTool.TestCases.Rules
 
             _availableServicePrincipals = availableServicePrincipals;
         }
-        public void ExecuteAllRules()
+        public void ExecuteAllRules(List<string> targetTestCaseList)
         {
             if (_availableServicePrincipals.Count != (RuleSetsList.Count * _servicePrincipalObjectsPerRuleSet))
             {
@@ -46,9 +46,22 @@ namespace AzQueueTestTool.TestCases.Rules
 
             foreach (var ruleSet in RuleSetsList)// Parrallel loop?
             {
-                var nextSpSet = _availableServicePrincipals.GetNext(_servicePrincipalObjectsPerRuleSet);
-                ruleSet.Execute(nextSpSet);
+                if (targetTestCaseList.Contains(ruleSet.TestCaseId.ToString()))// execute only Test case defined in configuration
+                {
+                    UpdateConsole($"Executing Test Case {ruleSet.TestCaseId.ToString()}");
+
+                    var nextSpSet = _availableServicePrincipals.GetNext(_servicePrincipalObjectsPerRuleSet);
+                    ruleSet.Execute(nextSpSet);
+
+                }
             }
+        }
+
+        public void UpdateConsole(string message)
+        {
+            Console.Write(string.Format("\r{0}", "".PadLeft(Console.CursorLeft, ' ')));
+            Console.Write(string.Format("\r{0}", message));
+
         }
 
         public void Dispose()
@@ -64,7 +77,7 @@ namespace AzQueueTestTool.TestCases.Rules
         {
             var result = availableSPs.Take(count).ToList();
 
-            availableSPs.RemoveAll(x => availableSPs.Any(y => y.Id == x.Id));
+            availableSPs.RemoveAll(x => result.Any(y => y.Id == x.Id));
 
             return result;
         }

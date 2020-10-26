@@ -23,7 +23,7 @@ namespace AzQueueTestTool.TestCases.Rules
             //-DO NOT set owners 
             //Empty out Notes field
 
-            GraphHelper.ClearNotesFiled(targetServicePrincipals);
+            GraphHelper.ClearNotesField(targetServicePrincipals);
 
             GraphHelper.ClearOwners(targetServicePrincipals);
 

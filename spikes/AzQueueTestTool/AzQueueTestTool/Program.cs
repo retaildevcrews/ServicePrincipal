@@ -1,5 +1,8 @@
 ﻿using AzQueueTestTool.TestCases;
 using AzQueueTestTool.TestCases.Queues;
+using AzQueueTestTool.TestCases.ServicePrincipals;
+using Microsoft.Graph.Auth;
+using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,12 +18,14 @@ namespace AzQueueTestTool
 
         static void Main(string[] args)
         {
-            GenerateMessagesForTesting();
+            
+            GenerateMessagesForTestCases();
         }
 
-        private static void GenerateMessagesForTesting()
+
+        private static void GenerateMessagesForTestCases()
         {
-            using (var queueSettings = new QueueSettings())
+            using ( var queueSettings = new QueueSettings())
             {
 
                 ConfirmationMessage(queueSettings);
@@ -31,6 +36,7 @@ namespace AzQueueTestTool
                 using (TestCaseManager testCaseManager = new TestCaseManager(queueSettings))
                 {
                     testCaseManager.Start();
+                    //testCaseManager.Cleanup();
                 }
 
                 stopWatch.Stop();
@@ -93,7 +99,7 @@ namespace AzQueueTestTool
         {
             string accountName = GetAccountName(queueSettings.StorageConnectionString);
 
-            Console.WriteLine($"Your target Storage Account is [{accountName}] and [{queueSettings.MessageCount}] messages will be pushed to Queue [Evaluate]{Environment.NewLine}{Environment.NewLine}Enter 'Y' to continue?");
+            Console.WriteLine($"Your target Storage Account is [{accountName}] and messages will be pushed to Queue [Evaluate]{Environment.NewLine}{Environment.NewLine}Enter 'Y' to continue?");
 
             try
             {

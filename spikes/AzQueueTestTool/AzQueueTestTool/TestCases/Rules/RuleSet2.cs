@@ -3,6 +3,7 @@ using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using static AzQueueTestTool.TestCases.Rules.RulesManager;
 
 namespace AzQueueTestTool.TestCases.Rules
@@ -24,7 +25,13 @@ namespace AzQueueTestTool.TestCases.Rules
             //-populated Notes field with owners AAD emails
 
             GraphHelper.ClearOwners(targetServicePrincipals);
+            
+            Task task = GraphHelper.SetOwnersAsync(targetServicePrincipals);
+
+            task.Wait();
             GraphHelper.UpdateNotesFieldWithAADOwnersEmail(targetServicePrincipals);
+
+            GraphHelper.ClearOwners(targetServicePrincipals);
 
 
 
