@@ -25,7 +25,7 @@
         // Azure Storage Queue Constants
         public const string SPStorageConnectionString = "SPStorageConnectionString";
         public const string EvaluateQueueAppSetting = "%SPEvaluateQueue%";
-        public const string SPAADUpdateQueueAppSetting = "%SPAADUpdateQueue%";
+        public const string UpdateQueueAppSetting = "%SPUpdateQueue%";
 
         // Azure Timer Function Constants
         public const string DeltaDiscoverySchedule = "%SPDeltaDiscoverySchedule%";

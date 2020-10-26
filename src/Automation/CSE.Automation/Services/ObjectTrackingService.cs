@@ -39,19 +39,22 @@ namespace CSE.Automation.Services
             return entity?.Entity as TEntity;
         }
 
-        public async Task<TrackingModel> Put(TrackingModel entity)
+        public async Task<TrackingModel> Put(ActivityContext context, TrackingModel entity)
         {
             _objectRepository.GenerateId(entity);
+            entity.CorrelationId = context.ActivityId.ToString();
             entity.LastUpdated = DateTimeOffset.Now;
             return await _objectRepository.UpsertDocumentAsync(entity).ConfigureAwait(false);
         }
 
-        public async Task<TrackingModel> Put<TEntity>(TEntity entity) where TEntity : GraphModel
+        public async Task<TrackingModel> Put<TEntity>(ActivityContext context, TEntity entity) where TEntity : GraphModel
         {
+            var now = DateTimeOffset.Now;
             var model = new TrackingModel<TEntity>
             {
-                Created = DateTimeOffset.Now,
-                LastUpdated = DateTimeOffset.Now,
+                CorrelationId = context.ActivityId.ToString(),
+                Created = now,
+                LastUpdated = now,
                 TypedEntity = entity,
             };
             _objectRepository.GenerateId(model);

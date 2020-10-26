@@ -4,10 +4,14 @@
     "queues": {
       "maxPollingInterval": "00:00:02",
       "visibilityTimeout": "00:00:30",
-      "batchSize": 16,
+      "batchSize": 1,
       "maxDequeueCount": 3,
-      "newBatchThreshold": 8
+      "newBatchThreshold": 1
     }
+  },
+  "tracing": {
+    "consoleLevel": "verbose",
+    "fileLoggingMode": "debugOnly"
   },
   "logging": {
     "fileLoggingMode": "always",

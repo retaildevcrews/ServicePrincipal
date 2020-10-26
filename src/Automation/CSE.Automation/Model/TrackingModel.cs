@@ -7,6 +7,9 @@ namespace CSE.Automation.Model
     {
         public string Id { get; set; }
 
+        // activity correlation id that last wrote this document
+        public string CorrelationId { get; set; }
+
         public DateTimeOffset Created { get; set; }
 
         public DateTimeOffset? Deleted { get; set; }

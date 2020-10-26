@@ -100,7 +100,7 @@ function global:ProvisionCosmosResources(){
 		}
 		else
 		{
-			Write-Output "Collection $($_.key) not found, creating."
+			Write-Output "Collection $($_.key) not found, creating with partitionKey $($_.value)"
 			CreateCosmosDatabaseCollection $databaseName $_.key $_.value | Out-Null
 		}
 	}

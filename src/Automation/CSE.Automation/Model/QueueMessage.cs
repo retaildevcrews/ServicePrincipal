@@ -1,4 +1,6 @@
-﻿using System.Runtime.Serialization;
+using Newtonsoft.Json.Converters;
+using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 
 namespace CSE.Automation.Model
 {
@@ -14,11 +16,10 @@ namespace CSE.Automation.Model
         public TDocument Document { get; set; }
     }
 
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum QueueMessageType
     {
-        [EnumMember(Value = "data")]
         Data,
-        [EnumMember(Value = "audit")]
         Audit
     }
 }
