@@ -41,11 +41,11 @@ namespace CSE.Automation.DataAccess
 
         public override string GenerateId(AuditEntry entity)
         {
-            if (string.IsNullOrWhiteSpace(entity.CorrelationId))
+            if (string.IsNullOrWhiteSpace(entity.Id))
             {
-                entity.CorrelationId = Guid.NewGuid().ToString();
+                entity.Id = Guid.NewGuid().ToString();
             }
-            return entity.CorrelationId;
+            return entity.Id;
         }
 
         public override string CollectionName => _settings.CollectionName;

@@ -20,7 +20,6 @@ namespace CSE.Automation.Model
     public enum QueueMessageType
     {
         Data,
-        Update,
         Audit
     }
 }
