@@ -13,18 +13,11 @@ namespace CSE.Automation.DataAccess
 {
     internal class ConfigRespositorySettings : CosmosDBSettings
     {
-        private string _collectionName;
-
         public ConfigRespositorySettings(ISecretClient secretClient) : base(secretClient)
         {
         }
 
-        [Secret(Constants.CosmosDBConfigCollectionName)]
-        public string CollectionName
-        {
-            get { return _collectionName ?? base.GetSecret(); }
-            set { _collectionName = value; }
-        }
+        public string CollectionName { get; set; }
 
         public override void Validate()
         {

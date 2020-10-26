@@ -13,18 +13,11 @@ namespace CSE.Automation.DataAccess
 {
     internal class ObjectTrackingRepositorySettings : CosmosDBSettings
     {
-        private string _collectionName;
-
         public ObjectTrackingRepositorySettings(ISecretClient secretClient) : base(secretClient)
         {
         }
 
-        [Secret(Constants.CosmosDBObjectTrackingCollectionName)]
-        public string CollectionName
-        {
-            get { return _collectionName ?? base.GetSecret(); }
-            set { _collectionName = value; }
-        }
+        public string CollectionName { get; set; }
         public override void Validate()
         {
             base.Validate();
