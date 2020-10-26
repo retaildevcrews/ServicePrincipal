@@ -1,19 +1,15 @@
 ﻿using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
-using CSE.Automation.Services;
+using CSE.Automation.Properties;
+using FluentValidation.Results;
+using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
-using System.Text;
-using CSE.Automation.DataAccess;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using CSE.Automation.Properties;
-using System.Text.RegularExpressions;
-using FluentValidation.Results;
 
 namespace CSE.Automation.Processors
 {
@@ -199,33 +195,40 @@ namespace CSE.Automation.Processors
             var errors = _validators.SelectMany(v => v.Validate(entity).Errors).ToList();
             if (errors.Count > 0)
             {
-                _logger.LogError(string.Join('\n', errors));
-                await RevertToLastKnownGood(entity, queueService).ConfigureAwait(false);
-                await RevertToLastKnownGood(entity, context, errors).ConfigureAwait(false);
+                // emit into Operations log
+                var errorMsg = string.Join('\n', errors);
+                _logger.LogError($"ServicePrincipal {entity.Id} failed validation.\n{errorMsg}");
+
+                // emit into Audit log
+                errors.ForEach(async error => await _auditService.PutFail(
+                                   context: context,
+                                   objectId: entity.Id,
+                                   attributeName: error.PropertyName,
+                                   existingAttributeValue: error.AttemptedValue.ToString(),
+                                   reason: error.ErrorMessage).ConfigureAwait(false));
+
+                // Revert the principal if we can
+                await RevertToLastKnownGood(context, entity, queueService).ConfigureAwait(false);
             }
             else
             {
+                // remember this was the last time we saw the prinicpal as 'good'
                 await UpdateLastKnownGood(entity).ConfigureAwait(false);
             }
 
         }
 
 
-        async Task RevertToLastKnownGood(ServicePrincipalModel entity, ActivityContext context, List<ValidationFailure> errors)
-        async Task RevertToLastKnownGood(ServicePrincipalModel entity, IAzureQueueService queueService)
+        async Task RevertToLastKnownGood(ActivityContext context, ServicePrincipalModel entity, IAzureQueueService queueService)
         {
             var lastKnownGoodWrapper = await _objectService.Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(false);
             var lastKnownGood = TrackingModel.Unwrap<ServicePrincipalModel>(lastKnownGoodWrapper);
             if (lastKnownGood != null)
             {
-                errors.ForEach(async error => await _auditService.PutFailThenChange(
-                   context: context,
-                   objectId: entity.Id,
-                   attributeName: error.PropertyName,
-                   existingAttributeValue: error.AttemptedValue.ToString(),
-                   updatedAttributeValue: lastKnownGood.Notes,
-                   reason: error.ErrorMessage).ConfigureAwait(false));
+                await _auditService.PutChange(context, entity.Id, "Notes", entity.Notes, lastKnownGood.Notes, "Revert to Last Known Good").ConfigureAwait(false);
+
                 entity.Notes = lastKnownGood.Notes;
+
                 await CommandAADUpdate(entity, queueService).ConfigureAwait(false);
             }
 
@@ -239,20 +242,14 @@ namespace CSE.Automation.Processors
                 {
                     await AlertInvalidPrincipal(entity).ConfigureAwait(false);
                 }
-                // update entity, update last known good
+
+                // update ServicePrincipal from ServicePrincipal.Owners, update last known good
                 else
                 {
                     var owners = sp.Owners.Select(x => (x as User)?.UserPrincipalName);
                     var ownersList = string.Join(';', owners);
 
-                    await _auditService.PutFailThenChange(
-                        context: context,
-                        objectId: entity.Id,
-                        attributeName: "Notes",
-                        existingAttributeValue: entity.Notes,
-                        updatedAttributeValue: ownersList,
-                        reason: "Only Valid Email Addresses Can Be Present, Repopulating From Owners"
-                        ).ConfigureAwait(false);
+                    await _auditService.PutChange(context, entity.Id, "Notes", entity.Notes, ownersList, "Populating Notes from existing Owners list").ConfigureAwait(false);
 
                     entity.Notes = ownersList;
 
@@ -264,16 +261,16 @@ namespace CSE.Automation.Processors
                     else
                     {
                         lastKnownGood.Notes = ownersList;
+                        // make sure to write the wrapper back to get the same document updated
                         await _objectService.Put(lastKnownGoodWrapper).ConfigureAwait(false);
                     }
 
-                    // make sure to write the wrapper back to get the same document updated
 
                 }
             }
         }
 
-        async Task CommandAADUpdate(ServicePrincipalModel entity, IAzureQueueService queueService)
+        static async Task CommandAADUpdate(ServicePrincipalModel entity, IAzureQueueService queueService)
         {
             var myMessage = new QueueMessage<ServicePrincipalModel>()
             {
