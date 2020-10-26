@@ -4,7 +4,6 @@ using Azure.Storage.Queues;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
 using Newtonsoft.Json;
-using Microsoft.Extensions.Logging;
 
 
 namespace CSE.Automation.Services
@@ -28,10 +27,12 @@ namespace CSE.Automation.Services
         public async Task Send(QueueMessage message, int visibilityDelay)
         {
             if (message is null)
+            {
                 throw new ArgumentNullException(nameof(message));
+            }
 
-            bool messageSent = false;
-            int numOfAttempts = 1;
+            var messageSent = false;
+            var numOfAttempts = 1;
 
             while (!messageSent && numOfAttempts <= 3)
             {

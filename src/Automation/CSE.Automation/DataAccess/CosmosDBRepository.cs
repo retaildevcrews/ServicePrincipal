@@ -1,22 +1,21 @@
-﻿using CSE.Automation.Config;
-using CSE.Automation.Interfaces;
-using CSE.Automation.Model;
-using Microsoft.Azure.Cosmos;
-using Microsoft.Azure.Cosmos.Fluent;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using CSE.Automation.Config;
+using CSE.Automation.Interfaces;
+using CSE.Automation.Model;
+using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Fluent;
+using Microsoft.Extensions.Logging;
 using SettingsBase = CSE.Automation.Model.SettingsBase;
 
 namespace CSE.Automation.DataAccess
 {
-
-    class CosmosDBSettings : SettingsBase, ICosmosDBSettings
+    internal class CosmosDBSettings : SettingsBase, ICosmosDBSettings
     {
         private string _uri;
         private string _key;
@@ -27,36 +26,47 @@ namespace CSE.Automation.DataAccess
         [Secret(Constants.CosmosDBURLName)]
         public string Uri
         {
-            get { return _uri ?? base.GetSecret(); }
-            set { _uri = value; }
+            get => _uri ?? base.GetSecret();
+            set => _uri = value;
         }
 
         [Secret(Constants.CosmosDBKeyName)]
         public string Key
         {
-            get { return _key ?? base.GetSecret(); }
-            set { _key = value; }
+            get => _key ?? base.GetSecret();
+            set => _key = value;
         }
 
         [Secret(Constants.CosmosDBDatabaseName)]
         public string DatabaseName
         {
-            get { return _databaseName ?? base.GetSecret(); }
-            set { _databaseName = value; }
+            get => _databaseName ?? base.GetSecret();
+            set => _databaseName = value;
         }
 
 
         public override void Validate()
         {
-            if (string.IsNullOrWhiteSpace(this.Uri)) throw new ConfigurationErrorsException($"{this.GetType().Name}: Uri is invalid");
-            if (string.IsNullOrWhiteSpace(this.Key)) throw new ConfigurationErrorsException($"{this.GetType().Name}: Key is invalid");
-            if (string.IsNullOrWhiteSpace(this.DatabaseName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: DatabaseName is invalid");
+            if (string.IsNullOrWhiteSpace(Uri))
+            {
+                throw new ConfigurationErrorsException($"{GetType().Name}: Uri is invalid");
+            }
+
+            if (string.IsNullOrWhiteSpace(Key))
+            {
+                throw new ConfigurationErrorsException($"{GetType().Name}: Key is invalid");
+            }
+
+            if (string.IsNullOrWhiteSpace(DatabaseName))
+            {
+                throw new ConfigurationErrorsException($"{GetType().Name}: DatabaseName is invalid");
+            }
         }
     }
 
-    abstract class CosmosDBRepository<TEntity> : ICosmosDBRepository<TEntity>, IDisposable where TEntity : class
+    internal abstract class CosmosDBRepository<TEntity> : ICosmosDBRepository<TEntity>, IDisposable where TEntity : class
     {
-        const string pagedOffsetString = " offset {0} limit {1}";
+        private const string pagedOffsetString = " offset {0} limit {1}";
 
 
         private readonly CosmosConfig _options;
@@ -91,10 +101,10 @@ namespace CSE.Automation.DataAccess
         public int CosmosMaxRetries { get; set; } = 10;
         public abstract string CollectionName { get; }
         public string DatabaseName => _settings.DatabaseName;
-        private object lockObj = new object();
+        private readonly object lockObj = new object();
 
         // NOTE: CosmosDB library currently wraps the Newtonsoft JSON serializer.  Align Attributes and Converters to Newtonsoft on the domain models.
-        CosmosClient Client => _client ??= new CosmosClientBuilder(_settings.Uri, _settings.Key)
+        private CosmosClient Client => _client ??= new CosmosClientBuilder(_settings.Uri, _settings.Key)
                                                     .WithRequestTimeout(TimeSpan.FromSeconds(CosmosTimeout))
                                                     .WithThrottlingRetryOptions(TimeSpan.FromSeconds(CosmosTimeout), CosmosMaxRetries)
                                                     .WithSerializerOptions(new CosmosSerializationOptions
@@ -117,14 +127,14 @@ namespace CSE.Automation.DataAccess
         /// <returns>Task</returns>
         public async Task Reconnect(bool force = false)
         {
-            if (force || _container.Id != this.CollectionName)
+            if (force || _container.Id != CollectionName)
             {
 
                 // open and test a new client / container
                 _client = null;
                 if (await Test().ConfigureAwait(true) == false)
                 {
-                    _logger.LogError($"Failed to reconnect to CosmosDB {_settings.DatabaseName}:{this.CollectionName}");
+                    _logger.LogError($"Failed to reconnect to CosmosDB {_settings.DatabaseName}:{CollectionName}");
                 }
 
             }
@@ -148,7 +158,7 @@ namespace CSE.Automation.DataAccess
 
         public async Task<bool> Test()
         {
-            if (string.IsNullOrEmpty(this.CollectionName))
+            if (string.IsNullOrEmpty(CollectionName))
             {
                 throw new ArgumentException($"CosmosCollection cannot be null");
             }
@@ -158,8 +168,8 @@ namespace CSE.Automation.DataAccess
             {
                 var containers = await GetContainerNames().ConfigureAwait(false);
                 var containerNames = string.Join(',', containers);
-                _logger.LogDebug($"Test {this.Id} -- '{containerNames}'");
-                if (containers.Any(x => x == this.CollectionName) == false)
+                _logger.LogDebug($"Test {Id} -- '{containerNames}'");
+                if (containers.Any(x => x == CollectionName) == false)
                 {
                     throw new ApplicationException();  // use same error path 
                 }
@@ -169,7 +179,7 @@ namespace CSE.Automation.DataAccess
             catch (Exception ex)
 #pragma warning restore CA1031 // Do not catch general exception types
             {
-                _logger.LogError(ex, $"Failed to find collection in CosmosDB {_settings.DatabaseName}:{this.CollectionName}");
+                _logger.LogError(ex, $"Failed to find collection in CosmosDB {_settings.DatabaseName}:{CollectionName}");
                 return false;
             }
 
@@ -184,7 +194,7 @@ namespace CSE.Automation.DataAccess
         private async Task<IList<string>> GetContainerNames()
         {
             var containerNames = new List<string>();
-            var database = this.Client.GetDatabase(_settings.DatabaseName);
+            var database = Client.GetDatabase(_settings.DatabaseName);
             using var iter = database.GetContainerQueryIterator<ContainerProperties>();
             while (iter.HasMoreResults)
             {
@@ -201,11 +211,11 @@ namespace CSE.Automation.DataAccess
         /// </summary>
         /// <param name="client">An instance of <see cref="CosmosClient"/></param>
         /// <returns>An instance of <see cref="Container"/>.</returns>
-        Container GetContainer(CosmosClient client)
+        private Container GetContainer(CosmosClient client)
         {
             try
             {
-                var container = client.GetContainer(_settings.DatabaseName, this.CollectionName);
+                var container = client.GetContainer(_settings.DatabaseName, CollectionName);
 
                 _containerProperties = GetContainerProperties(container).Result;
                 var partitionKeyName = _containerProperties.PartitionKeyPath.TrimStart('/');
@@ -221,7 +231,7 @@ namespace CSE.Automation.DataAccess
             }
             catch (Exception ex)
             {
-                _logger.LogCritical(ex, $"Failed to connect to CosmosDB {_settings.DatabaseName}:{this.CollectionName}");
+                _logger.LogCritical(ex, $"Failed to connect to CosmosDB {_settings.DatabaseName}:{CollectionName}");
                 throw;
             }
         }
@@ -254,7 +264,7 @@ namespace CSE.Automation.DataAccess
         private async Task<IEnumerable<TEntity>> InternalCosmosDBSqlQuery(QueryDefinition queryDefinition)
         {
             // run query
-            var query = this.Container.GetItemQueryIterator<TEntity>(queryDefinition, requestOptions: _options.QueryRequestOptions);
+            var query = Container.GetItemQueryIterator<TEntity>(queryDefinition, requestOptions: _options.QueryRequestOptions);
 
             var results = new List<TEntity>();
 
@@ -278,7 +288,7 @@ namespace CSE.Automation.DataAccess
         private async Task<IEnumerable<TEntity>> InternalCosmosDBSqlQuery(string sql, QueryRequestOptions options = null)
         {
             // run query
-            var query = this.Container.GetItemQueryIterator<TEntity>(sql, requestOptions: options ?? _options.QueryRequestOptions);
+            var query = Container.GetItemQueryIterator<TEntity>(sql, requestOptions: options ?? _options.QueryRequestOptions);
 
             var results = new List<TEntity>();
 
@@ -297,7 +307,7 @@ namespace CSE.Automation.DataAccess
             TEntity entity = null;
             try
             {
-                var result = await this.Container.ReadItemAsync<TEntity>(id, new PartitionKey(partitionKey)).ConfigureAwait(true);
+                var result = await Container.ReadItemAsync<TEntity>(id, new PartitionKey(partitionKey)).ConfigureAwait(true);
 
                 entity = result.Resource;
             }
@@ -312,12 +322,12 @@ namespace CSE.Automation.DataAccess
 
         public async Task<TEntity> ReplaceDocumentAsync(string id, TEntity newDocument)
         {
-            return await this.Container.ReplaceItemAsync<TEntity>(newDocument, id, ResolvePartitionKey(newDocument)).ConfigureAwait(false);
+            return await Container.ReplaceItemAsync<TEntity>(newDocument, id, ResolvePartitionKey(newDocument)).ConfigureAwait(false);
         }
 
         public async Task<TEntity> CreateDocumentAsync(TEntity newDocument)
         {
-            return await this.Container.CreateItemAsync<TEntity>(newDocument, ResolvePartitionKey(newDocument)).ConfigureAwait(false);
+            return await Container.CreateItemAsync<TEntity>(newDocument, ResolvePartitionKey(newDocument)).ConfigureAwait(false);
         }
 
         public async Task<TEntity> UpsertDocumentAsync(TEntity newDocument)
@@ -332,7 +342,7 @@ namespace CSE.Automation.DataAccess
 
             //}
             //return await container.UpsertItemAsync<TEntity>(newDocument, partitionKey).ConfigureAwait(false);
-            return await this.Container.UpsertItemAsync<TEntity>(newDocument, ResolvePartitionKey(newDocument)).ConfigureAwait(false);
+            return await Container.UpsertItemAsync<TEntity>(newDocument, ResolvePartitionKey(newDocument)).ConfigureAwait(false);
         }
 
         //public async Task<bool> DoesExistsAsync(string id)
@@ -348,13 +358,13 @@ namespace CSE.Automation.DataAccess
 
             var result = await InternalCosmosDBSqlQuery(query).ConfigureAwait(false);
 
-            return await this.Container.DeleteItemAsync<TEntity>(id, new PartitionKey(partitionKey)).ConfigureAwait(false);
+            return await Container.DeleteItemAsync<TEntity>(id, new PartitionKey(partitionKey)).ConfigureAwait(false);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "Using lower case with cosmos queries as tested.")]
         public async Task<IEnumerable<TEntity>> GetPagedAsync(string q, int offset = 0, int limit = Constants.DefaultPageSize)
         {
-            string sql = q;
+            var sql = q;
 
 
             if (limit < 1)
@@ -366,7 +376,7 @@ namespace CSE.Automation.DataAccess
                 limit = Constants.MaxPageSize;
             }
 
-            string offsetLimit = string.Format(CultureInfo.InvariantCulture, pagedOffsetString, offset, limit);
+            var offsetLimit = string.Format(CultureInfo.InvariantCulture, pagedOffsetString, offset, limit);
 
             if (!string.IsNullOrEmpty(q))
             {
@@ -383,7 +393,7 @@ namespace CSE.Automation.DataAccess
 
             sql += offsetLimit;
 
-            QueryDefinition queryDefinition = new QueryDefinition(sql);
+            var queryDefinition = new QueryDefinition(sql);
 
             if (!string.IsNullOrEmpty(q))
             {
@@ -396,7 +406,7 @@ namespace CSE.Automation.DataAccess
 
         public async Task<IEnumerable<TEntity>> GetAllAsync(TypeFilter filter = TypeFilter.any)
         {
-            string sql = "select * from m";
+            var sql = "select * from m";
             if (filter != TypeFilter.any)
             {
                 sql += ($" m.objectType='{0}'", Enum.GetName(typeof(TypeFilter), filter));

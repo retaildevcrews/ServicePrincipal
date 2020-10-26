@@ -1,15 +1,12 @@
-﻿using FluentValidation;
+﻿using System.Text.RegularExpressions;
+using FluentValidation;
 using FluentValidation.Validators;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Text.RegularExpressions;
 
 namespace CSE.Automation.Validators
 {
-    class EmailListValidator : PropertyValidator
+    internal class EmailListValidator : PropertyValidator
     {
-        const string _emailRegexPattern = @"^((?!\.)[\w-_.]*[^.])(@\w+)(\.\w+(\.\w+)?[^.\W])$";
+        private const string _emailRegexPattern = @"^((?!\.)[\w-_.]*[^.])(@\w+)(\.\w+(\.\w+)?[^.\W])$";
         private readonly Regex _emailRegex;
 
         public EmailListValidator()
@@ -39,7 +36,7 @@ namespace CSE.Automation.Validators
         }
     }
 
-    static class CommonValidations
+    internal static class CommonValidations
     {
         public static IRuleBuilderOptions<T, TProperty> HasOnlyEmailAddresses<T, TProperty>(this IRuleBuilder<T, TProperty> ruleBuilder)
         {

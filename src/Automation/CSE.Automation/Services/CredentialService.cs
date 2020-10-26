@@ -1,22 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Transactions;
-using Azure.Core;
-using CSE.Automation.Interfaces;
+﻿using Azure.Core;
 using Azure.Identity;
+using CSE.Automation.Interfaces;
 
 namespace CSE.Automation.Services
 {
     public enum AuthenticationType { MI, CLI, VS }
 
-    class CredentialServiceSettings
+    internal class CredentialServiceSettings
     {
         public AuthenticationType AuthType { get; set; }
     }
-    class CredentialService : ICredentialService
+
+    internal class CredentialService : ICredentialService
     {
-        readonly TokenCredential _currentCredential;
+        private readonly TokenCredential _currentCredential;
 
         public CredentialService(CredentialServiceSettings settings)
         {
@@ -29,10 +26,7 @@ namespace CSE.Automation.Services
             };
         }
 
-        public TokenCredential CurrentCredential
-        {
-            get { return _currentCredential; }
-        }
+        public TokenCredential CurrentCredential => _currentCredential;
 
     }
 }

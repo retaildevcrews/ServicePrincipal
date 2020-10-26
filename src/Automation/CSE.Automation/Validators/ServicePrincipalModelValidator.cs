@@ -1,8 +1,5 @@
 ﻿using CSE.Automation.Model;
 using FluentValidation;
-using FluentValidation.Results;
-using Microsoft.Extensions.Logging;
-using System.Runtime.CompilerServices;
 
 namespace CSE.Automation.Validators
 {

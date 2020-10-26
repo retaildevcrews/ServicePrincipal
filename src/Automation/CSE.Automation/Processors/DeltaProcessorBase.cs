@@ -1,15 +1,9 @@
-﻿using CSE.Automation.Interfaces;
-using CSE.Automation.Model;
-using CSE.Automation.Properties;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Configuration;
-using System.IO;
 using System.Threading.Tasks;
-using Microsoft.Azure.Cosmos;
+using CSE.Automation.Interfaces;
+using CSE.Automation.Model;
 using SettingsBase = CSE.Automation.Model.SettingsBase;
-using Microsoft.Identity.Client;
-using System.Net.WebSockets;
 
 namespace CSE.Automation.Processors
 {
@@ -26,12 +20,24 @@ namespace CSE.Automation.Processors
         public override void Validate()
         {
             base.Validate();
-            if (this.ConfigurationId == Guid.Empty) throw new ConfigurationErrorsException($"{this.GetType().Name}: ConfigurationId is invalid");
-            if (this.VisibilityDelayGapSeconds <= 0 || this.VisibilityDelayGapSeconds > Constants.MaxVisibilityDelayGapSeconds) throw new ConfigurationErrorsException($"{this.GetType().Name}: VisibilityDelayGapSeconds is invalid");
-            if (this.QueueRecordProcessThreshold <= 0 || this.QueueRecordProcessThreshold > Constants.MaxQueueRecordProcessThreshold) throw new ConfigurationErrorsException($"{this.GetType().Name}: QueueRecordProcessThreshold is invalid");
+            if (ConfigurationId == Guid.Empty)
+            {
+                throw new ConfigurationErrorsException($"{GetType().Name}: ConfigurationId is invalid");
+            }
+
+            if (VisibilityDelayGapSeconds <= 0 || VisibilityDelayGapSeconds > Constants.MaxVisibilityDelayGapSeconds)
+            {
+                throw new ConfigurationErrorsException($"{GetType().Name}: VisibilityDelayGapSeconds is invalid");
+            }
+
+            if (QueueRecordProcessThreshold <= 0 || QueueRecordProcessThreshold > Constants.MaxQueueRecordProcessThreshold)
+            {
+                throw new ConfigurationErrorsException($"{GetType().Name}: QueueRecordProcessThreshold is invalid");
+            }
         }
     }
-    abstract class DeltaProcessorBase : IDeltaProcessor
+
+    internal abstract class DeltaProcessorBase : IDeltaProcessor
     {
         protected readonly IConfigService<ProcessorConfiguration> _configService;
 
@@ -51,13 +57,17 @@ namespace CSE.Automation.Processors
 
         protected void EnsureInitialized()
         {
-            if (_initialized) return;
+            if (_initialized)
+            {
+                return;
+            }
+
             Initialize();
         }
 
         private void Initialize()
         {
-            _config = _configService.Get(this.ConfigurationId.ToString(), ProcessorType, DefaultConfigurationResource);
+            _config = _configService.Get(ConfigurationId.ToString(), ProcessorType, DefaultConfigurationResource);
             _initialized = true;
         }
 

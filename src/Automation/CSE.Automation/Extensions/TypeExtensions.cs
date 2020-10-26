@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CSE.Automation.Extensions
 {
-    static class TypeExtensions
+    internal static class TypeExtensions
     {
         public static bool IsEnumeration(this Type type)
         {

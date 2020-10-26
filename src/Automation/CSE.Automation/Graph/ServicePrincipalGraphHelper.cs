@@ -1,11 +1,11 @@
-﻿using CSE.Automation.Model;
-using Microsoft.Graph;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using System.Linq;
+using System.Threading.Tasks;
 using CSE.Automation.Interfaces;
+using CSE.Automation.Model;
+using Microsoft.Extensions.Logging;
+using Microsoft.Graph;
 
 #pragma warning disable CA1031 // Do not catch general exception types
 
@@ -84,14 +84,14 @@ namespace CSE.Automation.Graph
             var foundItem = servicePrincipalList.FirstOrDefault(x => string.Equals(x.Id, "ea016769-ea50-4b6e-a691-23996eaf378a", StringComparison.OrdinalIgnoreCase));
             //var removedItems = servicePrincipalSeedList.Where(x => x.AdditionalData.Keys.Contains("@removed")).ToList();
 
-            servicePrincipalCollectionPage.AdditionalData.TryGetValue("@odata.deltaLink", out object updatedDeltaLink);
+            servicePrincipalCollectionPage.AdditionalData.TryGetValue("@odata.deltaLink", out var updatedDeltaLink);
 
 
             //return (updatedDeltaLink?.ToString(), new[] { foundItem } );
             return (updatedDeltaLink?.ToString(), servicePrincipalList);
         }
 
-        public async override Task<ServicePrincipal> GetGraphObject(string id)
+        public override async Task<ServicePrincipal> GetGraphObject(string id)
         {
             var entity = await graphClient.ServicePrincipals[id]
                 .Request()
@@ -107,7 +107,7 @@ namespace CSE.Automation.Graph
             return
                 config.RunState == RunState.Seedonly ||
                 config.RunState == RunState.SeedAndRun ||
-                String.IsNullOrEmpty(config.DeltaLink);
+                string.IsNullOrEmpty(config.DeltaLink);
         }
     }
 }

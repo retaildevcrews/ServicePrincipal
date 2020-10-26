@@ -1,9 +1,9 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
+using Newtonsoft.Json;
 
 namespace CSE.Automation.Model
 {
-    class TrackingModel
+    internal class TrackingModel
     {
         public string Id { get; set; }
 
@@ -23,17 +23,14 @@ namespace CSE.Automation.Model
         }
     }
 
-    class TrackingModel<TEntity> : TrackingModel where TEntity : GraphModel
+    internal class TrackingModel<TEntity> : TrackingModel where TEntity : GraphModel
     {
         [JsonIgnore]
         public TEntity TypedEntity
         {
-            get
-            {
-                return base.Entity is null
+            get => base.Entity is null
                     ? null
                     : JsonConvert.DeserializeObject<TEntity>(base.Entity.ToString());
-            }
             set
             {
                 base.Entity = value;

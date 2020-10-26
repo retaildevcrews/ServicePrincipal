@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Globalization;
 using System.Threading.Tasks;
-using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
 using CSE.Automation.Processors;
@@ -11,10 +9,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Storage.Queue;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
 using Newtonsoft.Json;
 
 namespace CSE.Automation
@@ -53,9 +49,11 @@ namespace CSE.Automation
 
             // TODO: If we end up with now request params needed for the seed function then remove the param and this check.
             if (req is null)
+            {
                 throw new ArgumentNullException(nameof(req));
+            }
 
-            int objectCount = await _processor.DiscoverDeltas(context, true).ConfigureAwait(false);
+            var objectCount = await _processor.DiscoverDeltas(context, true).ConfigureAwait(false);
 
             return new OkObjectResult($"Service Principal Objects Processed: {objectCount}");
         }
@@ -76,7 +74,7 @@ namespace CSE.Automation
                 log.LogInformation("Incoming message from Evaluate queue");
                 var message = JsonConvert.DeserializeObject<QueueMessage<ServicePrincipalModel>>(msg.AsString);
 
-                await _processor.Evaluate(context, message.Document as ServicePrincipalModel).ConfigureAwait(false);
+                await _processor.Evaluate(context, message.Document).ConfigureAwait(false);
 
                 log.LogInformation($"Queue trigger function processed: {msg.Id}");
             }
@@ -144,7 +142,9 @@ namespace CSE.Automation
             }
 
             if (hasFailingTest)
+            {
                 throw new ApplicationException($"One or more repositories failed test.");
+            }
         }
         #endregion
     }

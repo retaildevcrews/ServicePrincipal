@@ -1,25 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CSE.Automation.Model
 {
-
-    interface IModelValidator<T>
+    internal interface IModelValidator<T>
     {
         ValidationResult Validate(T model);
     }
 
-    interface IModelValidatorFactory
+    internal interface IModelValidatorFactory
     {
         IEnumerable<IModelValidator<TEntity>> Get<TEntity>();
     }
 
-    class ModelValidatorFactory : IModelValidatorFactory
+    internal class ModelValidatorFactory : IModelValidatorFactory
     {
-        IServiceProvider _serviceProvider;
+        private readonly IServiceProvider _serviceProvider;
         public ModelValidatorFactory(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;

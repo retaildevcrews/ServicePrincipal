@@ -1,19 +1,15 @@
-﻿using CSE.Automation.Graph;
-using CSE.Automation.Interfaces;
-using CSE.Automation.Model;
-using CSE.Automation.Services;
-using Microsoft.Graph;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
-using System.Text;
-using CSE.Automation.DataAccess;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+using CSE.Automation.Graph;
+using CSE.Automation.Interfaces;
+using CSE.Automation.Model;
 using CSE.Automation.Properties;
-using System.Text.RegularExpressions;
 using FluentValidation.Results;
+using Microsoft.Extensions.Logging;
+using Microsoft.Graph;
 
 namespace CSE.Automation.Processors
 {
@@ -22,7 +18,7 @@ namespace CSE.Automation.Processors
         Task Evaluate(ActivityContext context, ServicePrincipalModel entity);
     }
 
-    class ServicePrincipalProcessorSettings : DeltaProcessorSettings
+    internal class ServicePrincipalProcessorSettings : DeltaProcessorSettings
     {
         private string _queueConnectionString;
         private string _queueName;
@@ -32,24 +28,30 @@ namespace CSE.Automation.Processors
         [Secret(Constants.SPStorageConnectionString)]
         public string QueueConnectionString
         {
-            get { return _queueConnectionString ?? base.GetSecret(); }
-            set { _queueConnectionString = value; }
+            get => _queueConnectionString ?? base.GetSecret();
+            set => _queueConnectionString = value;
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1304:Specify CultureInfo", Justification = "Not a localizable setting")]
         [Secret(Constants.EvaluateQueueAppSetting)]
         public string QueueName
         {
-            get { return _queueName ?? base.GetSecret().ToLower(); }
-            set { _queueName = value?.ToLower(); }
+            get => _queueName ?? base.GetSecret().ToLower();
+            set => _queueName = value?.ToLower();
         }
 
         public override void Validate()
         {
             base.Validate();
-            if (string.IsNullOrEmpty(this.QueueConnectionString)) throw new ConfigurationErrorsException($"{this.GetType().Name}: QueueConnectionString is invalid");
-            if (string.IsNullOrEmpty(this.QueueName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: QueueName is invalid");
+            if (string.IsNullOrEmpty(QueueConnectionString))
+            {
+                throw new ConfigurationErrorsException($"{GetType().Name}: QueueConnectionString is invalid");
+            }
 
+            if (string.IsNullOrEmpty(QueueName))
+            {
+                throw new ConfigurationErrorsException($"{GetType().Name}: QueueName is invalid");
+            }
         }
     }
 
@@ -104,23 +106,23 @@ namespace CSE.Automation.Processors
             {
                 _config.RunState = RunState.SeedAndRun;
             }
-            IAzureQueueService queueService = _queueServiceFactory.Create(_settings.QueueConnectionString, _settings.QueueName);
+            var queueService = _queueServiceFactory.Create(_settings.QueueConnectionString, _settings.QueueName);
 
             var selectFields = new[] { "appId", "displayName", "notes", "owners", "notificationEmailAddresses" };
             var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects(_config, context, string.Join(',', selectFields)).ConfigureAwait(false);
 
-            string updatedDeltaLink = servicePrincipalResult.Item1; //TODO save this back in Config
+            var updatedDeltaLink = servicePrincipalResult.Item1; //TODO save this back in Config
             var servicePrincipalList = servicePrincipalResult.Item2;
 
 
-            int servicePrincipalCount = 0;
-            int visibilityDelay = 0;
+            var servicePrincipalCount = 0;
+            var visibilityDelay = 0;
 
             _logger.LogInformation($"Processing Service Principal objects...");
 
             foreach (var sp in servicePrincipalList)
             {
-                if (String.IsNullOrWhiteSpace(sp.AppId) || String.IsNullOrWhiteSpace(sp.DisplayName))
+                if (string.IsNullOrWhiteSpace(sp.AppId) || string.IsNullOrWhiteSpace(sp.DisplayName))
                 {
                     continue;
                 }
@@ -198,8 +200,7 @@ namespace CSE.Automation.Processors
 
         }
 
-
-        async Task RevertToLastKnownGood(ServicePrincipalModel entity, ActivityContext context, List<ValidationFailure> errors)
+        private async Task RevertToLastKnownGood(ServicePrincipalModel entity, ActivityContext context, List<ValidationFailure> errors)
         {
             var lastKnownGoodWrapper = await _objectService.Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(false);
             var lastKnownGood = TrackingModel.Unwrap<ServicePrincipalModel>(lastKnownGoodWrapper);
@@ -260,17 +261,17 @@ namespace CSE.Automation.Processors
             }
         }
 
-        async Task CommandAADUpdate(ServicePrincipalModel entity)
+        private async Task CommandAADUpdate(ServicePrincipalModel entity)
         {
             await Task.CompletedTask.ConfigureAwait(false);
         }
 
-        async Task AlertInvalidPrincipal(ServicePrincipalModel entity)
+        private async Task AlertInvalidPrincipal(ServicePrincipalModel entity)
         {
             await Task.CompletedTask.ConfigureAwait(false);
         }
 
-        async Task UpdateLastKnownGood(ServicePrincipalModel entity)
+        private async Task UpdateLastKnownGood(ServicePrincipalModel entity)
         {
             await _objectService.Put(entity).ConfigureAwait(false);
         }

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Linq;
 using CSE.Automation.DataAccess;
 using CSE.Automation.Extensions;
 using CSE.Automation.Graph;
@@ -10,8 +8,6 @@ using CSE.Automation.Model;
 using CSE.Automation.Processors;
 using CSE.Automation.Services;
 using CSE.Automation.Validators;
-
-using FluentValidation;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,7 +36,9 @@ namespace CSE.Automation
         public override void Configure(IFunctionsHostBuilder builder)
         {
             if (builder == default)
+            {
                 throw new ArgumentNullException(nameof(builder));
+            }
 
             _logger = CreateBootstrapLogger();
             _logger.LogInformation($"Bootstrap logger initialized.");

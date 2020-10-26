@@ -1,5 +1,5 @@
-﻿using Azure.Security.KeyVault.Secrets;
-using System;
+﻿using System;
+using Azure.Security.KeyVault.Secrets;
 
 namespace CSE.Automation.Interfaces
 {

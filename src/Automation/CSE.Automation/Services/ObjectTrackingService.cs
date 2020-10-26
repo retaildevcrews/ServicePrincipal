@@ -1,11 +1,10 @@
-﻿using CSE.Automation.DataAccess;
+﻿using System;
+using System.Threading.Tasks;
+using CSE.Automation.DataAccess;
 using CSE.Automation.Extensions;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
-using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Threading.Tasks;
 
 namespace CSE.Automation.Services
 {
@@ -64,7 +63,7 @@ namespace CSE.Automation.Services
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        static ObjectType EntityToObjectType(Type type)
+        private static ObjectType EntityToObjectType(Type type)
         {
             if (type == typeof(ServicePrincipalModel))
             {

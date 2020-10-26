@@ -5,18 +5,26 @@ using System.Runtime.CompilerServices;
 
 namespace CSE.Automation.Extensions
 {
-    static class StringExtensions
+    internal static class StringExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TEnum As<TEnum>(this string? value, TEnum? defaultValue = null) where TEnum : struct, Enum
         {
             if (string.IsNullOrEmpty(value))
             {
-                if (defaultValue == null) throw new InvalidEnumArgumentException($"Cannot coerce {value} to {typeof(TEnum).Name}");
+                if (defaultValue == null)
+                {
+                    throw new InvalidEnumArgumentException($"Cannot coerce {value} to {typeof(TEnum).Name}");
+                }
+
                 return defaultValue.Value;
             }
 
-            if (Enum.TryParse<TEnum>(value, true, out var enumValue)) return enumValue;
+            if (Enum.TryParse<TEnum>(value, true, out var enumValue))
+            {
+                return enumValue;
+            }
+
             throw new InvalidEnumArgumentException($"Cannot coerce {value} to {typeof(TEnum).Name}");
         }
 
@@ -25,11 +33,19 @@ namespace CSE.Automation.Extensions
         {
             if (string.IsNullOrEmpty(value))
             {
-                if (defaultValue == null) throw new InvalidEnumArgumentException($"Cannot coerce {value} to int");
+                if (defaultValue == null)
+                {
+                    throw new InvalidEnumArgumentException($"Cannot coerce {value} to int");
+                }
+
                 return defaultValue.Value;
             }
 
-            if (int.TryParse(value, out var realValue)) return realValue;
+            if (int.TryParse(value, out var realValue))
+            {
+                return realValue;
+            }
+
             throw new InvalidEnumArgumentException($"Cannot coerce {value} to int");
         }
 
@@ -38,11 +54,19 @@ namespace CSE.Automation.Extensions
         {
             if (string.IsNullOrEmpty(value))
             {
-                if (defaultValue == default) throw new InvalidEnumArgumentException($"Cannot coerce {value} to Guid");
+                if (defaultValue == default)
+                {
+                    throw new InvalidEnumArgumentException($"Cannot coerce {value} to Guid");
+                }
+
                 return defaultValue;
             }
 
-            if (Guid.TryParse(value, out var guidValue)) return guidValue;
+            if (Guid.TryParse(value, out var guidValue))
+            {
+                return guidValue;
+            }
+
             throw new InvalidEnumArgumentException($"Cannot coerce {value} to Guid");
         }
 
@@ -58,7 +82,10 @@ namespace CSE.Automation.Extensions
 
         public static string ToCamelCase(this string? value)
         {
-            if (value == null) return String.Empty;
+            if (value == null)
+            {
+                return string.Empty;
+            }
 
             var str = value.Replace(" ", string.Empty, StringComparison.OrdinalIgnoreCase);
 

@@ -1,6 +1,6 @@
 ﻿namespace CSE.Automation.Interfaces
 {
-    interface ICosmosDBSettings : ISettingsValidator
+    internal interface ICosmosDBSettings : ISettingsValidator
     {
         string Uri { get; }
         string Key { get; }

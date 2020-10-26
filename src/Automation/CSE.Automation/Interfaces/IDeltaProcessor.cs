@@ -1,6 +1,5 @@
-﻿using CSE.Automation.Model;
-using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using CSE.Automation.Model;
 
 namespace CSE.Automation.Interfaces
 {

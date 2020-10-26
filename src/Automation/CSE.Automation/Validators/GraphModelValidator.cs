@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Net.Mail;
+using System.Text.Json;
 using CSE.Automation.Model;
 using FluentValidation;
-using System.Diagnostics;
 
 namespace CSE.Automation.Validators
 {
@@ -35,7 +32,10 @@ namespace CSE.Automation.Validators
 
         protected static bool BeValidModelDateSequence(GraphModel model)
         {
-            if (model == null) throw new ArgumentNullException(nameof(model));
+            if (model == null)
+            {
+                throw new ArgumentNullException(nameof(model));
+            }
 
             if (model.Deleted.HasValue)
             {

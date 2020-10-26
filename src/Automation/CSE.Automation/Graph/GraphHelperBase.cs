@@ -29,9 +29,20 @@ namespace CSE.Automation.Graph
 
         public override void Validate()
         {
-            if (this.GraphAppClientId.IsNull()) throw new ConfigurationErrorsException($"{this.GetType().Name}: GraphAppClientId is null");
-            if (this.GraphAppTenantId.IsNull()) throw new ConfigurationErrorsException($"{this.GetType().Name}: GraphAppTenantId is null");
-            if (this.GraphAppClientSecret.IsNull()) throw new ConfigurationErrorsException($"{this.GetType().Name}: GraphAppClientSecret is null");
+            if (GraphAppClientId.IsNull())
+            {
+                throw new ConfigurationErrorsException($"{GetType().Name}: GraphAppClientId is null");
+            }
+
+            if (GraphAppTenantId.IsNull())
+            {
+                throw new ConfigurationErrorsException($"{GetType().Name}: GraphAppTenantId is null");
+            }
+
+            if (GraphAppClientSecret.IsNull())
+            {
+                throw new ConfigurationErrorsException($"{GetType().Name}: GraphAppClientSecret is null");
+            }
         }
     }
 
@@ -55,7 +66,7 @@ namespace CSE.Automation.Graph
             _settings = settings;
             _auditService = auditService;
             _logger = logger;
-            IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
+            var confidentialClientApplication = ConfidentialClientApplicationBuilder
 #pragma warning disable CA1062 // Validate arguments of public methods, settings is injected from parent via Container
                                                                                .Create(settings.GraphAppClientId)
 #pragma warning restore CA1062 // Validate arguments of public methods
@@ -63,7 +74,7 @@ namespace CSE.Automation.Graph
                                                                                 .WithClientSecret(settings.GraphAppClientSecret)
                                                                                 .Build();
 
-            ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
+            var authProvider = new ClientCredentialProvider(confidentialClientApplication);
             graphClient = new GraphServiceClient(authProvider);
         }
 

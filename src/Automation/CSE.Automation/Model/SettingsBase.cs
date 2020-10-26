@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using CSE.Automation.Interfaces;
 
 namespace CSE.Automation.Model
 {
 
     [AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = true)]
-    sealed class SecretAttribute : Attribute
+    internal sealed class SecretAttribute : Attribute
     {
         private readonly string _name;
 
@@ -34,9 +31,12 @@ namespace CSE.Automation.Model
 
         protected string GetSecret([CallerMemberName] string name = default)
         {
-            if (string.IsNullOrEmpty(name)) return string.Empty;
+            if (string.IsNullOrEmpty(name))
+            {
+                return string.Empty;
+            }
 
-            var propInfo = this.GetType().GetProperty(name);
+            var propInfo = GetType().GetProperty(name);
             if (propInfo == null)
             {
                 throw new ArgumentOutOfRangeException($"Failed to get property information for property '{name}'");

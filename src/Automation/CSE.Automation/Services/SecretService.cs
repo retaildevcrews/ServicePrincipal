@@ -1,10 +1,9 @@
-﻿using Azure.Security.KeyVault.Secrets;
-using CSE.Automation.Base;
-using CSE.Automation.Interfaces;
-using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System;
 using System.Configuration;
+using Azure.Security.KeyVault.Secrets;
+using CSE.Automation.Base;
 using CSE.Automation.Extensions;
+using CSE.Automation.Interfaces;
 
 namespace CSE.Automation.KeyVault
 {
@@ -13,7 +12,10 @@ namespace CSE.Automation.KeyVault
         public string KeyVaultName { get; set; }
         public void Validate()
         {
-            if (this.KeyVaultName.IsNull()) throw new ConfigurationErrorsException($"{this.GetType().Name}: KeyVaultName is invalid");
+            if (KeyVaultName.IsNull())
+            {
+                throw new ConfigurationErrorsException($"{GetType().Name}: KeyVaultName is invalid");
+            }
         }
     }
 

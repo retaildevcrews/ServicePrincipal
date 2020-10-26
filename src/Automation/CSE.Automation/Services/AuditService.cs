@@ -1,12 +1,10 @@
-﻿using CSE.Automation.DataAccess;
-using CSE.Automation.Extensions;
-using CSE.Automation.Interfaces;
-using CSE.Automation.Model;
-using Microsoft.Azure.Cosmos.Table;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Globalization;
 using System.Threading.Tasks;
+using CSE.Automation.DataAccess;
+using CSE.Automation.Interfaces;
+using CSE.Automation.Model;
+using Microsoft.Extensions.Logging;
 
 namespace CSE.Automation.Services
 {
