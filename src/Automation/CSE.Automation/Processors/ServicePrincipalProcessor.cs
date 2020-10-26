@@ -37,7 +37,7 @@ namespace CSE.Automation.Processors
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1304:Specify CultureInfo", Justification = "Not a localizable setting")]
         public string EvaluateQueueName
         {
-            get { return _evaluateQueueName;  }
+            get { return _evaluateQueueName; }
             set { _evaluateQueueName = value?.ToLower(); }
         }
 

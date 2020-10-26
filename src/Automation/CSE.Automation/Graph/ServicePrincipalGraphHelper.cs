@@ -102,7 +102,7 @@ namespace CSE.Automation.Graph
 
             return entity;
         }
-        
+
         public async override Task PatchGraphObject(ServicePrincipal servicePrincipal)
         {
             // API call uses a PATCH so only include properties to change
