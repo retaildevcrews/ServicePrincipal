@@ -330,10 +330,18 @@ namespace CSE.Automation.Processors
                     Notes = command.Notes.Item2
                 }).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (Microsoft.Graph.ServiceException exSvc)
             {
-                _logger.LogError(ex, $"Failed to update AAD Service Principal {command.Id}");
-                throw;
+                _logger.LogError(exSvc, $"Failed to update AAD Service Principal {command.Id}");
+                try
+                {
+                    await _auditService.PutFail(context, command.Id, "Notes", command.Notes.Current, $"Failed to update Notes field: {exSvc.Message}").ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    _logger.LogError(exSvc, $"Failed to Audit update to AAD Service Principal {command.Id}");
+                    // do not rethrow, it will hide the real failure
+                }
             }
 
             try
