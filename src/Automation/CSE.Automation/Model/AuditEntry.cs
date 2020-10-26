@@ -19,6 +19,7 @@ namespace CSE.Automation.Model
 
     public class AuditEntry
     {
+        public string Id { get; set; }
         public string CorrelationId { get; set; }
 
         public string ObjectId { get; set; }
