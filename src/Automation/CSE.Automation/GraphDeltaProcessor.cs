@@ -91,7 +91,7 @@ namespace CSE.Automation
 
         [FunctionName("UpdateAAD")]
         [StorageAccount(Constants.SPStorageConnectionString)]
-        public static void UpdateAAD([QueueTrigger(Constants.SPAADUpdateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
+        public static void UpdateAAD([QueueTrigger(Constants.UpdateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
         {
             var context = new ActivityContext();
             try

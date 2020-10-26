@@ -24,7 +24,8 @@ namespace CSE.Automation.Processors
     class ServicePrincipalProcessorSettings : DeltaProcessorSettings
     {
         private string _queueConnectionString;
-        private string _queueName;
+        private string _evaluateQueueName;
+        private string _updateQueueName;
 
         public ServicePrincipalProcessorSettings(ISecretClient secretClient) : base(secretClient) { }
 
@@ -37,17 +38,25 @@ namespace CSE.Automation.Processors
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1304:Specify CultureInfo", Justification = "Not a localizable setting")]
         [Secret(Constants.EvaluateQueueAppSetting)]
-        public string QueueName
+        public string EvaluateQueueName
         {
-            get { return _queueName ?? base.GetSecret().ToLower(); }
-            set { _queueName = value?.ToLower(); }
+            get { return _evaluateQueueName ?? base.GetSecret().ToLower(); }
+            set { _evaluateQueueName = value?.ToLower(); }
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1304:Specify CultureInfo", Justification = "Not a localizable setting")]
+        [Secret(Constants.UpdateQueueAppSetting)]
+        public string UpdateQueueName
+        {
+            get { return _updateQueueName ?? base.GetSecret().ToLower(); }
+            set { _updateQueueName = value?.ToLower(); }
         }
 
         public override void Validate()
         {
             base.Validate();
             if (string.IsNullOrEmpty(this.QueueConnectionString)) throw new ConfigurationErrorsException($"{this.GetType().Name}: QueueConnectionString is invalid");
-            if (string.IsNullOrEmpty(this.QueueName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: QueueName is invalid");
+            if (string.IsNullOrEmpty(this.UpdateQueueName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: UpdateQueueName is invalid");
 
         }
     }
@@ -100,7 +109,7 @@ namespace CSE.Automation.Processors
             {
                 _config.RunState = RunState.SeedAndRun;
             }
-            IAzureQueueService queueService = _queueServiceFactory.Create(_settings.QueueConnectionString, _settings.QueueName);
+            IAzureQueueService queueService = _queueServiceFactory.Create(_settings.QueueConnectionString, _settings.EvaluateQueueName);
 
             var selectFields = new[] { "appId", "displayName", "notes", "owners", "notificationEmailAddresses" };
             var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects(_config, string.Join(',', selectFields)).ConfigureAwait(false);
@@ -181,11 +190,13 @@ namespace CSE.Automation.Processors
             //              write audit
             //await UpdateLastKnownGood(entity).ConfigureAwait(false);
 
+            IAzureQueueService queueService = _queueServiceFactory.Create(_settings.QueueConnectionString, _settings.UpdateQueueName);
+
             var errors = _validators.SelectMany(v => v.Validate(entity).Errors).ToList();
             if (errors.Count > 0)
             {
                 _logger.LogError(string.Join('\n', errors));
-                await RevertToLastKnownGood(entity).ConfigureAwait(false);
+                await RevertToLastKnownGood(entity, queueService).ConfigureAwait(false);
             }
             else
             {
@@ -195,7 +206,7 @@ namespace CSE.Automation.Processors
         }
 
 
-        async Task RevertToLastKnownGood(ServicePrincipalModel entity)
+        async Task RevertToLastKnownGood(ServicePrincipalModel entity, IAzureQueueService queueService)
         {
             var lastKnownGoodWrapper = await _objectService.Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(false);
             var lastKnownGood = TrackingModel.Unwrap<ServicePrincipalModel>(lastKnownGoodWrapper);
@@ -203,7 +214,7 @@ namespace CSE.Automation.Processors
             {
                 // TODO: AUDIT CHANGE 
                 entity.Notes = lastKnownGood.Notes;
-                await CommandAADUpdate(entity).ConfigureAwait(false);
+                await CommandAADUpdate(entity, queueService).ConfigureAwait(false);
             }
 
             // oops, bad SP Notes and no last known good.  
@@ -241,9 +252,20 @@ namespace CSE.Automation.Processors
             }
         }
 
-        async Task CommandAADUpdate(ServicePrincipalModel entity)
+        async Task CommandAADUpdate(ServicePrincipalModel entity, IAzureQueueService queueService)
         {
-            await Task.CompletedTask.ConfigureAwait(false);
+            var myMessage = new QueueMessage<ServicePrincipalModel>()
+            {
+                QueueMessageType = QueueMessageType.Update,
+                Document = new ServicePrincipalModel()
+                {
+                    Id = entity.Id,
+                    Notes = entity.Notes,
+                },
+                Attempt = 0
+            };
+
+            await queueService.Send(myMessage, 0).ConfigureAwait(false);
         }
 
         async Task AlertInvalidPrincipal(ServicePrincipalModel entity)
