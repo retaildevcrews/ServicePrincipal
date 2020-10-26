@@ -8,13 +8,13 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
 
-    <ItemGroup>
-        <Content Remove="stylecop.json" />
-    </ItemGroup>
+  <ItemGroup>
+    <Content Remove="stylecop.json" />
+  </ItemGroup>
 
-    <ItemGroup>
-        <AdditionalFiles Include="stylecop.json" />
-    </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="stylecop.json" />
+  </ItemGroup>
     
   <ItemGroup>
     <Compile Remove="SolutionScripts\**" />
