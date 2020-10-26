@@ -30,9 +30,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ACR_NAME         : svcpplacrdev
-      IMAGE_NAME       : serviceprincipal
-      ACR_REG_REPO_URL : ${{ ACR_NAME }}.azurecr.io/${{ IMAGE_NAME }}
+      ACR_REG_REPO_URL : svcpplacrdev.azurecr.io/serviceprincipal
       # These are used in if: conditions
       ACR_LOGGED_IN    : false
       DKR_IMG_IS_BUILT : false
