@@ -1,31 +1,29 @@
 ﻿using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
-using CSE.Automation.Services;
+using CSE.Automation.Properties;
+using FluentValidation.Results;
+using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
-using System.Text;
-using CSE.Automation.DataAccess;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using CSE.Automation.Properties;
-using System.Text.RegularExpressions;
-using FluentValidation.Results;
 
 namespace CSE.Automation.Processors
 {
-    public interface IServicePrincipalProcessor : IDeltaProcessor
+    interface IServicePrincipalProcessor : IDeltaProcessor
     {
         Task Evaluate(ActivityContext context, ServicePrincipalModel entity);
+        Task UpdateServicePrincipal(ActivityContext context, ServicePrincipalUpdateCommand command);
     }
 
     class ServicePrincipalProcessorSettings : DeltaProcessorSettings
     {
         private string _queueConnectionString;
-        private string _queueName;
+        private string _evaluateQueueName;
+        private string _updateQueueName;
 
         public ServicePrincipalProcessorSettings(ISecretClient secretClient) : base(secretClient) { }
 
@@ -37,18 +35,25 @@ namespace CSE.Automation.Processors
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1304:Specify CultureInfo", Justification = "Not a localizable setting")]
-        [Secret(Constants.EvaluateQueueAppSetting)]
-        public string QueueName
+        public string EvaluateQueueName
         {
-            get { return _queueName ?? base.GetSecret().ToLower(); }
-            set { _queueName = value?.ToLower(); }
+            get { return _evaluateQueueName; }
+            set { _evaluateQueueName = value?.ToLower(); }
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1304:Specify CultureInfo", Justification = "Not a localizable setting")]
+        public string UpdateQueueName
+        {
+            get { return _updateQueueName; }
+            set { _updateQueueName = value?.ToLower(); }
         }
 
         public override void Validate()
         {
             base.Validate();
             if (string.IsNullOrEmpty(this.QueueConnectionString)) throw new ConfigurationErrorsException($"{this.GetType().Name}: QueueConnectionString is invalid");
-            if (string.IsNullOrEmpty(this.QueueName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: QueueName is invalid");
+            if (string.IsNullOrEmpty(this.EvaluateQueueName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: EvaluateQueueName is invalid");
+            if (string.IsNullOrEmpty(this.UpdateQueueName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: UpdateQueueName is invalid");
 
         }
     }
@@ -104,10 +109,10 @@ namespace CSE.Automation.Processors
             {
                 _config.RunState = RunState.SeedAndRun;
             }
-            IAzureQueueService queueService = _queueServiceFactory.Create(_settings.QueueConnectionString, _settings.QueueName);
+            IAzureQueueService queueService = _queueServiceFactory.Create(_settings.QueueConnectionString, _settings.EvaluateQueueName);
 
-            var selectFields = new[] { "appId", "displayName", "notes", "owners", "notificationEmailAddresses" };
-            var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects(_config, context, string.Join(',', selectFields)).ConfigureAwait(false);
+            //var selectFields = new[] { "appId", "displayName", "notes", "additionalData" };
+            var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects(context, _config, /*string.Join(',', selectFields)*/ null).ConfigureAwait(false);
 
             string updatedDeltaLink = servicePrincipalResult.Item1; //TODO save this back in Config
             var servicePrincipalList = servicePrincipalResult.Item2;
@@ -185,35 +190,51 @@ namespace CSE.Automation.Processors
             //              write audit
             //await UpdateLastKnownGood(entity).ConfigureAwait(false);
 
+            IAzureQueueService queueService = _queueServiceFactory.Create(_settings.QueueConnectionString, _settings.UpdateQueueName);
+
             var errors = _validators.SelectMany(v => v.Validate(entity).Errors).ToList();
             if (errors.Count > 0)
             {
-                _logger.LogError(string.Join('\n', errors));
-                await RevertToLastKnownGood(entity, context, errors).ConfigureAwait(false);
+                // emit into Operations log
+                var errorMsg = string.Join('\n', errors);
+                _logger.LogError($"ServicePrincipal {entity.Id} failed validation.\n{errorMsg}");
+
+                // emit into Audit log
+                errors.ForEach(async error => await _auditService.PutFail(
+                                   context: context,
+                                   objectId: entity.Id,
+                                   attributeName: error.PropertyName,
+                                   existingAttributeValue: error.AttemptedValue?.ToString(),
+                                   reason: error.ErrorMessage).ConfigureAwait(false));
+
+                // Revert the principal if we can
+                await RevertToLastKnownGood(context, entity, queueService).ConfigureAwait(false);
             }
             else
             {
-                await UpdateLastKnownGood(entity).ConfigureAwait(false);
+                // remember this was the last time we saw the prinicpal as 'good'
+                await UpdateLastKnownGood(context, entity).ConfigureAwait(false);
             }
 
         }
 
 
-        async Task RevertToLastKnownGood(ServicePrincipalModel entity, ActivityContext context, List<ValidationFailure> errors)
+        async Task RevertToLastKnownGood(ActivityContext context, ServicePrincipalModel entity, IAzureQueueService queueService)
         {
-            var lastKnownGoodWrapper = await _objectService.Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(false);
+            TrackingModel lastKnownGoodWrapper = await _objectService.Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(false);
             var lastKnownGood = TrackingModel.Unwrap<ServicePrincipalModel>(lastKnownGoodWrapper);
             if (lastKnownGood != null)
             {
-                errors.ForEach(async error => await _auditService.PutFailThenChange(
-                   context: context,
-                   objectId: entity.Id,
-                   attributeName: error.PropertyName,
-                   existingAttributeValue: error.AttemptedValue.ToString(),
-                   updatedAttributeValue: lastKnownGood.Notes,
-                   reason: error.ErrorMessage).ConfigureAwait(false));
-                entity.Notes = lastKnownGood.Notes;
-                await CommandAADUpdate(entity).ConfigureAwait(false);
+                // build the command here so we don't need to pass the delta values down the call tree
+                var updateCommand = new ServicePrincipalUpdateCommand()
+                {
+                    Id = entity.Id,
+                    Notes = (entity.Notes, lastKnownGood.Notes),
+                    Reason = "Revert to Last Known Good"
+                };
+
+                await CommandAADUpdate(context, updateCommand, queueService).ConfigureAwait(false);
+                await UpdateLastKnownGood(context, lastKnownGoodWrapper, lastKnownGood).ConfigureAwait(false);
             }
 
             // oops, bad SP Notes and no last known good.  
@@ -224,56 +245,73 @@ namespace CSE.Automation.Processors
                 // no notes, no owners in SP, this is an governance error
                 if (sp.Owners == null || sp.Owners.Count == 0)
                 {
-                    await AlertInvalidPrincipal(entity).ConfigureAwait(false);
+                    await AlertInvalidPrincipal(context, entity).ConfigureAwait(false);
                 }
-                // update entity, update last known good
+
+                // update ServicePrincipal from ServicePrincipal.Owners, update last known good
                 else
                 {
+                    // get new value for Notes (from the list of Owners)
                     var owners = sp.Owners.Select(x => (x as User)?.UserPrincipalName);
                     var ownersList = string.Join(';', owners);
 
-                    await _auditService.PutFailThenChange(
-                        context: context,
-                        objectId: entity.Id,
-                        attributeName: "Notes",
-                        existingAttributeValue: entity.Notes,
-                        updatedAttributeValue: ownersList,
-                        reason: "Only Valid Email Addresses Can Be Present, Repopulating From Owners"
-                        ).ConfigureAwait(false);
+                    // command the AAD Update
+                    var updateCommand = new ServicePrincipalUpdateCommand()
+                    {
+                        Id = entity.Id,
+                        Notes = (entity.Notes, ownersList),
+                        Reason = "Update Notes from Owners"
+                    };
+                    await CommandAADUpdate(context, updateCommand, queueService).ConfigureAwait(false);
 
+                    // update local entity so we have something to send to object service
                     entity.Notes = ownersList;
-
-                    if (lastKnownGood is null)
-                    {
-                        lastKnownGood = entity;
-                        await _objectService.Put(lastKnownGood).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        lastKnownGood.Notes = ownersList;
-                        await _objectService.Put(lastKnownGoodWrapper).ConfigureAwait(false);
-                    }
-
-                    // make sure to write the wrapper back to get the same document updated
-
+                    await UpdateLastKnownGood(context, lastKnownGoodWrapper, entity).ConfigureAwait(false);
                 }
             }
         }
 
-        async Task CommandAADUpdate(ServicePrincipalModel entity)
+        async Task UpdateLastKnownGood(ActivityContext context, TrackingModel trackingModel, ServicePrincipalModel model)
+        {
+            // if we dont have a tracking model that means we have never recorded a last known good.  create one by
+            //  writing just the entity to the service.
+            if (trackingModel is null)
+            {
+                await UpdateLastKnownGood(context, model).ConfigureAwait(false);
+            }
+            else
+            {
+                trackingModel.Entity = model;
+                // make sure to write the wrapper back to get the same document updated
+                await _objectService.Put(context, trackingModel).ConfigureAwait(false);
+            }
+        }
+
+        async Task UpdateLastKnownGood(ActivityContext context, ServicePrincipalModel entity)
+        {
+            await _objectService.Put(context, entity).ConfigureAwait(false);
+        }
+
+        static async Task CommandAADUpdate(ActivityContext context, ServicePrincipalUpdateCommand command, IAzureQueueService queueService)
+        {
+            command.CorrelationId = context.ActivityId.ToString();
+            var message = new QueueMessage<ServicePrincipalUpdateCommand>()
+            {
+                QueueMessageType = QueueMessageType.Data,
+                Document = command,
+                Attempt = 0
+            };
+
+            await queueService.Send(message, 0).ConfigureAwait(false);
+        }
+
+        async Task AlertInvalidPrincipal(ActivityContext context, ServicePrincipalModel entity)
         {
             await Task.CompletedTask.ConfigureAwait(false);
         }
 
-        async Task AlertInvalidPrincipal(ServicePrincipalModel entity)
-        {
-            await Task.CompletedTask.ConfigureAwait(false);
-        }
 
-        async Task UpdateLastKnownGood(ServicePrincipalModel entity)
-        {
-            await _objectService.Put(entity).ConfigureAwait(false);
-        }
+
 
         // REMEDIATE
         /// <summary>
@@ -281,9 +319,33 @@ namespace CSE.Automation.Processors
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public async Task UpdateServicePrincipal(ActivityContext context)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "All failure condition logging")]
+        public async Task UpdateServicePrincipal(ActivityContext context, ServicePrincipalUpdateCommand command)
         {
-            await Task.CompletedTask.ConfigureAwait(false);
+            try
+            {
+                await _graphHelper.PatchGraphObject(new ServicePrincipal
+                {
+                    Id = command.Id,
+                    Notes = command.Notes.Item2
+                }).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to update AAD Service Principal {command.Id}");
+                throw;
+            }
+
+            try
+            {
+                await _auditService.PutChange(context, command.Id, "Notes", command.Notes.Item1, command.Notes.Item2, command.Reason).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to Audit update to AAD Service Principal {command.Id}");
+                throw;
+            }
+
         }
     }
 }
