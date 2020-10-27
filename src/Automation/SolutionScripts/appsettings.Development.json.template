@@ -5,9 +5,10 @@
 
   "SPConfigurationCollection": "Configuration",
   "SPObjectTrackingCollection": "ObjectTracking",
+  "SPAuditCollection": "Audit",
 
   "SPEvaluateQueue": "evaluate",
-  "SPAADUpdateQueue": "update",
+  "SPUpdateQueue": "update",
 
   "SPStorageConnectionString": "UseDevelopmentStorage=true",
   "ScanLimit": 2000
