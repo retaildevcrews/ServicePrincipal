@@ -32,7 +32,7 @@ namespace CSE.Automation.Validators
                     {
                         if (graphHelper.GetGraphObject(token).Result is null)
                         {
-                            context.AddFailure($"{token} is not a valid UserPrincipalName in this directory");
+                            context.AddFailure($"'{token}' is not a valid UserPrincipalName in this directory");
                         }
                     });
                 });
