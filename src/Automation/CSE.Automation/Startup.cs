@@ -225,6 +225,7 @@ namespace CSE.Automation
                 .AddScoped<IConfigService<ProcessorConfiguration>, ConfigService>()
 
                 .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>()
+                .AddScoped<IGraphHelper<User>, UserGraphHelper>()
                 .AddScoped<IServicePrincipalProcessor, ServicePrincipalProcessor>()
 
                 .AddScoped<IObjectTrackingService, ObjectTrackingService>()
