@@ -79,7 +79,7 @@ jobs:
     - name: Docker Push
       if: ${{ github.event.pull_request.merged == 'true'}}
       run: |
-        if [[ "github.event_name" == "push" ]]; then
+        if [[ "${{ github.event_name }}" == "push" ]]; then
           docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:latest
         else
           PR_NUMBER=$(echo "${{ github.ref }}" | awk 'BEGIN { FS = "/" } ; { print $3 }')
