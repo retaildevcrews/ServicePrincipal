@@ -77,13 +77,12 @@ jobs:
         [[ $? == 0 ]] && echo "::set-env name=DKR_IMG_IS_BUILT::true"
 
     - name: Docker Push
-      if: ${{ github.event_name != 'push'}}
+      if: ${{ github.event.pull_request.merged == 'true'}}
       run: |
-        # tag images based on PR number for version
-        PR_NUMBER=$(echo "${{ github.ref }}" | awk 'BEGIN { FS = "/" } ; { print $3 }')
-        if [[ ${{ github.event.pull_request.merged }} == true ]]; then
+        if [[ "github.event_name" == "push" ]]; then
           docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:latest
         else
+          PR_NUMBER=$(echo "${{ github.ref }}" | awk 'BEGIN { FS = "/" } ; { print $3 }')
           docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:${PR_NUMBER}
         fi
         
