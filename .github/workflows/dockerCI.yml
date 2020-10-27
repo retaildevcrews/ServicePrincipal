@@ -77,8 +77,9 @@ jobs:
         [[ $? == 0 ]] && echo "::set-env name=DKR_IMG_IS_BUILT::true"
 
     - name: Docker Push
-      if: ${{ github.event.pull_request.merged == 'true'}}
+      if: ${{ github.event.pull_request.merged != 'true'}}
       run: |
+        #only run this step if pull request or push to main not on merge
         if [[ "${{ github.event_name }}" == "push" ]]; then
           docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:latest
         else
