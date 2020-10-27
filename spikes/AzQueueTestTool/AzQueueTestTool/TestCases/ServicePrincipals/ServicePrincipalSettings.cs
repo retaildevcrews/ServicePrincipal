@@ -49,7 +49,6 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
 
         public int NumberOfSPObjectsToCreatePerTestCase => int.Parse(ConfigurationManager.AppSettings.Get("numberOfServicePrincipalObjectsToCreatePerTestCase"));
 
-        private List<string> _targetTestCaseList;
         public List<string> TargetTestCaseList => ConfigurationManager.AppSettings.Get("TargetTestCase").Split(',').Select(s => s.Trim()).ToList();
         
         public void Dispose()

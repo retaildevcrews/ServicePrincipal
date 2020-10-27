@@ -44,56 +44,6 @@ namespace AzQueueTestTool
             }
         }
 
-        //private static void InsertMessagesTestMethod()
-        //{
-        //    using (var queueSettings = new QueueSettings())
-        //    {
-
-        //        ShouldProceed(queueSettings);
-
-        //        Stopwatch stopWatch = new Stopwatch();
-        //        stopWatch.Start();
-
-        //        StringBuilder sb = new StringBuilder();
-        //        Parallel.ForEach(queueSettings.QueueNamesList, (queueName) =>
-        //        {
-        //            using (var queueManager = new QueueManager(queueName, queueSettings.MessageBase, queueSettings.StorageConnectionString))
-        //            {
-        //                queueManager.AddBaseMessages(queueSettings.MessageCount);
-        //                sb.AppendLine(queueManager.StatusMessage);
-        //            }
-        //        });
-
-        //        stopWatch.Stop();
-        //        Console.Clear();
-        //        Console.WriteLine(sb.ToString());
-        //        Console.WriteLine($"{Environment.NewLine}Process completed!, time elapsed - {stopWatch.Elapsed}");
-        //    }
-        //}
-
-        private static void ShouldProceed(QueueSettings queueSettings)
-        {
-            string accountName = GetAccountName(queueSettings.StorageConnectionString);
-
-            Console.WriteLine($"Your target Storage Account is [{accountName}] and [{queueSettings.MessageCount}] messages will be pushed to each Queue [{queueSettings.QueueNames}]{Environment.NewLine}{Environment.NewLine}Enter 'Y' to continue?");
-
-            try
-            {
-                string toContinue = Console.ReadLine();
-
-                if (toContinue.Trim() != "Y")
-                {
-                    Console.WriteLine("Request was cancelled,  Goodbye!");
-                    Environment.Exit(0);
-                }
-            }
-            catch (Exception)
-            {
-                Console.WriteLine("Could not undestand your answer, please try again, Goodbye!");
-                Environment.Exit(-1);
-            }
-        }
-
         private static void ConfirmationMessage(QueueSettings queueSettings)
         {
             string accountName = GetAccountName(queueSettings.StorageConnectionString);

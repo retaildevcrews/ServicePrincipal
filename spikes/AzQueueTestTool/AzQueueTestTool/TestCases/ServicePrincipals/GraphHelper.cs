@@ -134,7 +134,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
             {
                 var tasks = new List<Task>();
 
-                Parallel.ForEach(targetServicePrincipals, async spObject =>
+                Parallel.ForEach(targetServicePrincipals, spObject =>
                 {
                     var servicePrincipal = new ServicePrincipal
                     {
@@ -197,7 +197,6 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
             {
                 var tasks = new List<Task>();
 
-                //Parallel.ForEach(targetServicePrincipals, async spObject =>
                 foreach(var spObject in targetServicePrincipals)
                 {
 
@@ -229,7 +228,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
             }
         }
 
-        //https://stackoverflow.com/questions/56707404/microsoft-graph-only-returning-the-first-100-users
+       
         internal static async Task<List<ServicePrincipal>> GetAllServicePrincipals(string spNamePefix, int count = 0)
         {
             try
@@ -242,9 +241,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                .Filter($"startswith(displayName,'{spNamePefix}')")
                .GetAsync();
 
-
-                //https://stackoverflow.com/questions/56707404/microsoft-graph-only-returning-the-first-100-users
-
+ 
                 servicePrincipalList.AddRange(servicePrincipalsPage.CurrentPage);
 
                 bool breakOnListCountGreaterOrEqualsToCount = (count > 0);
@@ -285,7 +282,6 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                .GetAsync();
 
 
-                //https://stackoverflow.com/questions/56707404/microsoft-graph-only-returning-the-first-100-users
 
                 applicationList.AddRange(applicationsPage.CurrentPage);
 
@@ -318,11 +314,9 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
         internal static void CreateServicePrincipalAsync(string spNamePefix, int count, int lowerLimit = 1)
         {
 
-            //var appRegistrationTasks = new List<Task<Application>>();
             var serviceTasks = new List<Task>();
 
 
-            //Parallel.For(lowerLimit, count + 1, (i, state) =>
             for (int i = 1; i <= count; i++)
             {
 
@@ -353,13 +347,12 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
         }
 
    
-        private static void AddServicePrincipals(string spNamePefix)//IList<Application> applicationsList)
+        private static void AddServicePrincipals(string spNamePefix)
         {
 
             var applicationsList = GetAllApplicationAsync(spNamePefix).Result;
             var servicePrinciaplTasks = new List<Task>();
 
-            //Parallel.ForEach(applicationsList, app =>
             foreach(var app in applicationsList)
             {
                 var servicePrincipal = new ServicePrincipal
@@ -386,7 +379,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
             var selectFields = new[] { "appId", "displayName", "notes", "owners", "notificationEmailAddresses" };
             var users = await _graphClient.Users
                 .Request()
-                //.Filter("identities/any(c:c/issuerAssignedId eq 'j.smith@yahoo.com' and c/issuer eq 'contoso.onmicrosoft.com')")
+
                 .Select(string.Join(',', selectFields))
                 .GetAsync();
 
@@ -476,8 +469,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                .GetAsync();
 
 
-                //https://stackoverflow.com/questions/56707404/microsoft-graph-only-returning-the-first-100-users
-
+ 
                 servicePrincipalList.AddRange(servicePrincipalsPage.CurrentPage);
 
                 bool breakOnListCountGreaterOrEqualsToCount = (count > 0);
