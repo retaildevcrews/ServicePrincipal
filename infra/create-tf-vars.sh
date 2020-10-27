@@ -21,7 +21,7 @@ fi
 # set location to centralus if not set
 if [ -z $svc_ppl_Location ]
 then
-  export svc_ppl_Location=southcentralus
+  export svc_ppl_Location=centralus
 fi
 
 # set enviroment to dev if not set
@@ -109,9 +109,9 @@ export graphServicePricipalId=$svc_ppl_GRAPH_SP_ID
 servicePricipalId=$(eval echo $graphServicePricipalId)
 echo "Graph Service Principal AppID: " $graphServicePricipalId
 
-export appRoleAppReadWriteAllOwnedBy=$(az ad sp show --id $graphId --query "appRoles[?value=='Application.ReadWrite.OwnedBy'].id | [0]") 
-appRoleAppReadWriteAllOwnedBy=$(eval echo $appRoleAppReadWriteAllOwnedBy)
-echo "Application- Application.ReadWrite.OwnedBy ID: " $appRoleAppReadWriteAllOwnedBy
+export appRoleAppReadWriteAll=$(az ad sp show --id $graphId --query "appRoles[?value=='Application.ReadWrite.All'].id | [0]") 
+appRoleAppReadWriteAll=$(eval echo $appRoleAppReadWriteAll)
+echo "Application- Application.ReadWrite.All ID: " $appRoleAppReadWriteAll
 
 
 export appRoleDirReadAll=$(az ad sp show --id $graphId --query "appRoles[?value=='Directory.Read.All'].id | [0]") 
@@ -120,7 +120,7 @@ echo "Application- Directory.Read.All ID:" $appRoleDirReadAll
 
 
 # Add App persmission 
-az ad app permission add --id $graphServicePricipalId --api $graphId --api-permissions $appRoleDirReadAll=Role $appRoleAppReadWriteAllOwnedBy=Role
+az ad app permission add --id $graphServicePricipalId --api $graphId --api-permissions $appRoleDirReadAll=Role $appRoleAppReadWriteAll=Role
 
 # Make permissions effective
 az ad app permission grant --id $graphServicePricipalId --api $graphId
