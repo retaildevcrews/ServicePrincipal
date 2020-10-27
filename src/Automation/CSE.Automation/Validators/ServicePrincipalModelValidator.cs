@@ -4,13 +4,14 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace CSE.Automation.Validators
 {
     public class ServicePrincipalModelValidator : AbstractValidator<ServicePrincipalModel>, IModelValidator<ServicePrincipalModel>
     {
-        public ServicePrincipalModelValidator(IGraphHelper<ServicePrincipal> graphHelper)
+        public ServicePrincipalModelValidator(IGraphHelper<User> graphHelper)
         {
             Include(new GraphModelValidator());
             RuleFor(m => m.AppId)
@@ -25,8 +26,16 @@ namespace CSE.Automation.Validators
             RuleFor(m => m.Notes)
                 .NotEmpty()
                 .HasOnlyEmailAddresses()
-                .HasValidAADServicePrincipalNames(graphHelper)
-                .MaximumLength(Constants.MaxStringLength);
+                .Custom((field, context) =>
+                {
+                    field?.Split(',', ';').ToList().ForEach(token =>
+                    {
+                        if (graphHelper.GetGraphObject(token).Result is null)
+                        {
+                            context.AddFailure($"{token} is not a valid UserPrincipalName in this directory");
+                        }
+                    });
+                });
         }
 
     }

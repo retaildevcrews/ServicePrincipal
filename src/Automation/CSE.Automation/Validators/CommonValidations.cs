@@ -42,11 +42,12 @@ namespace CSE.Automation.Validators
         }
     }
 
+    /*
     class AADServicePrincipalNameValidator : PropertyValidator
     {
-        IGraphHelper<ServicePrincipal> _graphHelper;
+        IGraphHelper<User> _graphHelper;
 
-        public AADServicePrincipalNameValidator(IGraphHelper<ServicePrincipal> graphHelper)
+        public AADServicePrincipalNameValidator(IGraphHelper<User> graphHelper)
             : base("{PropertyName} is not a valid Service Principal Name in this Directory.")
         {
             _graphHelper = graphHelper;
@@ -60,8 +61,12 @@ namespace CSE.Automation.Validators
                 var errorsFound = false;
                 foreach (var token in tokens)
                 {
-                    var items = _graphHelper.GetGraphObjects(new[] { new QueryOption("servicePrincipalName", token) }).Result.ToList();
-                    if (items.Count == 0) { errorsFound = true; }
+                    var items = _graphHelper.GetGraphObject(token).Result;
+                    if (items is null)
+                    {
+                        
+                        errorsFound = true;
+                    }
                 }
 
                 return errorsFound;
@@ -73,6 +78,7 @@ namespace CSE.Automation.Validators
 
         }
     }
+    */
 
     static class CommonValidations
     {
@@ -81,9 +87,11 @@ namespace CSE.Automation.Validators
             return ruleBuilder.SetValidator(new EmailListValidator());
         }
 
-        public static IRuleBuilderOptions<T, TProperty> HasValidAADServicePrincipalNames<T, TProperty>(this IRuleBuilder<T, TProperty> ruleBuilder, IGraphHelper<ServicePrincipal> graphHelper)
+        /*
+        public static IRuleBuilderOptions<T, TProperty> HasValidAADServicePrincipalNames<T, TProperty>(this IRuleBuilder<T, TProperty> ruleBuilder, IGraphHelper<User> graphHelper)
         {
             return ruleBuilder.SetValidator(new AADServicePrincipalNameValidator(graphHelper));
         }
+        */
     }
 }
