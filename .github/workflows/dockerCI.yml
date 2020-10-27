@@ -75,6 +75,8 @@ jobs:
                     -f src/Automation/CSE.Automation/Dockerfile src/Automation
         # Set variable is successful
         [[ $? == 0 ]] && echo "::set-env name=DKR_IMG_IS_BUILT::true"
+        echo $(echo "${{ github.ref }}" | awk 'BEGIN { FS = "/" } ; { print $3 }')
+        echo "${{ github.ref }}"
 
     - name: Docker Push
       if: ${{ github.event_name != 'push'}}
