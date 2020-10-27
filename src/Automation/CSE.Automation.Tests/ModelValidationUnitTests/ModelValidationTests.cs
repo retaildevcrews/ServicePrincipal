@@ -8,13 +8,35 @@ using FluentValidation.Results;
 using System.Linq;
 using System.ComponentModel.DataAnnotations;
 using CSE.Automation.Validators;
+using CSE.Automation.Graph;
+using Microsoft.Graph;
+using System.Threading.Tasks;
+using Status = CSE.Automation.Model.Status;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests
 {
     public class ModelValidationTests
     {
+        // TODO: create real mocked class
+        class MockUserGraphHelper : IGraphHelper<User>
+        {
+            public Task<(string, IEnumerable<User>)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string selectFields = null)
+            {
+                throw new NotImplementedException();
+            }
 
-        AbstractValidator<ServicePrincipalModel> servicePrincipalValidator = new ServicePrincipalModelValidator();
+            public Task<User> GetGraphObject(string id)
+            {
+                return Task.FromResult(new User());
+            }
+
+            public Task PatchGraphObject(User entity)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        AbstractValidator<ServicePrincipalModel> servicePrincipalValidator = new ServicePrincipalModelValidator(new MockUserGraphHelper());
         AbstractValidator<AuditEntry> auditEntryValidator = new AuditEntryValidator();
 
         [Fact]
