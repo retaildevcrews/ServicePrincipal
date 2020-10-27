@@ -54,11 +54,6 @@ namespace CSE.Automation.Processors
             if (string.IsNullOrEmpty(this.QueueConnectionString)) throw new ConfigurationErrorsException($"{this.GetType().Name}: QueueConnectionString is invalid");
             if (string.IsNullOrEmpty(this.EvaluateQueueName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: EvaluateQueueName is invalid");
             if (string.IsNullOrEmpty(this.UpdateQueueName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: UpdateQueueName is invalid");
-
-            if (string.IsNullOrEmpty(QueueName))
-            {
-                throw new ConfigurationErrorsException($"{GetType().Name}: QueueName is invalid");
-            }
         }
     }
 
