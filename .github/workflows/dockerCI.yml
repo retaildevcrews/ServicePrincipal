@@ -3,7 +3,7 @@ name: Docker CI
 on:
   push:
     branches:
-      - main
+      - dummy-main
 
     paths-ignore:
       - 'docs/**'
@@ -16,7 +16,7 @@ on:
   pull_request:
     types: [ opened, reopened, synchronize, closed ]
     branches:
-      - main
+      - dummy-main
 
     paths-ignore:
     - 'docs/**'
@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ACR_REG_REPO_URL : svcpplacrdev.azurecr.io/serviceprincipal
+      ACR_REG_REPO_URL : serviceprincipalacrdev.azurecr.io/serviceprincipal
       # These are used in if: conditions
       ACR_LOGGED_IN    : false
       DKR_IMG_IS_BUILT : false
@@ -75,14 +75,19 @@ jobs:
                     -f src/Automation/CSE.Automation/Dockerfile src/Automation
         # Set variable is successful
         [[ $? == 0 ]] && echo "::set-env name=DKR_IMG_IS_BUILT::true"
+        echo $(echo "${{ github.ref }}" | awk 'BEGIN { FS = "/" } ; { print $3 }')
+        echo "${{ github.ref }}"
 
     - name: Docker Push
-      if: ${{ env.DKR_IMG_IS_BUILT == 'true' && github.event.pull_request.merged }}
+      if: ${{ env.DKR_IMG_IS_BUILT == 'true'}}
       run: |
         # tag images based on PR number for version
-        PR_NUMBER=PR$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
-        docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:${PR_NUMBER}
-        docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:latest
-
+        PR_NUMBER=$(echo "${{ github.ref }}" | awk 'BEGIN { FS = "/" } ; { print $3 }')
+        if [[ ${{ github.event.pull_request.merged }} == true ]]; then
+          docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:latest
+        else
+          docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:${PR_NUMBER}
+        fi
+        
         # Push images after merge
         docker push ${ACR_REG_REPO_URL}
