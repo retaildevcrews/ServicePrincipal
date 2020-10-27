@@ -1,4 +1,9 @@
-﻿using System;
+﻿using AzQueueTestTool.TestCases;
+using AzQueueTestTool.TestCases.Queues;
+using AzQueueTestTool.TestCases.ServicePrincipals;
+using Microsoft.Graph.Auth;
+using Microsoft.Identity.Client;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -9,41 +14,41 @@ namespace AzQueueTestTool
 {
     class Program
     {
-        //Create test utility to inject messages directly into the 'evaluate' queue and 'update' queue.
-
         static void Main(string[] args)
         {
-            using (var queueSettings = new QueueSettings())
+            GenerateMessagesForTestCases();
+        }
+
+
+        private static void GenerateMessagesForTestCases()
+        {
+            using ( var queueSettings = new QueueSettings())
             {
 
-                ShouldProceed(queueSettings);
+                ConfirmationMessage(queueSettings);
+
+                Console.WriteLine($"Initializing...");
 
                 Stopwatch stopWatch = new Stopwatch();
                 stopWatch.Start();
 
-                StringBuilder sb = new StringBuilder();
-                Parallel.ForEach(queueSettings.QueueNamesList, (queueName) =>
+                using (TestCaseManager testCaseManager = new TestCaseManager(queueSettings))
                 {
-                    using (var queueManager = new QueueManager(queueName, queueSettings.MessageBase, queueSettings.StorageConnectionString))
-                    {
-                        queueManager.AddBaseMessages(queueSettings.MessageCount);
-                        sb.AppendLine(queueManager.StatusMessage);
-                    }
-                });
+                    Console.WriteLine($"Starting process...");
+                    testCaseManager.Start();
+                }
 
                 stopWatch.Stop();
                 Console.Clear();
-                Console.WriteLine(sb.ToString());
                 Console.WriteLine($"{Environment.NewLine}Process completed!, time elapsed - {stopWatch.Elapsed}");
             }
-
         }
 
-        private static void ShouldProceed(QueueSettings queueSettings)
+        private static void ConfirmationMessage(QueueSettings queueSettings)
         {
             string accountName = GetAccountName(queueSettings.StorageConnectionString);
 
-            Console.WriteLine($"Your target Storage Account is [{accountName}] and [{queueSettings.MessageCount}] messages will be pushed to each Queue [{queueSettings.QueueNames}]{Environment.NewLine}{Environment.NewLine}Enter 'Y' to continue?");
+            Console.WriteLine($"Your target Storage Account is [{accountName}] and messages will be pushed to Queue [Evaluate]{Environment.NewLine}{Environment.NewLine}Enter 'Y' to continue?");
 
             try
             {
