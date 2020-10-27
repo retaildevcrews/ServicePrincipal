@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ACR_REG_REPO_URL : svcpplacrdev.azurecr.io/serviceprincipal
+      ACR_REG_REPO_URL : serviceprincipalacrdev.azurecr.io/serviceprincipal
       # These are used in if: conditions
       ACR_LOGGED_IN    : false
       DKR_IMG_IS_BUILT : false
@@ -79,12 +79,15 @@ jobs:
         echo "${{ github.ref }}"
 
     - name: Docker Push
-      if: ${{ env.DKR_IMG_IS_BUILT == 'true' && github.event.pull_request.merged }}
+      if: ${{ env.DKR_IMG_IS_BUILT == 'true'}}
       run: |
         # tag images based on PR number for version
         PR_NUMBER=$(echo "${{ github.ref }}" | awk 'BEGIN { FS = "/" } ; { print $3 }')
-        docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:${PR_NUMBER}
-        docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:latest
-
+        if [[ ${{ github.event.pull_request.merged }} == true ]]; then
+          docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:latest
+        else
+          docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:${PR_NUMBER}
+        fi
+        
         # Push images after merge
         docker push ${ACR_REG_REPO_URL}
