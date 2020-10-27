@@ -104,7 +104,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 var config = GetConfiguration();
                 var service = serviceScope.ServiceProvider.GetService<IGraphHelper<ServicePrincipal>>();
 
-                var results = await service.GetDeltaGraphObjects(config, new ActivityContext());
+                var results = await service.GetDeltaGraphObjects(new ActivityContext(), config);
 
             }
             Assert.True(true);

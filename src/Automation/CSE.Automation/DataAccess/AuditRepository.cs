@@ -8,16 +8,9 @@ namespace CSE.Automation.DataAccess
 {
     internal class AuditRespositorySettings : CosmosDBSettings
     {
-        private string _collectionName;
-
         public AuditRespositorySettings(ISecretClient secretClient) : base(secretClient) { }
 
-        [Secret(Constants.CosmosDBAuditCollectionName)]
-        public string CollectionName
-        {
-            get => _collectionName ?? base.GetSecret();
-            set => _collectionName = value;
-        }
+        public string CollectionName { get; set; }
         public override void Validate()
         {
             base.Validate();
