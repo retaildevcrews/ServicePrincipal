@@ -12,5 +12,10 @@ namespace AzQueueTestTool.TestCases.Queues
             string path = Path.GetRandomFileName();
             return $"{baseString} : {path}";
         }
+        public static string AddRandomStringToEmail(this string baseString)
+        {
+            string path = Path.GetRandomFileName().Replace(".","");
+            return $"{baseString}.{path}";
+        }
     }
 }

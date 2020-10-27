@@ -14,11 +14,8 @@ namespace AzQueueTestTool
 {
     class Program
     {
-        //Create test utility to inject messages directly into the 'evaluate' queue and 'update' queue.
-
         static void Main(string[] args)
         {
-            
             GenerateMessagesForTestCases();
         }
 
@@ -30,48 +27,50 @@ namespace AzQueueTestTool
 
                 ConfirmationMessage(queueSettings);
 
+                Console.WriteLine($"Initializing...");
+
                 Stopwatch stopWatch = new Stopwatch();
                 stopWatch.Start();
 
                 using (TestCaseManager testCaseManager = new TestCaseManager(queueSettings))
                 {
+                    Console.WriteLine($"Starting process...");
                     testCaseManager.Start();
-                    //testCaseManager.Cleanup();
                 }
 
                 stopWatch.Stop();
                 Console.Clear();
-                //Console.WriteLine(sb.ToString());
                 Console.WriteLine($"{Environment.NewLine}Process completed!, time elapsed - {stopWatch.Elapsed}");
             }
         }
 
-        private static void InsertMessages()
-        {
-            using (var queueSettings = new QueueSettings())
-            {
+        //private static void InsertMessagesTestMethod()
+        //{
+        //    using (var queueSettings = new QueueSettings())
+        //    {
 
-                ShouldProceed(queueSettings);
+        //        ShouldProceed(queueSettings);
 
-                Stopwatch stopWatch = new Stopwatch();
-                stopWatch.Start();
+        //        Stopwatch stopWatch = new Stopwatch();
+        //        stopWatch.Start();
 
-                StringBuilder sb = new StringBuilder();
-                Parallel.ForEach(queueSettings.QueueNamesList, (queueName) =>
-                {
-                    using (var queueManager = new QueueManager(queueName, queueSettings.MessageBase, queueSettings.StorageConnectionString))
-                    {
-                        queueManager.AddBaseMessages(queueSettings.MessageCount);
-                        sb.AppendLine(queueManager.StatusMessage);
-                    }
-                });
+        //        StringBuilder sb = new StringBuilder();
+        //        Parallel.ForEach(queueSettings.QueueNamesList, (queueName) =>
+        //        {
+        //            using (var queueManager = new QueueManager(queueName, queueSettings.MessageBase, queueSettings.StorageConnectionString))
+        //            {
+        //                queueManager.AddBaseMessages(queueSettings.MessageCount);
+        //                sb.AppendLine(queueManager.StatusMessage);
+        //            }
+        //        });
 
-                stopWatch.Stop();
-                Console.Clear();
-                Console.WriteLine(sb.ToString());
-                Console.WriteLine($"{Environment.NewLine}Process completed!, time elapsed - {stopWatch.Elapsed}");
-            }
-        }
+        //        stopWatch.Stop();
+        //        Console.Clear();
+        //        Console.WriteLine(sb.ToString());
+        //        Console.WriteLine($"{Environment.NewLine}Process completed!, time elapsed - {stopWatch.Elapsed}");
+        //    }
+        //}
+
         private static void ShouldProceed(QueueSettings queueSettings)
         {
             string accountName = GetAccountName(queueSettings.StorageConnectionString);

@@ -2,31 +2,26 @@
 using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using static AzQueueTestTool.TestCases.Rules.RulesManager;
+
 
 namespace AzQueueTestTool.TestCases.Rules
 {
-    class RuleSet7 : IRuleSet
+    internal class RuleSet7 : RuleSetBase, IRuleSet
     {
-        //serviv
-        public CaseId TestCaseId { get => CaseId.TC7; } //CaseId.TC8; 
-        
-        public List<ServicePrincipal> ServicePrincipals { get; set; }
+        public RuleSet7(List<ServicePrincipal> targetServicePrincipals) : base(targetServicePrincipals)
+        {
+        }
 
-        public bool ValidOwners => false;
-
-        public bool ValidNotes => false;
-
-        public void Execute(List<ServicePrincipal> targetServicePrincipals)
+        public override void Execute()
         {
             //-DO NOT set owners 
             //Empty out Notes field
 
-            GraphHelper.ClearNotesField(targetServicePrincipals);
+            GraphHelper.ClearNotesField(ServicePrincipals);
 
-            GraphHelper.ClearOwners(targetServicePrincipals);
+            GraphHelper.ClearOwners(ServicePrincipals);
 
         }
+
     }
 }

@@ -33,9 +33,6 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
 
         public List<ServicePrincipal> GetOrCreateServicePrincipals()
         {
-            //check if we have enought SP objects created in AAD 
-            //
-            //Get SP objects or create the missing ones
 
             var servicePrincipalList = GraphHelper.GetAllServicePrincipals($"{_spSettings.ServicePrincipalPrefix}-{_spSettings.ServicePrincipalBaseName}").Result;
 
@@ -58,9 +55,9 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                 }
 
             }
-            else if (numberOfServicePrincipalToCreate  < 0)// if lees that zero we need to create more SPs , else if greater than zero means we have more SPs than needed so we are OK
+            else if (numberOfServicePrincipalToCreate  < 0)// if less that zero we need to create more SPs , else if greater than zero means we have more SPs than needed so we are OK
             {
-                //Delete all and recreate them , this should not really happen but it is 
+                
                 int maxSpId = GetMaxServicePrincipalId(servicePrincipalList);
 
                 GraphHelper.CreateServicePrincipalAsync($"{_spSettings.ServicePrincipalPrefix}-{ _spSettings.ServicePrincipalBaseName}", numberOfServicePrincipalToCreate, maxSpId + 1);

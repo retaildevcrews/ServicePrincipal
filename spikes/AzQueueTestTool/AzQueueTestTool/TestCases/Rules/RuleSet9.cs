@@ -4,31 +4,27 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using static AzQueueTestTool.TestCases.Rules.RulesManager;
 
 namespace AzQueueTestTool.TestCases.Rules
 {
-    class RuleSet9 : IRuleSet
+    internal class RuleSet9 : RuleSetBase, IRuleSet
     {
-        //serviv
-        public CaseId TestCaseId { get => CaseId.TC9; } //CaseId.TC6; 
-        public List<ServicePrincipal> ServicePrincipals { get; set; }
-
-        public bool ValidOwners => true;
-
-        public bool ValidNotes => false;
-
-        public void Execute(List<ServicePrincipal> targetServicePrincipals)
+        public RuleSet9(List<ServicePrincipal> targetServicePrincipals) : base(targetServicePrincipals)
         {
-            //-set owners 
-            //Empty out Notes field
-            GraphHelper.ClearOwners(targetServicePrincipals);
-
-            Task task = GraphHelper.SetOwnersAsync(targetServicePrincipals);
-            task.Wait();
-            GraphHelper.ClearNotesField(targetServicePrincipals);
-
 
         }
+
+        public override void Execute()
+        {
+            // set owners 
+            //Empty out Notes field
+            GraphHelper.ClearOwners(ServicePrincipals);
+
+            Task task = GraphHelper.SetOwnersAsync(ServicePrincipals);
+            task.Wait();
+            GraphHelper.ClearNotesField(ServicePrincipals);
+
+        }
+
     }
 }

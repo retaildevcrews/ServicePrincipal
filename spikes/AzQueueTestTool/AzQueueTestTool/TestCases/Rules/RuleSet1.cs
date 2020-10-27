@@ -4,43 +4,31 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using static AzQueueTestTool.TestCases.Rules.RulesManager;
+
 
 namespace AzQueueTestTool.TestCases.Rules
 {
-    class RuleSet1 : IRuleSet
+    internal class RuleSet1 : RuleSetBase, IRuleSet
     {
-        
-        public CaseId TestCaseId { get => CaseId.TC1; }
-        public List<ServicePrincipal> ServicePrincipals { get; set; }
-
-        public bool ValidOwners => true;
-
-        public bool ValidNotes => true;
-
-        public void Execute(List<ServicePrincipal> targetServicePrincipals)
+        public RuleSet1(List<ServicePrincipal> targetServicePrincipals) : base (targetServicePrincipals)
         {
+        }
 
-            ServicePrincipals = targetServicePrincipals;
-
-            GraphHelper.ClearOwners(targetServicePrincipals);
-
+        public override void Execute()
+        {
             //-set owners 
-            Task task = GraphHelper.SetOwnersAsync(targetServicePrincipals);
+            //-populated Notes field with owners AAD emails
+
+            GraphHelper.ClearOwners(ServicePrincipals);
+           
+            Task task = GraphHelper.SetOwnersAsync(ServicePrincipals);
 
             task.Wait();
-            //-populated Notes field with owners AAD emails
-            GraphHelper.UpdateNotesFieldWithAADOwnersEmail(targetServicePrincipals);
+          
+            GraphHelper.UpdateNotesFieldWithAADOwnersEmail(ServicePrincipals);
 
-            // other methos used for othes TC
-            /*
-            GraphHelper.UpdateNotesFieldWithValidEmail(targetServicePrincipals);
-            GraphHelper.ClearNotesFiled(targetServicePrincipals);
+       }
 
-            GraphHelper.ClearOwners(targetServicePrincipals);
-            */
-
-
-        }
     }
+
 }

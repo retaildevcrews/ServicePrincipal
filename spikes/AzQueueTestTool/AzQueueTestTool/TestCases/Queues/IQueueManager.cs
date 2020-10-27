@@ -7,7 +7,6 @@ namespace AzQueueTestTool.TestCases.Queues
 {
     internal interface IQueueManager
     {
-        void UpdateConsole(string message);
-
+     
     }
 }

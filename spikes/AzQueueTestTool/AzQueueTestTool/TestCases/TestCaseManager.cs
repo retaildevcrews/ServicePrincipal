@@ -36,9 +36,9 @@ namespace AzQueueTestTool.TestCases
 
         private void GenerateMessagesForAllRules(List<ServicePrincipal> availableServicePrincipals)
         {
-            using (RulesManager rulesManager = new RulesManager(availableServicePrincipals, _spSettings.NumberOfSPObjectsToCreatePerTestCase))
+            using (RulesManager rulesManager = new RulesManager(availableServicePrincipals, _spSettings))
             {
-                rulesManager.ExecuteAllRules(_spSettings.TargetTestCaseList);
+                rulesManager.ExecuteAllRules();
 
                 using (var queueServiceManager = new QueueServiceManager("evaluate", _queueSettings.StorageConnectionString))
                 {
@@ -53,6 +53,7 @@ namespace AzQueueTestTool.TestCases
         {
             using (ServicePrincipalManager ServicePrincipalManager = new ServicePrincipalManager(_spSettings))
             {
+                ConsoleHelper.UpdateConsole($"Getting Service Principal Objects...");
                 return ServicePrincipalManager.GetOrCreateServicePrincipals();
             }
 

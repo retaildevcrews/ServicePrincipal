@@ -4,37 +4,32 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using static AzQueueTestTool.TestCases.Rules.RulesManager;
+
 
 namespace AzQueueTestTool.TestCases.Rules
 {
-    class RuleSet2 : IRuleSet
+     internal class RuleSet2 : RuleSetBase, IRuleSet
     {
-        //serviv
-        public CaseId TestCaseId { get => CaseId.TC2; }
-        public List<ServicePrincipal> ServicePrincipals { get; set; }
+        public RuleSet2(List<ServicePrincipal> targetServicePrincipals) : base(targetServicePrincipals)
+        {
+        }
 
-        public bool ValidOwners => false;
-
-        public bool ValidNotes => true;
-
-        public void Execute(List<ServicePrincipal> targetServicePrincipals)
+        public override void Execute()
         {
 
             //-DO NOT set owners 
             //-populated Notes field with owners AAD emails
 
-            GraphHelper.ClearOwners(targetServicePrincipals);
-            
-            Task task = GraphHelper.SetOwnersAsync(targetServicePrincipals);
+            GraphHelper.ClearOwners(ServicePrincipals);
+
+            Task task = GraphHelper.SetOwnersAsync(ServicePrincipals);
 
             task.Wait();
-            GraphHelper.UpdateNotesFieldWithAADOwnersEmail(targetServicePrincipals);
+            GraphHelper.UpdateNotesFieldWithAADOwnersEmail(ServicePrincipals);
 
-            GraphHelper.ClearOwners(targetServicePrincipals);
-
-
+            GraphHelper.ClearOwners(ServicePrincipals);
 
         }
+
     }
 }

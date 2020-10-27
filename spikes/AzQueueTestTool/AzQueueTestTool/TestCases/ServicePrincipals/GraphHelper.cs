@@ -112,7 +112,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                     List<string> ownerIdList = taskOwners.Result.CurrentPage.Select(x => x.Id).ToList();
 
 
-                    if (ownerIdList?.Count > 0)
+                    if (ownerIdList != null && ownerIdList.Count > 0)
                     {
                         foreach(var ownerId in ownerIdList)
                         {
@@ -185,7 +185,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
  
             for (int i = 1; i <= emailCount; i++)
             {
-                emaiList.Add($"{testEmailBase.AddRandomString()}{emailDomains[random.Next(0, emailDomains.Length)]}" );
+                emaiList.Add($"{testEmailBase.AddRandomStringToEmail()}{emailDomains[random.Next(0, emailDomains.Length)]}" );
             }
 
             return string.Join(";", emaiList.Select(x => x));

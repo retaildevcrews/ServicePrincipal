@@ -1,4 +1,5 @@
-﻿using CSE.Automation.Model;
+﻿using AzQueueTestTool.TestCases.ServicePrincipals;
+using CSE.Automation.Model;
 using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
@@ -10,50 +11,44 @@ namespace AzQueueTestTool.TestCases.Rules
 {
     public class RulesManager : IDisposable
     {
-        public enum CaseId
-        {
-            TC1,
-            TC2,
-            TC3,
-            TC4,
-            TC5,
-            TC6,
-            TC7,
-            TC8,
-            TC9,
-            TC10,
-            TC11
-        }
-        
-        public readonly List<IRuleSet> RuleSetsList = new List<IRuleSet> { new RuleSet1(), new RuleSet2(), new RuleSet3(), new RuleSet4(), 
-                                                            new RuleSet5(), new RuleSet6(), new RuleSet7(), new RuleSet8(), new RuleSet9(), 
-                                                            new RuleSet10(), new RuleSet11()};
-
-        private readonly int _servicePrincipalObjectsPerRuleSet;
+        public readonly List<IRuleSet> RuleSetsList = new List<IRuleSet>();
+            
         private readonly List<ServicePrincipal> _availableServicePrincipals;
-        public RulesManager(List<ServicePrincipal> availableServicePrincipals, int servicePrincipalObjectsPerRuleSet)
+
+        private readonly ServicePrincipalSettings _spSettings;
+
+        public RulesManager(List<ServicePrincipal> availableServicePrincipals, ServicePrincipalSettings spSettings)
         {
-            _servicePrincipalObjectsPerRuleSet = servicePrincipalObjectsPerRuleSet;
+            _spSettings = spSettings;
 
             _availableServicePrincipals = availableServicePrincipals;
         }
-        public void ExecuteAllRules(List<string> targetTestCaseList)
+        public void ExecuteAllRules()
         {
-            if (_availableServicePrincipals.Count != (RuleSetsList.Count * _servicePrincipalObjectsPerRuleSet))
+            if (_availableServicePrincipals.Count != (_spSettings.TargetTestCaseList.Count * _spSettings.NumberOfSPObjectsToCreatePerTestCase))
             {
                 throw new InvalidDataException($"The number of available SP objects in AAD do not match the number of 'SP per Ruleset Count'. Current Ruleset count is {RuleSetsList.Count} ");
             }
 
-            foreach (var ruleSet in RuleSetsList)// Parrallel loop?
+            foreach (var ruleSetName in _spSettings.TargetTestCaseList)
             {
-                if (targetTestCaseList.Contains(ruleSet.TestCaseId.ToString()))// execute only Test case defined in configuration
-                {
-                    UpdateConsole($"Executing Test Case {ruleSet.TestCaseId.ToString()}");
+                string objectToInstantiate = $"AzQueueTestTool.TestCases.Rules.{ruleSetName}, AzQueueTestTool";
 
-                    var nextSpSet = _availableServicePrincipals.GetNext(_servicePrincipalObjectsPerRuleSet);
-                    ruleSet.Execute(nextSpSet);
+                var objectType = Type.GetType(objectToInstantiate);
 
-                }
+                UpdateConsole($"Executing Test Case {ruleSetName}");
+
+                var nextSpSet = _availableServicePrincipals.GetNext(_spSettings.NumberOfSPObjectsToCreatePerTestCase);
+
+                object[] args = { nextSpSet };
+
+                var instantiatedObject = Activator.CreateInstance(objectType, args) as IRuleSet;
+
+                RuleSetsList.Add(instantiatedObject);
+
+                instantiatedObject.Execute();
+
+
             }
         }
 

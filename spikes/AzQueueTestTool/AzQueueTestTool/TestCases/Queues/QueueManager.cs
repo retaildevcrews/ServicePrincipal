@@ -40,7 +40,8 @@ namespace AzQueueTestTool.TestCases.Queues
             {
                 string uniqueMessage = $"{_queueName.ToUpper()} - {_messageBase.AddRandomString()} - {i}";
                 AddMessage(uniqueMessage);
-                UpdateConsole($"{i} messages sent to Queue: '{_queueName}'");
+                ConsoleHelper.UpdateConsole($"{i} messages sent to Queue: '{_queueName}'");
+
             });
 
             StatusMessage = ($"{messageCount} sent to queue '{_queueName}'");
@@ -60,13 +61,7 @@ namespace AzQueueTestTool.TestCases.Queues
             }
             
         }
-
-        public void UpdateConsole(string message)
-        {
-            Console.Write(string.Format("\r{0}", "".PadLeft(Console.CursorLeft, ' ')));
-            Console.Write(string.Format("\r{0}", message));
-            
-        }
+     
 
         void IDisposable.Dispose()
         {
