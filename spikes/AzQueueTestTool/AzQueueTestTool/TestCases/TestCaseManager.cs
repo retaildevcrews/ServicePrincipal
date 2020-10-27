@@ -6,6 +6,7 @@ using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace AzQueueTestTool.TestCases
 {
@@ -41,7 +42,8 @@ namespace AzQueueTestTool.TestCases
 
                 using (var queueServiceManager = new QueueServiceManager("evaluate", _queueSettings.StorageConnectionString))
                 {
-                    _ = queueServiceManager.GenerateMessageForRulesAsync(rulesManager.RuleSetsList);
+                    queueServiceManager.GenerateMessageForRulesAsync(rulesManager.RuleSetsList);
+                    
                 }
             }
         }

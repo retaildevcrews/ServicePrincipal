@@ -21,8 +21,9 @@ namespace AzQueueTestTool.TestCases.Queues
             _azureQueueService = new AzureQueueService(storageConnectionString, queueName.Trim());
         }
 
-        public async Task GenerateMessageForRulesAsync(List<IRuleSet> ruleSetsList)
+        public void GenerateMessageForRulesAsync(List<IRuleSet> ruleSetsList)
         {
+            List<Task> queueTasks = new List<Task>();
             foreach(var ruleSet in ruleSetsList)
             {
                 if (ruleSet.ServicePrincipals?.Count == 0)
@@ -46,9 +47,13 @@ namespace AzQueueTestTool.TestCases.Queues
                         Attempt = 0
                     };
 
-                    await _azureQueueService.Send(myMessage, 3).ConfigureAwait(false);
+                    Task queueTask = Task.Run(() => _azureQueueService.Send(myMessage, 3).ConfigureAwait(false));
+
+                    queueTasks.Add(queueTask);
                 }
             }
+
+            Task.WaitAll(queueTasks.ToArray());
         }
 
         public void UpdateConsole(string message)
