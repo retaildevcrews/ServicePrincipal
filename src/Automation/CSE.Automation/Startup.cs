@@ -90,9 +90,17 @@ namespace CSE.Automation
             //  than an environment setting.  KeyVault settings should override any previous setting.
             var configBuilder = new ConfigurationBuilder()
                 .SetBasePath(appDirectory)
+                .AddJsonFile($"appsettings.{envName}.json", true)
                 .AddConfiguration(defaultConfig)
-                .AddAzureKeyVaultConfiguration(Constants.KeyVaultName)
-                .AddJsonFile($"appsettings.{envName}.json", true);
+                .AddAzureKeyVaultConfiguration(Constants.KeyVaultName);
+
+            // file only exists on local dev machine, so treat these as dev machine overrides
+            //  the environment must be set to Development for this file to be even considered!
+            if (string.Equals(envName, "Development", StringComparison.OrdinalIgnoreCase))
+            {
+                configBuilder
+                    .AddJsonFile($"appsettings.Development.json", true);
+            }
 
             var hostConfig = configBuilder.Build();
             builder.Services.Replace(ServiceDescriptor.Singleton(typeof(IConfiguration), hostConfig));
@@ -127,7 +135,13 @@ namespace CSE.Automation
                 })
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ConfigRespositorySettings>())
 
-                .AddSingleton<AuditRespositorySettings>(x => new AuditRespositorySettings(x.GetRequiredService<ISecretClient>()))
+                .AddSingleton<AuditRespositorySettings>(x => new AuditRespositorySettings(x.GetRequiredService<ISecretClient>())
+                {
+                    Uri = config[Constants.CosmosDBURLName],
+                    Key = config[Constants.CosmosDBKeyName],
+                    DatabaseName = config[Constants.CosmosDBDatabaseName],
+                    CollectionName = config[Constants.CosmosDBAuditCollectionName]
+                })
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<AuditRespositorySettings>())
 
                 .AddSingleton<ObjectTrackingRepositorySettings>(x => new ObjectTrackingRepositorySettings(x.GetRequiredService<ISecretClient>())
@@ -142,7 +156,8 @@ namespace CSE.Automation
                 .AddSingleton(x => new ServicePrincipalProcessorSettings(x.GetRequiredService<ISecretClient>())
                 {
                     QueueConnectionString = config[Constants.SPStorageConnectionString],
-                    QueueName = config[Constants.EvaluateQueueAppSetting.Trim('%')],
+                    EvaluateQueueName = config[Constants.EvaluateQueueAppSetting.Trim('%')],
+                    UpdateQueueName = config[Constants.UpdateQueueAppSetting.Trim('%')],
                     ConfigurationId = config["configId"].ToGuid(Guid.Parse("02a54ac9-441e-43f1-88ee-fde420db2559")),
                     VisibilityDelayGapSeconds = config["visibilityDelayGapSeconds"].ToInt(8),
                     QueueRecordProcessThreshold = config["queueRecordProcessThreshold"].ToInt(10),
@@ -213,6 +228,7 @@ namespace CSE.Automation
                 .AddScoped<IServicePrincipalProcessor, ServicePrincipalProcessor>()
 
                 .AddScoped<IObjectTrackingService, ObjectTrackingService>()
+                .AddScoped<IAuditService, AuditService>()
 
                 .AddScoped<IModelValidator<GraphModel>, GraphModelValidator>()
                 .AddScoped<IModelValidator<ServicePrincipalModel>, ServicePrincipalModelValidator>()

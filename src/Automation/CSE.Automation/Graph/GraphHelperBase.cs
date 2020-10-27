@@ -37,21 +37,24 @@ namespace CSE.Automation.Graph
 
     public interface IGraphHelper<T>
     {
-        Task<(string, IEnumerable<T>)> GetDeltaGraphObjects(ProcessorConfiguration config, string selectFields = null);
+        Task<(string, IEnumerable<T>)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string selectFields = null);
         Task<T> GetGraphObject(string id);
+        Task PatchGraphObject(T entity);
     }
 
-    public abstract class GraphHelperBase<TEntity> : IGraphHelper<TEntity>
+    internal abstract class GraphHelperBase<TEntity> : IGraphHelper<TEntity>
     {
         protected GraphServiceClient graphClient { get; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1051:Do not declare visible instance fields", Justification = "Used to super-classes")]
         protected readonly ILogger _logger;
         protected readonly GraphHelperSettings _settings;
+        protected IAuditService _auditService;
 
-        protected GraphHelperBase(GraphHelperSettings settings, ILogger logger)
+        protected GraphHelperBase(GraphHelperSettings settings, IAuditService auditService, ILogger logger)
         {
             _settings = settings;
+            _auditService = auditService;
             _logger = logger;
             IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
 #pragma warning disable CA1062 // Validate arguments of public methods, settings is injected from parent via Container
@@ -65,8 +68,9 @@ namespace CSE.Automation.Graph
             graphClient = new GraphServiceClient(authProvider);
         }
 
-        public abstract Task<(string, IEnumerable<TEntity>)> GetDeltaGraphObjects(ProcessorConfiguration config, string selectFields = null);
+        public abstract Task<(string, IEnumerable<TEntity>)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string selectFields = null);
         public abstract Task<TEntity> GetGraphObject(string id);
+        public abstract Task PatchGraphObject(TEntity entity);
 
     }
 }

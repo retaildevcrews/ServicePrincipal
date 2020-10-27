@@ -21,7 +21,8 @@ namespace CSE.Automation.Validators
                 .NotEmpty()
                 .GreaterThan(minDate);
             RuleFor(m => m.LastUpdated)
-                .NotEmpty()
+                .GreaterThan(minDate);
+            RuleFor(m => m.Deleted)
                 .GreaterThan(minDate);
             RuleFor(m => m)
                 .Must(BeValidModelDateSequence)
@@ -40,10 +41,12 @@ namespace CSE.Automation.Validators
             {
                 return model.LastUpdated >= model.Deleted && model.Deleted >= model.Created;
             }
-            else
+            else if (model.LastUpdated.HasValue)
             {
                 return model.LastUpdated >= model.Created;
             }
+
+            return true;
         }
 
         protected static bool BeValidJson(string json)

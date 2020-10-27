@@ -7,6 +7,9 @@ namespace CSE.Automation.Model
     {
         public string Id { get; set; }
 
+        // activity correlation id that last wrote this document
+        public string CorrelationId { get; set; }
+
         public DateTimeOffset Created { get; set; }
 
         public DateTimeOffset? Deleted { get; set; }
@@ -16,6 +19,11 @@ namespace CSE.Automation.Model
         public ObjectType ObjectType { get; set; }
 
         public object Entity { get; set; }
+
+        public static TEntity Unwrap<TEntity>(TrackingModel entity) where TEntity : class
+        {
+            return entity?.Entity as TEntity;
+        }
     }
 
     class TrackingModel<TEntity> : TrackingModel where TEntity : GraphModel
@@ -38,5 +46,7 @@ namespace CSE.Automation.Model
                 }
             }
         }
+
+
     }
 }

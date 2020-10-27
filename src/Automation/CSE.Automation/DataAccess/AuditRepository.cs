@@ -13,16 +13,9 @@ namespace CSE.Automation.DataAccess
 {
     internal class AuditRespositorySettings : CosmosDBSettings
     {
-        private string _collectionName;
-
         public AuditRespositorySettings(ISecretClient secretClient) : base(secretClient) { }
 
-        [Secret(Constants.CosmosDBAuditCollectionName)]
-        public string CollectionName
-        {
-            get { return _collectionName ?? base.GetSecret(); }
-            set { _collectionName = value; }
-        }
+        public string CollectionName { get; set; }
         public override void Validate()
         {
             base.Validate();
@@ -41,11 +34,11 @@ namespace CSE.Automation.DataAccess
 
         public override string GenerateId(AuditEntry entity)
         {
-            if (string.IsNullOrWhiteSpace(entity.CorrelationId))
+            if (string.IsNullOrWhiteSpace(entity.Id))
             {
-                entity.CorrelationId = Guid.NewGuid().ToString();
+                entity.Id = Guid.NewGuid().ToString();
             }
-            return entity.CorrelationId;
+            return entity.Id;
         }
 
         public override string CollectionName => _settings.CollectionName;

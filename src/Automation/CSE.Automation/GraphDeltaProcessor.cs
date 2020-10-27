@@ -36,12 +36,13 @@ namespace CSE.Automation
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1801:Review unused parameters", Justification = "Required as part of Trigger declaration.")]
         public async Task Deltas([TimerTrigger(Constants.DeltaDiscoverySchedule)] TimerInfo myTimer, ILogger log)
         {
-            var context = new ActivityContext();
+            var context = new ActivityContext("Delta Detection");
             log.LogDebug("Executing SeedDeltaProcessorTimer Function");
 
 
             var result = await _processor.DiscoverDeltas(context, false).ConfigureAwait(false);
-            log.LogInformation($"Deltas: {result} ServicePrincipals discovered.");
+            context.End();
+            log.LogInformation($"Deltas: {result} ServicePrincipals discovered in {context.ElapsedTime}.");
         }
 
         [FunctionName("FullSeed")]
@@ -49,47 +50,75 @@ namespace CSE.Automation
         {
             log.LogDebug("Executing SeedDeltaProcessor HttpTrigger Function");
 
-            var context = new ActivityContext();
+            var context = new ActivityContext("Full Seed");
 
             // TODO: If we end up with now request params needed for the seed function then remove the param and this check.
             if (req is null)
                 throw new ArgumentNullException(nameof(req));
 
             int objectCount = await _processor.DiscoverDeltas(context, true).ConfigureAwait(false);
-
-            return new OkObjectResult($"Service Principal Objects Processed: {objectCount}");
+            context.End();
+            return new OkObjectResult($"Service Principal Objects Processed: {objectCount} in {context.ElapsedTime}");
         }
 
         [FunctionName("Evaluate")]
         [StorageAccount(Constants.SPStorageConnectionString)]
         public async Task Evaluate([QueueTrigger(Constants.EvaluateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
         {
-            var context = new ActivityContext();
-
-            if (msg == null)
+            var context = new ActivityContext("Evaluate Service Principal");
+            try
             {
-                throw new ArgumentNullException(nameof(msg));
+
+                if (msg == null)
+                {
+                    throw new ArgumentNullException(nameof(msg));
+                }
+
+                log.LogInformation("Incoming message from Evaluate queue");
+                var message = JsonConvert.DeserializeObject<QueueMessage<ServicePrincipalModel>>(msg.AsString);
+
+                await _processor.Evaluate(context, message.Document).ConfigureAwait(false);
+
+                context.End();
+                log.LogInformation($"Evaluate Queue trigger function processed: {msg.Id} in {context.ElapsedTime}");
+            }
+            catch (Exception ex)
+            {
+                ex.Data["activityContext"] = context;
+                log.LogError(ex, $"Message {msg.Id} aborting: {ex.Message}");
+                throw;
             }
 
-            log.LogInformation("Incoming message from SPTracking queue");
-            var message = JsonConvert.DeserializeObject<QueueMessage<ServicePrincipalModel>>(msg.AsString);
-
-            await _processor.Evaluate(context, message.Document as ServicePrincipalModel).ConfigureAwait(false);
-
-            log.LogInformation($"Queue trigger function processed: {msg.Id}");
         }
 
         [FunctionName("UpdateAAD")]
         [StorageAccount(Constants.SPStorageConnectionString)]
-        public static void UpdateAAD([QueueTrigger(Constants.SPAADUpdateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
+        public async Task UpdateAAD([QueueTrigger(Constants.UpdateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
         {
-            if (msg == null)
+            var context = new ActivityContext("Update Service Principal");
+            try
             {
-                throw new ArgumentNullException(nameof(msg));
+
+                if (msg == null)
+                {
+                    throw new ArgumentNullException(nameof(msg));
+                }
+
+                log.LogInformation("Incoming message from Update queue");
+                var message = JsonConvert.DeserializeObject<QueueMessage<ServicePrincipalUpdateCommand>>(msg.AsString);
+
+                await _processor.UpdateServicePrincipal(context, message.Document).ConfigureAwait(false);
+
+                context.End();
+                log.LogInformation($"Update Queue trigger function processed: {msg.Id} in {context.ElapsedTime}");
+            }
+            catch (Exception ex)
+            {
+                ex.Data["activityContext"] = context;
+                log.LogError(ex, $"Message {msg.Id} aborting: {ex.Message}");
+                throw;
             }
 
-            log.LogInformation("Incoming message from AAD queue");
-            log.LogInformation($"C# AAD Queue trigger function processed: {msg.AsString}");
         }
 
         #region RUNTIME VALIDATION
