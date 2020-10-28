@@ -33,8 +33,8 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
 
         public List<ServicePrincipal> GetOrCreateServicePrincipals()
         {
-
-            var servicePrincipalList = GraphHelper.GetAllServicePrincipals($"{_spSettings.ServicePrincipalPrefix}-{_spSettings.ServicePrincipalBaseName}").Result;
+            string servicePrincipalNamePattern = $"{_spSettings.ServicePrincipalPrefix}-{_spSettings.ServicePrincipalBaseName}";
+            var servicePrincipalList = GraphHelper.GetAllServicePrincipals(servicePrincipalNamePattern).Result;
 
             int testCasesCount = 11;/// this numnber correct as off as of 10/23/2020
             int totalSPObjects = (testCasesCount * _spSettings.NumberOfSPObjectsToCreatePerTestCase);
@@ -43,11 +43,11 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
             
             if (servicePrincipalList.Count == 0 )// nono SP exist, create them all 
             {
-                GraphHelper.CreateServicePrincipalAsync($"{_spSettings.ServicePrincipalPrefix}-{_spSettings.ServicePrincipalBaseName}", numberOfServicePrincipalToCreate);
+                GraphHelper.CreateServicePrincipalAsync(servicePrincipalNamePattern, numberOfServicePrincipalToCreate);
 
-                servicePrincipalList = GraphHelper.GetAllServicePrincipals($"{_spSettings.ServicePrincipalPrefix}-{_spSettings.ServicePrincipalBaseName}").Result;
+                servicePrincipalList = GraphHelper.GetAllServicePrincipals(servicePrincipalNamePattern).Result;
 
-                var applicationsList = GraphHelper.GetAllApplicationAsync($"{_spSettings.ServicePrincipalPrefix}-{_spSettings.ServicePrincipalBaseName}").Result;
+                var applicationsList = GraphHelper.GetAllApplicationAsync(servicePrincipalNamePattern).Result;
 
                 if (servicePrincipalList.Count != applicationsList.Count || totalSPObjects != servicePrincipalList.Count)
                 {
@@ -55,18 +55,59 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                 }
 
             }
-            else if (numberOfServicePrincipalToCreate  < 0)// if less that zero we need to create more SPs , else if greater than zero means we have more SPs than needed so we are OK
+            else if (numberOfServicePrincipalToCreate  > 0)// if greater that zero we need to create more SPs , else we have more SPs than needed so we are OK
             {
                 
                 int maxSpId = GetMaxServicePrincipalId(servicePrincipalList);
 
-                GraphHelper.CreateServicePrincipalAsync($"{_spSettings.ServicePrincipalPrefix}-{ _spSettings.ServicePrincipalBaseName}", numberOfServicePrincipalToCreate, maxSpId + 1);
+                GraphHelper.CreateServicePrincipalAsync(servicePrincipalNamePattern, numberOfServicePrincipalToCreate, maxSpId + 1);
 
-                servicePrincipalList = GraphHelper.GetAllServicePrincipals($"{_spSettings.ServicePrincipalPrefix}-{_spSettings.ServicePrincipalBaseName}").Result;
+                servicePrincipalList = GraphHelper.GetAllServicePrincipals(servicePrincipalNamePattern).Result;
+
+                //TODO: verify extra SP objects were created
             }
             
 
             return servicePrincipalList;
+        }
+
+        public List<User> GetOrCreateUsers()
+        {
+            string userNamePattern = $"{_spSettings.UserPrefix}-{_spSettings.UserBaseName}";
+
+            var usersList = GraphHelper.GetAllUsers(userNamePattern).Result;
+
+            int testCasesCount = 11;/// this numnber correct as of 10/23/2020
+            int totalUserObjects = (testCasesCount * _spSettings.NumberOfUsersToCreatePerTestCase);
+            int numberOfUsersToCreate = totalUserObjects - usersList.Count;
+
+
+            if (usersList.Count == 0)// nono SP exist, create them all 
+            {
+                GraphHelper.CreateAADUsersAsync(userNamePattern, numberOfUsersToCreate);
+
+                usersList = GraphHelper.GetAllUsers(userNamePattern).Result;
+
+                if (totalUserObjects != usersList.Count)
+                {
+                    throw new Exception($"AAD Users Count [{usersList.Count}] mismatch the numbers of requested users to be created [{totalUserObjects}]");
+                }
+
+            }
+            else if (numberOfUsersToCreate > 0)// if greater than zero we need to create more Users , else we have more Users than needed so we are OK
+            {
+
+                int maxSpId = GetMaxUserId(usersList);
+
+                GraphHelper.CreateAADUsersAsync(userNamePattern, numberOfUsersToCreate, maxSpId + 1);
+
+                usersList = GraphHelper.GetAllUsers(userNamePattern).Result;
+
+                //TODO: verify extra User objects were created
+            }
+
+
+            return usersList;
         }
 
         internal void DeleteServicePrincipals()
@@ -85,6 +126,17 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
         {
             List<int> sequenceList = new List<int>();
             foreach(var sp in servicePrincipalList)
+            {
+                var index = int.Parse(sp.DisplayName.Split('-').ToList().Last());
+                sequenceList.Add(index);
+            }
+            return sequenceList.Max();
+        }
+
+        private int GetMaxUserId(IList<User> usersList)
+        {
+            List<int> sequenceList = new List<int>();
+            foreach (var sp in usersList)
             {
                 var index = int.Parse(sp.DisplayName.Split('-').ToList().Last());
                 sequenceList.Add(index);

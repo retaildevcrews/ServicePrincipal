@@ -12,17 +12,32 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
         {
             get
             {
-                return ConfigurationManager.AppSettings.Get("prefix");
+                return ConfigurationManager.AppSettings.Get("servicePrincipalPrefix");
             }
         }
         public string ServicePrincipalBaseName
         {
             get
             {
-                return ConfigurationManager.AppSettings.Get("baseName");
+                return ConfigurationManager.AppSettings.Get("servicePrincipalBaseName");
             }
         }
 
+        public string UserPrefix
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings.Get("userPrefix");
+            }
+        }
+        public string UserBaseName
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings.Get("userBaseName");
+            }
+        }
+     
         public string ClientID
         {
             get
@@ -48,6 +63,8 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
         }
 
         public int NumberOfSPObjectsToCreatePerTestCase => int.Parse(ConfigurationManager.AppSettings.Get("numberOfServicePrincipalObjectsToCreatePerTestCase"));
+
+        public int NumberOfUsersToCreatePerTestCase => int.Parse(ConfigurationManager.AppSettings.Get("numberOfUsersToCreatePerTestCase"));
 
         public List<string> TargetTestCaseList => ConfigurationManager.AppSettings.Get("TargetTestCase").Split(',').Select(s => s.Trim()).ToList();
         

@@ -47,6 +47,7 @@ namespace AzQueueTestTool.TestCases.Queues
                         AppId = sp.AppId,
                         DisplayName = sp.DisplayName,
                         Notes = sp.Notes,
+                        Owners = ruleSet.HasOwners ? ruleSet.AADUsers.Select(x => x.DisplayName).ToList() : null
                     };
 
                     var myMessage = new QueueMessage<ServicePrincipalModel>()

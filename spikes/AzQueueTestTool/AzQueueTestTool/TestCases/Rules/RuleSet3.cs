@@ -9,20 +9,18 @@ namespace AzQueueTestTool.TestCases.Rules
 {
     internal class RuleSet3 : RuleSetBase, IRuleSet
     {
-        public RuleSet3(List<ServicePrincipal> targetServicePrincipals) : base(targetServicePrincipals)
+        public RuleSet3(List<ServicePrincipal> targetServicePrincipals, List<User> targetUsers) : base(targetServicePrincipals, targetUsers)
         {
         }
 
         public override void Execute()
         {
-
+            base.Execute();
             //-set owners 
             //-populated Notes field with valid emails other that AAD emails
 
-            GraphHelper.ClearOwners(ServicePrincipals);
-
-            Task task = GraphHelper.SetOwnersAsync(ServicePrincipals);
-            task.Wait();
+            HasOwners = GraphHelper.SetOwners(ServicePrincipals, AADUsers);
+            
             GraphHelper.UpdateNotesFieldWithValidEmail(ServicePrincipals);
 
         }

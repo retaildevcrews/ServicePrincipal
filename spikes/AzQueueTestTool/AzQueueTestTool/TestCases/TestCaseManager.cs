@@ -23,7 +23,8 @@ namespace AzQueueTestTool.TestCases
         internal void Start()
         {
             var availableServicePrincipals = GetTargetServicePrincipals();// assures SP objects exist
-            GenerateMessagesForAllRules(availableServicePrincipals);
+            var availableUsers = GetTargetAADUsers();
+            GenerateMessagesForAllRules(availableServicePrincipals, availableUsers);
         }
 
         internal void Cleanup()
@@ -34,9 +35,9 @@ namespace AzQueueTestTool.TestCases
             }
         }
 
-        private void GenerateMessagesForAllRules(List<ServicePrincipal> availableServicePrincipals)
+        private void GenerateMessagesForAllRules(List<ServicePrincipal> availableServicePrincipals, List<User> availableUsers)
         {
-            using (RulesManager rulesManager = new RulesManager(availableServicePrincipals, _spSettings))
+            using (RulesManager rulesManager = new RulesManager(availableServicePrincipals, availableUsers, _spSettings))
             {
                 rulesManager.ExecuteAllRules();
 
@@ -55,6 +56,16 @@ namespace AzQueueTestTool.TestCases
             {
                 ConsoleHelper.UpdateConsole($"Getting Service Principal Objects...");
                 return ServicePrincipalManager.GetOrCreateServicePrincipals();
+            }
+
+        }
+
+        private List<User> GetTargetAADUsers()
+        {
+            using (ServicePrincipalManager ServicePrincipalManager = new ServicePrincipalManager(_spSettings))
+            {
+                ConsoleHelper.UpdateConsole($"Getting User Objects...");
+                return ServicePrincipalManager.GetOrCreateUsers();
             }
 
         }

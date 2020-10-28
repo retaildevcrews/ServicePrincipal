@@ -8,20 +8,8 @@ namespace AzQueueTestTool.TestCases.Rules
 {
     internal class RuleSet10 : RuleSetBase, IRuleSet
     {
-        public RuleSet10(List<ServicePrincipal> targetServicePrincipals) : base(targetServicePrincipals)
+        public RuleSet10(List<ServicePrincipal> targetServicePrincipals, List<User> targetUsers) : base(targetServicePrincipals, targetUsers)
         {
         }
-
-        public override void Execute()
-        {
-            // DO NOT set owners 
-            //Empty out Notes field
-
-            GraphHelper.ClearNotesField(ServicePrincipals);
-
-            GraphHelper.ClearOwners(ServicePrincipals);
-
-        }
-
     }
 }
