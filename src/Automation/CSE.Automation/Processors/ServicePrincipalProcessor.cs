@@ -13,19 +13,20 @@ using System.Threading.Tasks;
 
 namespace CSE.Automation.Processors
 {
-    interface IServicePrincipalProcessor : IDeltaProcessor
+    internal interface IServicePrincipalProcessor : IDeltaProcessor
     {
         Task Evaluate(ActivityContext context, ServicePrincipalModel entity);
         Task UpdateServicePrincipal(ActivityContext context, ServicePrincipalUpdateCommand command);
     }
 
-    class ServicePrincipalProcessorSettings : DeltaProcessorSettings
+    internal class ServicePrincipalProcessorSettings : DeltaProcessorSettings
     {
         private string _queueConnectionString;
         private string _evaluateQueueName;
         private string _updateQueueName;
 
-        public ServicePrincipalProcessorSettings(ISecretClient secretClient) : base(secretClient) { }
+        public ServicePrincipalProcessorSettings(ISecretClient secretClient)
+            : base(secretClient) { }
 
         [Secret(Constants.SPStorageConnectionString)]
         public string QueueConnectionString
@@ -68,14 +69,16 @@ namespace CSE.Automation.Processors
         private readonly IAuditService _auditService;
         private readonly IEnumerable<IModelValidator<ServicePrincipalModel>> _validators;
 
-        public ServicePrincipalProcessor(ServicePrincipalProcessorSettings settings,
-                                            IGraphHelper<ServicePrincipal> graphHelper,
-                                            IQueueServiceFactory queueServiceFactory,
-                                            IConfigService<ProcessorConfiguration> configService,
-                                            IObjectTrackingService objectService,
-                                            IAuditService auditService,
-                                            IModelValidatorFactory modelValidatorFactory,
-                                            ILogger<ServicePrincipalProcessor> logger) : base(configService)
+        public ServicePrincipalProcessor(
+            ServicePrincipalProcessorSettings settings,
+            IGraphHelper<ServicePrincipal> graphHelper,
+            IQueueServiceFactory queueServiceFactory,
+            IConfigService<ProcessorConfiguration> configService,
+            IObjectTrackingService objectService,
+            IAuditService auditService,
+            IModelValidatorFactory modelValidatorFactory,
+            ILogger<ServicePrincipalProcessor> logger)
+            : base(configService)
         {
             _settings = settings;
             _graphHelper = graphHelper;
@@ -86,7 +89,6 @@ namespace CSE.Automation.Processors
             _queueServiceFactory = queueServiceFactory;
 
             _validators = modelValidatorFactory.Get<ServicePrincipalModel>();
-
         }
 
         public override int VisibilityDelayGapSeconds => _settings.VisibilityDelayGapSeconds;
@@ -95,13 +97,15 @@ namespace CSE.Automation.Processors
         public override ProcessorType ProcessorType => ProcessorType.ServicePrincipal;
         protected override byte[] DefaultConfigurationResource => Resources.ServicePrincipalProcessorConfiguration;
 
-        // DISCOVER
+        /// DISCOVER
         /// <summary>
-        /// 
+        /// Discover changes to ServicePrincipals in the Directory.  Either perform an initial seed or a delta detection action.
         /// </summary>
-        /// <returns></returns>
+        /// <param name="context">Context of the activity.</param>
+        /// <param name="forceReseed">Force a reseed regardless of config runstate or deltalink.</param>
+        /// <returns>The number of items Found in the Directory for evaluation.</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Console.WriteLine will be changed to logs")]
-        public override async Task<int> DiscoverDeltas(ActivityContext context, bool forceReseed = false)
+        public override async Task<GraphOperationMetrics> DiscoverDeltas(ActivityContext context, bool forceReseed = false)
         {
             EnsureInitialized();
 
@@ -109,13 +113,15 @@ namespace CSE.Automation.Processors
             {
                 _config.RunState = RunState.SeedAndRun;
             }
+
             IAzureQueueService queueService = _queueServiceFactory.Create(_settings.QueueConnectionString, _settings.EvaluateQueueName);
 
-            //var selectFields = new[] { "appId", "displayName", "notes", "additionalData" };
+            // var selectFields = new[] { "appId", "displayName", "notes", "additionalData" };
             var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects(context, _config, /*string.Join(',', selectFields)*/ null).ConfigureAwait(false);
 
-            string updatedDeltaLink = servicePrincipalResult.Item1; //TODO save this back in Config
-            var servicePrincipalList = servicePrincipalResult.Item2;
+            var metrics = servicePrincipalResult.metrics;
+            string updatedDeltaLink = metrics.AdditionalData;
+            var servicePrincipalList = servicePrincipalResult.data;
 
 
             int servicePrincipalCount = 0;
@@ -125,11 +131,10 @@ namespace CSE.Automation.Processors
 
             foreach (var sp in servicePrincipalList)
             {
-                if (String.IsNullOrWhiteSpace(sp.AppId) || String.IsNullOrWhiteSpace(sp.DisplayName))
+                if (string.IsNullOrWhiteSpace(sp.AppId) || string.IsNullOrWhiteSpace(sp.DisplayName))
                 {
                     continue;
                 }
-
 
                 var myMessage = new QueueMessage<ServicePrincipalModel>()
                 {
@@ -144,9 +149,10 @@ namespace CSE.Automation.Processors
                         Created = DateTimeOffset.Parse(sp.AdditionalData["createdDateTime"].ToString()),
 #pragma warning restore CA1305 // Specify IFormatProvider
                         Deleted = sp.DeletedDateTime,
+
                         // we don't have owners yet
                     },
-                    Attempt = 0
+                    Attempt = 0,
                 };
 
                 if (servicePrincipalCount % QueueRecordProcessThreshold == 0 && servicePrincipalCount != 0)
@@ -154,6 +160,7 @@ namespace CSE.Automation.Processors
                     _logger.LogInformation($"Processed {servicePrincipalCount} Service Principal Objects.");
                     visibilityDelay += VisibilityDelayGapSeconds;
                 }
+
                 await queueService.Send(myMessage, visibilityDelay).ConfigureAwait(false);
                 servicePrincipalCount++;
             }
@@ -165,31 +172,18 @@ namespace CSE.Automation.Processors
             await _configService.Put(_config).ConfigureAwait(false);
 
             _logger.LogInformation($"Finished Processing {servicePrincipalCount} Service Principal Objects.");
-            return servicePrincipalCount;
+            return metrics;
         }
 
-        // EVALUATE
+        /// EVALUATE
         /// <summary>
         /// Evalute the ServicePrincipal to determine if any changes are required.
         /// </summary>
-        /// <param name="entity"></param>
-        /// <returns></returns>
+        /// <param name="context">Context of the activity.</param>
+        /// <param name="entity">Entity of type <see cref="ServicePrincipalModel"/> to evaluate.</param>
+        /// <returns>Task to be awaited.</returns>
         public async Task Evaluate(ActivityContext context, ServicePrincipalModel entity)
         {
-            // 1. if Notes field is blank
-            //      - update Notes field from Owners
-            //      - write audit
-            // 2. if Notes field is not blank
-            //      - if value is not email 
-            //          set value to owners field
-            //          write audit
-            //      - if value is email
-            //          validate the value is a valid AAD user
-            //          if value fails AAD check
-            //              set value to owners field
-            //              write audit
-            //await UpdateLastKnownGood(entity).ConfigureAwait(false);
-
             IAzureQueueService queueService = _queueServiceFactory.Create(_settings.QueueConnectionString, _settings.UpdateQueueName);
 
             var errors = _validators.SelectMany(v => v.Validate(entity).Errors).ToList();
@@ -215,11 +209,10 @@ namespace CSE.Automation.Processors
                 // remember this was the last time we saw the prinicpal as 'good'
                 await UpdateLastKnownGood(context, entity).ConfigureAwait(false);
             }
-
         }
 
 
-        async Task RevertToLastKnownGood(ActivityContext context, ServicePrincipalModel entity, IAzureQueueService queueService)
+        private async Task RevertToLastKnownGood(ActivityContext context, ServicePrincipalModel entity, IAzureQueueService queueService)
         {
             TrackingModel lastKnownGoodWrapper = await _objectService.Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(false);
             var lastKnownGood = TrackingModel.Unwrap<ServicePrincipalModel>(lastKnownGoodWrapper);
@@ -230,14 +223,14 @@ namespace CSE.Automation.Processors
                 {
                     Id = entity.Id,
                     Notes = (entity.Notes, lastKnownGood.Notes),
-                    Reason = "Revert to Last Known Good"
+                    Reason = "Revert to Last Known Good",
                 };
 
                 await CommandAADUpdate(context, updateCommand, queueService).ConfigureAwait(false);
                 await UpdateLastKnownGood(context, lastKnownGoodWrapper, lastKnownGood).ConfigureAwait(false);
             }
 
-            // oops, bad SP Notes and no last known good.  
+            // oops, bad SP Notes and no last known good.
             else
             {
                 var sp = await _graphHelper.GetGraphObject(entity.Id).ConfigureAwait(false);
@@ -260,7 +253,7 @@ namespace CSE.Automation.Processors
                     {
                         Id = entity.Id,
                         Notes = (entity.Notes, ownersList),
-                        Reason = "Update Notes from Owners"
+                        Reason = "Update Notes from Owners",
                     };
                     await CommandAADUpdate(context, updateCommand, queueService).ConfigureAwait(false);
 
@@ -271,7 +264,7 @@ namespace CSE.Automation.Processors
             }
         }
 
-        async Task UpdateLastKnownGood(ActivityContext context, TrackingModel trackingModel, ServicePrincipalModel model)
+        private async Task UpdateLastKnownGood(ActivityContext context, TrackingModel trackingModel, ServicePrincipalModel model)
         {
             // if we dont have a tracking model that means we have never recorded a last known good.  create one by
             //  writing just the entity to the service.
@@ -287,25 +280,31 @@ namespace CSE.Automation.Processors
             }
         }
 
-        async Task UpdateLastKnownGood(ActivityContext context, ServicePrincipalModel entity)
+        private async Task UpdateLastKnownGood(ActivityContext context, ServicePrincipalModel entity)
         {
             await _objectService.Put(context, entity).ConfigureAwait(false);
         }
 
-        static async Task CommandAADUpdate(ActivityContext context, ServicePrincipalUpdateCommand command, IAzureQueueService queueService)
+        private static async Task CommandAADUpdate(ActivityContext context, ServicePrincipalUpdateCommand command, IAzureQueueService queueService)
         {
             command.CorrelationId = context.ActivityId.ToString();
             var message = new QueueMessage<ServicePrincipalUpdateCommand>()
             {
                 QueueMessageType = QueueMessageType.Data,
                 Document = command,
-                Attempt = 0
+                Attempt = 0,
             };
 
             await queueService.Send(message, 0).ConfigureAwait(false);
         }
 
-        async Task AlertInvalidPrincipal(ActivityContext context, ServicePrincipalModel entity)
+        /// <summary>
+        /// Report that the system does not contain sufficient information to remediate the ServicePrincipal.
+        /// </summary>
+        /// <param name="context">Context of the activity.</param>
+        /// <param name="entity">Entity of type <see cref="ServicePrincipalModel"/> to report.</param>
+        /// <returns>Task to be awaited.</returns>
+        private async Task AlertInvalidPrincipal(ActivityContext context, ServicePrincipalModel entity)
         {
             await Task.CompletedTask.ConfigureAwait(false);
         }
@@ -313,12 +312,13 @@ namespace CSE.Automation.Processors
 
 
 
-        // REMEDIATE
+        /// REMEDIATE
         /// <summary>
         /// Update AAD with any of the changes determined in the EVALUATE step
         /// </summary>
-        /// <param name="context"></param>
-        /// <returns></returns>
+        /// <param name="context">Context of the activity.</param>
+        /// <param name="command">The command from the activity queue.</param>
+        /// <returns>Task to be awaited.</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "All failure condition logging")]
         public async Task UpdateServicePrincipal(ActivityContext context, ServicePrincipalUpdateCommand command)
         {
@@ -327,7 +327,7 @@ namespace CSE.Automation.Processors
                 await _graphHelper.PatchGraphObject(new ServicePrincipal
                 {
                     Id = command.Id,
-                    Notes = command.Notes.Item2
+                    Notes = command.Notes.Item2,
                 }).ConfigureAwait(false);
             }
             catch (Microsoft.Graph.ServiceException exSvc)

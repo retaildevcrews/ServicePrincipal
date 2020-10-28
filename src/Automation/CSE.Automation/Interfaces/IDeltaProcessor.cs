@@ -1,4 +1,5 @@
-﻿using CSE.Automation.Model;
+﻿using CSE.Automation.Graph;
+using CSE.Automation.Model;
 using System;
 using System.Threading.Tasks;
 
@@ -9,6 +10,6 @@ namespace CSE.Automation.Interfaces
         int VisibilityDelayGapSeconds { get; }
         int QueueRecordProcessThreshold { get; }
 
-        Task<int> DiscoverDeltas(ActivityContext context, bool forceReseed = false);
+        Task<GraphOperationMetrics> DiscoverDeltas(ActivityContext context, bool forceReseed = false);
     }
 }

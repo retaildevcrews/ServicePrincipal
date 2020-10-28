@@ -40,9 +40,9 @@ namespace CSE.Automation
             log.LogDebug("Executing SeedDeltaProcessorTimer Function");
 
 
-            var result = await _processor.DiscoverDeltas(context, false).ConfigureAwait(false);
+            var metrics = await _processor.DiscoverDeltas(context, false).ConfigureAwait(false);
             context.End();
-            log.LogInformation($"Deltas: {result} ServicePrincipals discovered in {context.ElapsedTime}.");
+            log.LogInformation($"Deltas: {metrics.Found} ServicePrincipals discovered in {context.ElapsedTime}.");
         }
 
         [FunctionName("FullSeed")]
@@ -54,11 +54,24 @@ namespace CSE.Automation
 
             // TODO: If we end up with now request params needed for the seed function then remove the param and this check.
             if (req is null)
+            {
                 throw new ArgumentNullException(nameof(req));
+            }
 
-            int objectCount = await _processor.DiscoverDeltas(context, true).ConfigureAwait(false);
+            var metrics = await _processor.DiscoverDeltas(context, true).ConfigureAwait(false);
             context.End();
-            return new OkObjectResult($"Service Principal Objects Processed: {objectCount} in {context.ElapsedTime}");
+
+            var result = new
+            {
+                Operation = "Full Seed",
+                metrics.Considered,
+                Ignored = metrics.Removed,
+                metrics.Found,
+                context.ElapsedTime,
+            };
+
+            return new JsonResult(result);
+            //return new OkObjectResult($"ServicePrincipals Discovered: Considered: {metrics.Considered}, Removed: {metrics.Removed}, Found: {metrics.Found} in {context.ElapsedTime}");
         }
 
         [FunctionName("Evaluate")]
