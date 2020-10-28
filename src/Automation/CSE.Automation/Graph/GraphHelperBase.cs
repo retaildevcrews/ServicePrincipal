@@ -14,37 +14,51 @@ namespace CSE.Automation.Graph
 {
     public class GraphHelperSettings : SettingsBase
     {
-        public GraphHelperSettings(ISecretClient secretClient) : base(secretClient) { }
-
-        public int? ScanLimit { get; set; }
+        public GraphHelperSettings(ISecretClient secretClient)
+                : base(secretClient)
+        {
+        }
 
         [Secret(Constants.GraphAppClientIdKey)]
-        public string GraphAppClientId => base.GetSecret();
+        public string GraphAppClientId => GetSecret();
 
         [Secret(Constants.GraphAppTenantIdKey)]
-        public string GraphAppTenantId => base.GetSecret();
+        public string GraphAppTenantId => GetSecret();
 
         [Secret(Constants.GraphAppClientSecretKey)]
-        public string GraphAppClientSecret => base.GetSecret();
+        public string GraphAppClientSecret => GetSecret();
 
         public override void Validate()
         {
-            if (this.GraphAppClientId.IsNull()) throw new ConfigurationErrorsException($"{this.GetType().Name}: GraphAppClientId is null");
-            if (this.GraphAppTenantId.IsNull()) throw new ConfigurationErrorsException($"{this.GetType().Name}: GraphAppTenantId is null");
-            if (this.GraphAppClientSecret.IsNull()) throw new ConfigurationErrorsException($"{this.GetType().Name}: GraphAppClientSecret is null");
+            if (this.GraphAppClientId.IsNull())
+                throw new ConfigurationErrorsException($"{this.GetType().Name}: GraphAppClientId is null");
+            if (this.GraphAppTenantId.IsNull())
+                throw new ConfigurationErrorsException($"{this.GetType().Name}: GraphAppTenantId is null");
+            if (this.GraphAppClientSecret.IsNull())
+                throw new ConfigurationErrorsException($"{this.GetType().Name}: GraphAppClientSecret is null");
         }
+    }
+
+    public class GraphOperationMetrics
+    {
+        public string Name { get; set; }
+        public int Considered { get; set; }
+        public int Removed { get; set; }
+        public int Found { get; set; }
+        public string AdditionalData { get; set; }
     }
 
     public interface IGraphHelper<TEntity>
     {
-        Task<(string, IEnumerable<TEntity>)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string selectFields = null);
+        Task<(GraphOperationMetrics metrics, IEnumerable<TEntity> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string selectFields = null);
         Task<TEntity> GetGraphObject(string id);
         Task PatchGraphObject(TEntity entity);
     }
 
     internal abstract class GraphHelperBase<TEntity> : IGraphHelper<TEntity>
     {
-        protected GraphServiceClient graphClient { get; }
+
+        protected GraphServiceClient GraphClient { get; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1051:Do not declare visible instance fields", Justification = "Used to super-classes")]
         protected readonly ILogger _logger;
@@ -64,11 +78,12 @@ namespace CSE.Automation.Graph
                                                                                 .WithClientSecret(settings.GraphAppClientSecret)
                                                                                 .Build();
 
+            // TODO: move these to Container
             ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
-            graphClient = new GraphServiceClient(authProvider);
+            GraphClient = new GraphServiceClient(authProvider);
         }
 
-        public abstract Task<(string, IEnumerable<TEntity>)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string selectFields = null);
+        public abstract Task<(GraphOperationMetrics metrics, IEnumerable<TEntity> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string selectFields = null);
         public abstract Task<TEntity> GetGraphObject(string id);
         public abstract Task PatchGraphObject(TEntity entity);
     }

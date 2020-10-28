@@ -10,6 +10,5 @@
   "SPEvaluateQueue": "evaluate",
   "SPUpdateQueue": "update",
 
-  "SPStorageConnectionString": "UseDevelopmentStorage=true",
-  "ScanLimit": 2000
+  "SPStorageConnectionString": "UseDevelopmentStorage=true"
 }
