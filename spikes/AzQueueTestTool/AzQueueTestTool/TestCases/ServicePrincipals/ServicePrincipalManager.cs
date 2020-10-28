@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace AzQueueTestTool.TestCases.ServicePrincipals
 {
@@ -29,7 +30,6 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
             // Initialize Graph client
             GraphHelper.Initialize(authProvider);
         }
-       
 
         public List<ServicePrincipal> GetOrCreateServicePrincipals()
         {
@@ -40,8 +40,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
             int totalSPObjects = (testCasesCount * _spSettings.NumberOfSPObjectsToCreatePerTestCase);
             int numberOfServicePrincipalToCreate = totalSPObjects - servicePrincipalList.Count;
 
-            
-            if (servicePrincipalList.Count == 0 )// nono SP exist, create them all 
+            if (servicePrincipalList.Count == 0)// none SP exist, create them all 
             {
                 GraphHelper.CreateServicePrincipalAsync(servicePrincipalNamePattern, numberOfServicePrincipalToCreate);
 
@@ -55,9 +54,9 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                 }
 
             }
-            else if (numberOfServicePrincipalToCreate  > 0)// if greater that zero we need to create more SPs , else we have more SPs than needed so we are OK
+            else if (numberOfServicePrincipalToCreate > 0)// if greater that zero we need to create more SPs , else we have more SPs than needed so we are OK
             {
-                
+
                 int maxSpId = GetMaxServicePrincipalId(servicePrincipalList);
 
                 GraphHelper.CreateServicePrincipalAsync(servicePrincipalNamePattern, numberOfServicePrincipalToCreate, maxSpId + 1);
@@ -66,7 +65,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
 
                 //TODO: verify extra SP objects were created
             }
-            
+
 
             return servicePrincipalList;
         }

@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace AzQueueTestTool.TestCases.Rules
 {
@@ -31,7 +32,7 @@ namespace AzQueueTestTool.TestCases.Rules
 
         public void ExecuteAllRules()
         {
-            if (_availableServicePrincipals.Count != (_spSettings.TargetTestCaseList.Count * _spSettings.NumberOfSPObjectsToCreatePerTestCase))
+            if (_availableServicePrincipals.Count < (_spSettings.TargetTestCaseList.Count * _spSettings.NumberOfSPObjectsToCreatePerTestCase))
             {
                 throw new InvalidDataException($"The number of available SP objects in AAD do not match the number of 'SP per Ruleset Count'. Current Ruleset count is {RuleSetsList.Count} ");
             }
@@ -40,7 +41,11 @@ namespace AzQueueTestTool.TestCases.Rules
             _availableServicePrincipals.Sort(new ServicePrincipalComparer());
             _availableUsers.Sort(new UserComparer());
 
-            foreach (var ruleSetName in _spSettings.TargetTestCaseList)
+            //NOTE:  switch back to regular foreach if you want to get "GetNext(x)" in sequence 
+            //However it will increase execution time by 50%
+
+            Parallel.ForEach(_spSettings.TargetTestCaseList, ruleSetName =>
+            //foreach (var ruleSetName in _spSettings.TargetTestCaseList)
             {
                 string objectToInstantiate = $"AzQueueTestTool.TestCases.Rules.{ruleSetName}, AzQueueTestTool";
 
@@ -52,14 +57,16 @@ namespace AzQueueTestTool.TestCases.Rules
 
                 var nextUserSet = _availableUsers.GetNext(_spSettings.NumberOfSPObjectsToCreatePerTestCase);
 
-                object[] args = { nextServicePrincipalSet, nextUserSet  };
+                object[] args = { nextServicePrincipalSet, nextUserSet };
 
-                var instantiatedObject = Activator.CreateInstance(objectType, args ) as IRuleSet;
+                var instantiatedObject = Activator.CreateInstance(objectType, args) as IRuleSet;
 
                 RuleSetsList.Add(instantiatedObject);
 
                 instantiatedObject.Execute();
-            }
+            });
+
+            UpdateConsole($"Rules executed...");
         }
 
         public void UpdateConsole(string message)
@@ -97,23 +104,31 @@ namespace AzQueueTestTool.TestCases.Rules
 
     public static class RuleSetExtensions
     {
+        static object splock = new object();
+        static object userlock = new object();
 
         public static List<ServicePrincipal> GetNext(this List<ServicePrincipal> availableSPs, int count)
         {
-            var result = availableSPs.Take(count).ToList();
+            lock (splock)
+            {
+                var result = availableSPs.Take(count).ToList();
 
-            availableSPs.RemoveAll(x => result.Any(y => y.Id == x.Id));
+                availableSPs.RemoveAll(x => result.Any(y => y.Id == x.Id));
 
-            return result;
+                return result;
+            }
         }
 
         public static List<User> GetNext(this List<User> availableUsers, int count)
         {
-            var result = availableUsers.Take(count).ToList();
+            lock (userlock)
+            {
+                var result = availableUsers.Take(count).ToList();
 
-            availableUsers.RemoveAll(x => result.Any(y => y.Id == x.Id));
+                availableUsers.RemoveAll(x => result.Any(y => y.Id == x.Id));
 
-            return result;
+                return result;
+            }
         }
     }
 }

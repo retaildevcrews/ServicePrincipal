@@ -15,6 +15,9 @@ namespace AzQueueTestTool.TestCases
         private readonly QueueSettings _queueSettings;
 
         private readonly ServicePrincipalSettings _spSettings = new ServicePrincipalSettings();
+
+        public string LogFileName { get; private set; }
+
         public TestCaseManager(QueueSettings queueSettings)
         {
             _queueSettings = queueSettings;
@@ -22,9 +25,17 @@ namespace AzQueueTestTool.TestCases
 
         internal void Start()
         {
-            var availableServicePrincipals = GetTargetServicePrincipals();// assures SP objects exist
-            var availableUsers = GetTargetAADUsers();
-            GenerateMessagesForAllRules(availableServicePrincipals, availableUsers);
+            List<Task> queryObjects = new List<Task>();
+          
+            Task<List<ServicePrincipal>> getSPsTask = Task.Run(() => GetTargetServicePrincipals());
+            queryObjects.Add(getSPsTask);
+
+            Task<List<User>> getUserTask = Task.Run(() => GetTargetAADUsers());
+            queryObjects.Add(getUserTask);
+
+            Task.WaitAll(queryObjects.ToArray());
+
+            GenerateMessagesForAllRules(getSPsTask.Result, getUserTask.Result);
         }
 
         internal void Cleanup()
@@ -44,7 +55,8 @@ namespace AzQueueTestTool.TestCases
                 using (var queueServiceManager = new QueueServiceManager("evaluate", _queueSettings.StorageConnectionString))
                 {
                     queueServiceManager.GenerateMessageForRulesAsync(rulesManager.RuleSetsList);
-                    
+
+                    LogFileName = queueServiceManager.LogFileName;
                 }
             }
         }

@@ -179,6 +179,9 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                         AdditionalData = new Dictionary<string, object>()
                     };
 
+                    // Null out notes for target Service Principal object to keep it in sync and save a couple API calls
+                    spObject.Notes = null;
+
                     servicePrincipal.AdditionalData.Add("notes", null);
 
                     Task<ServicePrincipal> thisTask = _graphClient.ServicePrincipals[spObject.Id].Request().UpdateAsync(servicePrincipal);
@@ -206,6 +209,9 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                     {
                         Notes = validFormattedEmails
                     };
+
+                    // Update Notes for target Service Principal object to keep it in sync and save a couple API calls
+                    spObject.Notes = validFormattedEmails;
 
                     Task<ServicePrincipal> thisTask = _graphClient.ServicePrincipals[spObject.Id].Request().UpdateAsync(servicePrincipal);
                     tasks.Add(thisTask);
@@ -246,7 +252,6 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                 var tasks = new List<Task<ServicePrincipal>>();
 
                 Parallel.ForEach(targetServicePrincipals, spObject => 
-                //foreach (var spObject in targetServicePrincipals)
                 {
 
                     Task< IServicePrincipalOwnersCollectionWithReferencesPage> taskOwners = _graphClient.ServicePrincipals[$"{spObject.Id}"].Owners
@@ -264,6 +269,8 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                         Notes = semicolonSeparatedOwnersEmail
                     };
 
+                    // Update Notes for target Service Principal object to keep it in sync and save a couple API calls
+                    spObject.Notes = semicolonSeparatedOwnersEmail;
 
                     Task<ServicePrincipal> thisTask = _graphClient.ServicePrincipals[spObject.Id].Request().UpdateAsync(servicePrincipal);
 
