@@ -123,11 +123,10 @@ namespace CSE.Automation.Processors
             string updatedDeltaLink = metrics.AdditionalData;
             var servicePrincipalList = servicePrincipalResult.data;
 
-
             int servicePrincipalCount = 0;
             int visibilityDelay = 0;
 
-            _logger.LogInformation($"Processing Service Principal objects...");
+            _logger.LogTrace($"Processing Service Principal objects...");
 
             foreach (var sp in servicePrincipalList)
             {
@@ -157,7 +156,7 @@ namespace CSE.Automation.Processors
 
                 if (servicePrincipalCount % QueueRecordProcessThreshold == 0 && servicePrincipalCount != 0)
                 {
-                    _logger.LogInformation($"Processed {servicePrincipalCount} Service Principal Objects.");
+                    _logger.LogTrace($"Processed {servicePrincipalCount} Service Principal Objects.");
                     visibilityDelay += VisibilityDelayGapSeconds;
                 }
 
@@ -171,7 +170,7 @@ namespace CSE.Automation.Processors
 
             await _configService.Put(_config).ConfigureAwait(false);
 
-            _logger.LogInformation($"Finished Processing {servicePrincipalCount} Service Principal Objects.");
+            _logger.LogTrace($"Finished Processing {servicePrincipalCount} Service Principal Objects.");
             return metrics;
         }
 
@@ -211,6 +210,49 @@ namespace CSE.Automation.Processors
             }
         }
 
+        /// UPDATE
+        /// <summary>
+        /// Update AAD with any of the changes determined in the EVALUATE step
+        /// </summary>
+        /// <param name="context">Context of the activity.</param>
+        /// <param name="command">The command from the activity queue.</param>
+        /// <returns>Task to be awaited.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "All failure condition logging")]
+        public async Task UpdateServicePrincipal(ActivityContext context, ServicePrincipalUpdateCommand command)
+        {
+            try
+            {
+                await _graphHelper.PatchGraphObject(new ServicePrincipal
+                {
+                    Id = command.Id,
+                    Notes = command.Notes.Item2,
+                }).ConfigureAwait(false);
+            }
+            catch (Microsoft.Graph.ServiceException exSvc)
+            {
+                _logger.LogError(exSvc, $"Failed to update AAD Service Principal {command.Id}");
+                try
+                {
+                    await _auditService.PutFail(context, command.Id, "Notes", command.Notes.Current, $"Failed to update Notes field: {exSvc.Message}").ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    _logger.LogError(exSvc, $"Failed to Audit update to AAD Service Principal {command.Id}");
+
+                    // do not rethrow, it will hide the real failure
+                }
+            }
+
+            try
+            {
+                await _auditService.PutChange(context, command.Id, "Notes", command.Notes.Item1, command.Notes.Item2, command.Reason).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to Audit update to AAD Service Principal {command.Id}");
+                throw;
+            }
+        }
 
         private async Task RevertToLastKnownGood(ActivityContext context, ServicePrincipalModel entity, IAzureQueueService queueService)
         {
@@ -306,54 +348,20 @@ namespace CSE.Automation.Processors
         /// <returns>Task to be awaited.</returns>
         private async Task AlertInvalidPrincipal(ActivityContext context, ServicePrincipalModel entity)
         {
-            await Task.CompletedTask.ConfigureAwait(false);
-        }
-
-
-
-
-        /// REMEDIATE
-        /// <summary>
-        /// Update AAD with any of the changes determined in the EVALUATE step
-        /// </summary>
-        /// <param name="context">Context of the activity.</param>
-        /// <param name="command">The command from the activity queue.</param>
-        /// <returns>Task to be awaited.</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "All failure condition logging")]
-        public async Task UpdateServicePrincipal(ActivityContext context, ServicePrincipalUpdateCommand command)
-        {
             try
             {
-                await _graphHelper.PatchGraphObject(new ServicePrincipal
-                {
-                    Id = command.Id,
-                    Notes = command.Notes.Item2,
-                }).ConfigureAwait(false);
+                // TODO: move reason text to resource
+                var reason = "Missing Owners on ServicePrincipal, cannot remediate.";
+                await _auditService.PutFail(context, entity.Id, "Owners", null, reason).ConfigureAwait(false);
+                _logger.LogTrace($"AUDIT FAIL: {entity.Id}, 'Owners', 'null', '{reason}'");
             }
-            catch (Microsoft.Graph.ServiceException exSvc)
+            catch (Exception)
             {
-                _logger.LogError(exSvc, $"Failed to update AAD Service Principal {command.Id}");
-                try
-                {
-                    await _auditService.PutFail(context, command.Id, "Notes", command.Notes.Current, $"Failed to update Notes field: {exSvc.Message}").ConfigureAwait(false);
-                }
-                catch (Exception)
-                {
-                    _logger.LogError(exSvc, $"Failed to Audit update to AAD Service Principal {command.Id}");
-                    // do not rethrow, it will hide the real failure
-                }
-            }
 
-            try
-            {
-                await _auditService.PutChange(context, command.Id, "Notes", command.Notes.Item1, command.Notes.Item2, command.Reason).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Failed to Audit update to AAD Service Principal {command.Id}");
                 throw;
             }
 
+            await Task.CompletedTask.ConfigureAwait(false);
         }
     }
 }
