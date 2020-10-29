@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading.Tasks;
+using System.Web.Http;
 using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
@@ -23,10 +24,12 @@ namespace CSE.Automation
     {
         private readonly IServicePrincipalProcessor _processor;
         private readonly ILogger _logger;
+        private readonly IServiceProvider _serviceProvider;
         public GraphDeltaProcessor(IServiceProvider serviceProvider, IServicePrincipalProcessor processor, ILogger<GraphDeltaProcessor> logger)
         {
             _processor = processor;
             _logger = logger;
+            _serviceProvider = serviceProvider;
             ValidateServices(serviceProvider);
         }
 
@@ -36,42 +39,55 @@ namespace CSE.Automation
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1801:Review unused parameters", Justification = "Required as part of Trigger declaration.")]
         public async Task Deltas([TimerTrigger(Constants.DeltaDiscoverySchedule)] TimerInfo myTimer, ILogger log)
         {
-            var context = new ActivityContext("Delta Detection");
-            log.LogDebug("Executing SeedDeltaProcessorTimer Function");
+            try
+            {
+                using var context = new ActivityContext("Delta Detection").WithLock(_processor);
+                log.LogDebug("Executing SeedDeltaProcessorTimer Function");
 
-
-            var metrics = await _processor.DiscoverDeltas(context, false).ConfigureAwait(false);
-            context.End();
-            log.LogInformation($"Deltas: {metrics.Found} ServicePrincipals discovered in {context.ElapsedTime}.");
+                var metrics = await _processor.DiscoverDeltas(context, false).ConfigureAwait(false);
+                context.End();
+                log.LogTrace($"Deltas: {metrics.Found} ServicePrincipals discovered in {context.ElapsedTime}.");
+            }
+            catch (AccessViolationException e)
+            {
+                log.LogError("Cannot start processor as it is locked by another processor");
+                throw e;
+            }
         }
 
         [FunctionName("FullSeed")]
         public async Task<IActionResult> FullSeed([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req, ILogger log)
         {
-            log.LogDebug("Executing SeedDeltaProcessor HttpTrigger Function");
-
-            var context = new ActivityContext("Full Seed");
-
-            // TODO: If we end up with now request params needed for the seed function then remove the param and this check.
-            if (req is null)
+            try
             {
-                throw new ArgumentNullException(nameof(req));
+                using var context = new ActivityContext("Full Seed").WithLock(_processor);
+                log.LogDebug("Executing SeedDeltaProcessor HttpTrigger Function");
+
+                // TODO: If we end up with now request params needed for the seed function then remove the param and this check.
+                if (req is null)
+                {
+                    throw new ArgumentNullException(nameof(req));
+                }
+
+                var metrics = await _processor.DiscoverDeltas(context, true).ConfigureAwait(false);
+                context.End();
+
+                var result = new
+                {
+                    Operation = "Full Seed",
+                    metrics.Considered,
+                    Ignored = metrics.Removed,
+                    metrics.Found,
+                    context.ElapsedTime,
+                };
+
+                return new JsonResult(result);
             }
-
-            var metrics = await _processor.DiscoverDeltas(context, true).ConfigureAwait(false);
-            context.End();
-
-            var result = new
+            catch (Exception)
             {
-                Operation = "Full Seed",
-                metrics.Considered,
-                Ignored = metrics.Removed,
-                metrics.Found,
-                context.ElapsedTime,
-            };
-
-            return new JsonResult(result);
-            //return new OkObjectResult($"ServicePrincipals Discovered: Considered: {metrics.Considered}, Removed: {metrics.Removed}, Found: {metrics.Found} in {context.ElapsedTime}");
+                log.LogError("Cannot start processor as it is locked by another processor");
+                return new BadRequestObjectResult("Cannot start processor as it is locked by another processor");
+            }
         }
 
         [FunctionName("Evaluate")]
@@ -87,13 +103,13 @@ namespace CSE.Automation
                     throw new ArgumentNullException(nameof(msg));
                 }
 
-                log.LogInformation("Incoming message from Evaluate queue");
+                log.LogTrace("Incoming message from Evaluate queue");
                 var message = JsonConvert.DeserializeObject<QueueMessage<ServicePrincipalModel>>(msg.AsString);
 
                 await _processor.Evaluate(context, message.Document).ConfigureAwait(false);
 
                 context.End();
-                log.LogInformation($"Evaluate Queue trigger function processed: {msg.Id} in {context.ElapsedTime}");
+                log.LogTrace($"Evaluate Queue trigger function processed: {msg.Id} in {context.ElapsedTime}");
             }
             catch (Exception ex)
             {
@@ -117,13 +133,13 @@ namespace CSE.Automation
                     throw new ArgumentNullException(nameof(msg));
                 }
 
-                log.LogInformation("Incoming message from Update queue");
+                log.LogTrace("Incoming message from Update queue");
                 var message = JsonConvert.DeserializeObject<QueueMessage<ServicePrincipalUpdateCommand>>(msg.AsString);
 
                 await _processor.UpdateServicePrincipal(context, message.Document).ConfigureAwait(false);
 
                 context.End();
-                log.LogInformation($"Update Queue trigger function processed: {msg.Id} in {context.ElapsedTime}");
+                log.LogTrace($"Update Queue trigger function processed: {msg.Id} in {context.ElapsedTime}");
             }
             catch (Exception ex)
             {

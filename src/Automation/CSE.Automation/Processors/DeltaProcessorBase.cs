@@ -27,13 +27,22 @@ namespace CSE.Automation.Processors
         public override void Validate()
         {
             base.Validate();
-            if (this.ConfigurationId == Guid.Empty) throw new ConfigurationErrorsException($"{this.GetType().Name}: ConfigurationId is invalid");
-            if (this.VisibilityDelayGapSeconds <= 0 || this.VisibilityDelayGapSeconds > Constants.MaxVisibilityDelayGapSeconds) throw new ConfigurationErrorsException($"{this.GetType().Name}: VisibilityDelayGapSeconds is invalid");
-            if (this.QueueRecordProcessThreshold <= 0 || this.QueueRecordProcessThreshold > Constants.MaxQueueRecordProcessThreshold) throw new ConfigurationErrorsException($"{this.GetType().Name}: QueueRecordProcessThreshold is invalid");
+            if (this.ConfigurationId == Guid.Empty)
+                throw new ConfigurationErrorsException($"{this.GetType().Name}: ConfigurationId is invalid");
+            if (this.VisibilityDelayGapSeconds <= 0 || this.VisibilityDelayGapSeconds > Constants.MaxVisibilityDelayGapSeconds)
+                throw new ConfigurationErrorsException($"{this.GetType().Name}: VisibilityDelayGapSeconds is invalid");
+            if (this.QueueRecordProcessThreshold <= 0 || this.QueueRecordProcessThreshold > Constants.MaxQueueRecordProcessThreshold)
+                throw new ConfigurationErrorsException($"{this.GetType().Name}: QueueRecordProcessThreshold is invalid");
         }
     }
-    abstract class DeltaProcessorBase : IDeltaProcessor
+
+    internal abstract class DeltaProcessorBase : IDeltaProcessor
     {
+        protected DeltaProcessorBase(IConfigService<ProcessorConfiguration> configService)
+        {
+            _configService = configService;
+        }
+
         protected readonly IConfigService<ProcessorConfiguration> _configService;
 
         protected ProcessorConfiguration _config;
@@ -43,25 +52,36 @@ namespace CSE.Automation.Processors
         public abstract int QueueRecordProcessThreshold { get; }
         public abstract Guid ConfigurationId { get; }
         public abstract ProcessorType ProcessorType { get; }
-        protected abstract byte[] DefaultConfigurationResource { get; }
+        protected abstract string DefaultConfigurationResourceName { get; }
 
-        protected DeltaProcessorBase(IConfigService<ProcessorConfiguration> configService)
-        {
-            _configService = configService;
-        }
+
+
+        public abstract Task<GraphOperationMetrics> DiscoverDeltas(ActivityContext context, bool forceReseed = false);
 
         protected void EnsureInitialized()
         {
-            if (_initialized) return;
+            if (_initialized)
+            {
+                return;
+            }
+
             Initialize();
         }
 
         private void Initialize()
         {
-            _config = _configService.Get(this.ConfigurationId.ToString(), ProcessorType, DefaultConfigurationResource);
+            _config = _configService.Get(this.ConfigurationId.ToString(), ProcessorType, DefaultConfigurationResourceName);
             _initialized = true;
         }
 
-        public abstract Task<GraphOperationMetrics> DiscoverDeltas(ActivityContext context, bool forceReseed = false);
+        public async Task Lock()
+        {
+            await _configService.Lock(this.ConfigurationId.ToString(), this.DefaultConfigurationResourceName).ConfigureAwait(false);
+        }
+
+        public async Task Unlock()
+        {
+            await _configService.Unlock().ConfigureAwait(false);
+        }
     }
 }
