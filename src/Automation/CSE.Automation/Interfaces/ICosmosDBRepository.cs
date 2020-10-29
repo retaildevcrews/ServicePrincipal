@@ -20,5 +20,6 @@ namespace CSE.Automation.Interfaces
         Task<TEntity> DeleteDocumentAsync(string id, string partitionKey);
         string DatabaseName { get; }
         string CollectionName { get; }
+        Container Container { get; }
     }
 }

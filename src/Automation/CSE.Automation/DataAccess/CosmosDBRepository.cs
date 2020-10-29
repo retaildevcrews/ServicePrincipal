@@ -104,8 +104,7 @@ namespace CSE.Automation.DataAccess
                                                         IgnoreNullValues = true
                                                     })
                                                     .Build();
-        private Container Container { get { lock (lockObj) { return _container ??= GetContainer(Client); } } }
-
+        public Container Container { get { lock (lockObj) { return _container ??= GetContainer(Client); } } }
 
         public abstract string GenerateId(TEntity entity);
 

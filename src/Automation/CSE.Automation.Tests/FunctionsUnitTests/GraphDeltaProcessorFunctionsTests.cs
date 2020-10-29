@@ -1,3 +1,4 @@
+using CSE.Automation.DataAccess;
 using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Processors;
@@ -16,6 +17,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         private readonly ISecretClient _secretClient;
         private readonly IGraphHelper<ServicePrincipal> _graphHelper;
         private readonly IServicePrincipalProcessor _processor;
+        private readonly IConfigRepository _configRepository;
         IServiceProvider _serviceProvider;
         ILogger<GraphDeltaProcessor> _logger;
 
@@ -30,8 +32,9 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _processor = Substitute.For<IServicePrincipalProcessor>();
             _serviceProvider = Substitute.For<IServiceProvider>();
             _logger = Substitute.For<ILogger<GraphDeltaProcessor>>();
+            _configRepository = Substitute.For<IConfigRepository>();
 
-            _subject = new GraphDeltaProcessor(_serviceProvider, _processor, _logger);
+            _subject = new GraphDeltaProcessor(_serviceProvider, _processor, _logger, _configRepository);
         }
 
         [Fact]

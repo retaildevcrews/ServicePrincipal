@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading.Tasks;
+using CSE.Automation.DataAccess;
 using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
@@ -23,10 +24,12 @@ namespace CSE.Automation
     {
         private readonly IServicePrincipalProcessor _processor;
         private readonly ILogger _logger;
-        public GraphDeltaProcessor(IServiceProvider serviceProvider, IServicePrincipalProcessor processor, ILogger<GraphDeltaProcessor> logger)
+        private IConfigRepository _configRepository; 
+        public GraphDeltaProcessor(IServiceProvider serviceProvider, IServicePrincipalProcessor processor, ILogger<GraphDeltaProcessor> logger, IConfigRepository configRepository)
         {
             _processor = processor;
             _logger = logger;
+            _configRepository = configRepository;
             ValidateServices(serviceProvider);
         }
 
@@ -37,20 +40,38 @@ namespace CSE.Automation
         public async Task Deltas([TimerTrigger(Constants.DeltaDiscoverySchedule)] TimerInfo myTimer, ILogger log)
         {
             var context = new ActivityContext("Delta Detection");
+            try
+            {
+                context.LockProcessor(_configRepository.Container);
+            }
+            catch (Exception e)
+            {
+                log.LogError("Cannot start processor as it is locked by another processor");
+                throw new Exception("Cannot start processor as it is locked by another processor");
+            }
             log.LogDebug("Executing SeedDeltaProcessorTimer Function");
 
 
             var result = await _processor.DiscoverDeltas(context, false).ConfigureAwait(false);
             context.End();
+            context.UnlockProcessor(_configRepository.Container);
             log.LogInformation($"Deltas: {result} ServicePrincipals discovered in {context.ElapsedTime}.");
         }
 
         [FunctionName("FullSeed")]
         public async Task<IActionResult> FullSeed([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req, ILogger log)
         {
-            log.LogDebug("Executing SeedDeltaProcessor HttpTrigger Function");
-
             var context = new ActivityContext("Full Seed");
+            try
+            {
+                context.LockProcessor(_configRepository.Container);
+            }
+            catch (Exception e)
+            {
+                log.LogError("Cannot start processor as it is locked by another processor");
+                return new BadRequestObjectResult("Cannot start processor as it is locked by another processor");
+            }
+            log.LogDebug("Executing SeedDeltaProcessor HttpTrigger Function");
 
             // TODO: If we end up with now request params needed for the seed function then remove the param and this check.
             if (req is null)
@@ -58,6 +79,7 @@ namespace CSE.Automation
 
             int objectCount = await _processor.DiscoverDeltas(context, true).ConfigureAwait(false);
             context.End();
+            context.UnlockProcessor(_configRepository.Container);
             return new OkObjectResult($"Service Principal Objects Processed: {objectCount} in {context.ElapsedTime}");
         }
 
