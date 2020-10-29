@@ -71,7 +71,6 @@ namespace CSE.Automation
             };
 
             return new JsonResult(result);
-            //return new OkObjectResult($"ServicePrincipals Discovered: Considered: {metrics.Considered}, Removed: {metrics.Removed}, Found: {metrics.Found} in {context.ElapsedTime}");
         }
 
         [FunctionName("Evaluate")]
