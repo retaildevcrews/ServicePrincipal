@@ -49,9 +49,19 @@ namespace CSE.Automation.Services
             return configuration;
         }
 
+        public async Task Lock()
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<ProcessorConfiguration> Put(ProcessorConfiguration newDocument)
         {
             return await _configRepository.ReplaceDocumentAsync(newDocument.Id, newDocument).ConfigureAwait(false);
+        }
+
+        public async Task Unlock()
+        {
+            throw new NotImplementedException();
         }
     }
 }

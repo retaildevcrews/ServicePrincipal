@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading.Tasks;
+using System.Web.Http;
 using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
@@ -79,6 +80,7 @@ namespace CSE.Automation
             catch (Exception)
             {
                 // LOG CANNOT GET LOCK
+                return new OkObjectResult("Cannot obtain lock MESSAGE");
             }
         }
 

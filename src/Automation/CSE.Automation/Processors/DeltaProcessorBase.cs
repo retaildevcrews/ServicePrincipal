@@ -74,16 +74,14 @@ namespace CSE.Automation.Processors
             _initialized = true;
         }
 
-        public abstract Task<GraphOperationMetrics> DiscoverDeltas(ActivityContext context, bool forceReseed = false);
-
-        public Task Lock()
+        public async Task Lock()
         {
-            _configService.Lock();
+            await _configService.Lock().ConfigureAwait(false);
         }
 
-        public Task Unlock()
+        public async Task Unlock()
         {
-            _configService.Unlock();
+            await _configService.Unlock().ConfigureAwait(false);
         }
     }
 }
