@@ -63,5 +63,15 @@ namespace CSE.Automation.Processors
         }
 
         public abstract Task<GraphOperationMetrics> DiscoverDeltas(ActivityContext context, bool forceReseed = false);
+
+        public Task Lock()
+        {
+            _configService.Lock();
+        }
+
+        public Task Unlock()
+        {
+            _configService.Unlock();
+        }
     }
 }

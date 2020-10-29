@@ -23,10 +23,12 @@ namespace CSE.Automation
     {
         private readonly IServicePrincipalProcessor _processor;
         private readonly ILogger _logger;
+        private readonly IServiceProvider _serviceProvider;
         public GraphDeltaProcessor(IServiceProvider serviceProvider, IServicePrincipalProcessor processor, ILogger<GraphDeltaProcessor> logger)
         {
             _processor = processor;
             _logger = logger;
+            _serviceProvider = serviceProvider;
             ValidateServices(serviceProvider);
         }
 
@@ -50,27 +52,34 @@ namespace CSE.Automation
         {
             log.LogDebug("Executing SeedDeltaProcessor HttpTrigger Function");
 
-            var context = new ActivityContext("Full Seed");
-
-            // TODO: If we end up with now request params needed for the seed function then remove the param and this check.
-            if (req is null)
+            try
             {
-                throw new ArgumentNullException(nameof(req));
+                using var context = new ActivityContext("Full Seed").WithLock(_processor);
+
+                // TODO: If we end up with now request params needed for the seed function then remove the param and this check.
+                if (req is null)
+                {
+                    throw new ArgumentNullException(nameof(req));
+                }
+
+                var metrics = await _processor.DiscoverDeltas(context, true).ConfigureAwait(false);
+                context.End();
+
+                var result = new
+                {
+                    Operation = "Full Seed",
+                    metrics.Considered,
+                    Ignored = metrics.Removed,
+                    metrics.Found,
+                    context.ElapsedTime,
+                };
+
+                return new JsonResult(result);
             }
-
-            var metrics = await _processor.DiscoverDeltas(context, true).ConfigureAwait(false);
-            context.End();
-
-            var result = new
+            catch (Exception)
             {
-                Operation = "Full Seed",
-                metrics.Considered,
-                Ignored = metrics.Removed,
-                metrics.Found,
-                context.ElapsedTime,
-            };
-
-            return new JsonResult(result);
+                // LOG CANNOT GET LOCK
+            }
         }
 
         [FunctionName("Evaluate")]
