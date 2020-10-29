@@ -122,10 +122,7 @@ namespace CSE.Automation
                 .AddSingleton(secretServiceSettings)
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<SecretServiceSettings>())
 
-                .AddTransient<GraphHelperSettings>(x => new GraphHelperSettings(x.GetRequiredService<ISecretClient>())
-                {
-                    ScanLimit = config["ScanLimit"].ToInt(),
-                })
+                .AddTransient<GraphHelperSettings>(x => new GraphHelperSettings(x.GetRequiredService<ISecretClient>()))
                 .AddTransient<ISettingsValidator, GraphHelperSettings>()
 
                 .AddSingleton<ConfigRespositorySettings>(x => new ConfigRespositorySettings(x.GetRequiredService<ISecretClient>())

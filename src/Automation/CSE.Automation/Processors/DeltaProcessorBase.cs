@@ -10,6 +10,7 @@ using Microsoft.Azure.Cosmos;
 using SettingsBase = CSE.Automation.Model.SettingsBase;
 using Microsoft.Identity.Client;
 using System.Net.WebSockets;
+using CSE.Automation.Graph;
 
 namespace CSE.Automation.Processors
 {
@@ -61,6 +62,6 @@ namespace CSE.Automation.Processors
             _initialized = true;
         }
 
-        public abstract Task<int> DiscoverDeltas(ActivityContext context, bool forceReseed = false);
+        public abstract Task<GraphOperationMetrics> DiscoverDeltas(ActivityContext context, bool forceReseed = false);
     }
 }

@@ -15,6 +15,9 @@ namespace AzQueueTestTool.TestCases
         private readonly QueueSettings _queueSettings;
 
         private readonly ServicePrincipalSettings _spSettings = new ServicePrincipalSettings();
+
+        public string LogFileName { get; private set; }
+
         public TestCaseManager(QueueSettings queueSettings)
         {
             _queueSettings = queueSettings;
@@ -22,8 +25,17 @@ namespace AzQueueTestTool.TestCases
 
         internal void Start()
         {
-            var availableServicePrincipals = GetTargetServicePrincipals();// assures SP objects exist
-            GenerateMessagesForAllRules(availableServicePrincipals);
+            List<Task> queryObjects = new List<Task>();
+          
+            Task<List<ServicePrincipal>> getSPsTask = Task.Run(() => GetTargetServicePrincipals());
+            queryObjects.Add(getSPsTask);
+
+            Task<List<User>> getUserTask = Task.Run(() => GetTargetAADUsers());
+            queryObjects.Add(getUserTask);
+
+            Task.WaitAll(queryObjects.ToArray());
+
+            GenerateMessagesForAllRules(getSPsTask.Result, getUserTask.Result);
         }
 
         internal void Cleanup()
@@ -34,16 +46,17 @@ namespace AzQueueTestTool.TestCases
             }
         }
 
-        private void GenerateMessagesForAllRules(List<ServicePrincipal> availableServicePrincipals)
+        private void GenerateMessagesForAllRules(List<ServicePrincipal> availableServicePrincipals, List<User> availableUsers)
         {
-            using (RulesManager rulesManager = new RulesManager(availableServicePrincipals, _spSettings))
+            using (RulesManager rulesManager = new RulesManager(availableServicePrincipals, availableUsers, _spSettings))
             {
                 rulesManager.ExecuteAllRules();
 
                 using (var queueServiceManager = new QueueServiceManager("evaluate", _queueSettings.StorageConnectionString))
                 {
                     queueServiceManager.GenerateMessageForRulesAsync(rulesManager.RuleSetsList);
-                    
+
+                    LogFileName = queueServiceManager.LogFileName;
                 }
             }
         }
@@ -55,6 +68,16 @@ namespace AzQueueTestTool.TestCases
             {
                 ConsoleHelper.UpdateConsole($"Getting Service Principal Objects...");
                 return ServicePrincipalManager.GetOrCreateServicePrincipals();
+            }
+
+        }
+
+        private List<User> GetTargetAADUsers()
+        {
+            using (ServicePrincipalManager ServicePrincipalManager = new ServicePrincipalManager(_spSettings))
+            {
+                ConsoleHelper.UpdateConsole($"Getting User Objects...");
+                return ServicePrincipalManager.GetOrCreateUsers();
             }
 
         }

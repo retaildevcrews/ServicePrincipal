@@ -6,6 +6,7 @@ using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,13 +33,22 @@ namespace AzQueueTestTool
                 Stopwatch stopWatch = new Stopwatch();
                 stopWatch.Start();
 
+                string logFileName;
+
                 using (TestCaseManager testCaseManager = new TestCaseManager(queueSettings))
                 {
                     Console.WriteLine($"Starting process...");
                     testCaseManager.Start();
+                    logFileName = testCaseManager.LogFileName;
                 }
 
                 stopWatch.Stop();
+
+                File.AppendAllText(logFileName, $"{Environment.NewLine}***************  Time elapsed - {stopWatch.Elapsed}");
+
+                Process.Start("notepad.exe", logFileName);
+                Task.Delay(500);
+
                 Console.Clear();
                 Console.WriteLine($"{Environment.NewLine}Process completed!, time elapsed - {stopWatch.Elapsed}");
             }
