@@ -30,17 +30,21 @@ namespace CSE.Automation.Model
         public Guid ActivityId => Guid.NewGuid();
         public DateTimeOffset StartTime => DateTimeOffset.Now;
 
+        private IDeltaProcessor processor;
         private TimeSpan? _elapsed;
         private bool disposedValue;
+        private bool isLocked = false;
 
         public TimeSpan ElapsedTime { get { return _elapsed ?? Timer.Elapsed; } }
 
         [JsonIgnore]
         public Stopwatch Timer { get; private set; }
 
-        public ActivityContext WithLock(IDeltaProcessor processor)
+        public ActivityContext WithLock(IDeltaProcessor deltaProcessor)
         {
-            processor.Lock();
+            deltaProcessor.Lock().Wait();
+            isLocked = true;
+            processor = deltaProcessor;
             return this;
         }
 
@@ -57,22 +61,14 @@ namespace CSE.Automation.Model
             {
                 if (disposing)
                 {
-                    // TODO: dispose managed state (managed objects)
+                    if (isLocked)
+                    {
+                        processor.Unlock().Wait();
+                        isLocked = false;
+                    }
                 }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
                 disposedValue = true;
             }
         }
-
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~ActivityContext()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
-
-
     }
 }

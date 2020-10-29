@@ -37,7 +37,7 @@ namespace CSE.Automation.Services
             entry.AuditYearMonth = entry.Timestamp.ToString("yyyyMM", CultureInfo.InvariantCulture);
 
             _auditRepository.GenerateId(entry);
-            await _auditRepository.CreateDocumentAsync(entry).ConfigureAwait(true);
+            await _auditRepository.CreateDocumentAsync(entry).ConfigureAwait(false);
         }
 
         public async Task PutPass(ActivityContext context, string objectId, string attributeName, string existingAttributeValue, string reason, DateTimeOffset? auditTime = null)
@@ -56,7 +56,7 @@ namespace CSE.Automation.Services
             entry.AuditYearMonth = entry.Timestamp.ToString("yyyyMM", CultureInfo.InvariantCulture);
 
             _auditRepository.GenerateId(entry);
-            await _auditRepository.CreateDocumentAsync(entry).ConfigureAwait(true);
+            await _auditRepository.CreateDocumentAsync(entry).ConfigureAwait(false);
         }
 
         public async Task PutIgnore(ActivityContext context, string objectId, string attributeName, string existingAttributeValue, string reason, DateTimeOffset? auditTime = null)
@@ -75,7 +75,7 @@ namespace CSE.Automation.Services
             entry.AuditYearMonth = entry.Timestamp.ToString("yyyyMM", CultureInfo.InvariantCulture);
 
             _auditRepository.GenerateId(entry);
-            await _auditRepository.CreateDocumentAsync(entry).ConfigureAwait(true);
+            await _auditRepository.CreateDocumentAsync(entry).ConfigureAwait(false);
         }
 
         public async Task PutChange(ActivityContext context, string objectId, string attributeName, string existingAttributeValue, string updatedAttributeValue, string reason, DateTimeOffset? auditTime = null)
@@ -94,7 +94,7 @@ namespace CSE.Automation.Services
             entry.AuditYearMonth = entry.Timestamp.ToString("yyyyMM", CultureInfo.InvariantCulture);
 
             _auditRepository.GenerateId(entry);
-            await _auditRepository.CreateDocumentAsync(entry).ConfigureAwait(true);
+            await _auditRepository.CreateDocumentAsync(entry).ConfigureAwait(false);
         }
 
         //public async Task PutFailThenChange(ActivityContext context, string objectId, string attributeName, string existingAttributeValue, string updatedAttributeValue, string reason, DateTimeOffset? auditTime = null)
