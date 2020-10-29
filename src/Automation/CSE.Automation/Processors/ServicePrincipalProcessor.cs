@@ -5,10 +5,12 @@ using CSE.Automation.Properties;
 using FluentValidation.Results;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace CSE.Automation.Processors
@@ -17,6 +19,20 @@ namespace CSE.Automation.Processors
     {
         Task Evaluate(ActivityContext context, ServicePrincipalModel entity);
         Task UpdateServicePrincipal(ActivityContext context, ServicePrincipalUpdateCommand command);
+    }
+
+    [JsonConverter(typeof(StringEnumConverter))]
+    internal enum UpdateMode
+    {
+        /// <summary>
+        /// AAD Update logic attempts to write to AAD
+        /// </summary>
+        Update,
+
+        /// <summary>
+        /// AAD Update logic only reports a requested change but does not attempt to write to AAD
+        /// </summary>
+        ReportOnly,
     }
 
     internal class ServicePrincipalProcessorSettings : DeltaProcessorSettings
@@ -49,12 +65,17 @@ namespace CSE.Automation.Processors
             set { _updateQueueName = value?.ToLower(); }
         }
 
+        public UpdateMode UpdateMode { get; set; }
+
         public override void Validate()
         {
             base.Validate();
-            if (string.IsNullOrEmpty(this.QueueConnectionString)) throw new ConfigurationErrorsException($"{this.GetType().Name}: QueueConnectionString is invalid");
-            if (string.IsNullOrEmpty(this.EvaluateQueueName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: EvaluateQueueName is invalid");
-            if (string.IsNullOrEmpty(this.UpdateQueueName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: UpdateQueueName is invalid");
+            if (string.IsNullOrEmpty(this.QueueConnectionString))
+                throw new ConfigurationErrorsException($"{this.GetType().Name}: QueueConnectionString is invalid");
+            if (string.IsNullOrEmpty(this.EvaluateQueueName))
+                throw new ConfigurationErrorsException($"{this.GetType().Name}: EvaluateQueueName is invalid");
+            if (string.IsNullOrEmpty(this.UpdateQueueName))
+                throw new ConfigurationErrorsException($"{this.GetType().Name}: UpdateQueueName is invalid");
 
         }
     }
@@ -231,32 +252,36 @@ namespace CSE.Automation.Processors
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "All failure condition logging")]
         public async Task UpdateServicePrincipal(ActivityContext context, ServicePrincipalUpdateCommand command)
         {
-            try
+            if (_settings.UpdateMode == UpdateMode.Update)
             {
-                await _graphHelper.PatchGraphObject(new ServicePrincipal
-                {
-                    Id = command.Id,
-                    Notes = command.Notes.Changed,
-                }).ConfigureAwait(false);
-            }
-            catch (Microsoft.Graph.ServiceException exSvc)
-            {
-                _logger.LogError(exSvc, $"Failed to update AAD Service Principal {command.Id}");
                 try
                 {
-                    await _auditService.PutFail(context, command.Id, "Notes", command.Notes.Current, $"Failed to update Notes field: {exSvc.Message}").ConfigureAwait(false);
+                    await _graphHelper.PatchGraphObject(new ServicePrincipal
+                    {
+                        Id = command.Id,
+                        Notes = command.Notes.Changed,
+                    }).ConfigureAwait(false);
                 }
-                catch (Exception ex)
+                catch (Microsoft.Graph.ServiceException exSvc)
                 {
-                    _logger.LogError(exSvc, $"Failed to Audit update to AAD Service Principal {command.Id}");
+                    _logger.LogError(exSvc, $"Failed to update AAD Service Principal {command.Id}");
+                    try
+                    {
+                        await _auditService.PutFail(context, command.Id, "Notes", command.Notes.Current, $"Failed to update Notes field: {exSvc.Message}").ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Failed to Audit update to AAD Service Principal {command.Id}");
 
-                    // do not rethrow, it will hide the real failure
+                        // do not rethrow, it will hide the real failure
+                    }
                 }
             }
 
             try
             {
-                await _auditService.PutChange(context, command.Id, "Notes", command.Notes.Current, command.Notes.Changed, command.Reason).ConfigureAwait(false);
+                // TODO: the _settings.UpdateMode should change which Audit Id we publish here.
+                await _auditService.PutChange(context, /*auditId, */ command.Id, "Notes", command.Notes.Current, command.Notes.Changed, command.Reason).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -382,7 +407,6 @@ namespace CSE.Automation.Processors
             }
             catch (Exception)
             {
-
                 throw;
             }
 
