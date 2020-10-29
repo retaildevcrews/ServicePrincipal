@@ -54,12 +54,12 @@ namespace CSE.Automation.Services
             return await _configRepository.ReplaceDocumentAsync(newDocument.Id, newDocument).ConfigureAwait(false);
         }
 
-        public async Task Lock()
+        public async Task Lock(string id, string defaultConfigResourceName)
         {
             try
             {
-                Get("02a54ac9-441e-43f1-88ee-fde420db2559", ProcessorType.ServicePrincipal, "ServicePrincipalProcessorConfiguration");
-                var configWithMeta = _configRepository.GetByIdWithMetaAsync("02a54ac9-441e-43f1-88ee-fde420db2559", "ServicePrincipal").Result;
+                Get(id, ProcessorType.ServicePrincipal, defaultConfigResourceName);
+                var configWithMeta = _configRepository.GetByIdWithMetaAsync(id, "ServicePrincipal").Result;
                 ItemRequestOptions requestOptions = new ItemRequestOptions { IfMatchEtag = configWithMeta.ETag };
                 ProcessorConfiguration config = configWithMeta.Resource;
                 if (config.IsProcessorLocked)
@@ -69,7 +69,7 @@ namespace CSE.Automation.Services
                 else
                 {
                     config.IsProcessorLocked = true;
-                    string id = _configRepository.ReplaceDocumentAsync(config.Id, config, requestOptions).Result.Id;
+                    id = _configRepository.ReplaceDocumentAsync(config.Id, config, requestOptions).Result.Id;
                     Console.WriteLine("Lock Successfull Acquired For: " + id);
                 }
             }

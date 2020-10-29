@@ -76,7 +76,7 @@ namespace CSE.Automation.Processors
 
         public async Task Lock()
         {
-            await _configService.Lock().ConfigureAwait(false);
+            await _configService.Lock(this.ConfigurationId.ToString(), this.DefaultConfigurationResourceName).ConfigureAwait(false);
         }
 
         public async Task Unlock()
