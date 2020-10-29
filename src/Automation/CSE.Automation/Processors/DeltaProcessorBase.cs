@@ -74,5 +74,14 @@ namespace CSE.Automation.Processors
             _initialized = true;
         }
 
+        public async Task Lock()
+        {
+            await _configService.Lock(this.ConfigurationId.ToString(), this.DefaultConfigurationResourceName).ConfigureAwait(false);
+        }
+
+        public async Task Unlock()
+        {
+            await _configService.Unlock().ConfigureAwait(false);
+        }
     }
 }
