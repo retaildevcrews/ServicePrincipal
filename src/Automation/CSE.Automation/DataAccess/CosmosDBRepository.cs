@@ -54,10 +54,10 @@ namespace CSE.Automation.DataAccess
         }
     }
 
-    abstract class CosmosDBRepository<TEntity> : ICosmosDBRepository<TEntity>, IDisposable where TEntity : class
+    internal abstract class CosmosDBRepository<TEntity> : ICosmosDBRepository<TEntity>, IDisposable
+                                                    where TEntity : class
     {
         const string pagedOffsetString = " offset {0} limit {1}";
-
 
         private readonly CosmosConfig _options;
         private static CosmosClient _client;
@@ -70,8 +70,8 @@ namespace CSE.Automation.DataAccess
         /// <summary>
         /// Data Access Layer Constructor
         /// </summary>
-        /// <param name="settings"></param>
-        /// <param name="logger"></param>
+        /// <param name="settings">Instance of settings for a ComosDB</param>
+        /// <param name="logger">Instance of logger.</param>
         protected CosmosDBRepository(ICosmosDBSettings settings, ILogger logger)
         {
             _settings = settings;
@@ -82,7 +82,6 @@ namespace CSE.Automation.DataAccess
                 MaxRows = MaxPageSize,
                 Timeout = CosmosTimeout,
             };
-
         }
 
         public int DefaultPageSize { get; set; } = 100;
@@ -94,14 +93,14 @@ namespace CSE.Automation.DataAccess
         private object lockObj = new object();
 
         // NOTE: CosmosDB library currently wraps the Newtonsoft JSON serializer.  Align Attributes and Converters to Newtonsoft on the domain models.
-        CosmosClient Client => _client ??= new CosmosClientBuilder(_settings.Uri, _settings.Key)
+        private CosmosClient Client => _client ??= new CosmosClientBuilder(_settings.Uri, _settings.Key)
                                                     .WithRequestTimeout(TimeSpan.FromSeconds(CosmosTimeout))
                                                     .WithThrottlingRetryOptions(TimeSpan.FromSeconds(CosmosTimeout), CosmosMaxRetries)
                                                     .WithSerializerOptions(new CosmosSerializationOptions
                                                     {
                                                         PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase,
                                                         Indented = false,
-                                                        IgnoreNullValues = true
+                                                        IgnoreNullValues = true,
                                                     })
                                                     .Build();
         private Container Container { get { lock (lockObj) { return _container ??= GetContainer(Client); } } }
@@ -229,20 +228,11 @@ namespace CSE.Automation.DataAccess
         /// <summary>
         /// Get the properties for the container.
         /// </summary>
+        /// <param name="container">Instance of a container or null.</param>
         /// <returns>An instance of <see cref="ContainerProperties"/> or null.</returns>
         protected async Task<ContainerProperties> GetContainerProperties(Container container = null)
         {
             return (await (container ?? Container).ReadContainerAsync().ConfigureAwait(false)).Resource;
-
-            //var query = new QueryDefinition("select * from c where c.id = @id").WithParameter("@id", this.CollectionName);
-            //using var iter = this.Container.Database.GetContainerQueryIterator<ContainerProperties>(query);
-            //while (iter.HasMoreResults)
-            //{
-            //    var response = await iter.ReadNextAsync().ConfigureAwait(false);
-
-            //    return response.First();
-            //}
-            //return null;
         }
 
         /// <summary>
@@ -272,7 +262,7 @@ namespace CSE.Automation.DataAccess
         /// <summary>
         /// Generic function to be used by subclasses to execute arbitrary queries and return type T.
         /// </summary>
-        /// <typeparam name="T">POCO type to which results are serialized and returned.</typeparam>
+        /// <typeparam name="TEntity">POCO type to which results are serialized and returned.</typeparam>
         /// <param name="sql">Query to be executed.</param>
         /// <returns>Enumerable list of objects of type T.</returns>
         private async Task<IEnumerable<TEntity>> InternalCosmosDBSqlQuery(string sql, QueryRequestOptions options = null)
@@ -292,6 +282,12 @@ namespace CSE.Automation.DataAccess
             return results;
         }
 
+        /// <summary>
+        /// Given a document id and its partition value, retrieve the document, if it exists.
+        /// </summary>
+        /// <param name="id">Id of the document.</param>
+        /// <param name="partitionKey">Value of the partitionkey for the document.</param>
+        /// <returns>An instance of the document or null.</returns>
         public async Task<TEntity> GetByIdAsync(string id, string partitionKey)
         {
             TEntity entity = null;
@@ -307,6 +303,7 @@ namespace CSE.Automation.DataAccess
             {
                 // swallow exception
             }
+
             return entity;
         }
 
@@ -322,25 +319,8 @@ namespace CSE.Automation.DataAccess
 
         public async Task<TEntity> UpsertDocumentAsync(TEntity newDocument)
         {
-            // TEST CODE
-            //var container = this.Container;
-            //var partitionKey = ResolvePartitionKey(newDocument);
-            //using (var stream = new StreamReader(this.Client.ClientOptions.Serializer.ToStream(newDocument)))
-            //{
-            //    var objString = stream.ReadToEnd();
-            //    _logger.LogDebug(objString);
-
-            //}
-            //return await container.UpsertItemAsync<TEntity>(newDocument, partitionKey).ConfigureAwait(false);
             return await this.Container.UpsertItemAsync<TEntity>(newDocument, ResolvePartitionKey(newDocument)).ConfigureAwait(false);
         }
-
-        //public async Task<bool> DoesExistsAsync(string id)
-        //{
-        //    //TODO: PartitionKey should be created from a column name not from a value specially ID value ???
-        //    using ResponseMessage response = await this.Container.ReadItemStreamAsync(id, ResolvePartitionKey(id)).ConfigureAwait(false);
-        //    return response.IsSuccessStatusCode;
-        //}
 
         public async Task<TEntity> DeleteDocumentAsync(string id, string partitionKey)
         {
@@ -377,7 +357,6 @@ namespace CSE.Automation.DataAccess
                 {
                     // get actors by a "like" search on name
                     sql += string.Format(CultureInfo.InvariantCulture, $" and contains(m.textSearch, @q) ");
-
                 }
             }
 
