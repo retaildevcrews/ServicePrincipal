@@ -63,7 +63,6 @@ namespace CSE.Automation.Processors
     {
         private readonly IGraphHelper<ServicePrincipal> _graphHelper;
         private readonly ServicePrincipalProcessorSettings _settings;
-        private readonly ILogger _logger;
         private readonly IQueueServiceFactory _queueServiceFactory;
         private readonly IObjectTrackingService _objectService;
         private readonly IAuditService _auditService;
@@ -78,13 +77,12 @@ namespace CSE.Automation.Processors
             IAuditService auditService,
             IModelValidatorFactory modelValidatorFactory,
             ILogger<ServicePrincipalProcessor> logger)
-            : base(configService)
+            : base(configService, logger)
         {
             _settings = settings;
             _graphHelper = graphHelper;
             _objectService = objectService;
             _auditService = auditService;
-            _logger = logger;
 
             _queueServiceFactory = queueServiceFactory;
 
@@ -126,7 +124,7 @@ namespace CSE.Automation.Processors
             int servicePrincipalCount = 0;
             int visibilityDelay = 0;
 
-            _logger.LogTrace($"Processing Service Principal objects...");
+            _logger.LogInformation($"Processing Service Principal objects...");
 
             foreach (var sp in servicePrincipalList)
             {
@@ -134,6 +132,10 @@ namespace CSE.Automation.Processors
                 {
                     continue;
                 }
+
+                // another call is required to get the child Owners collection
+                var fullSP = await _graphHelper.GetGraphObject(sp.Id).ConfigureAwait(false);
+                var owners = fullSP.Owners.Select(x => (x as User)?.UserPrincipalName).ToList();
 
                 var myMessage = new QueueMessage<ServicePrincipalModel>()
                 {
@@ -148,15 +150,14 @@ namespace CSE.Automation.Processors
                         Created = DateTimeOffset.Parse(sp.AdditionalData["createdDateTime"].ToString()),
 #pragma warning restore CA1305 // Specify IFormatProvider
                         Deleted = sp.DeletedDateTime,
-
-                        // we don't have owners yet
+                        Owners = owners,
                     },
                     Attempt = 0,
                 };
 
                 if (servicePrincipalCount % QueueRecordProcessThreshold == 0 && servicePrincipalCount != 0)
                 {
-                    _logger.LogTrace($"Processed {servicePrincipalCount} Service Principal Objects.");
+                    _logger.LogInformation($"Processed {servicePrincipalCount} Service Principal Objects.");
                     visibilityDelay += VisibilityDelayGapSeconds;
                 }
 
@@ -170,7 +171,7 @@ namespace CSE.Automation.Processors
 
             await _configService.Put(_config).ConfigureAwait(false);
 
-            _logger.LogTrace($"Finished Processing {servicePrincipalCount} Service Principal Objects.");
+            _logger.LogInformation($"Finished Processing {servicePrincipalCount} Service Principal Objects.");
             return metrics;
         }
 
@@ -192,7 +193,7 @@ namespace CSE.Automation.Processors
                 var errorMsg = string.Join('\n', errors);
                 _logger.LogError($"ServicePrincipal {entity.Id} failed validation.\n{errorMsg}");
 
-                // emit into Audit log
+                // emit into Audit log, all failures
                 errors.ForEach(async error => await _auditService.PutFail(
                                    context: context,
                                    objectId: entity.Id,
@@ -200,8 +201,17 @@ namespace CSE.Automation.Processors
                                    existingAttributeValue: error.AttemptedValue?.ToString(),
                                    reason: error.ErrorMessage).ConfigureAwait(false));
 
-                // Revert the principal if we can
-                await RevertToLastKnownGood(context, entity, queueService).ConfigureAwait(false);
+                // Invalid ServicePrincipal, valid Owners, update the service principal from Owners
+                if (entity.HasOwners())
+                {
+                    await UpdateNotesFromOwners(context, entity, queueService).ConfigureAwait(false);
+                }
+
+                // Revert the serviceprincipal if we can
+                else
+                {
+                    await RevertToLastKnownGood(context, entity, queueService).ConfigureAwait(false);
+                }
             }
             else
             {
@@ -210,13 +220,14 @@ namespace CSE.Automation.Processors
             }
         }
 
+
         /// UPDATE
         /// <summary>
         /// Update AAD with any of the changes determined in the EVALUATE step
         /// </summary>
         /// <param name="context">Context of the activity.</param>
         /// <param name="command">The command from the activity queue.</param>
-        /// <returns>Task to be awaited.</returns>
+        /// <returns>A Task that returns nothing.</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "All failure condition logging")]
         public async Task UpdateServicePrincipal(ActivityContext context, ServicePrincipalUpdateCommand command)
         {
@@ -225,7 +236,7 @@ namespace CSE.Automation.Processors
                 await _graphHelper.PatchGraphObject(new ServicePrincipal
                 {
                     Id = command.Id,
-                    Notes = command.Notes.Item2,
+                    Notes = command.Notes.Changed,
                 }).ConfigureAwait(false);
             }
             catch (Microsoft.Graph.ServiceException exSvc)
@@ -235,7 +246,7 @@ namespace CSE.Automation.Processors
                 {
                     await _auditService.PutFail(context, command.Id, "Notes", command.Notes.Current, $"Failed to update Notes field: {exSvc.Message}").ConfigureAwait(false);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     _logger.LogError(exSvc, $"Failed to Audit update to AAD Service Principal {command.Id}");
 
@@ -245,7 +256,7 @@ namespace CSE.Automation.Processors
 
             try
             {
-                await _auditService.PutChange(context, command.Id, "Notes", command.Notes.Item1, command.Notes.Item2, command.Reason).ConfigureAwait(false);
+                await _auditService.PutChange(context, command.Id, "Notes", command.Notes.Current, command.Notes.Changed, command.Reason).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -254,10 +265,50 @@ namespace CSE.Automation.Processors
             }
         }
 
+        /// <summary>
+        /// Update the ServicePrincipal Notes from the Owners List
+        /// </summary>
+        /// <param name="context">Context of the activity.</param>
+        /// <param name="entity">Entity of type <see cref="ServicePrincipalModel"/>.</param>
+        /// <param name="queueService">An instance of a Queue Service to send an update message.</param>
+        /// <returns>A Task that returns nothing.</returns>
+        private async Task UpdateNotesFromOwners(ActivityContext context, ServicePrincipalModel entity, IAzureQueueService queueService)
+        {
+            TrackingModel lastKnownGoodWrapper = await _objectService.Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(false);
+            var lastKnownGood = TrackingModel.Unwrap<ServicePrincipalModel>(lastKnownGoodWrapper);
+
+            // get new value for Notes (from the list of Owners)
+            // var owners = sp.Owners.Select(x => (x as User)?.UserPrincipalName);
+            var ownersList = string.Join(';', entity.Owners);
+
+            // command the AAD Update
+            var updateCommand = new ServicePrincipalUpdateCommand()
+            {
+                Id = entity.Id,
+                Notes = (entity.Notes, ownersList),
+                Reason = "Update Notes from Owners",
+            };
+            await CommandAADUpdate(context, updateCommand, queueService).ConfigureAwait(false);
+
+            // update local entity so we have something to send to object service
+            entity.Notes = ownersList;
+
+            await UpdateLastKnownGood(context, lastKnownGoodWrapper, entity).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Update the ServicePrincipal from the last known good state.
+        /// </summary>
+        /// <param name="context">Context of the activity.</param>
+        /// <param name="entity">Entity of type <see cref="ServicePrincipalModel"/>.</param>
+        /// <param name="queueService">An instance of a Queue Service to send an update message.</param>
+        /// <returns>A Task that returns nothing.</returns>
         private async Task RevertToLastKnownGood(ActivityContext context, ServicePrincipalModel entity, IAzureQueueService queueService)
         {
             TrackingModel lastKnownGoodWrapper = await _objectService.Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(false);
             var lastKnownGood = TrackingModel.Unwrap<ServicePrincipalModel>(lastKnownGoodWrapper);
+
+            // bad SP Notes, bad SP Owners, last known good found
             if (lastKnownGood != null)
             {
                 // build the command here so we don't need to pass the delta values down the call tree
@@ -272,37 +323,10 @@ namespace CSE.Automation.Processors
                 await UpdateLastKnownGood(context, lastKnownGoodWrapper, lastKnownGood).ConfigureAwait(false);
             }
 
-            // oops, bad SP Notes and no last known good.
+            // oops, bad SP Notes, bad SP Owners and no last known good.
             else
             {
-                var sp = await _graphHelper.GetGraphObject(entity.Id).ConfigureAwait(false);
-
-                // no notes, no owners in SP, this is an governance error
-                if (sp.Owners == null || sp.Owners.Count == 0)
-                {
-                    await AlertInvalidPrincipal(context, entity).ConfigureAwait(false);
-                }
-
-                // update ServicePrincipal from ServicePrincipal.Owners, update last known good
-                else
-                {
-                    // get new value for Notes (from the list of Owners)
-                    var owners = sp.Owners.Select(x => (x as User)?.UserPrincipalName);
-                    var ownersList = string.Join(';', owners);
-
-                    // command the AAD Update
-                    var updateCommand = new ServicePrincipalUpdateCommand()
-                    {
-                        Id = entity.Id,
-                        Notes = (entity.Notes, ownersList),
-                        Reason = "Update Notes from Owners",
-                    };
-                    await CommandAADUpdate(context, updateCommand, queueService).ConfigureAwait(false);
-
-                    // update local entity so we have something to send to object service
-                    entity.Notes = ownersList;
-                    await UpdateLastKnownGood(context, lastKnownGoodWrapper, entity).ConfigureAwait(false);
-                }
+                await AlertInvalidPrincipal(context, entity).ConfigureAwait(false);
             }
         }
 
@@ -317,6 +341,7 @@ namespace CSE.Automation.Processors
             else
             {
                 trackingModel.Entity = model;
+
                 // make sure to write the wrapper back to get the same document updated
                 await _objectService.Put(context, trackingModel).ConfigureAwait(false);
             }
@@ -353,7 +378,7 @@ namespace CSE.Automation.Processors
                 // TODO: move reason text to resource
                 var reason = "Missing Owners on ServicePrincipal, cannot remediate.";
                 await _auditService.PutFail(context, entity.Id, "Owners", null, reason).ConfigureAwait(false);
-                _logger.LogTrace($"AUDIT FAIL: {entity.Id}, 'Owners', 'null', '{reason}'");
+                _logger.LogWarning($"AUDIT FAIL: {entity.Id}, 'Owners', 'null', '{reason}'");
             }
             catch (Exception)
             {
