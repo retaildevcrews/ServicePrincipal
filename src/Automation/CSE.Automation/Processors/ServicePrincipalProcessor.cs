@@ -95,7 +95,7 @@ namespace CSE.Automation.Processors
         public override int QueueRecordProcessThreshold => _settings.QueueRecordProcessThreshold;
         public override Guid ConfigurationId => _settings.ConfigurationId;
         public override ProcessorType ProcessorType => ProcessorType.ServicePrincipal;
-        protected override byte[] DefaultConfigurationResource => Resources.ServicePrincipalProcessorConfiguration;
+        protected override string DefaultConfigurationResourceName => "ServicePrincipalProcessorConfiguration";
 
         /// DISCOVER
         /// <summary>
