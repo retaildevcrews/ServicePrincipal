@@ -1,17 +1,18 @@
-﻿using CSE.Automation.Graph;
-using CSE.Automation.Interfaces;
-using CSE.Automation.Model;
-using CSE.Automation.Properties;
-using FluentValidation.Results;
-using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
-using Newtonsoft.Json.Converters;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using CSE.Automation.Graph;
+using CSE.Automation.Interfaces;
+using CSE.Automation.Model;
+using Microsoft.Extensions.Logging;
+using Microsoft.Graph;
+using Newtonsoft.Json.Converters;
 
 namespace CSE.Automation.Processors
 {
@@ -194,8 +195,16 @@ namespace CSE.Automation.Processors
                 servicePrincipalCount++;
             }
 
+            if (_config.RunState == RunState.SeedAndRun || _config.RunState == RunState.Seedonly)
+            {
+                _config.LastSeedTime = DateTimeOffset.Now;
+            }
+            else
+            {
+                _config.LastDeltaRun = DateTimeOffset.Now;
+            }
+
             _config.DeltaLink = updatedDeltaLink;
-            _config.LastSeedTime = DateTimeOffset.Now;
             _config.RunState = RunState.DeltaRun;
 
             await _configService.Put(_config).ConfigureAwait(false);
