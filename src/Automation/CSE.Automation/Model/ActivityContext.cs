@@ -14,14 +14,17 @@ namespace CSE.Automation.Model
             Timer = new Stopwatch();
             Timer.Start();
         }
-        public ActivityContext(string activityName) : this()
+
+        public ActivityContext(string activityName)
+            : this()
         {
             ActivityName = activityName;
         }
 
         public void End()
         {
-            if (Timer is null) return;
+            if (Timer is null)
+                return;
             _elapsed = Timer.Elapsed;
             Timer = null;
         }
@@ -42,6 +45,11 @@ namespace CSE.Automation.Model
 
         public ActivityContext WithLock(IDeltaProcessor deltaProcessor)
         {
+            if (deltaProcessor == null)
+            {
+                throw new ArgumentNullException(nameof(deltaProcessor));
+            }
+
             deltaProcessor.Lock().Wait();
             isLocked = true;
             processor = deltaProcessor;
@@ -67,6 +75,7 @@ namespace CSE.Automation.Model
                         isLocked = false;
                     }
                 }
+
                 disposedValue = true;
             }
         }
