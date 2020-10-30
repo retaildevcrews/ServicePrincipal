@@ -50,9 +50,9 @@ namespace CSE.Automation
                 context.End();
                 log.LogTrace($"Deltas: {metrics.Found} ServicePrincipals discovered in {context.ElapsedTime}.");
             }
-            catch
+            catch (Exception ex)
             {
-                log.LogError(LockConflictMessage);
+                log.LogError(ex, LockConflictMessage);
                 throw;
             }
         }
@@ -85,9 +85,9 @@ namespace CSE.Automation
 
                 return new JsonResult(result);
             }
-            catch
+            catch (Exception ex)
             {
-                log.LogError(LockConflictMessage);
+                log.LogError(ex, LockConflictMessage);
                 return new BadRequestObjectResult($"Cannot start processor: {LockConflictMessage}");
             }
         }
