@@ -81,7 +81,7 @@ namespace CSE.Automation.Processors
         {
             _logger.LogInformation($"Initializing {this.GetType().Name}");
 
-            _config = _configService.Get(this.ConfigurationId.ToString(), ProcessorType, DefaultConfigurationResourceName);
+            _config = _configService.Get(this.ConfigurationId.ToString(), ProcessorType, DefaultConfigurationResourceName, true);
             _initialized = true;
         }
 

@@ -22,10 +22,10 @@ namespace CSE.Automation.Services
             this._configRepository = configRepository;
         }
 
-        public ProcessorConfiguration Get(string id, ProcessorType processorType, string defaultConfigResourceName)
+        public ProcessorConfiguration Get(string id, ProcessorType processorType, string defaultConfigResourceName, bool createIfNotFound = false)
         {
             ProcessorConfiguration configuration = _configRepository.GetByIdAsync(id, processorType.ToString()).GetAwaiter().GetResult();
-            if (configuration == null)
+            if (configuration == null && createIfNotFound)
             {
                 if (string.IsNullOrWhiteSpace(defaultConfigResourceName))
                 {
@@ -38,6 +38,7 @@ namespace CSE.Automation.Services
                 try
                 {
                     ProcessorConfiguration defaultConfiguration = JsonConvert.DeserializeObject<ProcessorConfiguration>(initalDocumentAsString);
+                    defaultConfiguration.Id = id;
                     return _configRepository.CreateDocumentAsync(defaultConfiguration).Result;
                 }
                 catch (Exception ex)
