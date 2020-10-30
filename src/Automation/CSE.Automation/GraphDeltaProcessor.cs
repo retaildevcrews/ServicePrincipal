@@ -1,9 +1,9 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using System;
 using System.Diagnostics;
-using System.Globalization;
 using System.Threading.Tasks;
-using System.Web.Http;
-using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
 using CSE.Automation.Processors;
@@ -12,10 +12,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Storage.Queue;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
 using Newtonsoft.Json;
 
 namespace CSE.Automation
@@ -25,6 +23,10 @@ namespace CSE.Automation
         private readonly IServicePrincipalProcessor _processor;
         private readonly ILogger _logger;
         private readonly IServiceProvider _serviceProvider;
+
+        // TODO: move to resource
+        private const string LockConflictMessage = "Processor lock conflict";
+
         public GraphDeltaProcessor(IServiceProvider serviceProvider, IServicePrincipalProcessor processor, ILogger<GraphDeltaProcessor> logger)
         {
             _processor = processor;
@@ -48,9 +50,9 @@ namespace CSE.Automation
                 context.End();
                 log.LogTrace($"Deltas: {metrics.Found} ServicePrincipals discovered in {context.ElapsedTime}.");
             }
-            catch (AccessViolationException e)
+            catch
             {
-                log.LogError("Cannot start processor as it is locked by another processor");
+                log.LogError(LockConflictMessage);
                 throw;
             }
         }
@@ -83,10 +85,10 @@ namespace CSE.Automation
 
                 return new JsonResult(result);
             }
-            catch (Exception)
+            catch
             {
-                log.LogError("Cannot start processor as it is locked by another processor");
-                return new BadRequestObjectResult("Cannot start processor as it is locked by another processor");
+                log.LogError(LockConflictMessage);
+                return new BadRequestObjectResult($"Cannot start processor: {LockConflictMessage}");
             }
         }
 
