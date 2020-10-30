@@ -62,7 +62,7 @@ namespace AzQueueTestTool.TestCases.Queues
                         Attempt = 0
                     };
 
-                    Task queueTask = Task.Run(() => _azureQueueService.Send(myMessage, 3).ConfigureAwait(false));
+                    Task queueTask = Task.Run(() => _azureQueueService.Send(myMessage, 3));
 
                     queueTasks.Add(queueTask);
 
