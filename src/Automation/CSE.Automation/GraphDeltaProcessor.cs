@@ -37,7 +37,7 @@ namespace CSE.Automation
         [FunctionName("DiscoverDeltas")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Will add specific error in time.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1801:Review unused parameters", Justification = "Required as part of Trigger declaration.")]
-        public async Task Deltas([TimerTrigger(Constants.DeltaDiscoverySchedule)] TimerInfo myTimer, ILogger log)
+        public async Task Deltas([TimerTrigger(Constants.DeltaDiscoverySchedule, RunOnStartup = false)] TimerInfo myTimer, ILogger log)
         {
             try
             {
@@ -51,7 +51,7 @@ namespace CSE.Automation
             catch (AccessViolationException e)
             {
                 log.LogError("Cannot start processor as it is locked by another processor");
-                throw e;
+                throw;
             }
         }
 
