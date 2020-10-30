@@ -194,8 +194,16 @@ namespace CSE.Automation.Processors
                 servicePrincipalCount++;
             }
 
+            if (_config.RunState == RunState.SeedAndRun || _config.RunState == RunState.Seedonly)
+            {
+                _config.LastSeedTime = DateTimeOffset.Now;
+            }
+            else
+            {
+                _config.LastDeltaRun = DateTimeOffset.Now;
+            }
+
             _config.DeltaLink = updatedDeltaLink;
-            _config.LastSeedTime = DateTimeOffset.Now;
             _config.RunState = RunState.DeltaRun;
 
             await _configService.Put(_config).ConfigureAwait(false);
