@@ -11,90 +11,43 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
     internal class GraphHelper
     {
         private static GraphServiceClient _graphClient;
-        private static List<User> _aADUsers;
 
-        enum CollectionType
-        {
-            ServicePrincipal,
-            Applications
-        }
+        private static EmailSettings _emailSettings;
 
         public static void Initialize(IAuthenticationProvider authProvider)
         {
             _graphClient = new GraphServiceClient(authProvider);
+            _emailSettings = new EmailSettings();
         }
 
-        private static async Task<List<User>> GetDirectoryObjects()
-        {
-            if (_aADUsers == null)
-            {
-                _aADUsers = new List<User>();
-
-                var users = await _graphClient.Users
-                            .Request()
-                            .GetAsync();
-
-                _aADUsers.AddRange(users.CurrentPage);
-                //_aADUsers = users.
-            }
- 
-            return _aADUsers;
-        }
-
-        private static async Task<List<User>> GetXRandomADUsersAsync(int userCount = 3)
-        {
-            List<User> users = await GetDirectoryObjects();
-
-            Random random = new Random();
-
-            List<User> result = new List<User>();
-
-
-
-            for (int i = 1; i <= userCount; i++)
-            {
-
-                var user = users[random.Next(1, users.Count)];
-                while (result.Contains(user))// make Owners list has unique values
-                {
-                    user = users[random.Next(1, users.Count)];
-                }
-                result.Add(user);
-            }
-
-            return result;
-        }
-      
-        internal static async Task SetOwnersAsync(List<ServicePrincipal> targetServicePrincipals)
+        internal static bool SetOwners(List<ServicePrincipal> targetServicePrincipals, List<User> targetUsers)
         {
             if (targetServicePrincipals != null && targetServicePrincipals.Count() > 0)
             {
-                //GetAAD users once
-                List<User> users = await GetXRandomADUsersAsync();
-
                 var tasks = new List<Task>();
 
                 foreach (var sp in targetServicePrincipals)
                 {
-                    Parallel.ForEach(users, user =>
+                    Parallel.ForEach(targetUsers, user =>
                     {
                         var directoryObject = new DirectoryObject
                         {
                             Id = user.Id
                         };
 
-                        Task thisTask = Task.Run(async () => await _graphClient.ServicePrincipals[$"{sp.Id}"].Owners.References
-                        .Request()
-                        .AddAsync(directoryObject));
+                        Task thisTask = _graphClient.ServicePrincipals[$"{sp.Id}"].Owners.References
+                                        .Request()
+                                        .AddAsync(directoryObject);
 
                         tasks.Add(thisTask);
                     });
                 }
                 Task.WaitAll(tasks.ToArray());
             };
+            return true;
         }
 
-        internal static void ClearOwners(List<ServicePrincipal> targetServicePrincipals)
+        internal static bool ClearOwners(List<ServicePrincipal> targetServicePrincipals)
         {
             if (targetServicePrincipals != null && targetServicePrincipals.Count() > 0)
             {
@@ -116,9 +69,9 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                     {
                         foreach(var ownerId in ownerIdList)
                         {
-                            Task thisTask = Task.Run(async () => await _graphClient.ServicePrincipals[$"{sp.Id}"].Owners[$"{ownerId}"].Reference
+                            Task thisTask = _graphClient.ServicePrincipals[$"{sp.Id}"].Owners[$"{ownerId}"].Reference
                                                             .Request()
-                                                            .DeleteAsync());
+                                                            .DeleteAsync();
 
                             tasks.Add(thisTask);
                         }
@@ -126,23 +79,115 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                 }
                 Task.WaitAll(tasks.ToArray());
             }
+            return true;
         }
-        
+
+        internal static void CreateAADUsersAsync(string userNamePattern, int count, int lowerLimit = 1)
+        {
+            var usersTasks = new List<Task>();
+
+            string domainName = GetDomainName();
+
+            for (int i = 1; i <= count; i++)
+            {
+                string userID = $"{userNamePattern}-{lowerLimit}";
+                var user = new User
+                {
+                    AccountEnabled = false,
+                    DisplayName = userID,
+                    MailNickname = userID,
+                    UserPrincipalName = $"{userID}@{domainName}",
+                    PasswordProfile = new PasswordProfile
+                    {
+                        ForceChangePasswordNextSignIn = true,
+                        Password = "password-value".GenerateToken()
+                    }
+                };
+
+
+                Task<User> userTask = _graphClient.Users.Request().AddAsync(user);
+                usersTasks.Add(userTask);
+                lowerLimit++;
+
+            };
+
+            Task.WaitAll(usersTasks.ToArray());
+
+            Console.WriteLine("User Object creation done, press a key to continue");
+        }
+
+        private static string GetDomainName()
+        {
+            Task<IGraphServiceDomainsCollectionPage> domains = _graphClient.Domains.Request().GetAsync();
+
+            domains.Wait();
+
+            return domains.Result.FirstOrDefault().Id;
+
+        }
+
+        internal static async Task<List<User>> GetAllUsers(string userNamePattern, int count = 0)
+        {
+            try
+            {
+                List<User> usersList = new List<User>();
+
+
+                var usersPage = await _graphClient.Users
+               .Request()
+               .Filter($"startswith(displayName,'{userNamePattern}')")
+               .GetAsync();
+
+
+                usersList.AddRange(usersPage.CurrentPage);
+
+                bool breakOnListCountGreaterOrEqualsToCount = (count > 0);
+
+                while (usersPage.NextPageRequest != null)
+                {
+                    if (breakOnListCountGreaterOrEqualsToCount && usersList.Count >= count)
+                    {
+                        break;
+                    }
+                    usersPage = await usersPage.NextPageRequest.GetAsync();
+                    usersList.AddRange(usersPage.CurrentPage);
+                }
+
+                if (count > 0)
+                    return usersList.Take(count).ToList();
+                else
+                    return usersList.ToList();
+            }
+            catch (ServiceException ex)
+            {
+                Console.WriteLine($"Error getting All Users: {ex.Message}");
+                return null;
+            }
+        }
+
         internal static void ClearNotesField(List<ServicePrincipal> targetServicePrincipals)
         {
             if (targetServicePrincipals != null && targetServicePrincipals.Count() > 0)
             {
-                var tasks = new List<Task>();
+                var tasks = new List<Task<ServicePrincipal>>();
 
+                //foreach(var spObject in targetServicePrincipals)
                 Parallel.ForEach(targetServicePrincipals, spObject =>
                 {
                     var servicePrincipal = new ServicePrincipal
                     {
-                        Notes = null
+                        AdditionalData = new Dictionary<string, object>()
                     };
 
-                    Task thisTask = Task.Run(() => _graphClient.ServicePrincipals[spObject.Id].Request().UpdateAsync(servicePrincipal));
+                    // Null out notes for target Service Principal object to keep it in sync and save a couple API calls
+                    spObject.Notes = null;
+
+                    servicePrincipal.AdditionalData.Add("notes", null);
+
+                    Task<ServicePrincipal> thisTask = _graphClient.ServicePrincipals[spObject.Id].Request().UpdateAsync(servicePrincipal);
+
                     tasks.Add(thisTask);
+
                 });
 
                 Task.WaitAll(tasks.ToArray());
@@ -154,9 +199,9 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
         {
             if (targetServicePrincipals != null && targetServicePrincipals.Count() > 0)
             {
-                var tasks = new List<Task>();
+                var tasks = new List<Task<ServicePrincipal>>();
 
-                var validFormattedEmails = GetValidFormattedEmails(3);
+                var validFormattedEmails = GetValidFormattedEmails();
 
                 Parallel.ForEach(targetServicePrincipals, spObject =>
                 {
@@ -165,9 +210,12 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                         Notes = validFormattedEmails
                     };
 
+                    // Update Notes for target Service Principal object to keep it in sync and save a couple API calls
+                    spObject.Notes = validFormattedEmails;
 
-                    Task thisTask = Task.Run(() => _graphClient.ServicePrincipals[spObject.Id].Request().UpdateAsync(servicePrincipal));
+                    Task<ServicePrincipal> thisTask = _graphClient.ServicePrincipals[spObject.Id].Request().UpdateAsync(servicePrincipal);
                     tasks.Add(thisTask);
+
                 });
 
                 Task.WaitAll(tasks.ToArray());
@@ -175,17 +223,23 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
             }
         }
 
-        private static string GetValidFormattedEmails(int emailCount)
+        private static string GetValidFormattedEmails()
         {
-            const string testEmailBase = "TestEmail";
-            string[] emailDomains = new string[]  { "@microsoft.com", "@outlook.com", "@gmail.com", "@amazon.com", "@yahoo.com" };
             List<string> emaiList = new List<string>();
 
             Random random = new Random();
  
-            for (int i = 1; i <= emailCount; i++)
+            for (int i = 1; i <= _emailSettings.TestEmailCount; i++)
             {
-                emaiList.Add($"{testEmailBase.AddRandomStringToEmail()}{emailDomains[random.Next(0, emailDomains.Length)]}" );
+                if (_emailSettings.IncludeRandomStringToTestEmail)
+                {
+                    emaiList.Add($"{_emailSettings.TestEmailBase.AddRandomStringToEmail()}-{i}@{_emailSettings.TestEmailDomainNames[random.Next(0, _emailSettings.TestEmailDomainNames.Count)]}");
+                }
+                else
+                {
+                    emaiList.Add($"{_emailSettings.TestEmailBase}-{i}@{_emailSettings.TestEmailDomainNames[random.Next(0, _emailSettings.TestEmailDomainNames.Count)]}");
+                }
+
             }
 
             return string.Join(";", emaiList.Select(x => x));
@@ -195,9 +249,9 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
         {
             if (targetServicePrincipals != null && targetServicePrincipals.Count() > 0)
             {
-                var tasks = new List<Task>();
+                var tasks = new List<Task<ServicePrincipal>>();
 
-                foreach(var spObject in targetServicePrincipals)
+                Parallel.ForEach(targetServicePrincipals, spObject => 
                 {
 
                     Task< IServicePrincipalOwnersCollectionWithReferencesPage> taskOwners = _graphClient.ServicePrincipals[$"{spObject.Id}"].Owners
@@ -215,20 +269,18 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                         Notes = semicolonSeparatedOwnersEmail
                     };
 
+                    // Update Notes for target Service Principal object to keep it in sync and save a couple API calls
+                    spObject.Notes = semicolonSeparatedOwnersEmail;
 
-                    Task thisTask = Task.Run(() => _graphClient.ServicePrincipals[spObject.Id].Request().UpdateAsync(servicePrincipal));
+                    Task<ServicePrincipal> thisTask = _graphClient.ServicePrincipals[spObject.Id].Request().UpdateAsync(servicePrincipal);
 
                     tasks.Add(thisTask);
-
-                    Task.Delay(500);
-                };
+                });
 
                 Task.WaitAll(tasks.ToArray());
-
             }
         }
-
-       
+      
         internal static async Task<List<ServicePrincipal>> GetAllServicePrincipals(string spNamePefix, int count = 0)
         {
             try
@@ -314,7 +366,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
         internal static void CreateServicePrincipalAsync(string spNamePefix, int count, int lowerLimit = 1)
         {
 
-            var serviceTasks = new List<Task>();
+            var serviceTasks = new List<Task<ServicePrincipal>>();
 
 
             for (int i = 1; i <= count; i++)
@@ -322,10 +374,10 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
 
                 var application = new Application
                 {
-                    DisplayName = $"{spNamePefix}-{i}"
+                    DisplayName = $"{spNamePefix}-{lowerLimit}"
                 };
 
-                Task<Application> appTask = Task.Run(() => _graphClient.Applications.Request().AddAsync(application));
+                Task<Application> appTask = _graphClient.Applications.Request().AddAsync(application);
                 appTask.Wait();
 
                 var servicePrincipal = new ServicePrincipal
@@ -334,9 +386,10 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                 };
 
 
-                Task spTask = Task.Run(() => _graphClient.ServicePrincipals.Request().AddAsync(servicePrincipal));
+                Task<ServicePrincipal> spTask = _graphClient.ServicePrincipals.Request().AddAsync(servicePrincipal);
                 serviceTasks.Add(spTask);
 
+                lowerLimit++;
 
             };
 
@@ -351,7 +404,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
         {
 
             var applicationsList = GetAllApplicationAsync(spNamePefix).Result;
-            var servicePrinciaplTasks = new List<Task>();
+            var servicePrinciaplTasks = new List<Task<ServicePrincipal>>();
 
             foreach(var app in applicationsList)
             {
@@ -359,19 +412,13 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                 {
                     AppId = app.AppId
                 };
-                
 
-                Task thisTask = Task.Run(() => _graphClient.ServicePrincipals.Request().AddAsync(servicePrincipal));
+                Task<ServicePrincipal> thisTask = _graphClient.ServicePrincipals.Request().AddAsync(servicePrincipal);
 
                 servicePrinciaplTasks.Add(thisTask);
-                
-                Task.Delay(500);
             }
 
-          
-
             Task.WaitAll(servicePrinciaplTasks.ToArray());
-
         }
 
         internal static async Task GetUsersAsync()
@@ -395,17 +442,13 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                 foreach(var spObject in servicePrincipalList)
                 {
 
-                    Task thisTask = Task.Run(() => _graphClient.ServicePrincipals[spObject.Id].Request().DeleteAsync());
+                    Task thisTask = _graphClient.ServicePrincipals[spObject.Id].Request().DeleteAsync();
                     tasks.Add(thisTask);
-                    Task.Delay(500);
                 }
 
                 Task.WaitAll(tasks.ToArray());
             }
-
-
             Console.WriteLine("DeleteServicePrincipalsAsync done");
-
         }
 
         internal static void DeleteRegisteredApplicationsAsync(IList<Application> applicationsList)
@@ -418,17 +461,13 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                 foreach(var appObject in applicationsList)
                 {
 
-                    Task thisTask = Task.Run(() => _graphClient.Applications[appObject.Id].Request().DeleteAsync());
+                    Task thisTask = _graphClient.Applications[appObject.Id].Request().DeleteAsync();
                     tasks.Add(thisTask);
-                    Task.Delay(500);
                 }
 
                 Task.WaitAll(tasks.ToArray());
             }
-
-
             Console.WriteLine("DeleteRegisteredApplicationsAsync done");
-            
 
         }
 
@@ -437,7 +476,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
 
             if (servicePrincipalList != null && servicePrincipalList.Count() > 0)
             {
-                var tasks = new List<Task>();
+                var tasks = new List<Task<ServicePrincipal>>();
 
                 Parallel.ForEach(servicePrincipalList, spObject =>
                 {
@@ -447,7 +486,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                         Notes = $"{servicePrincipalNote} - {spObject.Id}"
                     };
 
-                    Task thisTask = Task.Run(() => _graphClient.ServicePrincipals[spObject.Id].Request().UpdateAsync(servicePrincipal));
+                    Task<ServicePrincipal> thisTask = _graphClient.ServicePrincipals[spObject.Id].Request().UpdateAsync(servicePrincipal);
                     tasks.Add(thisTask);
                 });
 

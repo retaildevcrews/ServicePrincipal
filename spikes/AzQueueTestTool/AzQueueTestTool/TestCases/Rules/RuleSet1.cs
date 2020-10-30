@@ -10,7 +10,7 @@ namespace AzQueueTestTool.TestCases.Rules
 {
     internal class RuleSet1 : RuleSetBase, IRuleSet
     {
-        public RuleSet1(List<ServicePrincipal> targetServicePrincipals) : base (targetServicePrincipals)
+        public RuleSet1(List<ServicePrincipal> targetServicePrincipals, List<User> targetUsers) : base (targetServicePrincipals, targetUsers)
         {
         }
 
@@ -18,12 +18,9 @@ namespace AzQueueTestTool.TestCases.Rules
         {
             //-set owners 
             //-populated Notes field with owners AAD emails
+            base.Execute();
 
-            GraphHelper.ClearOwners(ServicePrincipals);
-           
-            Task task = GraphHelper.SetOwnersAsync(ServicePrincipals);
-
-            task.Wait();
+            HasOwners = GraphHelper.SetOwners(ServicePrincipals, AADUsers);
           
             GraphHelper.UpdateNotesFieldWithAADOwnersEmail(ServicePrincipals);
 

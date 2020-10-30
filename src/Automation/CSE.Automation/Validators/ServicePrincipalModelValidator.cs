@@ -36,6 +36,8 @@ namespace CSE.Automation.Validators
                         }
                     });
                 });
+            RuleFor(m => m.Owners)
+                .NotEmpty();
         }
 
     }

@@ -17,6 +17,7 @@ namespace AzQueueTestTool.TestCases.Queues
     {
         private readonly AzureQueueService _azureQueueService;
 
+        public string LogFileName { get; set; }
         public string StatusMessage { get; set; }
 
         public QueueServiceManager(string queueName,  string storageConnectionString )
@@ -26,15 +27,19 @@ namespace AzQueueTestTool.TestCases.Queues
 
         public void GenerateMessageForRulesAsync(List<IRuleSet> ruleSetsList)
         {
-            List<string> runLog = new List<string>();
+            List<string> logger = new List<string>();
             List<Task> queueTasks = new List<Task>();
+
             foreach (var ruleSet in ruleSetsList)
             {
                 if (ruleSet.ServicePrincipals == null || ruleSet.ServicePrincipals.Count == 0)
                     continue;
 
+                StringBuilder sbLog = new StringBuilder();
 
-                runLog.Add($"{ruleSet.GetType().Name}: {string.Join(';', ruleSet.ServicePrincipals.Select(x => new { name = x.DisplayName, x.Id }).ToList())}");
+                BuildLogEntry(ruleSet, sbLog);
+
+                logger.Add(sbLog.ToString());
 
                 ConsoleHelper.UpdateConsole($"Sending [{ruleSet.GetType().Name}] messages to Queue...");
 
@@ -47,6 +52,7 @@ namespace AzQueueTestTool.TestCases.Queues
                         AppId = sp.AppId,
                         DisplayName = sp.DisplayName,
                         Notes = sp.Notes,
+                        Owners = ruleSet.HasOwners ? ruleSet.AADUsers.Select(x => x.DisplayName).ToList() : null
                     };
 
                     var myMessage = new QueueMessage<ServicePrincipalModel>()
@@ -56,7 +62,7 @@ namespace AzQueueTestTool.TestCases.Queues
                         Attempt = 0
                     };
 
-                    Task queueTask = Task.Run(() => _azureQueueService.Send(myMessage, 3).ConfigureAwait(false));
+                    Task queueTask = Task.Run(() => _azureQueueService.Send(myMessage, 3));
 
                     queueTasks.Add(queueTask);
 
@@ -66,13 +72,24 @@ namespace AzQueueTestTool.TestCases.Queues
 
             Task.WaitAll(queueTasks.ToArray());
 
-            string logFileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, DateTime.Now.ToString("yyyyMMddHHmmss") + "_Execution.log");
-            File.WriteAllLines(logFileName, runLog);
+            Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs"));
+
+            LogFileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs\\" + DateTime.Now.ToString("yyyyMMddHHmmss") + "_Execution.log");
+            File.WriteAllLines(LogFileName, logger);
             Task.Delay(500);
-            Process.Start("notepad.exe", logFileName);
         }
 
-      
+        private void BuildLogEntry(IRuleSet ruleSet, StringBuilder sbLog)
+        {
+            sbLog.AppendLine($"*** {ruleSet.GetType().Name} ***");
+            sbLog.AppendLine($"-> ServicePrincipals{Environment.NewLine}{string.Join(Environment.NewLine, ruleSet.ServicePrincipals.Select(x => new { name = x.DisplayName, x.Id}).ToList())}");
+
+            if (ruleSet.HasOwners)
+                sbLog.AppendLine($"-> Owners{Environment.NewLine}{string.Join(Environment.NewLine, ruleSet.AADUsers.Select(x => new { name = x.DisplayName, x.Id }).ToList())}");
+            else
+                sbLog.AppendLine($"-> Owners{Environment.NewLine} <<none>>");
+        }
+
         void IDisposable.Dispose()
         {
             //throw new NotImplementedException();

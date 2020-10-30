@@ -23,22 +23,20 @@ namespace CSE.Automation.Validators
 
         protected override bool IsValid(PropertyValidatorContext context)
         {
+            var isValid = true;
             if (context.PropertyValue is string field)
             {
                 var tokens = field.Split(',', ';');
-                var errorsFound = false;
                 foreach (var token in tokens)
                 {
-                    if (_emailRegex.Match(token).Success == false) { errorsFound = true; }
+                    if (_emailRegex.Match(token).Success == false)
+                    {
+                        isValid = false;
+                    }
                 }
-
-                return errorsFound;
             }
 
-            return true;
-
-
-
+            return isValid;
         }
     }
 

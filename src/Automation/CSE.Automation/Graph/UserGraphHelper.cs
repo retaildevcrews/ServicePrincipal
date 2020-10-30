@@ -9,11 +9,14 @@ using System.Threading.Tasks;
 
 namespace CSE.Automation.Graph
 {
-    class UserGraphHelper : GraphHelperBase<User>
+    internal class UserGraphHelper : GraphHelperBase<User>
     {
-        public UserGraphHelper(GraphHelperSettings settings, IAuditService auditService, ILogger<UserGraphHelper> logger) : base(settings, auditService, logger) { }
+        public UserGraphHelper(GraphHelperSettings settings, IAuditService auditService, ILogger<UserGraphHelper> logger)
+                : base(settings, auditService, logger) 
+        {
+        }
 
-        public async override Task<(string, IEnumerable<User>)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string selectFields = null)
+        public async override Task<(GraphOperationMetrics metrics, IEnumerable<User> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string selectFields = null)
         {
             throw new NotImplementedException();
         }
@@ -22,7 +25,7 @@ namespace CSE.Automation.Graph
         {
             try
             {
-                var value = await graphClient.Users[id]
+                var value = await GraphClient.Users[id]
                     .Request()
                     .GetAsync()
                     .ConfigureAwait(false);
@@ -32,8 +35,6 @@ namespace CSE.Automation.Graph
             {
                 return null;
             }
-
-
         }
 
         public async override Task PatchGraphObject(User entity)

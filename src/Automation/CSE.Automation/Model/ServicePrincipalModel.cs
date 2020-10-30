@@ -24,6 +24,11 @@ namespace CSE.Automation.Model
         public string Notes { get; set; }
 
         [JsonProperty(PropertyName = "owners")]
-        public IEnumerable<string> Owners { get; set; }
+        public IList<string> Owners { get; set; }
+
+        public bool HasOwners()
+        {
+            return Owners != null && Owners.Count > 0;
+        }
     }
 }

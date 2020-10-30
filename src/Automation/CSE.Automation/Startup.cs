@@ -40,7 +40,9 @@ namespace CSE.Automation
         public override void Configure(IFunctionsHostBuilder builder)
         {
             if (builder == default)
+            {
                 throw new ArgumentNullException(nameof(builder));
+            }
 
             _logger = CreateBootstrapLogger();
             _logger.LogInformation($"Bootstrap logger initialized.");
@@ -120,10 +122,7 @@ namespace CSE.Automation
                 .AddSingleton(secretServiceSettings)
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<SecretServiceSettings>())
 
-                .AddTransient<GraphHelperSettings>(x => new GraphHelperSettings(x.GetRequiredService<ISecretClient>())
-                {
-                    ScanLimit = config["ScanLimit"].ToInt()
-                })
+                .AddTransient<GraphHelperSettings>(x => new GraphHelperSettings(x.GetRequiredService<ISecretClient>()))
                 .AddTransient<ISettingsValidator, GraphHelperSettings>()
 
                 .AddSingleton<ConfigRespositorySettings>(x => new ConfigRespositorySettings(x.GetRequiredService<ISecretClient>())
@@ -131,7 +130,7 @@ namespace CSE.Automation
                     Uri = config[Constants.CosmosDBURLName],
                     Key = config[Constants.CosmosDBKeyName],
                     DatabaseName = config[Constants.CosmosDBDatabaseName],
-                    CollectionName = config[Constants.CosmosDBConfigCollectionName]
+                    CollectionName = config[Constants.CosmosDBConfigCollectionName],
                 })
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ConfigRespositorySettings>())
 
@@ -140,7 +139,7 @@ namespace CSE.Automation
                     Uri = config[Constants.CosmosDBURLName],
                     Key = config[Constants.CosmosDBKeyName],
                     DatabaseName = config[Constants.CosmosDBDatabaseName],
-                    CollectionName = config[Constants.CosmosDBAuditCollectionName]
+                    CollectionName = config[Constants.CosmosDBAuditCollectionName],
                 })
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<AuditRespositorySettings>())
 
@@ -149,7 +148,7 @@ namespace CSE.Automation
                     Uri = config[Constants.CosmosDBURLName],
                     Key = config[Constants.CosmosDBKeyName],
                     DatabaseName = config[Constants.CosmosDBDatabaseName],
-                    CollectionName = config[Constants.CosmosDBObjectTrackingCollectionName]
+                    CollectionName = config[Constants.CosmosDBObjectTrackingCollectionName],
                 })
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ObjectTrackingRepositorySettings>())
 
@@ -161,14 +160,9 @@ namespace CSE.Automation
                     ConfigurationId = config["configId"].ToGuid(Guid.Parse("02a54ac9-441e-43f1-88ee-fde420db2559")),
                     VisibilityDelayGapSeconds = config["visibilityDelayGapSeconds"].ToInt(8),
                     QueueRecordProcessThreshold = config["queueRecordProcessThreshold"].ToInt(10),
+                    AADUpdateMode = config["aadUpdateMode"].As<UpdateMode>(UpdateMode.Update),
                 })
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ServicePrincipalProcessorSettings>());
-            //.AddSingleton<ICosmosDBSettings, CosmosDBSettings>(x => new CosmosDBSettings(x.GetRequiredService<ISecretClient>())
-            //                                                                {
-            //                                                                    Uri = config[Constants.CosmosDBURLName],
-            //                                                                    Key = config[Constants.CosmosDBKeyName],
-            //                                                                    DatabaseName = config[Constants.CosmosDBDatabaseName],
-            //                                                                })
 
 
         }
@@ -201,11 +195,6 @@ namespace CSE.Automation
         private static void RegisterServices(IFunctionsHostBuilder builder)
         {
             // register the concrete as the singleton, then use forwarder pattern to register same singleton with alternate interfaces
-
-            // Moved commented lines from line 173 to avoid lint error in CI
-            // .AddSingleton<IConfigRepository>(provider => provider.GetService<ConfigRepository>())
-            // .AddSingleton<ICosmosDBRepository>(provider => provider.GetService<ConfigRepository>())
-
             builder.Services
                 .AddSingleton<ICredentialService>(x => new CredentialService(x.GetRequiredService<CredentialServiceSettings>()))
                 .AddSingleton<ISecretClient>(x => new SecretService(x.GetRequiredService<SecretServiceSettings>(), x.GetRequiredService<ICredentialService>()))
@@ -241,47 +230,5 @@ namespace CSE.Automation
                 .AddTransient<IQueueServiceFactory, AzureQueueServiceFactory>();
         }
 
-        /// <summary>
-        /// Instantiate the remote data sources and verify their connectivity
-        /// </summary>
-        /// <param name="builder"></param>
-        //private void ValidateServices(IFunctionsHostBuilder builder)
-        //{
-        //    foreach (var service in builder.Services)
-        //    {
-        //        Trace.WriteLine($"{service.ServiceType.Name}");
-        //    }
-
-        //    var provider = builder.Services.AddLogging(b =>
-        //    {
-        //        b.AddConsole();
-        //        b.AddDebug();
-        //    }).BuildServiceProvider();
-
-        //    var repositories = provider.GetServices<IRepository>();
-        //    var hasFailingTest = false;
-
-        //    foreach (var repository in repositories)
-        //    {
-        //        var testPassed = repository.Test().Result;
-        //        hasFailingTest = testPassed == false || hasFailingTest;
-
-        //        var result = testPassed
-        //            ? "Passed"
-        //            : "Failed";
-        //        var message = $"Repository test for {repository.Id} {result}";
-        //        if (testPassed)
-        //        {
-        //            _logger.LogInformation(message);
-        //        }
-        //        else
-        //        {
-        //            _logger.LogCritical(message);
-        //        }
-        //    }
-
-        //    if (hasFailingTest)
-        //        throw new ApplicationException($"One or more repositories failed test.");
-        //}
     }
 }
