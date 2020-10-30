@@ -11,16 +11,18 @@ using SettingsBase = CSE.Automation.Model.SettingsBase;
 using Microsoft.Identity.Client;
 using System.Net.WebSockets;
 using CSE.Automation.Graph;
+using Microsoft.Extensions.Logging;
 
 namespace CSE.Automation.Processors
 {
     public class DeltaProcessorSettings : SettingsBase
     {
-        public DeltaProcessorSettings(ISecretClient secretClient) : base(secretClient)
+        public DeltaProcessorSettings(ISecretClient secretClient)
+                : base(secretClient)
         {
         }
-        public Guid ConfigurationId { get; set; }
 
+        public Guid ConfigurationId { get; set; }
         public int VisibilityDelayGapSeconds { get; set; }
         public int QueueRecordProcessThreshold { get; set; }
 
@@ -28,23 +30,32 @@ namespace CSE.Automation.Processors
         {
             base.Validate();
             if (this.ConfigurationId == Guid.Empty)
+            {
                 throw new ConfigurationErrorsException($"{this.GetType().Name}: ConfigurationId is invalid");
+            }
+
             if (this.VisibilityDelayGapSeconds <= 0 || this.VisibilityDelayGapSeconds > Constants.MaxVisibilityDelayGapSeconds)
+            {
                 throw new ConfigurationErrorsException($"{this.GetType().Name}: VisibilityDelayGapSeconds is invalid");
+            }
+
             if (this.QueueRecordProcessThreshold <= 0 || this.QueueRecordProcessThreshold > Constants.MaxQueueRecordProcessThreshold)
+            {
                 throw new ConfigurationErrorsException($"{this.GetType().Name}: QueueRecordProcessThreshold is invalid");
+            }
         }
     }
 
     internal abstract class DeltaProcessorBase : IDeltaProcessor
     {
-        protected DeltaProcessorBase(IConfigService<ProcessorConfiguration> configService)
+        protected DeltaProcessorBase(IConfigService<ProcessorConfiguration> configService, ILogger logger)
         {
             _configService = configService;
+            _logger = logger;
         }
 
+        protected readonly ILogger _logger;
         protected readonly IConfigService<ProcessorConfiguration> _configService;
-
         protected ProcessorConfiguration _config;
         private bool _initialized;
 
@@ -53,8 +64,6 @@ namespace CSE.Automation.Processors
         public abstract Guid ConfigurationId { get; }
         public abstract ProcessorType ProcessorType { get; }
         protected abstract string DefaultConfigurationResourceName { get; }
-
-
 
         public abstract Task<GraphOperationMetrics> DiscoverDeltas(ActivityContext context, bool forceReseed = false);
 
@@ -70,6 +79,8 @@ namespace CSE.Automation.Processors
 
         private void Initialize()
         {
+            _logger.LogInformation($"Initializing {this.GetType().Name}");
+
             _config = _configService.Get(this.ConfigurationId.ToString(), ProcessorType, DefaultConfigurationResourceName);
             _initialized = true;
         }

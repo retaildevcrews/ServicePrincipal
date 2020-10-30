@@ -94,7 +94,7 @@ namespace CSE.Automation
         [StorageAccount(Constants.SPStorageConnectionString)]
         public async Task Evaluate([QueueTrigger(Constants.EvaluateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
         {
-            var context = new ActivityContext("Evaluate Service Principal");
+            using var context = new ActivityContext("Evaluate Service Principal");
             try
             {
 
@@ -124,7 +124,7 @@ namespace CSE.Automation
         [StorageAccount(Constants.SPStorageConnectionString)]
         public async Task UpdateAAD([QueueTrigger(Constants.UpdateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
         {
-            var context = new ActivityContext("Update Service Principal");
+            using var context = new ActivityContext("Update Service Principal");
             try
             {
 
