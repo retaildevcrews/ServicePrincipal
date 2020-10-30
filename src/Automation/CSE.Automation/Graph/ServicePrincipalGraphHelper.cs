@@ -80,10 +80,10 @@ namespace CSE.Automation.Graph
                     pageList = pageList.Where(x => x.AdditionalData.Keys.Contains("@removed") == false).ToList();
                     pageList.ToList().ForEach(sp => _auditService.PutIgnore(
                         context: context,
+                        code: AuditCode.Ignore_ServicePrincipalDeleted,
                         objectId: sp.Id,
                         attributeName: "AdditionalData",
-                        existingAttributeValue: "@removed",
-                        reason: "Service Principal Ignored Since Previously Removed"));
+                        existingAttributeValue: "@removed"));
 
                     var removedCount = count - pageList.Count;
 

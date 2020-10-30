@@ -9,6 +9,6 @@ namespace CSE.Automation.Model
         public string CorrelationId { get; set; }
         public string Id { get; set; }
         public (string Current, string Changed) Notes { get; set; }
-        public string Reason { get; set; }
+        public string Message { get; set; }
     }
 }
