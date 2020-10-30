@@ -5,6 +5,7 @@ using CSE.Automation.KeyVault;
 using CSE.Automation.Model;
 using CSE.Automation.Properties;
 using CSE.Automation.Services;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -98,6 +99,38 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 await configService.Put(updatedProcessorConfiguration);
 
                 Assert.True(updatedDescription == "Test Value");
+            }
+        }
+
+        [Fact]
+        public async Task TestConfigServiceConfigNotFoundAsync()
+        {
+            using (var serviceScope = _host.Services.CreateScope())
+            {
+                var configService = serviceScope.ServiceProvider.GetService<ConfigService>();
+
+                byte[] defaultConfigurationResource = Resources.ServicePrincipalProcessorConfiguration;
+
+                var testProcessorConfiguration1 = configService.Get("new-pr0cess0r-c0nfig", ProcessorType.ServicePrincipal, "ServicePrincipalProcessorConfiguration");
+                Assert.True(testProcessorConfiguration1 == null);
+            }
+        }
+
+        [Fact]
+        public async Task TestConfigServiceConfigNewAsync()
+        {
+            using (var serviceScope = _host.Services.CreateScope())
+            {
+                var configService = serviceScope.ServiceProvider.GetService<ConfigService>();
+
+                byte[] defaultConfigurationResource = Resources.ServicePrincipalProcessorConfiguration;
+
+                var testProcessorConfiguration2 = configService.Get("new-pr0cess0r-c0nf1g", ProcessorType.ServicePrincipal, "ServicePrincipalProcessorConfiguration", true);
+                Assert.True(testProcessorConfiguration2.Id == "new-pr0cess0r-c0nf1g");
+
+                var configRepositoryService = serviceScope.ServiceProvider.GetService<ConfigRepository>();
+
+                ProcessorConfiguration item = await configRepositoryService.DeleteDocumentAsync("new-pr0cess0r-c0nf1g", "ServicePrincipal");
             }
         }
     }
