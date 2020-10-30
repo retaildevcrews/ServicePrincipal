@@ -53,7 +53,6 @@ namespace CSE.Automation
             catch (Exception ex)
             {
                 log.LogError(ex, LockConflictMessage);
-                throw;
             }
         }
 
