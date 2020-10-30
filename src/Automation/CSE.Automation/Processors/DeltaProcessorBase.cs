@@ -79,10 +79,20 @@ namespace CSE.Automation.Processors
 
         private void Initialize()
         {
-            _logger.LogTrace($"Initializing {this.GetType().Name}");
+            _logger.LogInformation($"Initializing {this.GetType().Name}");
 
             _config = _configService.Get(this.ConfigurationId.ToString(), ProcessorType, DefaultConfigurationResourceName);
             _initialized = true;
+        }
+
+        public async Task Lock()
+        {
+            await _configService.Lock(this.ConfigurationId.ToString(), this.DefaultConfigurationResourceName).ConfigureAwait(false);
+        }
+
+        public async Task Unlock()
+        {
+            await _configService.Unlock().ConfigureAwait(false);
         }
     }
 }

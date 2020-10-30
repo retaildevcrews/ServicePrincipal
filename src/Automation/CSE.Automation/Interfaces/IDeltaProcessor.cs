@@ -11,5 +11,7 @@ namespace CSE.Automation.Interfaces
         int QueueRecordProcessThreshold { get; }
 
         Task<GraphOperationMetrics> DiscoverDeltas(ActivityContext context, bool forceReseed = false);
+        Task Lock();
+        Task Unlock();
     }
 }

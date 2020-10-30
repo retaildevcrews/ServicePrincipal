@@ -53,5 +53,37 @@ namespace CSE.Automation.Services
         {
             return await _configRepository.ReplaceDocumentAsync(newDocument.Id, newDocument).ConfigureAwait(false);
         }
+
+        public async Task Lock(string id, string defaultConfigResourceName)
+        {
+            try
+            {
+                Get(id, ProcessorType.ServicePrincipal, defaultConfigResourceName);
+                var configWithMeta = _configRepository.GetByIdWithMetaAsync(id, "ServicePrincipal").Result;
+                ItemRequestOptions requestOptions = new ItemRequestOptions { IfMatchEtag = configWithMeta.ETag };
+                ProcessorConfiguration config = configWithMeta.Resource;
+                if (config.IsProcessorLocked)
+                {
+                    throw new AccessViolationException("Processor Already Locked By Another Process");
+                }
+                else
+                {
+                    config.IsProcessorLocked = true;
+                    id = _configRepository.ReplaceDocumentAsync(config.Id, config, requestOptions).Result.Id;
+                    Console.WriteLine("Lock Successfull Acquired For: " + id);
+                }
+            }
+            catch (Exception)
+            {
+                throw new AccessViolationException("Processor Already Locked By Another Process");
+            }
+        }
+
+        public async Task Unlock()
+        {
+            var config = _configRepository.GetByIdAsync("02a54ac9-441e-43f1-88ee-fde420db2559", "ServicePrincipal").Result;
+            config.IsProcessorLocked = false;
+            await _configRepository.ReplaceDocumentAsync(config.Id, config).ConfigureAwait(false);
+        }
     }
 }

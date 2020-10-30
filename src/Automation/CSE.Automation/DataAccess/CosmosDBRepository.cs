@@ -290,12 +290,18 @@ namespace CSE.Automation.DataAccess
         /// <returns>An instance of the document or null.</returns>
         public async Task<TEntity> GetByIdAsync(string id, string partitionKey)
         {
-            TEntity entity = null;
+            var result = await GetByIdWithMetaAsync(id, partitionKey).ConfigureAwait(false);
+            return result?.Resource;
+        }
+
+        public async Task<ItemResponse<TEntity>> GetByIdWithMetaAsync(string id, string partitionKey)
+        {
+            ItemResponse<TEntity> entityWithMeta = null;
             try
             {
-                var result = await this.Container.ReadItemAsync<TEntity>(id, new PartitionKey(partitionKey)).ConfigureAwait(true);
+                var result = await this.Container.ReadItemAsync<TEntity>(id, new PartitionKey(partitionKey)).ConfigureAwait(false);
 
-                entity = result.Resource;
+                entityWithMeta = result;
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception)
@@ -303,13 +309,12 @@ namespace CSE.Automation.DataAccess
             {
                 // swallow exception
             }
-
-            return entity;
+            return entityWithMeta;
         }
 
-        public async Task<TEntity> ReplaceDocumentAsync(string id, TEntity newDocument)
+        public async Task<TEntity> ReplaceDocumentAsync(string id, TEntity newDocument, ItemRequestOptions reqOptions)
         {
-            return await this.Container.ReplaceItemAsync<TEntity>(newDocument, id, ResolvePartitionKey(newDocument)).ConfigureAwait(false);
+            return await this.Container.ReplaceItemAsync<TEntity>(newDocument, id, ResolvePartitionKey(newDocument), reqOptions).ConfigureAwait(false);
         }
 
         public async Task<TEntity> CreateDocumentAsync(TEntity newDocument)
