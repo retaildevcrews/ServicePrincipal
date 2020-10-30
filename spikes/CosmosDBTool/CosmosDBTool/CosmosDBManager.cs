@@ -1,9 +1,10 @@
 ﻿using Microsoft.Azure.Cosmos;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
+using System.IO;
+using System.Linq;
 using System.Net;
-using System.Net.Http.Headers;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,13 +14,18 @@ namespace CosmosDBTool
     {
         private readonly CosmosClient _cosmosClient;
         private readonly Database _database;
+        private readonly CosmosDBSettings _cosmosDBSettings;
+
         private List<Container> _containerList = new List<Container>();
-        private CosmosDBSettings _cosmosDBSettings = new CosmosDBSettings();
-        private StringBuilder _sbError = new StringBuilder();
-        public CosmosDBManager()
+        private Dictionary<string, string> _currentContainerNamePrimaryKey = new Dictionary<string, string>();
+
+        private List<string> _logger = new List<string>();
+
+        public string LogFileName { get; set; }
+        public CosmosDBManager(CosmosDBSettings cosmosDBSettings)
         {
-            _cosmosDBSettings = new CosmosDBSettings();
-            _cosmosClient = new CosmosClient(_cosmosDBSettings.ConnectionString);
+            _cosmosDBSettings = cosmosDBSettings;
+            _cosmosClient = new CosmosClient(_cosmosDBSettings.Endpoint, _cosmosDBSettings.AuthKey);
             _database = _cosmosClient.GetDatabase(_cosmosDBSettings.DatabaseName);
 
             InitializeContainers();
@@ -27,14 +33,13 @@ namespace CosmosDBTool
 
         private void InitializeContainers()
         {
-           foreach(var colInfo in _cosmosDBSettings.ContainerNamePrimaryKey)
+           foreach(var containerName in _cosmosDBSettings.ContainerNames)
             {  
                 //Container proxy reference doesn't guarantee existence.
-                var container = _cosmosClient.GetContainer(_cosmosDBSettings.DatabaseName, colInfo.Key);
+                var container = _cosmosClient.GetContainer(_cosmosDBSettings.DatabaseName, containerName);
+
                 if (container != null)
                 {
-                    //Save Conteiner Properties such container Throughput to be reuse 
-
                     _containerList.Add(container);
                 }
             }
@@ -49,35 +54,79 @@ namespace CosmosDBTool
 
         private void ShowLog()
         {
-            if (_sbError.Length > 0)
+            if (_logger.Count > 0)
             {
-                Console.WriteLine(_sbError.ToString()); // need to save it to a file
+                Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs"));
+
+                LogFileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs\\" + DateTime.Now.ToString("yyyyMMddHHmmss") + "_Execution.log");
+                File.WriteAllLines(LogFileName, _logger);
+                Task.Delay(500);
             }
+        }
+
+        private void GetCurrentContainerPartitionKeys()
+        {
+            ConsoleHelper.UpdateConsole("Getting Partition Keys....", _logger);
+            _currentContainerNamePrimaryKey = new Dictionary<string, string>();
+            
+            //foreach (var targetContainer in _containerList)
+            Parallel.ForEach(_containerList, targetContainer =>
+            {
+                try
+                {
+                    var containerProperties = GetContainerProperties(targetContainer).Result;
+                    var partitionKeyName = containerProperties.PartitionKeyPath.TrimStart('/');
+
+                    _currentContainerNamePrimaryKey.Add(targetContainer.Id, partitionKeyName);
+                    _logger.Add($"Partition Key name [{partitionKeyName}] was successfully retrieved from  Container [{targetContainer.Id}]");
+                }
+                catch (Exception ex)
+                {
+                    //use configuration to get the Peimary Key
+                    var partitionKeyValue = _cosmosDBSettings.ContainerNamePrimaryKey.FirstOrDefault(x => x.Key == targetContainer.Id);
+
+                    _currentContainerNamePrimaryKey.Add(targetContainer.Id, partitionKeyValue.Value);
+
+                    _logger.Add($"Partition Key name [{partitionKeyValue.Value}] was read from config file for Container [{targetContainer.Id}]");
+
+                }
+            });
+
+        }
+
+        private async Task<ContainerProperties> GetContainerProperties(Container container = null)
+        {
+            return (await container.ReadContainerAsync().ConfigureAwait(false)).Resource;
         }
 
         private bool DeleteContainers()
         {
-            //List<Task<ContainerResponse>> deleteContainerTasks = new List<Task<ContainerResponse>>();
+            GetCurrentContainerPartitionKeys();
 
-            foreach (var targetContainer in _containerList) 
-            //Parallel.ForEach(_containerList, targetContainer =>
+            ConsoleHelper.UpdateConsole("Deleting Containers....", _logger);
+            
+
+            Parallel.ForEach(_containerList, targetContainer =>
             {
+
                 //Container proxy reference doesn't guarantee existence. soif container does not exist it will throw an exception.
-                Task<ContainerResponse> deleteTask = Task.Run(() =>targetContainer.DeleteContainerAsync());
+                Task<ContainerResponse> deleteTask = Task.Run(() => targetContainer.DeleteContainerAsync());
                 try
                 {
                     deleteTask.Wait();
+                    
+                    _logger.Add($"Container [{targetContainer.Id}] was deleted.");
+                    Task.Delay(1000).Wait();
+                    
                 }
                 catch (Exception ex)
                 {
                     if (!HandleCosmosException(ex))
-                        _sbError.AppendLine($"Unexpected error occured when deleteing container [{targetContainer.Id}].");
+                        _logger.Add($"Unexpected error occured when deleteing container [{targetContainer.Id}].");
+
                 }
-                //deleteContainerTasks.Add(deleteTask);
-            }
-
-            //Task.WaitAll(deleteContainerTasks.ToArray());
-
+            });
+            
             return true;
         }
 
@@ -92,18 +141,20 @@ namespace CosmosDBTool
 
         private void CreateContainers()
         {
+            ConsoleHelper.UpdateConsole("Creating Containers....", _logger);
             List<Task<ContainerResponse>> createContainerTasks = new List<Task<ContainerResponse>>();
-            foreach(var keyValuePair in _cosmosDBSettings.ContainerNamePrimaryKey)
-            //Parallel.ForEach(_cosmosDBSettings.ContainerNamePrimaryKey, keyValuePair =>
+
+            Parallel.ForEach(_cosmosDBSettings.ContainerNamePrimaryKey, keyValuePair =>
             {
 
-                Task<ContainerResponse> createTask = Task.Run(() => _database.CreateContainerIfNotExistsAsync(keyValuePair.Key, $"/{keyValuePair.Value}"));
-                createTask.Wait();
-                
-                //createContainerTasks.Add(createTask);
-            }
+                Task<ContainerResponse> createTask = _database.CreateContainerAsync(keyValuePair.Key, $"/{keyValuePair.Value}");
 
-            //Task.WaitAll(createContainerTasks.ToArray());
+                createContainerTasks.Add(createTask);
+                
+            });
+
+            Task.WaitAll(createContainerTasks.ToArray());
+
 
             //TODO Check Status for each ContainerResponse 
             foreach (var createTask in createContainerTasks)
@@ -111,9 +162,11 @@ namespace CosmosDBTool
                 switch (createTask.Result.StatusCode)
                 {
                     case HttpStatusCode.Created:
-                    case HttpStatusCode.Accepted: break;
+                    case HttpStatusCode.Accepted:
+                        _logger.Add($"Container [{createTask.Result.Container.Id}] was created.");
+                        break;
                     default:
-                        _sbError.AppendLine($"Container [{createTask.Result.Container.Id}] was not created.");
+                        _logger.Add($"Container [{createTask.Result.Container.Id}] was not created.");
                         break;
                 }
             }
