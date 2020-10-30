@@ -83,7 +83,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
                 byte[] defaultConfigurationResource = Resources.ServicePrincipalProcessorConfiguration;
 
-                var testProcessorConfiguration = configService.Get("02a54ac9-441e-43f1-88ee-fde420db2559", ProcessorType.ServicePrincipal, defaultConfigurationResource);
+                var testProcessorConfiguration = configService.Get("02a54ac9-441e-43f1-88ee-fde420db2559", ProcessorType.ServicePrincipal, "ServicePrincipalProcessorConfiguration");
                 string originalDescription = testProcessorConfiguration.Description;
                 testProcessorConfiguration.Description = "Test Value";
 
@@ -91,7 +91,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
                 Assert.True(originalDescription == "Descriptive Text");
 
-                var updatedProcessorConfiguration = configService.Get("02a54ac9-441e-43f1-88ee-fde420db2559", ProcessorType.ServicePrincipal, defaultConfigurationResource);
+                var updatedProcessorConfiguration = configService.Get("02a54ac9-441e-43f1-88ee-fde420db2559", ProcessorType.ServicePrincipal, "ServicePrincipalProcessorConfiguration");
                 string updatedDescription = updatedProcessorConfiguration.Description;
                 updatedProcessorConfiguration.Description = originalDescription;
 
