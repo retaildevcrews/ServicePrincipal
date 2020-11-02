@@ -4,8 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Reflection;
-using System.Text;
+
 using System.Threading.Tasks;
 
 namespace CosmosDBTool
@@ -82,12 +81,19 @@ namespace CosmosDBTool
                 }
                 catch (Exception ex)
                 {
-                    //use configuration to get the Peimary Key
-                    var partitionKeyValue = _cosmosDBSettings.ContainerNamePrimaryKey.FirstOrDefault(x => x.Key == targetContainer.Id);
+                    if (HandleCosmosException(ex))
+                    {
+                        //use configuration to get the Peimary Key
+                        var partitionKeyValue = _cosmosDBSettings.ContainerNamePrimaryKey.FirstOrDefault(x => x.Key == targetContainer.Id);
 
-                    _currentContainerNamePrimaryKey.Add(targetContainer.Id, partitionKeyValue.Value);
+                        _currentContainerNamePrimaryKey.Add(targetContainer.Id, partitionKeyValue.Value);
 
-                    _logger.Add($"Partition Key name [{partitionKeyValue.Value}] was read from config file for Container [{targetContainer.Id}]");
+                        _logger.Add($"Partition Key name [{partitionKeyValue.Value}] was read from config file for Container [{targetContainer.Id}]");
+                    }
+                    else
+                    {
+                        _logger.Add($"Unexpected error occured when Resolving Primary Key for container [{targetContainer.Id}].");
+                    }
 
                 }
             });
@@ -104,7 +110,7 @@ namespace CosmosDBTool
             GetCurrentContainerPartitionKeys();
 
             ConsoleHelper.UpdateConsole("Deleting Containers....", _logger);
-            
+
 
             Parallel.ForEach(_containerList, targetContainer =>
             {
@@ -146,7 +152,7 @@ namespace CosmosDBTool
 
             Parallel.ForEach(_cosmosDBSettings.ContainerNamePrimaryKey, keyValuePair =>
             {
-
+                
                 Task<ContainerResponse> createTask = _database.CreateContainerAsync(keyValuePair.Key, $"/{keyValuePair.Value}");
 
                 createContainerTasks.Add(createTask);

@@ -41,7 +41,8 @@ namespace CosmosDBTool
 
         private static void ConfirmationMessage(CosmosDBSettings cosmosDBSettings)
         {
-            Console.WriteLine($"Your target Cosmos DB is [{cosmosDBSettings.DatabaseName}]{Environment.NewLine}{Environment.NewLine}Enter 'Y' to continue?");
+            string collectionNames = $"{Environment.NewLine}{Environment.NewLine}******* The following containers will be recreated [{string.Join(',',cosmosDBSettings.ContainerNames)}] *******{Environment.NewLine}";
+            Console.WriteLine($"Your target Cosmos DB is [{cosmosDBSettings.DatabaseName}]{collectionNames}{Environment.NewLine}{Environment.NewLine}Enter 'Y' to continue?");
 
             try
             {
