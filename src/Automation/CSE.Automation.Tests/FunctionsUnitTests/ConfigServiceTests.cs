@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -83,8 +84,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 var configService = serviceScope.ServiceProvider.GetService<ConfigService>();
 
                 byte[] defaultConfigurationResource = Resources.ServicePrincipalProcessorConfiguration;
+                var initalDocumentAsString = System.Text.Encoding.Default.GetString(defaultConfigurationResource);
+                ProcessorConfiguration defaultConfiguration = JsonConvert.DeserializeObject<ProcessorConfiguration>(initalDocumentAsString);
 
-                var testProcessorConfiguration = configService.Get("02a54ac9-441e-43f1-88ee-fde420db2559", ProcessorType.ServicePrincipal, "ServicePrincipalProcessorConfiguration");
+                var testProcessorConfiguration = configService.Get(defaultConfiguration.Id, ProcessorType.ServicePrincipal, "ServicePrincipalProcessorConfiguration");
                 string originalDescription = testProcessorConfiguration.Description;
                 testProcessorConfiguration.Description = "Test Value";
 
@@ -92,7 +95,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
                 Assert.True(originalDescription == "Descriptive Text");
 
-                var updatedProcessorConfiguration = configService.Get("02a54ac9-441e-43f1-88ee-fde420db2559", ProcessorType.ServicePrincipal, "ServicePrincipalProcessorConfiguration");
+                var updatedProcessorConfiguration = configService.Get(defaultConfiguration.Id, ProcessorType.ServicePrincipal, "ServicePrincipalProcessorConfiguration");
                 string updatedDescription = updatedProcessorConfiguration.Description;
                 updatedProcessorConfiguration.Description = originalDescription;
 
