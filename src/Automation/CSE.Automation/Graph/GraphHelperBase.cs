@@ -39,16 +39,7 @@ namespace CSE.Automation.Graph
         }
     }
 
-    public class GraphOperationMetrics
-    {
-        public string Name { get; set; }
-        public int Considered { get; set; }
-        public int Removed { get; set; }
-        public int Found { get; set; }
-        public string AdditionalData { get; set; }
-    }
-
-    public interface IGraphHelper<TEntity>
+    internal interface IGraphHelper<TEntity>
     {
         Task<(GraphOperationMetrics metrics, IEnumerable<TEntity> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string selectFields = null);
         Task<TEntity> GetGraphObject(string id);

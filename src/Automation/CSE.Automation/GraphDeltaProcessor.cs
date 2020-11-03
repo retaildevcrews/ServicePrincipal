@@ -20,48 +20,53 @@ namespace CSE.Automation
 {
     internal class GraphDeltaProcessor
     {
-        private readonly IServicePrincipalProcessor _processor;
-        private readonly ILogger _logger;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IActivityService activityService;
+        private readonly IServicePrincipalProcessor processor;
+        private readonly ILogger logger;
 
         // TODO: move to resource
         private const string LockConflictMessage = "Processor lock conflict";
 
-        public GraphDeltaProcessor(IServiceProvider serviceProvider, IServicePrincipalProcessor processor, ILogger<GraphDeltaProcessor> logger)
+        public GraphDeltaProcessor(IServiceProvider serviceProvider, IActivityService activityService, IServicePrincipalProcessor processor, ILogger<GraphDeltaProcessor> logger)
         {
-            _processor = processor;
-            _logger = logger;
-            _serviceProvider = serviceProvider;
+            this.activityService = activityService;
+            this.processor = processor;
+            this.logger = logger;
+
             ValidateServices(serviceProvider);
         }
 
-
         [FunctionName("DiscoverDeltas")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Will add specific error in time.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Ensure graceful return under all trappable error conditions.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1801:Review unused parameters", Justification = "Required as part of Trigger declaration.")]
         public async Task Deltas([TimerTrigger(Constants.DeltaDiscoverySchedule, RunOnStartup = false)] TimerInfo myTimer, ILogger log)
         {
+            using var context = activityService.CreateContext("Delta Detection", withTracking: true).WithProcessorLock(processor);
             try
             {
-                using var context = new ActivityContext("Delta Detection").WithLock(_processor);
                 log.LogDebug("Executing SeedDeltaProcessorTimer Function");
 
-                var metrics = await _processor.DiscoverDeltas(context, false).ConfigureAwait(false);
+                var metrics = await processor.DiscoverDeltas(context, false).ConfigureAwait(false);
                 context.End();
+
                 log.LogTrace($"Deltas: {metrics.Found} ServicePrincipals discovered in {context.ElapsedTime}.");
             }
             catch (Exception ex)
             {
+                context.Activity.Status = ActivityHistoryStatus.Failed;
+
+                ex.Data["activityContext"] = context;
                 log.LogError(ex, LockConflictMessage);
             }
         }
 
         [FunctionName("FullSeed")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Ensure graceful return under all trappable error conditions.")]
         public async Task<IActionResult> FullSeed([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req, ILogger log)
         {
+            using var context = activityService.CreateContext("Full Seed", withTracking: true).WithProcessorLock(processor);
             try
             {
-                using var context = new ActivityContext("Full Seed").WithLock(_processor);
                 log.LogDebug("Executing SeedDeltaProcessor HttpTrigger Function");
 
                 // TODO: If we end up with now request params needed for the seed function then remove the param and this check.
@@ -70,7 +75,7 @@ namespace CSE.Automation
                     throw new ArgumentNullException(nameof(req));
                 }
 
-                var metrics = await _processor.DiscoverDeltas(context, true).ConfigureAwait(false);
+                var metrics = await processor.DiscoverDeltas(context, true).ConfigureAwait(false);
                 context.End();
 
                 var result = new
@@ -86,6 +91,9 @@ namespace CSE.Automation
             }
             catch (Exception ex)
             {
+                context.Activity.Status = ActivityHistoryStatus.Failed;
+
+                ex.Data["activityContext"] = context;
                 log.LogError(ex, LockConflictMessage);
                 return new BadRequestObjectResult($"Cannot start processor: {LockConflictMessage}");
             }
@@ -95,10 +103,9 @@ namespace CSE.Automation
         [StorageAccount(Constants.SPStorageConnectionString)]
         public async Task Evaluate([QueueTrigger(Constants.EvaluateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
         {
-            using var context = new ActivityContext("Evaluate Service Principal");
+            using var context = activityService.CreateContext("Evaluate Service Principal");
             try
             {
-
                 if (msg == null)
                 {
                     throw new ArgumentNullException(nameof(msg));
@@ -107,28 +114,28 @@ namespace CSE.Automation
                 log.LogTrace("Incoming message from Evaluate queue");
                 var message = JsonConvert.DeserializeObject<QueueMessage<ServicePrincipalModel>>(msg.AsString);
 
-                await _processor.Evaluate(context, message.Document).ConfigureAwait(false);
+                await processor.Evaluate(context, message.Document).ConfigureAwait(false);
 
                 context.End();
                 log.LogTrace($"Evaluate Queue trigger function processed: {msg.Id} in {context.ElapsedTime}");
             }
             catch (Exception ex)
             {
+                context.Activity.Status = ActivityHistoryStatus.Failed;
+
                 ex.Data["activityContext"] = context;
                 log.LogError(ex, $"Message {msg.Id} aborting: {ex.Message}");
                 throw;
             }
-
         }
 
         [FunctionName("UpdateAAD")]
         [StorageAccount(Constants.SPStorageConnectionString)]
         public async Task UpdateAAD([QueueTrigger(Constants.UpdateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
         {
-            using var context = new ActivityContext("Update Service Principal");
+            using var context = activityService.CreateContext("Update Service Principal");
             try
             {
-
                 if (msg == null)
                 {
                     throw new ArgumentNullException(nameof(msg));
@@ -137,22 +144,22 @@ namespace CSE.Automation
                 log.LogTrace("Incoming message from Update queue");
                 var message = JsonConvert.DeserializeObject<QueueMessage<ServicePrincipalUpdateCommand>>(msg.AsString);
 
-                await _processor.UpdateServicePrincipal(context, message.Document).ConfigureAwait(false);
+                await processor.UpdateServicePrincipal(context, message.Document).ConfigureAwait(false);
 
                 context.End();
                 log.LogTrace($"Update Queue trigger function processed: {msg.Id} in {context.ElapsedTime}");
             }
             catch (Exception ex)
             {
+                context.Activity.Status = ActivityHistoryStatus.Failed;
+
                 ex.Data["activityContext"] = context;
                 log.LogError(ex, $"Message {msg.Id} aborting: {ex.Message}");
                 throw;
             }
-
         }
 
-        #region RUNTIME VALIDATION
-        private static void ValidateServices(IServiceProvider serviceProvider)
+        private void ValidateServices(IServiceProvider serviceProvider)
         {
             var repositories = serviceProvider.GetServices<IRepository>();
             var hasFailingTest = false;
@@ -168,17 +175,18 @@ namespace CSE.Automation
                 var message = $"Repository test for {repository.Id} {result}";
                 if (testPassed)
                 {
-                    Trace.TraceInformation(message);
+                    logger.LogInformation(message);
                 }
                 else
                 {
-                    Trace.TraceError(message);
+                    logger.LogError(message);
                 }
             }
 
             if (hasFailingTest)
+            {
                 throw new ApplicationException($"One or more repositories failed test.");
+            }
         }
-        #endregion
     }
 }

@@ -140,19 +140,19 @@ namespace CSE.Automation.Processors
 
             if (forceReseed)
             {
-                _config.RunState = RunState.SeedAndRun;
+                config.RunState = RunState.SeedAndRun;
             }
 
             IAzureQueueService queueService = _queueServiceFactory.Create(_settings.QueueConnectionString, _settings.EvaluateQueueName);
 
             // var selectFields = new[] { "appId", "displayName", "notes", "additionalData" };
-            var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects(context, _config, /*string.Join(',', selectFields)*/ null).ConfigureAwait(false);
+            var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects(context, config, /*string.Join(',', selectFields)*/ null).ConfigureAwait(false);
 
             var metrics = servicePrincipalResult.metrics;
             string updatedDeltaLink = metrics.AdditionalData;
             var servicePrincipalList = servicePrincipalResult.data.ToList();
 
-            _logger.LogInformation($"Resolving Owners for ServicePrincipal objects...");
+            logger.LogInformation($"Resolving Owners for ServicePrincipal objects...");
             int servicePrincipalCount = 0;
 
             var enrichedPrincipals = new List<ServicePrincipalModel>();
@@ -165,7 +165,7 @@ namespace CSE.Automation.Processors
 
                 if (servicePrincipalCount % QueueRecordProcessThreshold == 0)
                 {
-                    _logger.LogInformation($"\t{servicePrincipalCount}");
+                    logger.LogInformation($"\t{servicePrincipalCount}");
                 }
 
                 enrichedPrincipals.Add(new ServicePrincipalModel()
@@ -179,9 +179,9 @@ namespace CSE.Automation.Processors
                     Owners = owners,
                 });
             }
-            _logger.LogInformation($"{enrichedPrincipals.Count} ServicePrincipals resolved.");
+            logger.LogInformation($"{enrichedPrincipals.Count} ServicePrincipals resolved.");
 
-            _logger.LogInformation($"Sending Evaluate messages.");
+            logger.LogInformation($"Sending Evaluate messages.");
             servicePrincipalCount = 0;
             enrichedPrincipals.ForEach(async sp =>
             {
@@ -197,27 +197,27 @@ namespace CSE.Automation.Processors
 
                 if (servicePrincipalCount % QueueRecordProcessThreshold == 0)
                 {
-                    _logger.LogInformation($"\t{servicePrincipalCount}");
+                    logger.LogInformation($"\t{servicePrincipalCount}");
                 }
             });
-            _logger.LogInformation($"Evaluate messages complete.");
+            logger.LogInformation($"Evaluate messages complete.");
 
 
-            if (_config.RunState == RunState.SeedAndRun || _config.RunState == RunState.Seedonly)
+            if (config.RunState == RunState.SeedAndRun || config.RunState == RunState.Seedonly)
             {
-                _config.LastSeedTime = DateTimeOffset.Now;
+                config.LastSeedTime = DateTimeOffset.Now;
             }
             else
             {
-                _config.LastDeltaRun = DateTimeOffset.Now;
+                config.LastDeltaRun = DateTimeOffset.Now;
             }
 
-            _config.DeltaLink = updatedDeltaLink;
-            _config.RunState = RunState.DeltaRun;
+            config.DeltaLink = updatedDeltaLink;
+            config.RunState = RunState.DeltaRun;
 
-            await _configService.Put(_config).ConfigureAwait(false);
+            await configService.Put(config).ConfigureAwait(false);
 
-            _logger.LogInformation($"Finished Processing {servicePrincipalCount} Service Principal Objects.");
+            logger.LogInformation($"Finished Processing {servicePrincipalCount} Service Principal Objects.");
             return metrics;
         }
 
@@ -237,7 +237,7 @@ namespace CSE.Automation.Processors
             {
                 // emit into Operations log
                 var errorMsg = string.Join('\n', errors);
-                _logger.LogError($"ServicePrincipal {entity.Id} failed validation.\n{errorMsg}");
+                logger.LogError($"ServicePrincipal {entity.Id} failed validation.\n{errorMsg}");
 
                 // emit into Audit log, all failures
                 errors.ForEach(async error => await _auditService.PutFail(
@@ -293,14 +293,14 @@ namespace CSE.Automation.Processors
                 }
                 catch (Microsoft.Graph.ServiceException exSvc)
                 {
-                    _logger.LogError(exSvc, $"Failed to update AAD Service Principal {command.Id}");
+                    logger.LogError(exSvc, $"Failed to update AAD Service Principal {command.Id}");
                     try
                     {
                         await _auditService.PutFail(context, AuditCode.Fail_AADUpdate, command.Id, "Notes", command.Notes.Current, exSvc.Message).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, $"Failed to Audit update to AAD Service Principal {command.Id}");
+                        logger.LogError(ex, $"Failed to Audit update to AAD Service Principal {command.Id}");
 
                         // do not rethrow, it will hide the real failure
                     }
@@ -312,13 +312,13 @@ namespace CSE.Automation.Processors
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"Failed to Audit update to AAD Service Principal {command.Id}");
+                    logger.LogError(ex, $"Failed to Audit update to AAD Service Principal {command.Id}");
                     throw;
                 }
             }
             else
             {
-                _logger.LogInformation($"Update mode is {_settings.AADUpdateMode}, ServicePrincipal {command.Id} will not be updated.");
+                logger.LogInformation($"Update mode is {_settings.AADUpdateMode}, ServicePrincipal {command.Id} will not be updated.");
             }
         }
 
@@ -368,7 +368,7 @@ namespace CSE.Automation.Processors
             // bad SP Notes, bad SP Owners, last known good found
             if (lastKnownGood != null)
             {
-                _logger.LogInformation($"Reverting {entity.Id} to last known good state from {lastKnownGood.LastUpdated}");
+                logger.LogInformation($"Reverting {entity.Id} to last known good state from {lastKnownGood.LastUpdated}");
 
                 // build the command here so we don't need to pass the delta values down the call tree
                 var updateCommand = new ServicePrincipalUpdateCommand()
@@ -413,7 +413,7 @@ namespace CSE.Automation.Processors
 
         private static async Task CommandAADUpdate(ActivityContext context, ServicePrincipalUpdateCommand command, IAzureQueueService queueService)
         {
-            command.CorrelationId = context.ActivityId.ToString();
+            command.CorrelationId = context.Activity.Id.ToString();
             var message = new QueueMessage<ServicePrincipalUpdateCommand>()
             {
                 QueueMessageType = QueueMessageType.Data,
@@ -437,7 +437,7 @@ namespace CSE.Automation.Processors
                 // TODO: move reason text to resource
                 var message = "Missing Owners on ServicePrincipal, cannot remediate.";
                 await _auditService.PutFail(context, AuditCode.Fail_MissingOwners, entity.Id, "Owners", null, message).ConfigureAwait(true);
-                _logger.LogWarning($"AUDIT FAIL: {entity.Id} {message}");
+                logger.LogWarning($"AUDIT FAIL: {entity.Id} {message}");
             }
             catch (Exception)
             {

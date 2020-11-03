@@ -21,6 +21,7 @@
         public const string CosmosDBConfigCollectionName = "SPConfigurationCollection";
         public const string CosmosDBAuditCollectionName = "SPAuditCollection";
         public const string CosmosDBObjectTrackingCollectionName = "SPObjectTrackingCollection";
+        public const string CosmosDBActivityHistoryCollectionName = "SPActivityHistoryCollection";
 
         // Azure Storage Queue Constants
         public const string SPStorageConnectionString = "SPStorageConnectionString";

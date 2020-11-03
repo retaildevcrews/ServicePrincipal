@@ -29,8 +29,6 @@ namespace CSE.Automation.Validators
                 .WithMessage("'Created', 'Deleted', 'LastUpdated'");
             RuleFor(m => m.ObjectType)
                 .IsInEnum();
-            RuleFor(m => m.Status)
-                .IsInEnum();
         }
 
         protected static bool BeValidModelDateSequence(GraphModel model)

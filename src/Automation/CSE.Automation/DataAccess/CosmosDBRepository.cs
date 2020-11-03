@@ -1,58 +1,17 @@
 ﻿using CSE.Automation.Config;
 using CSE.Automation.Interfaces;
-using CSE.Automation.Model;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Fluent;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using SettingsBase = CSE.Automation.Model.SettingsBase;
 
 namespace CSE.Automation.DataAccess
 {
-
-    class CosmosDBSettings : SettingsBase, ICosmosDBSettings
-    {
-        private string _uri;
-        private string _key;
-        private string _databaseName;
-
-        public CosmosDBSettings(ISecretClient secretClient) : base(secretClient) { }
-
-        [Secret(Constants.CosmosDBURLName)]
-        public string Uri
-        {
-            get { return _uri ?? base.GetSecret(); }
-            set { _uri = value; }
-        }
-
-        [Secret(Constants.CosmosDBKeyName)]
-        public string Key
-        {
-            get { return _key ?? base.GetSecret(); }
-            set { _key = value; }
-        }
-
-        [Secret(Constants.CosmosDBDatabaseName)]
-        public string DatabaseName
-        {
-            get { return _databaseName ?? base.GetSecret(); }
-            set { _databaseName = value; }
-        }
-
-
-        public override void Validate()
-        {
-            if (string.IsNullOrWhiteSpace(this.Uri)) throw new ConfigurationErrorsException($"{this.GetType().Name}: Uri is invalid");
-            if (string.IsNullOrWhiteSpace(this.Key)) throw new ConfigurationErrorsException($"{this.GetType().Name}: Key is invalid");
-            if (string.IsNullOrWhiteSpace(this.DatabaseName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: DatabaseName is invalid");
-        }
-    }
 
     internal abstract class CosmosDBRepository<TEntity> : ICosmosDBRepository<TEntity>, IDisposable
                                                     where TEntity : class

@@ -82,6 +82,7 @@ function global:ProvisionCosmosResources(){
 		"Configuration"= "/configType";
 		"Audit" = "/auditYearMonth";
 		"ObjectTracking" = "/objectType";
+		"ActivityHistory" = "/yearMonth";
 	}
 
 	$databases = GetCosmosDatabases

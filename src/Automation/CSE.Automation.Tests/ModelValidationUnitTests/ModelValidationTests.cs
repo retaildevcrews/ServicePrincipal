@@ -11,7 +11,6 @@ using CSE.Automation.Validators;
 using CSE.Automation.Graph;
 using Microsoft.Graph;
 using System.Threading.Tasks;
-using Status = CSE.Automation.Model.Status;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests
 {
@@ -68,7 +67,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 Deleted = new DateTime(2001, 1, 1),
                 LastUpdated = new DateTime(2002, 1, 1),
                 ObjectType = ObjectType.ServicePrincipal,
-                Status = Status.Remediated
             };
 
             var results = servicePrincipalValidator.Validate(servicePrincipal);
@@ -91,7 +89,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         [Fact]
         public void AuditEntryModelValidate_ReturnsTrueIfValid()
         {
-            var context = new ActivityContext();
+            var context = new ActivityContext(null);
 
             var auditItem = new AuditEntry()
             {

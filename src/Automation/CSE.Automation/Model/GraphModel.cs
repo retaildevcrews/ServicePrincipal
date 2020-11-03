@@ -14,16 +14,18 @@ namespace CSE.Automation.Model
         public DateTimeOffset? LastUpdated { get; set; }
 
         public ObjectType ObjectType { get; set; }
-
-        public Status Status { get; set; }
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
     public enum ObjectType
     {
-        ServicePrincipal
+        /// <summary>
+        /// Graph model type of ServicePrincipal
+        /// </summary>
+        ServicePrincipal,
     }
 
+    /*
     [JsonConverter(typeof(StringEnumConverter))]
     public enum Status
     {
@@ -32,4 +34,5 @@ namespace CSE.Automation.Model
         Deleted,
         Remediated
     }
+    */
 }

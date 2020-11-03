@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 
 namespace CSE.Automation.Validators
 {
-    public class ServicePrincipalModelValidator : AbstractValidator<ServicePrincipalModel>, IModelValidator<ServicePrincipalModel>
+    internal class ServicePrincipalModelValidator : AbstractValidator<ServicePrincipalModel>, IModelValidator<ServicePrincipalModel>
     {
         public ServicePrincipalModelValidator(IGraphHelper<User> graphHelper)
         {

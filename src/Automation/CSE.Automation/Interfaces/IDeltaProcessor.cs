@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace CSE.Automation.Interfaces
 {
-    public interface IDeltaProcessor
+    internal interface IDeltaProcessor
     {
         int VisibilityDelayGapSeconds { get; }
         int QueueRecordProcessThreshold { get; }
