@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Globalization;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -149,51 +150,58 @@ namespace CSE.Automation.Processors
 
             var metrics = servicePrincipalResult.metrics;
             string updatedDeltaLink = metrics.AdditionalData;
-            var servicePrincipalList = servicePrincipalResult.data;
+            var servicePrincipalList = servicePrincipalResult.data.ToList();
 
+            _logger.LogInformation($"Resolving Owners for ServicePrincipal objects...");
             int servicePrincipalCount = 0;
-            int visibilityDelay = 0;
 
-            _logger.LogInformation($"Processing Service Principal objects...");
-
-            foreach (var sp in servicePrincipalList)
+            var enrichedPrincipals = new List<ServicePrincipalModel>();
+            foreach (var sp in servicePrincipalList.Where(sp => string.IsNullOrWhiteSpace(sp.AppId) == false && string.IsNullOrWhiteSpace(sp.DisplayName) == false))
             {
-                if (string.IsNullOrWhiteSpace(sp.AppId) || string.IsNullOrWhiteSpace(sp.DisplayName))
+                var fullSP = await _graphHelper.GetGraphObject(sp.Id).ConfigureAwait(false);
+                var owners = fullSP?.Owners.Select(x => (x as User)?.UserPrincipalName).ToList();
+
+                servicePrincipalCount++;
+
+                if (servicePrincipalCount % QueueRecordProcessThreshold == 0)
                 {
-                    continue;
+                    _logger.LogInformation($"\t{servicePrincipalCount}");
                 }
 
-                // another call is required to get the child Owners collection
-                var fullSP = await _graphHelper.GetGraphObject(sp.Id).ConfigureAwait(false);
-                var owners = fullSP.Owners.Select(x => (x as User)?.UserPrincipalName).ToList();
+                enrichedPrincipals.Add(new ServicePrincipalModel()
+                {
+                    Id = sp.Id,
+                    AppId = sp.AppId,
+                    DisplayName = sp.DisplayName,
+                    Notes = sp.Notes,
+                    Created = DateTimeOffset.Parse(sp.AdditionalData["createdDateTime"].ToString(), CultureInfo.CurrentCulture),
+                    Deleted = sp.DeletedDateTime,
+                    Owners = owners,
+                });
+            }
+            _logger.LogInformation($"{enrichedPrincipals.Count} ServicePrincipals resolved.");
 
+            _logger.LogInformation($"Sending Evaluate messages.");
+            servicePrincipalCount = 0;
+            enrichedPrincipals.ForEach(async sp =>
+            {
                 var myMessage = new QueueMessage<ServicePrincipalModel>()
                 {
                     QueueMessageType = QueueMessageType.Data,
-                    Document = new ServicePrincipalModel()
-                    {
-                        Id = sp.Id,
-                        AppId = sp.AppId,
-                        DisplayName = sp.DisplayName,
-                        Notes = sp.Notes,
-#pragma warning disable CA1305 // Specify IFormatProvider
-                        Created = DateTimeOffset.Parse(sp.AdditionalData["createdDateTime"].ToString()),
-#pragma warning restore CA1305 // Specify IFormatProvider
-                        Deleted = sp.DeletedDateTime,
-                        Owners = owners,
-                    },
+                    Document = sp,
                     Attempt = 0,
                 };
 
-                if (servicePrincipalCount % QueueRecordProcessThreshold == 0 && servicePrincipalCount != 0)
-                {
-                    _logger.LogInformation($"Processed {servicePrincipalCount} Service Principal Objects.");
-                    visibilityDelay += VisibilityDelayGapSeconds;
-                }
-
-                await queueService.Send(myMessage, visibilityDelay).ConfigureAwait(false);
+                await queueService.Send(myMessage).ConfigureAwait(false);
                 servicePrincipalCount++;
-            }
+
+                if (servicePrincipalCount % QueueRecordProcessThreshold == 0)
+                {
+                    _logger.LogInformation($"\t{servicePrincipalCount}");
+                }
+            });
+            _logger.LogInformation($"Evaluate messages complete.");
+
 
             if (_config.RunState == RunState.SeedAndRun || _config.RunState == RunState.Seedonly)
             {

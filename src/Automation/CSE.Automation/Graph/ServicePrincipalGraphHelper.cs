@@ -76,7 +76,6 @@ namespace CSE.Automation.Graph
 
                 if (IsSeedRun(config))
                 {
-                    _logger.LogInformation($"Trimming removed service principals for seed run.");
                     pageList = pageList.Where(x => x.AdditionalData.Keys.Contains("@removed") == false).ToList();
                     pageList.ToList().ForEach(sp => _auditService.PutIgnore(
                         context: context,
@@ -87,7 +86,7 @@ namespace CSE.Automation.Graph
 
                     var removedCount = count - pageList.Count;
 
-                    _logger.LogInformation($"\tTrimmed {removedCount} service principals.");
+                    _logger.LogInformation($"\tTrimmed {removedCount} ServicePrincipals.");
                     metrics.Removed += removedCount;
                 }
 

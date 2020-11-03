@@ -25,10 +25,12 @@ namespace CSE.Automation.Services
             }
         }
 
-        public async Task Send(QueueMessage message, int visibilityDelay)
+        public async Task Send(QueueMessage message, int visibilityDelay=0)
         {
             if (message is null)
+            {
                 throw new ArgumentNullException(nameof(message));
+            }
 
             bool messageSent = false;
             int numOfAttempts = 1;
@@ -48,6 +50,7 @@ namespace CSE.Automation.Services
                 {
                     Console.WriteLine($"Cannot send message to queue {_queueClient.Name} - Attempt:{numOfAttempts} - Message:{e.Message}"); //TODO Change this to log
                 }
+
                 numOfAttempts++;
             }
         }

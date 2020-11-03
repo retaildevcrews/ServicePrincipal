@@ -7,6 +7,6 @@ namespace CSE.Automation.Interfaces
 {
     public interface IAzureQueueService
     {
-        public Task Send(QueueMessage message, int visibilityDelay);
+        public Task Send(QueueMessage message, int visibilityDelay=0);
     }
 }
