@@ -3,7 +3,7 @@ name: Docker CI
 on:
   push:
     branches:
-      - main
+      - dummy-main
 
     paths-ignore:
       - 'docs/**'
@@ -12,21 +12,9 @@ on:
 
     tags:
       - v*
-  
-  pull_request:
-    types: [ opened, reopened, synchronize ]
-    branches:
-      - main
-
-    paths-ignore:
-    - 'docs/**'
-    - '**.md'
-    - 'spikes/**' # Don't build the spikes unless explicitly specified
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
     env:
@@ -37,55 +25,21 @@ jobs:
       TEMP_IMG_NAME    : sp_image
 
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Login to Azure registry
-      # do not copy the actual secrets
-      # do not echo secrets
-      # You must add the following secrets to github repo
-      #    SERVICE_PRINCIPAL_ID     - ServicePrincipal Application ID
-      #    SERVICE_PRINCIPAL_SECRET - Access Secret for the ServicePrincipal
+    - uses: actions/checkout@master
+      with:
+        persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
+        fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
+    - name: Install modules
+      run: dotnet tool install -g dotnet-version-cli
+    - name: Bump Patch Version
+      run: dotnet version -f src/Automation/CSE.Automation/CSE.Automation.csproj patch
+    - name: Bump Patch Version
       run: |
-        # Login to Azure registry
-        echo "${{ secrets.SERVICE_PRINCIPAL_SECRET }}" | docker login "${ACR_REG_REPO_URL}" -u ${{ secrets.SERVICE_PRINCIPAL_ID }} --password-stdin
-        # If docker login is successful, set env variable
-        [[ $? == 0 ]] && echo "::set-env name=ACR_LOGGED_IN::true"
-
-    - name: Build Container
-      if: ${{ env.ACR_LOGGED_IN == 'true' }}
-      run: |
-        if [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
-          # Strip git ref prefix and "v" from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e 's/^v//')
-        else
-          # Otherwise use 0.0.0-dev as default version
-          # We're adding pre-release version data specified by "-". See: https://semver.org/#spec-item-9
-          VERSION="0.0.0-dev"
-        fi
-        # Adding GitHash as version metadata
-        # We're adding version metedata with "+". See: https://semver.org/#spec-item-10
-        GIT_HASH=$( echo ${{ github.sha }} | cut -c1-7 )
-        FULL_VER_STRING="${VERSION}+${GIT_HASH}"
-        echo Building Version: ${FULL_VER_STRING}
-        # Build Image
-        docker build --pull -t ${TEMP_IMG_NAME} \
-                    --build-arg SP_AUTOMATION_VERSION=${FULL_VER_STRING} \
-                    --build-arg SP_AUTOMATION_GITHASH=${GIT_HASH} \
-                    --label "githash"="${GIT_HASH}" \
-                    -f src/Automation/CSE.Automation/Dockerfile src/Automation
-        # Set variable is successful
-        [[ $? == 0 ]] && echo "::set-env name=DKR_IMG_IS_BUILT::true"
-
-    - name: Docker Push
-      if: ${{ github.event.pull_request.merged != 'true'}}
-      run: |
-        #only run this step if pull request or push to main not on merge
-        if [[ "${{ github.event_name }}" == "push" ]]; then
-          docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:latest
-        else
-          PR_NUMBER=$(echo "${{ github.ref }}" | awk 'BEGIN { FS = "/" } ; { print $3 }')
-          docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:${PR_NUMBER}
-        fi
-        
-        # Push images after merge
-        docker push ${ACR_REG_REPO_URL}
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        dotnet version -f src/Automation/CSE.Automation/CSE.Automation.csproj patch
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.ref }}
