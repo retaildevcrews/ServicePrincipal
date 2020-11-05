@@ -36,6 +36,8 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         dotnet version -f src/Automation/CSE.Automation/CSE.Automation.csproj patch
+        git reset --soft HEAD^
+        git commit --amend -C HEAD
     - name: Push changes
       uses: ad-m/github-push-action@master
       with:
