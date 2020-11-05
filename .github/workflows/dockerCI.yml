@@ -29,6 +29,6 @@ jobs:
     - name: Install modules
       run: dotnet tool install -g dotnet-version-cli
     - name: Bump Patch Version
-      run: dotnet version patch
+      run: dotnet version -f src/Automation/CSE.Automation/CSE.Automation.csproj patch
     - name: Sync Version Back To main
       run: git add . && git commit -m "bump version" && git push origin dummy-main
