@@ -54,7 +54,7 @@ function global:ProvisionLocalResources()
 }
 
 function global:ProvisionStorageResources(){
-	$queues = "evaluate"#, "update"
+	$queues = "discover", "evaluate", "update"
 	
 	# Creates queues
 	$queues | % {
@@ -82,7 +82,7 @@ function global:ProvisionCosmosResources(){
 		"Configuration"= "/configType";
 		"Audit" = "/auditYearMonth";
 		"ObjectTracking" = "/objectType";
-		"ActivityHistory" = "/yearMonth";
+		"ActivityHistory" = "/correlationId";
 	}
 
 	$databases = GetCosmosDatabases
