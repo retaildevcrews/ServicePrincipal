@@ -37,7 +37,7 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git reset HEAD^
+        git reset --soft HEAD^
         git add . 
         git commit --amend -C HEAD
     - name: Push changes
