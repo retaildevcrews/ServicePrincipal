@@ -32,8 +32,6 @@ jobs:
     - name: Install modules
       run: dotnet tool install -g dotnet-version-cli
     - name: Bump Patch Version
-      run: dotnet version -f src/Automation/CSE.Automation/CSE.Automation.csproj patch
-    - name: Bump Patch Version
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
