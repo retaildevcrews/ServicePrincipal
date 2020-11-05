@@ -38,7 +38,7 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add .
-        git commit --amend -C
+        git commit --amend -C HEAD
     - name: Push changes
       uses: ad-m/github-push-action@master
       with:
