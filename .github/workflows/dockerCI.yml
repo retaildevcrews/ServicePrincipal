@@ -25,10 +25,21 @@ jobs:
       TEMP_IMG_NAME    : sp_image
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@master
+      with:
+        persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
+        fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
     - name: Install modules
       run: dotnet tool install -g dotnet-version-cli
     - name: Bump Patch Version
       run: dotnet version -f src/Automation/CSE.Automation/CSE.Automation.csproj patch
-    - name: Sync Version Back To main
-      run: git add . && git commit -m "bump version" && git push origin dummy-main
+    - name: Commit files
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git commit -m "Bump Patch Version" -a
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.ref }}
