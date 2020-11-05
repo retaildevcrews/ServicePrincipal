@@ -42,7 +42,7 @@ namespace CSE.Automation.Graph
     internal interface IGraphHelper<TEntity>
     {
         Task<(GraphOperationMetrics metrics, IEnumerable<TEntity> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string selectFields = null);
-        Task<TEntity> GetGraphObject(string id);
+        Task<TEntity> GetGraphObjectWithOwners(string id);
         Task PatchGraphObject(TEntity entity);
     }
 
@@ -75,7 +75,7 @@ namespace CSE.Automation.Graph
         }
 
         public abstract Task<(GraphOperationMetrics metrics, IEnumerable<TEntity> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string selectFields = null);
-        public abstract Task<TEntity> GetGraphObject(string id);
+        public abstract Task<TEntity> GetGraphObjectWithOwners(string id);
         public abstract Task PatchGraphObject(TEntity entity);
     }
 }

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace CSE.Automation.Model
 {
@@ -13,11 +15,12 @@ namespace CSE.Automation.Model
         public string Id { get; set; }
 
         /// <summary>
-        /// Gets or sets YearMonth partition key
+        /// Gets or sets the correlation Id of the activity 
         /// </summary>
-        public string YearMonth { get; set; }
+        public string CorrelationId { get; set; }
 
         public string Name { get; set; }
+
         /// <summary>
         /// Gets or sets the status of the activity
         /// </summary>
@@ -26,7 +29,7 @@ namespace CSE.Automation.Model
         /// <summary>
         /// Gets or sets the metrics for the run
         /// </summary>
-        public Dictionary<string, object> Metrics { get; set; } = new Dictionary<string, object>();
+        public IDictionary<string, object> Metrics { get; set; } = new Dictionary<string, object>();
 
         /// <summary>
         /// Gets or sets timestamp of when the document was created
@@ -39,13 +42,9 @@ namespace CSE.Automation.Model
         public DateTimeOffset LastUpdated { get; set; }
     }
 
+    [JsonConverter(typeof(StringEnumConverter))]
     internal enum ActivityHistoryStatus
     {
-        /// <summary>
-        /// Activity has been requested
-        /// </summary>
-        Requested,
-
         /// <summary>
         /// Activity is actively running
         /// </summary>

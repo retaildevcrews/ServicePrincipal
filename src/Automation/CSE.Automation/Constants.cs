@@ -25,6 +25,7 @@
 
         // Azure Storage Queue Constants
         public const string SPStorageConnectionString = "SPStorageConnectionString";
+        public const string DiscoverQueueAppSetting = "%SPDiscoverQueue%";
         public const string EvaluateQueueAppSetting = "%SPEvaluateQueue%";
         public const string UpdateQueueAppSetting = "%SPUpdateQueue%";
 

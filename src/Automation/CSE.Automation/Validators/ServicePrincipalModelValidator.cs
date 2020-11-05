@@ -30,7 +30,7 @@ namespace CSE.Automation.Validators
                 {
                     field?.Split(',', ';').ToList().ForEach(token =>
                     {
-                        if (graphHelper.GetGraphObject(token).Result is null)
+                        if (graphHelper.GetGraphObjectWithOwners(token).Result is null)
                         {
                             context.AddFailure($"'{token}' is not a valid UserPrincipalName in this directory");
                         }

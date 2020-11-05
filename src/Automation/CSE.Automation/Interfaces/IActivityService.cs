@@ -12,6 +12,6 @@ namespace CSE.Automation.Interfaces
     {
         Task<ActivityHistory> Put(ActivityHistory document);
         Task<ActivityHistory> Get(string id);
-        ActivityContext CreateContext(string name, bool withTracking = false);
+        ActivityContext CreateContext(string name, string correlationId = null, bool withTracking = false);
     }
 }

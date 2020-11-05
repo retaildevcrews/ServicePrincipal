@@ -1,13 +1,9 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Globalization;
 using System.Threading.Tasks;
 using CSE.Automation.DataAccess;
-using CSE.Automation.Extensions;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
 
 namespace CSE.Automation.Services
 {
@@ -31,7 +27,7 @@ namespace CSE.Automation.Services
         {
             repository.GenerateId(document);
             document.LastUpdated = DateTimeOffset.Now;
-            document = await repository.CreateDocumentAsync(document).ConfigureAwait(false);
+            document = await repository.UpsertDocumentAsync(document).ConfigureAwait(false);
 
             logger.LogInformation($"Saved history for Run {document.Id}");
             return document;
@@ -51,25 +47,34 @@ namespace CSE.Automation.Services
         /// Create an instance of an ActivityHistory model
         /// </summary>
         /// <param name="name">Name of the activity</param>
+        /// <param name="correlationId">Correlation Id of the activity</param>
         /// <param name="withTracking">True if the activity is tracked in ActivityHistory</param>
         /// <returns>A new instance of <see cref="ActivityHistory"/>.</returns>
-        public ActivityContext CreateContext(string name, bool withTracking = false)
+        public ActivityContext CreateContext(string name, string correlationId = null, bool withTracking = false)
         {
             var now = DateTimeOffset.Now;
+
+            correlationId ??= Guid.NewGuid().ToString();
+
             var document = new ActivityHistory
             {
+                CorrelationId = correlationId,
                 Created = now,
-                YearMonth = now.ToString("yyyyMM", CultureInfo.CurrentCulture),
                 Name = name,
             };
 
             // we need the id of the run when we initiate
             repository.GenerateId(document);
 
+            if (withTracking)
+            {
+                document = this.Put(document).Result;
+            }
+
             return new ActivityContext(withTracking ? this : null)
             {
                 Activity = document,
-            };
+            }.WithCorrelationId(correlationId);
         }
     }
 }

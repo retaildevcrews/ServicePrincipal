@@ -24,7 +24,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 throw new NotImplementedException();
             }
 
-            public Task<User> GetGraphObject(string id)
+            public Task<User> GetGraphObjectWithOwners(string id)
             {
                 return Task.FromResult(new User());
             }

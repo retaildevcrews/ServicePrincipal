@@ -42,7 +42,7 @@ namespace CSE.Automation.Model
         public ActivityHistory Activity { get; set; }
 
         public DateTimeOffset StartTime { get; } = DateTimeOffset.Now;
-
+        public string CorrelationId { get; private set; } = Guid.NewGuid().ToString();
         private IActivityService activityService;
         private IDeltaProcessor processor;
         private TimeSpan? elapsed;
@@ -65,6 +65,22 @@ namespace CSE.Automation.Model
 
             isLocked = true;
             processor = deltaProcessor;
+            return this;
+        }
+
+        /// <summary>
+        /// Set the correlation id of the activity in the context.
+        /// </summary>
+        /// <param name="correlationId">A correlationId to use for this context.</param>
+        /// <returns>The instance of the ActivityHistroy</returns>
+        public ActivityContext WithCorrelationId(string correlationId)
+        {
+            CorrelationId = correlationId;
+            if (Activity != null)
+            {
+                Activity.CorrelationId = CorrelationId;
+            }
+
             return this;
         }
 

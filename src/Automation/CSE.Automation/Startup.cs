@@ -163,6 +163,7 @@ namespace CSE.Automation
                     QueueConnectionString = config[Constants.SPStorageConnectionString],
                     EvaluateQueueName = config[Constants.EvaluateQueueAppSetting.Trim('%')],
                     UpdateQueueName = config[Constants.UpdateQueueAppSetting.Trim('%')],
+                    DiscoverQueueName = config[Constants.DiscoverQueueAppSetting.Trim('%')],
                     ConfigurationId = config["configId"].ToGuid(Guid.Parse("02a54ac9-441e-43f1-88ee-fde420db2559")),
                     VisibilityDelayGapSeconds = config["visibilityDelayGapSeconds"].ToInt(8),
                     QueueRecordProcessThreshold = config["queueRecordProcessThreshold"].ToInt(10),
@@ -230,6 +231,7 @@ namespace CSE.Automation
 
                 .AddScoped<IObjectTrackingService, ObjectTrackingService>()
                 .AddScoped<IAuditService, AuditService>()
+                .AddScoped<IActivityService, ActivityService>()
 
                 .AddScoped<IModelValidator<GraphModel>, GraphModelValidator>()
                 .AddScoped<IModelValidator<ServicePrincipalModel>, ServicePrincipalModelValidator>()
@@ -237,6 +239,8 @@ namespace CSE.Automation
                 .AddSingleton<IModelValidatorFactory, ModelValidatorFactory>()
 
                 .AddScoped<GraphDeltaProcessor>()
+
+                .AddScoped<IServicePrincipalClassifier, ServicePrincipalClassifier>()
 
                 .AddTransient<IQueueServiceFactory, AzureQueueServiceFactory>();
         }

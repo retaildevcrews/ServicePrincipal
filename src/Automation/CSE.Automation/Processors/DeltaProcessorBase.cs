@@ -1,16 +1,8 @@
-﻿using CSE.Automation.Interfaces;
-using CSE.Automation.Model;
-using CSE.Automation.Properties;
-using Newtonsoft.Json;
-using System;
-using System.Configuration;
-using System.IO;
+﻿using System;
 using System.Threading.Tasks;
-using Microsoft.Azure.Cosmos;
-using SettingsBase = CSE.Automation.Model.SettingsBase;
-using Microsoft.Identity.Client;
-using System.Net.WebSockets;
 using CSE.Automation.Graph;
+using CSE.Automation.Interfaces;
+using CSE.Automation.Model;
 using Microsoft.Extensions.Logging;
 
 namespace CSE.Automation.Processors
@@ -34,6 +26,8 @@ namespace CSE.Automation.Processors
         public abstract ProcessorType ProcessorType { get; }
         protected abstract string DefaultConfigurationResourceName { get; }
 
+        public abstract Task RequestDiscovery(ActivityContext context, DiscoveryMode discoveryMode);
+        public abstract Task<ActivityHistory> GetActivityStatus(ActivityContext context, string activityId);
         public abstract Task<GraphOperationMetrics> DiscoverDeltas(ActivityContext context, bool forceReseed = false);
 
         public async Task Lock()
@@ -63,5 +57,6 @@ namespace CSE.Automation.Processors
             config = configService.Get(this.ConfigurationId.ToString(), ProcessorType, DefaultConfigurationResourceName, true);
             initialized = true;
         }
+
     }
 }
