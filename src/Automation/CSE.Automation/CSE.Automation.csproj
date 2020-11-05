@@ -6,7 +6,7 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
       <!-- TODO: set to true -->
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <Version>0.0.1</Version>
+    <Version>0.0.5</Version>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="SolutionScripts\**" />
