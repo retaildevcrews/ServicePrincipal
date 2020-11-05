@@ -329,10 +329,6 @@ namespace CSE.Automation.DataAccess
 
         public async Task<TEntity> DeleteDocumentAsync(string id, string partitionKey)
         {
-            var query = new QueryDefinition("delete from c where c.id = @id").WithParameter("@id", id);
-
-            var result = await InternalCosmosDBSqlQuery(query).ConfigureAwait(false);
-
             return await this.Container.DeleteItemAsync<TEntity>(id, new PartitionKey(partitionKey)).ConfigureAwait(false);
         }
 
