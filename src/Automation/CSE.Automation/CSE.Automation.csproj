@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AzureFunctionsVersion>v3</AzureFunctionsVersion>
@@ -6,6 +6,7 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
       <!-- TODO: set to true -->
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <Version>0.0.0</Version>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="SolutionScripts\**" />
