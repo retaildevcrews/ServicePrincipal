@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.ComponentModel;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
 namespace CSE.Automation.Model
@@ -9,11 +10,13 @@ namespace CSE.Automation.Model
         /// <summary>
         /// Execute a full AAD scan
         /// </summary>
+        [Description("Full Discovery")]
         FullSeed,
 
         /// <summary>
         /// Execute a delta query
         /// </summary>
+        [Description("Delta Discovery")]
         Deltas,
     }
 
@@ -21,5 +24,6 @@ namespace CSE.Automation.Model
     {
         public string CorrelationId { get; set; }
         public DiscoveryMode DiscoveryMode { get; set; }
+        public string Source { get; set; }
     }
 }

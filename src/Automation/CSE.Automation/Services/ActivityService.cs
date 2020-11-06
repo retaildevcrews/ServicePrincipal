@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CSE.Automation.DataAccess;
 using CSE.Automation.Interfaces;
@@ -41,6 +42,11 @@ namespace CSE.Automation.Services
         public async Task<ActivityHistory> Get(string id)
         {
             return await repository.GetByIdAsync(id, id).ConfigureAwait(false);
+        }
+
+        public async Task<IEnumerable<ActivityHistory>> GetCorrelated(string correlationId)
+        {
+            return await repository.GetCorrelated(correlationId).ConfigureAwait(false);
         }
 
         /// <summary>

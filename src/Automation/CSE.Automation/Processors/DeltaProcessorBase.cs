@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
@@ -26,8 +27,8 @@ namespace CSE.Automation.Processors
         public abstract ProcessorType ProcessorType { get; }
         protected abstract string DefaultConfigurationResourceName { get; }
 
-        public abstract Task RequestDiscovery(ActivityContext context, DiscoveryMode discoveryMode);
-        public abstract Task<ActivityHistory> GetActivityStatus(ActivityContext context, string activityId);
+        public abstract Task RequestDiscovery(ActivityContext context, DiscoveryMode discoveryMode, string source);
+        public abstract Task<IEnumerable<ActivityHistory>> GetActivityStatus(ActivityContext context, string activityId, string correlationId);
         public abstract Task<GraphOperationMetrics> DiscoverDeltas(ActivityContext context, bool forceReseed = false);
 
         public async Task Lock()

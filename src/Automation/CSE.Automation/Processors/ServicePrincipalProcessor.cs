@@ -146,7 +146,7 @@ namespace CSE.Automation.Processors
         /// <param name="context">An instance of an <see cref="ActivityContext"/>.</param>
         /// <param name="discoveryMode">Type of discovery to perform.</param>
         /// <returns>A Task that may be awaited.</returns>
-        public override async Task RequestDiscovery(ActivityContext context, DiscoveryMode discoveryMode)
+        public override async Task RequestDiscovery(ActivityContext context, DiscoveryMode discoveryMode, string source)
         {
             var message = new QueueMessage<RequestDiscoveryCommand>()
             {
@@ -155,6 +155,7 @@ namespace CSE.Automation.Processors
                 {
                     CorrelationId = context.CorrelationId,
                     DiscoveryMode = discoveryMode,
+                    Source = source,
                 },
                 Attempt = 0,
             };
@@ -170,12 +171,21 @@ namespace CSE.Automation.Processors
         /// Return the status of an activity from activityhistory.
         /// </summary>
         /// <param name="context">An instance of an <see cref="ActivityContext"/>.</param>
-        /// <param name="correlationId">Id of the activity to report.</param>
+        /// <param name="activityId">Id of the activity to report.</param>
+        /// <param name="correlationId">Correlation id of the activities to report.</param>
         /// <returns>A Task that may be awaited.</returns>
-        public override async Task<ActivityHistory> GetActivityStatus(ActivityContext context, string correlationId)
+        /// <remarks>Either activityId or correlationId must be provided.</remarks>
+        public override async Task<IEnumerable<ActivityHistory>> GetActivityStatus(ActivityContext context, string activityId, string correlationId)
         {
-            var activityHistory = await activityService.Get(correlationId).ConfigureAwait(false);
-            return activityHistory;
+            if (string.IsNullOrWhiteSpace(correlationId))
+            {
+                var activity = await activityService.Get(activityId).ConfigureAwait(false);
+                return new[] { activity };
+            }
+            else
+            {
+                return await activityService.GetCorrelated(correlationId).ConfigureAwait(false);
+            }
         }
 
         /// DISCOVER
@@ -234,6 +244,7 @@ namespace CSE.Automation.Processors
                     Owners = owners,
                 });
             }
+
             logger.LogInformation($"{enrichedPrincipals.Count} ServicePrincipals resolved.");
 
             logger.LogInformation($"Sending Evaluate messages.");
@@ -257,7 +268,6 @@ namespace CSE.Automation.Processors
             });
             logger.LogInformation($"Evaluate messages complete.");
 
-
             if (config.RunState == RunState.SeedAndRun || config.RunState == RunState.Seedonly)
             {
                 config.LastSeedTime = DateTimeOffset.Now;
@@ -274,7 +284,7 @@ namespace CSE.Automation.Processors
 
             logger.LogInformation($"Finished Processing {servicePrincipalCount} Service Principal Objects.");
 
-            context.Activity.Metrics = metrics.ToDictionary();
+            context.Activity.MergeMetrics(metrics.ToDictionary());
             await activityService.Put(context.Activity).ConfigureAwait(false);
             return metrics;
         }

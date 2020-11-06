@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using CSE.Automation.Extensions;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
 using CSE.Automation.Processors;
@@ -47,14 +48,25 @@ namespace CSE.Automation
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Ensure graceful return under all trappable error conditions.")]
         public async Task<IActionResult> RequestDiscovery([HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
         {
-            var discoveryMode = bool.TryParse(req.Query["full"], out var fullDiscovery) && fullDiscovery 
+            var discoveryMode = bool.TryParse(req.Query["full"], out var fullDiscovery) && fullDiscovery
                                         ? DiscoveryMode.FullSeed
                                         : DiscoveryMode.Deltas;
+            var hasRedirect = req.Query.ContainsKey("redirect");
+
             try
             {
-                return req is null
-                        ? throw new ArgumentNullException(nameof(req))
-                        : await CommandDiscovery(discoveryMode, log).ConfigureAwait(false);
+                if (req is null)
+                {
+                    throw new ArgumentNullException(nameof(req));
+                }
+
+                var result = await CommandDiscovery(discoveryMode, "HTTP", log).ConfigureAwait(false);
+
+                return hasRedirect
+                        // TODO: construct this URI properly
+                        ? new RedirectResult($"{req.Scheme}://{req.Host}/api/Activities?correlationId={result.CorrelationId}")
+                        : (IActionResult)new JsonResult(result);
+
             }
             catch (Exception ex)
             {
@@ -65,15 +77,15 @@ namespace CSE.Automation
             }
         }
 
-        [FunctionName("DiscoverDeltas")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Ensure graceful return under all trappable error conditions.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1801:Review unused parameters", Justification = "Required as part of Trigger declaration.")]
+        [FunctionName("DiscoverDeltas")]
         public async Task Deltas([TimerTrigger(Constants.DeltaDiscoverySchedule, RunOnStartup = false)] TimerInfo myTimer, ILogger log)
         {
             var discoveryMode = DiscoveryMode.Deltas;
             try
             {
-                await CommandDiscovery(discoveryMode, log).ConfigureAwait(false);
+                await CommandDiscovery(discoveryMode, "TIMER", log).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -82,6 +94,7 @@ namespace CSE.Automation
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Ensure graceful return under all trappable error conditions.")]
         [FunctionName("Discover")]
         [StorageAccount(Constants.SPStorageConnectionString)]
         public async Task Discover([QueueTrigger(Constants.DiscoverQueueAppSetting)] CloudQueueMessage msg, ILogger log)
@@ -99,23 +112,17 @@ namespace CSE.Automation
                 return;
             }
 
-            using var context = activityService.CreateContext("Full Seed", withTracking: true, correlationId: command.CorrelationId);
+            var operation = command.DiscoveryMode.Description();
+            using var context = activityService.CreateContext(operation, withTracking: true, correlationId: command.CorrelationId);
             try
             {
                 log.LogDebug("Executing Discover QueueTrigger Function");
+
+                context.Activity.CommandSource = command.Source;
                 context.WithProcessorLock(processor);
 
                 var metrics = await processor.DiscoverDeltas(context, true).ConfigureAwait(false);
                 context.End();
-
-                var result = new
-                {
-                    Operation = "Full Seed",
-                    metrics.Considered,
-                    Ignored = metrics.Removed,
-                    metrics.Found,
-                    context.ElapsedTime,
-                };
             }
             catch (Exception ex)
             {
@@ -147,6 +154,8 @@ namespace CSE.Automation
             using var context = activityService.CreateContext("Evaluate Service Principal", correlationId: command.CorrelationId);
             try
             {
+                context.Activity.CommandSource = "QUEUE";
+
                 if (msg == null)
                 {
                     throw new ArgumentNullException(nameof(msg));
@@ -188,6 +197,8 @@ namespace CSE.Automation
             using var context = activityService.CreateContext("Update Service Principal", correlationId: command.CorrelationId);
             try
             {
+                context.Activity.CommandSource = "QUEUE";
+
                 if (msg == null)
                 {
                     throw new ArgumentNullException(nameof(msg));
@@ -214,30 +225,27 @@ namespace CSE.Automation
         /// Get the status of an activity.
         /// </summary>
         /// <param name="req">HttpRequest instance</param>
-        /// <param name="correlationId">Id of the activity to report.</param>
         /// <param name="log">An instance of an <see cref="ILogger"/>.</param>
         /// <returns>A JSON object containing information about the requested activity.</returns>
+        /// <remarks>Querystring parameters: activityId, correlationId.  One of the two must be provided.</remarks>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Ensure graceful return under all trappable error conditions.")]
         [FunctionName("Activities")]
-        public async Task<IActionResult> Activities([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req, string correlationId, ILogger log)
+        public async Task<IActionResult> Activities([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req, ILogger log)
         {
-            using var context = activityService.CreateContext("Activities", withTracking: false).WithProcessorLock(processor);
+            var activityId = req.Query["activityId"];
+            var correlationId = req.Query["correlationId"];
+
+            using var context = activityService.CreateContext("Activities", withTracking: false);
             try
             {
                 log.LogDebug("Executing ActivityStatus HttpTrigger Function");
 
-                // TODO: If we end up with now request params needed for the seed function then remove the param and this check.
-                if (req is null)
+                if (string.IsNullOrWhiteSpace(correlationId) && string.IsNullOrWhiteSpace(activityId))
                 {
-                    throw new ArgumentNullException(nameof(req));
+                    throw new InvalidOperationException("Either activityId or correlationId must be specified.");
                 }
 
-                if (string.IsNullOrWhiteSpace(correlationId))
-                {
-                    throw new ArgumentNullException(nameof(correlationId));
-                }
-
-                var activityHistory = await processor.GetActivityStatus(context, correlationId).ConfigureAwait(false);
+                var activityHistory = await processor.GetActivityStatus(context, activityId, correlationId).ConfigureAwait(false);
                 context.End();
 
                 var result = new
@@ -254,16 +262,19 @@ namespace CSE.Automation
                 context.Activity.Status = ActivityHistoryStatus.Failed;
 
                 ex.Data["activityContext"] = context;
-                return new BadRequestObjectResult(context);
+                log.LogError(ex, "Failed to retrieve activity status.");
+
+                return new BadRequestObjectResult(ex.Message);
             }
         }
 
-        private async Task<IActionResult> CommandDiscovery(DiscoveryMode discoveryMode, ILogger log)
+        private async Task<dynamic> CommandDiscovery(DiscoveryMode discoveryMode, string source, ILogger log)
         {
-            using var context = activityService.CreateContext(discoveryMode == DiscoveryMode.FullSeed ? "Full Discovery" : "Delta Discovery", withTracking: false);
+            using var context = activityService.CreateContext($"{discoveryMode.Description()} Request", withTracking: true);
             try
             {
-                await processor.RequestDiscovery(context, discoveryMode).ConfigureAwait(false);
+                context.Activity.CommandSource = source;
+                await processor.RequestDiscovery(context, discoveryMode, source).ConfigureAwait(false);
                 var result = new
                 {
                     Timestamp = DateTimeOffset.Now,
@@ -273,7 +284,7 @@ namespace CSE.Automation
                     CorrelationId = context.CorrelationId,
                 };
 
-                return new JsonResult(result);
+                return result;
             }
             catch (Exception ex)
             {
@@ -281,7 +292,7 @@ namespace CSE.Automation
 
                 ex.Data["activityContext"] = context;
 
-                var message = $"Failed to request Discovery {discoveryMode.ToString()}";
+                var message = $"Failed to request Discovery {discoveryMode}";
                 log.LogError(ex, message);
 
                 throw;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Text;
+using System.Threading.Tasks;
 using CSE.Automation.Model;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Table;
@@ -27,6 +28,11 @@ namespace CSE.Automation.DataAccess
             }
 
             return entity.Id;
+        }
+
+        public async Task<IEnumerable<ActivityHistory>> GetCorrelated(string correlationId)
+        {
+            return await InternalCosmosDBSqlQuery($"select * from c where c.correlationId = '{correlationId}' order by c.created").ConfigureAwait(false);
         }
 
         public override string CollectionName => settings.CollectionName;

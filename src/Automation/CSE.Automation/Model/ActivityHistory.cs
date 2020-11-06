@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -21,6 +22,7 @@ namespace CSE.Automation.Model
 
         public string Name { get; set; }
 
+        public string CommandSource { get; set; }
         /// <summary>
         /// Gets or sets the status of the activity
         /// </summary>
@@ -40,6 +42,11 @@ namespace CSE.Automation.Model
         /// Gets or sets timestamp of when the document was last updated
         /// </summary>
         public DateTimeOffset LastUpdated { get; set; }
+
+        public void MergeMetrics(IDictionary<string,object> dict)
+        {
+            Metrics = Metrics.Concat(dict).ToDictionary(x => x.Key, x => x.Value);
+        }
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
