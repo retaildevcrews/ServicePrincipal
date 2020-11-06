@@ -69,7 +69,7 @@ jobs:
       if: ${{ github.event.pull_request.merged != 'true'}}
       run: |
         # Extract Major and Minor Versions
-        export MAJOR_MINOR=$(cat src/Automation/CSE.Automation/CSE.Automation.csproj | grep VersionMajorMinor | sed 's/\s*<VersionMajorMinor>\(.*\)<\/VersionMajorMinor>.*/\1/')
+        export MAJOR_MINOR=$(cat src/Automation/CSE.Automation/CSE.Automation.csproj | grep "<VersionMajorMinor>" | sed 's/\s*<VersionMajorMinor>\(.*\)<\/VersionMajorMinor>.*/\1/')
         export GIT_HASH=$( echo ${{ github.sha }} | cut -c1-7 )
         #only run this step if pull request or push to main not on merge
         if [[ "${{ github.event_name }}" == "push" ]]; then
