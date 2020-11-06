@@ -47,6 +47,9 @@ namespace CSE.Automation
             _logger = CreateBootstrapLogger();
             _logger.LogInformation($"Bootstrap logger initialized.");
             _logger.LogDebug($"AUTH_TYPE: {Environment.GetEnvironmentVariable("AUTH_TYPE")}");
+            VersionMetaData versionMeta = new VersionMetaData();
+            _logger.LogInformation($"Version: {versionMeta.Version}");
+            _logger.LogInformation($"Build Timestamp: {versionMeta.BuildTs}");
 
             // CONFIGURATION
             BuildConfiguration(builder);
