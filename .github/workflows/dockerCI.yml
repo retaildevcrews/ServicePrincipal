@@ -41,20 +41,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Login to Azure registry
-      # do not copy the actual secrets
-      # do not echo secrets
-      # You must add the following secrets to github repo
-      #    SERVICE_PRINCIPAL_ID     - ServicePrincipal Application ID
-      #    SERVICE_PRINCIPAL_SECRET - Access Secret for the ServicePrincipal
-      run: |
-        # Login to Azure registry
-        echo "${{ secrets.SERVICE_PRINCIPAL_SECRET }}" | docker login "${ACR_REG_REPO_URL}" -u ${{ secrets.SERVICE_PRINCIPAL_ID }} --password-stdin
-        # If docker login is successful, set env variable
-        [[ $? == 0 ]] && echo "::set-env name=ACR_LOGGED_IN::true"
-
     - name: Build Container
-      if: ${{ env.ACR_LOGGED_IN == 'true' }}
       run: |
         # Update Quality Tag If This Is A Push To main
         if [[ "${{ github.event_name }}" == "push" ]]; then
@@ -67,8 +54,16 @@ jobs:
                     --build-arg VERSION_GIT_HASH=${GIT_HASH} \
                     --build-arg VERSION_QUALITY_TAG=${QUALITY_TAG} \
                     -f src/Automation/CSE.Automation/Dockerfile src/Automation
-        # Set variable is successful
-        [[ $? == 0 ]] && echo "::set-env name=DKR_IMG_IS_BUILT::true"
+    
+    - name: Login to Azure registry
+    # do not copy the actual secrets
+    # do not echo secrets
+    # You must add the following secrets to github repo
+    #    SERVICE_PRINCIPAL_ID     - ServicePrincipal Application ID
+    #    SERVICE_PRINCIPAL_SECRET - Access Secret for the ServicePrincipal
+      run: |
+        # Login to Azure registry
+        docker login "${ACR_REG_REPO_URL}" -u ${{ secrets.SERVICE_PRINCIPAL_ID }} --password-stdin
 
     - name: Docker Push
       if: ${{ github.event.pull_request.merged != 'true'}}
@@ -81,7 +76,7 @@ jobs:
           export QUALITY_TAG=release
           docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:latest
         fi
-        docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:${ MAJOR_MINOR }.${ RUN_ID }-${ GIT_HASH }-${ QUALITY_TAG }
+        docker tag ${TEMP_IMG_NAME} "${ACR_REG_REPO_URL}:${MAJOR_MINOR}.${RUN_ID}-${GIT_HASH}-${QUALITY_TAG}"
         
         # Push images after merge
         docker push ${ACR_REG_REPO_URL}
