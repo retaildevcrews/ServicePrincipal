@@ -35,7 +35,6 @@ jobs:
       ACR_LOGGED_IN    : false
       DKR_IMG_IS_BUILT : false
       TEMP_IMG_NAME    : sp_image
-      GIT_HASH         : ${{ GITHUB_SHA::8 }}
       RUN_ID           : ${{ github.run_id }}
       QUALITY_TAG      : beta
 
@@ -61,6 +60,7 @@ jobs:
         if [[ "${{ github.event_name }}" == "push" ]]; then
           export QUALITY_TAG=release
         fi
+        export GIT_HASH=$( echo ${{ github.sha }} | cut -c1-7 )
         # Build Image
         docker build --pull -t ${TEMP_IMG_NAME} \
                     --build-arg VERSION_RUN_ID=${RUN_ID} \
@@ -75,6 +75,7 @@ jobs:
       run: |
         # Extract Major and Minor Versions
         export MAJOR_MINOR=$(cat src/Automation/CSE.Automation/CSE.Automation.csproj | grep VersionMajorMinor | sed 's/\s*<VersionMajorMinor>\(.*\)<\/VersionMajorMinor>.*/\1/')
+        export GIT_HASH=$( echo ${{ github.sha }} | cut -c1-7 )
         #only run this step if pull request or push to main not on merge
         if [[ "${{ github.event_name }}" == "push" ]]; then
           export QUALITY_TAG=release
