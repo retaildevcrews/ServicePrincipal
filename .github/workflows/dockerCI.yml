@@ -63,7 +63,7 @@ jobs:
     #    SERVICE_PRINCIPAL_SECRET - Access Secret for the ServicePrincipal
       run: |
         # Login to Azure registry
-        docker login "${ACR_REG_REPO_URL}" -u ${{ secrets.SERVICE_PRINCIPAL_ID }} --password-stdin
+        echo "${{ secrets.SERVICE_PRINCIPAL_SECRET }}" | docker login "${ACR_REG_REPO_URL}" -u ${{ secrets.SERVICE_PRINCIPAL_ID }} --password-stdin
 
     - name: Docker Push
       if: ${{ github.event.pull_request.merged != 'true'}}
