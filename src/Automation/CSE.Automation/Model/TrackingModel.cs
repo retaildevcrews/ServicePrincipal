@@ -3,7 +3,7 @@ using System;
 
 namespace CSE.Automation.Model
 {
-    class TrackingModel
+    public class TrackingModel
     {
         public string Id { get; set; }
 

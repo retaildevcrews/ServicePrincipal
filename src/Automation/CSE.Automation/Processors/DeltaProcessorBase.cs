@@ -46,7 +46,7 @@ namespace CSE.Automation.Processors
         }
     }
 
-    internal abstract class DeltaProcessorBase : IDeltaProcessor
+    public abstract class DeltaProcessorBase : IDeltaProcessor
     {
         protected DeltaProcessorBase(IConfigService<ProcessorConfiguration> configService, ILogger logger)
         {

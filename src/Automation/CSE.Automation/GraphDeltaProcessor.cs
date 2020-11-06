@@ -18,7 +18,7 @@ using Newtonsoft.Json;
 
 namespace CSE.Automation
 {
-    internal class GraphDeltaProcessor
+    public class GraphDeltaProcessor
     {
         private readonly IServicePrincipalProcessor _processor;
         private readonly ILogger _logger;
@@ -27,12 +27,16 @@ namespace CSE.Automation
         // TODO: move to resource
         private const string LockConflictMessage = "Processor lock conflict";
 
-        public GraphDeltaProcessor(IServiceProvider serviceProvider, IServicePrincipalProcessor processor, ILogger<GraphDeltaProcessor> logger)
+        public GraphDeltaProcessor(IServiceProvider serviceProvider, IServicePrincipalProcessor processor, ILogger<GraphDeltaProcessor> logger, bool ignoreValidation = false)
         {
             _processor = processor;
             _logger = logger;
             _serviceProvider = serviceProvider;
-            ValidateServices(serviceProvider);
+
+            if (!ignoreValidation)
+            {
+                ValidateServices(serviceProvider);
+            }
         }
 
 

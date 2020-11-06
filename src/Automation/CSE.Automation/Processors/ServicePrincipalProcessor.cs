@@ -17,14 +17,14 @@ using Newtonsoft.Json.Converters;
 
 namespace CSE.Automation.Processors
 {
-    internal interface IServicePrincipalProcessor : IDeltaProcessor
+    public interface IServicePrincipalProcessor : IDeltaProcessor
     {
         Task Evaluate(ActivityContext context, ServicePrincipalModel entity);
         Task UpdateServicePrincipal(ActivityContext context, ServicePrincipalUpdateCommand command);
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
-    internal enum UpdateMode
+    public enum UpdateMode
     {
         /// <summary>
         /// AAD Update logic attempts to write to AAD
@@ -37,7 +37,7 @@ namespace CSE.Automation.Processors
         ReportOnly,
     }
 
-    internal class ServicePrincipalProcessorSettings : DeltaProcessorSettings
+    public class ServicePrincipalProcessorSettings : DeltaProcessorSettings
     {
         private string _queueConnectionString;
         private string _evaluateQueueName;
@@ -90,7 +90,7 @@ namespace CSE.Automation.Processors
         }
     }
 
-    internal class ServicePrincipalProcessor : DeltaProcessorBase, IServicePrincipalProcessor
+    public class ServicePrincipalProcessor : DeltaProcessorBase, IServicePrincipalProcessor
     {
         private readonly IGraphHelper<ServicePrincipal> _graphHelper;
         private readonly ServicePrincipalProcessorSettings _settings;

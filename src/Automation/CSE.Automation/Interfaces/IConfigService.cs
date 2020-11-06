@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CSE.Automation.Interfaces
 {
-    internal interface IConfigService<TConfig> where TConfig : class
+    public interface IConfigService<TConfig> where TConfig : class
     {
         Task<TConfig> Put(TConfig newDocument);
         TConfig Get(string id, ProcessorType processorType, string defaultConfigResourceName, bool createIfNotFound = false);

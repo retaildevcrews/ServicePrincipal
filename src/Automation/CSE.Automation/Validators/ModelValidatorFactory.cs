@@ -7,12 +7,12 @@ using Microsoft.Extensions.DependencyInjection;
 namespace CSE.Automation.Model
 {
 
-    interface IModelValidator<T>
+    public interface IModelValidator<T>
     {
         ValidationResult Validate(T model);
     }
 
-    interface IModelValidatorFactory
+    public interface IModelValidatorFactory
     {
         IEnumerable<IModelValidator<TEntity>> Get<TEntity>();
     }

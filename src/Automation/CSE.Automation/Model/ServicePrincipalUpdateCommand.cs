@@ -4,7 +4,7 @@ using System.Text;
 
 namespace CSE.Automation.Model
 {
-    class ServicePrincipalUpdateCommand
+    public class ServicePrincipalUpdateCommand
     {
         public string CorrelationId { get; set; }
         public string Id { get; set; }
