@@ -35,7 +35,7 @@ jobs:
       ACR_LOGGED_IN    : false
       DKR_IMG_IS_BUILT : false
       TEMP_IMG_NAME    : sp_image
-      GIT_HASH         : ${ GITHUB_SHA::8 }
+      GIT_HASH         : ${{ GITHUB_SHA::8 }}
       RUN_ID           : ${{ github.run_id }}
       QUALITY_TAG      : beta
 
