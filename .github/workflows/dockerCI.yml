@@ -81,7 +81,7 @@ jobs:
           export QUALITY_TAG=release
           docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:latest
         fi
-        docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:${ MAJOR_MINOR }.${ RUN_ID }-${ GIT_HASH }:${ QUALITY_TAG }
+        docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:${ MAJOR_MINOR }.${ RUN_ID }-${ GIT_HASH }-${ QUALITY_TAG }
         
         # Push images after merge
         docker push ${ACR_REG_REPO_URL}
