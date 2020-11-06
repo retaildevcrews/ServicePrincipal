@@ -6,6 +6,8 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
       <!-- TODO: set to true -->
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <VersionMajorMinor>0.2</VersionMajorMinor>
+    <BuildUTC>$([System.DateTime]::UtcNow.ToString())</BuildUTC>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="SolutionScripts\**" />
