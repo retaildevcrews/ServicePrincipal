@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Configuration;
 using System.IO;
 using System.Linq;
@@ -7,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using AzQueueTestTool.TestCases.ServicePrincipals;
 using CSE.Automation.Model;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalStates;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.System.ComponentModel;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Graph;
 using Microsoft.Graph.Auth;
@@ -19,7 +22,19 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
     internal class CommonFunctions : IDisposable
     {
 
-        internal enum TestCase { TC1, TC2, TC3, TC4, TC5, TC6, TC7, TC8, TC9 }
+        internal enum TestCase {
+            [StateDefinition("StateDefinition1")]
+            [Validator("Validator1")]
+            TC1, 
+            TC2, 
+            TC3, 
+            TC4, 
+            TC5, 
+            TC6, 
+            TC7, 
+            TC8, 
+            TC9 
+        }
 
         private bool _initialized = false;
 
@@ -55,7 +70,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(payload);
             return plainTextBytes;
-            //System.Convert.ToBase64String(plainTextBytes)
+            
         }
 
         private ServicePrincipalWrapper GetServicePrincipalFor(TestCase testCase)
@@ -65,7 +80,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             {
                 case TestCase.TC1:
                     result = GetAADServicePrincipal(_config[testCase.ToString()], testCase);
-                    //result = GetAADServicePrincipal("sp-AzQueueTesting-1", testCase);
                     break;
 
                 case TestCase.TC2:
@@ -103,50 +117,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 throw new NullException(spObject);
             }
 
-            //TODO: Create validator clases instead enums
-            ServicePrincipalWrapper result = new ServicePrincipalWrapper();
+            using var stateValidationManager = new StateValidationManager();
+            
+            return stateValidationManager.Validate(spObject,  testCase);
+            
 
-            switch (testCase)
-            {
-                case TestCase.TC1:
-                    //-set owners 
-                    //-populated Notes field with owners AAD emails
-
-                    Dictionary<string,string> ownersList = GraphHelper.GetOwnersDisplayNameAndUserPrincipalNameKeyValuePair(spObject);
-                    if (ownersList.Count > 0 && !string.IsNullOrEmpty(spObject.Notes))
-                    {
-                        foreach(var ownerName in ownersList.Values)
-                        {
-                            //var semicolonSeparatedOwnersEmail = string.Join(";", ownersList);
-                            if (!spObject.Notes.Contains(ownerName))
-                                throw new InvalidDataException($"Service Principal: [{spObject.DisplayName}] does not match Test Case [{testCase}] rules.");
-                        }
-
-                        result.SetAADServicePrincipal(spObject);
-                        result.HasOwners = true;
-                        result.AADUsers = ownersList.Keys.ToList();
-
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                    break;
-                case TestCase.TC2:
-                    //-DO NOT set owners 
-                    //-populated Notes field with owners AAD emails
-
-                    break;
-                case TestCase.TC3:
-                    //-set owners 
-                    //-populated Notes field with valid emails other that AAD emails
-                    break;
-
-                default:
-                    throw new Exception($"Missing prerequisites for Test Case Id: {testCase}");
-            }
-
-            return result;
         }
 
         private void InitGraphHelper()

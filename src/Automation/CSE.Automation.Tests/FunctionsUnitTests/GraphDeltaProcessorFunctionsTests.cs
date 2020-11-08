@@ -171,13 +171,21 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(commonFunctions.GetTestMessageContent(TestCase.TC1));
 
-
-            //this also works 
             Task thisTaks = Task.Run (() => _graphDeltaProcessor.Evaluate(cloudQueueMessage, _graphLogger));
             thisTaks.Wait();
 
-            // TODO: Add Verification for TestCase.TC1 for upon success  
+            // TODO: Upon Task execution success, Validate ObjectTracking and/or Audit for  TestCase.TC1
+            /*
+              using var objectTrackingValidationManager = new ObjectTrackingValidationManager();
 
+              bool validObjectTracking =  objectTrackingValidationManager.Validate(spObject, testCase);
+
+              using var auditValidationManager = new AuditValidationManager();
+
+              bool validAudit =  auditValidationManager.Validate(spObject, testCase);
+
+              Assert.True(validObjectTracking && validAudit);
+            */
             Assert.True(true);
         }
 
