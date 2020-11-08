@@ -1,4 +1,5 @@
 using CSE.Automation.DataAccess;
+using CSE.Automation.Extensions;
 using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
@@ -6,167 +7,154 @@ using CSE.Automation.Processors;
 using CSE.Automation.Services;
 using Microsoft.Azure.Storage.Queue;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
-using Newtonsoft.Json;
 using NSubstitute;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using System.Collections.Generic;
 using static CSE.Automation.Tests.FunctionsUnitTests.CommonFunctions;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests
 {
     public class GraphDeltaProcessorFunctionsTests
     {
-        private readonly GraphDeltaProcessor _graphDeltaProcessor;
+        private  readonly GraphDeltaProcessor _graphDeltaProcessor;
+        private  readonly IServicePrincipalProcessor _processor;
+        private  ServicePrincipalProcessorSettings _servicePrincipalProcessorSettings;
 
-        private readonly ServicePrincipalProcessorSettings _servicePrincipalProcessorSettings;
-
-        private readonly ISecretClient _secretClient;
-        private readonly IGraphHelper<ServicePrincipal> _graphHelper;
-        private readonly IQueueServiceFactory _queueServiceFactory;
-        private readonly IConfigService<ProcessorConfiguration> _configService;
-        //private readonly IObjectTrackingService _objectService;
-        
-        private readonly ObjectTrackingService _objectService;
-        private readonly ObjectTrackingRepository _objectRespository;
-        private readonly ObjectTrackingRepositorySettings _objectTrackingRepositorySettings;
-
-        //private readonly IAuditService _auditService;
-        private readonly AuditService _auditService;
-        private readonly AuditRepository _auditRespository;
-        private readonly AuditRespositorySettings _auditRespositorySettings;
-
-        private readonly IModelValidatorFactory _modelValidatorFactory;
-
-        private readonly IServicePrincipalProcessor _processor;
-
-        private readonly ILogger<ServicePrincipalProcessor> _spLogger;
-
-        private readonly ILogger<GraphDeltaProcessor> _gLogger;
-
-        private readonly ILogger<AuditService> _aSLogger;
-        private readonly ILogger<AuditRepository> _aRLogger;
-
-
-        private readonly ILogger<ObjectTrackingService> _oTSLogger;
-        private readonly ILogger<ObjectTrackingRepository> _oTRLogger;
+        private  ISecretClient _secretClient;
+        private  IGraphHelper<ServicePrincipal> _graphHelper;
+        private  IQueueServiceFactory _queueServiceFactory;
+        private  IConfigService<ProcessorConfiguration> _configService;
 
         
+        private  ObjectTrackingService _objectService;
+        private  ObjectTrackingRepository _objectRespository;
+        private  ObjectTrackingRepositorySettings _objectTrackingRepositorySettings;
 
-        private readonly IServiceProvider _serviceProvider;
+        private  AuditService _auditService;
+        private  AuditRepository _auditRespository;
+        private  AuditRespositorySettings _auditRespositorySettings;
 
-        public readonly IConfigurationRoot _config;
+        private  ILogger<ServicePrincipalProcessor> _spProcessorLogger;
+        private  ILogger<GraphDeltaProcessor> _graphLogger;
+        private  ILogger<AuditService> _auditServiceLogger;
+        private  ILogger<AuditRepository> _auditRepoLogger;
+        private  ILogger<ObjectTrackingService> _objectTrackingServiceLogger;
+        private  ILogger<ObjectTrackingRepository> _objectTrackingRepoLogger;
+
+        private  IServiceProvider _serviceProvider;
+        private  IConfigurationRoot _config;
+        private  IModelValidatorFactory _modelValidatorFactory;
+
         public GraphDeltaProcessorFunctionsTests()
         {
-
-            _config = new ConfigurationBuilder().AddJsonFile("appconfig.json").Build();
-
-
             // TODO: Need to add an interfaces for these so we can mock them or come up with another way to instantiate 
             // for testing. As it is right now the substitution won't work because the
             // constructors will actually get called and GraphHelperBase will try to create a graph client.
 
-            //_processorResolver = Substitute.For<ProcessorResolver>();
-            _secretClient = Substitute.For<ISecretClient>();
-            _graphHelper = Substitute.For<IGraphHelper<ServicePrincipal>>();
 
-            
-            _serviceProvider = Substitute.For<IServiceProvider>();
-            _spLogger = Substitute.For<ILogger<ServicePrincipalProcessor>>();
+            BuildConfiguration();
 
-            _gLogger = Substitute.For<ILogger<GraphDeltaProcessor>>();
+            CreateMocks();
+            CreateLoggers();
+            CreateSettings();
+            CreateServices();
 
-            //********************************************************
+            _processor = new ServicePrincipalProcessor(_servicePrincipalProcessorSettings, _graphHelper, _queueServiceFactory,
+                        _configService, _objectService, _auditService, _modelValidatorFactory, _spProcessorLogger);
 
-            //TODO: BuildConfiguration(); <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+            _graphDeltaProcessor = new GraphDeltaProcessor(_serviceProvider, _processor, _graphLogger, true);
+        }
+
+        private void CreateServices()
+        {
+            _auditRespository = new AuditRepository(_auditRespositorySettings, _auditRepoLogger);
+            _auditService = new AuditService(_auditRespository, _auditServiceLogger);
+
+
+            _objectRespository = new ObjectTrackingRepository(_objectTrackingRepositorySettings, _objectTrackingRepoLogger);
+            _objectService = new ObjectTrackingService(_objectRespository, _auditService, _objectTrackingServiceLogger);
+        }
+
+        private void CreateSettings()
+        {
+            _auditRespositorySettings = new AuditRespositorySettings(_secretClient)
+            {
+                Uri = _config[Constants.CosmosDBURLName],
+                Key = _config[Constants.CosmosDBKeyName],
+                DatabaseName = _config[Constants.CosmosDBDatabaseName],
+                CollectionName = _config[Constants.CosmosDBAuditCollectionName]
+            };
+
+            _objectTrackingRepositorySettings = new ObjectTrackingRepositorySettings(_secretClient)
+            {
+                Uri = _config[Constants.CosmosDBURLName],
+                Key = _config[Constants.CosmosDBKeyName],
+                DatabaseName = _config[Constants.CosmosDBDatabaseName],
+                CollectionName = _config[Constants.CosmosDBObjectTrackingCollectionName]
+            };
 
             _servicePrincipalProcessorSettings = new ServicePrincipalProcessorSettings(_secretClient)// need this to setup queues
             {
-                //QueueConnectionString = config[Constants.SPStorageConnectionString],
-                //EvaluateQueueName = config[Constants.EvaluateQueueAppSetting.Trim('%')],
-                //UpdateQueueName = config[Constants.UpdateQueueAppSetting.Trim('%')],
-                //ConfigurationId = config["configId"].ToGuid(Guid.Parse("02a54ac9-441e-43f1-88ee-fde420db2559")),
-                //VisibilityDelayGapSeconds = config["visibilityDelayGapSeconds"].ToInt(8),
-                //QueueRecordProcessThreshold = config["queueRecordProcessThreshold"].ToInt(10),
-                //AADUpdateMode = config["aadUpdateMode"].As<UpdateMode>(UpdateMode.Update)
+                QueueConnectionString = _config[Constants.SPStorageConnectionString],
+                EvaluateQueueName = _config[Constants.EvaluateQueueAppSetting.Trim('%')],
+                UpdateQueueName = _config[Constants.UpdateQueueAppSetting.Trim('%')],
+                ConfigurationId = _config["configId"].ToGuid(Guid.Parse("02a54ac9-441e-43f1-88ee-fde420db2559")),
+                VisibilityDelayGapSeconds = _config["visibilityDelayGapSeconds"].ToInt(8),
+                QueueRecordProcessThreshold = _config["queueRecordProcessThreshold"].ToInt(10),
+                AADUpdateMode = _config["aadUpdateMode"].As<UpdateMode>(UpdateMode.Update)
             };
+        }
+
+        private void CreateLoggers()
+        {
+            _auditServiceLogger = CreateLogger<AuditService>();
+            _auditRepoLogger = CreateLogger<AuditRepository>();
+            _objectTrackingServiceLogger = CreateLogger<ObjectTrackingService>();
+            _objectTrackingRepoLogger = CreateLogger<ObjectTrackingRepository>();
+            _spProcessorLogger = CreateLogger<ServicePrincipalProcessor>();
+            _graphLogger = CreateLogger<GraphDeltaProcessor>();
+        }
+
+        private void CreateMocks()
+        {
+            _queueServiceFactory = Substitute.For<IQueueServiceFactory>();
+            _secretClient = Substitute.For<ISecretClient>();
+            _graphHelper = Substitute.For<IGraphHelper<ServicePrincipal>>();
+            _serviceProvider = Substitute.For<IServiceProvider>();
 
             _modelValidatorFactory = Substitute.For<IModelValidatorFactory>();
             _configService = Substitute.For<IConfigService<ProcessorConfiguration>>();
-
-            //_auditService = Substitute.For<IAuditService>();*******************************************************
-            _auditRespositorySettings = new AuditRespositorySettings(_secretClient)
-            {
-                //Uri = config[Constants.CosmosDBURLName],
-                //Key = config[Constants.CosmosDBKeyName],
-                //DatabaseName = config[Constants.CosmosDBDatabaseName],
-                //CollectionName = config[Constants.CosmosDBAuditCollectionName]
-            };
-            _auditRespository = new AuditRepository(_auditRespositorySettings, _aRLogger);
-            _auditService = new AuditService(_auditRespository, _aSLogger);
-
-
-            //_objectService = Substitute.For<IObjectTrackingService>();************************************************************
-            _objectTrackingRepositorySettings = new ObjectTrackingRepositorySettings(_secretClient)
-            {
-                //Uri = config[Constants.CosmosDBURLName],
-                //Key = config[Constants.CosmosDBKeyName],
-                //DatabaseName = config[Constants.CosmosDBDatabaseName],
-                //CollectionName = config[Constants.CosmosDBObjectTrackingCollectionName]
-            };
-            _objectRespository = new ObjectTrackingRepository(_objectTrackingRepositorySettings, _oTRLogger);
-            _objectService = new ObjectTrackingService(_objectRespository, _auditService, _oTSLogger);
-            
-
-
-            _queueServiceFactory = Substitute.For<IQueueServiceFactory>();
-            
-
-            //*********************************************************
-
-            //_processor = Substitute.For<IServicePrincipalProcessor>();
-
-
-
-            _processor = new ServicePrincipalProcessor(_servicePrincipalProcessorSettings, _graphHelper, _queueServiceFactory,
-                        _configService, _objectService, _auditService, _modelValidatorFactory, _spLogger);
-
-            _graphDeltaProcessor = new GraphDeltaProcessor(_serviceProvider, _processor, _gLogger, true);
         }
 
-        /*
+        private ILogger<T> CreateLogger<T>()
+        {
+            var serviceProvider = new ServiceCollection()
+                .AddLogging(builder =>
+                {
+                    builder.AddConsole();
+                    builder.AddDebug();
+                })
+                .BuildServiceProvider();
+
+            return serviceProvider.GetService<ILoggerFactory>().CreateLogger<T>();
+        }
+
+       
         private void BuildConfiguration()
         {
-            // CONFIGURATION
-            var serviceProvider = builder.Services.BuildServiceProvider();
-            var envName = builder.GetContext().EnvironmentName;
-            var appDirectory = builder.GetContext().ApplicationRootPath;
-            var defaultConfig = serviceProvider.GetRequiredService<IConfiguration>();
-
-            // order dependent.  Environment settings should override local configuration
-            //  The reasoning for the order is a local config file is more difficult to change
-            //  than an environment setting.  KeyVault settings should override any previous setting.
             var configBuilder = new ConfigurationBuilder()
-                .SetBasePath(appDirectory)
-                .AddJsonFile($"appsettings.{envName}.json", true)
-                .AddConfiguration(defaultConfig)
+                //.SetBasePath(appDirectory)
+                .AddJsonFile("appconfig.json", true)
                 .AddAzureKeyVaultConfiguration(Constants.KeyVaultName);
 
-            // file only exists on local dev machine, so treat these as dev machine overrides
-            //  the environment must be set to Development for this file to be even considered!
-            if (string.Equals(envName, "Development", StringComparison.OrdinalIgnoreCase))
-            {
-                configBuilder
-                    .AddJsonFile($"appsettings.Development.json", true);
-            }
-
-            var hostConfig = configBuilder.Build();
-            //builder.Services.Replace(ServiceDescriptor.Singleton(typeof(IConfiguration), hostConfig));
+            _config = configBuilder.Build();
         }
-        */
+        
 
         [Fact]
         public void FunctionsTestScaffolding()
@@ -177,7 +165,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
-        public async void FunctionEvaluateTest()
+        public void FunctionEvaluateTestCase1()
         {
             using var commonFunctions = new CommonFunctions(_config);
 
@@ -185,13 +173,14 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
 
             //this also works 
-            Task thisTaks = Task.Run (() => _graphDeltaProcessor.Evaluate(cloudQueueMessage, _gLogger));
+            Task thisTaks = Task.Run (() => _graphDeltaProcessor.Evaluate(cloudQueueMessage, _graphLogger));
             thisTaks.Wait();
-          
+
+            // TODO: Add Verification for TestCase.TC1 for upon success  
 
             Assert.True(true);
         }
 
-     
+
     }
 }

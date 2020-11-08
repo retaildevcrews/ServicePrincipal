@@ -5,8 +5,17 @@
 
   "servicePrincipalPrefix": "sp-AzQueueTesting",
 
-  "TC1" : "sp-AzQueueTesting-1",
-  "TC2" : "sp-AzQueueTesting-4",
-  "TC3" : "sp-AzQueueTesting-7"
-  
+  "TC1": "sp-AzQueueTesting-1",
+  "TC2": "sp-AzQueueTesting-4",
+  "TC3": "sp-AzQueueTesting-7",
+
+  "KEYVAULT_NAME": "sp-kv-dev",
+
+  "SPConfigurationCollection": "Configuration",
+  "SPObjectTrackingCollection": "ObjectTracking",
+  "SPAuditCollection": "Audit",
+
+  "SPEvaluateQueue": "evaluate",
+  "SPUpdateQueue": "update"
+
 }
