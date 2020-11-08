@@ -1,0 +1,12 @@
+{
+  "clientId": "",
+  "clientSecret": "",
+  "tenantId": "",
+
+  "servicePrincipalPrefix": "sp-AzQueueTesting",
+
+  "TC1" : "sp-AzQueueTesting-1",
+  "TC2" : "sp-AzQueueTesting-4",
+  "TC3" : "sp-AzQueueTesting-7"
+  
+}

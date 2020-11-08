@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AzQueueTestTool.TestCases.ServicePrincipals;
 using CSE.Automation.Model;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Graph;
 using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
@@ -22,8 +23,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         private bool _initialized = false;
 
-        internal CommonFunctions()
+        private readonly IConfigurationRoot _config;
+
+        internal CommonFunctions(IConfigurationRoot config)
         {
+            _config = config;
             InitGraphHelper();
         }
         
@@ -60,16 +64,16 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             switch (testCase)
             {
                 case TestCase.TC1:
-                    result = GetAADServicePrincipal(ConfigurationManager.AppSettings.Get(testCase.ToString()), testCase);
+                    result = GetAADServicePrincipal(_config[testCase.ToString()], testCase);
                     //result = GetAADServicePrincipal("sp-AzQueueTesting-1", testCase);
                     break;
 
                 case TestCase.TC2:
-                    result = GetAADServicePrincipal(ConfigurationManager.AppSettings.Get(testCase.ToString()), testCase);
+                    result = GetAADServicePrincipal(_config[testCase.ToString()], testCase);
                     break;
 
                 case TestCase.TC3:
-                    result = GetAADServicePrincipal(ConfigurationManager.AppSettings.Get(testCase.ToString()), testCase);
+                    result = GetAADServicePrincipal(_config[testCase.ToString()], testCase);
                     break;
 
                 default:
@@ -82,8 +86,8 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         private ServicePrincipalWrapper GetAADServicePrincipal(string spDisplayName, TestCase testCase)
         {
 
-            string servicePrincipalPrefix = ConfigurationManager.AppSettings.Get("servicePrincipalPrefix");
-            //string servicePrincipalPrefix = "sp-AzQueueTesting";
+            string servicePrincipalPrefix = _config["servicePrincipalPrefix"];
+            
 
             var servicePrincipalList = GraphHelper.GetAllServicePrincipals($"{servicePrincipalPrefix}").Result;
 
@@ -99,7 +103,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 throw new NullException(spObject);
             }
 
-
+            //TODO: Create validator clases instead enums
             ServicePrincipalWrapper result = new ServicePrincipalWrapper();
 
             switch (testCase)
@@ -149,9 +153,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         {
             if (_initialized)
                 return;
-            string clientID = ConfigurationManager.AppSettings.Get("clientId"); 
-            string clientSecret = ConfigurationManager.AppSettings.Get("clientSecret");
-            string tenantId = ConfigurationManager.AppSettings.Get("tenantId");
+
+            string clientID = _config["clientId"];
+            string clientSecret = _config["clientSecret"];
+            string tenantId = _config["tenantId"];
 
             IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
             .Create(clientID)

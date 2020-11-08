@@ -57,12 +57,18 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         
 
         private readonly IServiceProvider _serviceProvider;
+
+        public readonly IConfigurationRoot _config;
         public GraphDeltaProcessorFunctionsTests()
         {
+
+            _config = new ConfigurationBuilder().AddJsonFile("appconfig.json").Build();
+
+
             // TODO: Need to add an interfaces for these so we can mock them or come up with another way to instantiate 
             // for testing. As it is right now the substitution won't work because the
             // constructors will actually get called and GraphHelperBase will try to create a graph client.
-            
+
             //_processorResolver = Substitute.For<ProcessorResolver>();
             _secretClient = Substitute.For<ISecretClient>();
             _graphHelper = Substitute.For<IGraphHelper<ServicePrincipal>>();
@@ -173,7 +179,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         [Fact]
         public async void FunctionEvaluateTest()
         {
-            using var commonFunctions = new CommonFunctions();
+            using var commonFunctions = new CommonFunctions(_config);
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(commonFunctions.GetTestMessageContent(TestCase.TC1));
 
