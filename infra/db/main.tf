@@ -55,7 +55,13 @@ resource "azurerm_cosmosdb_sql_container" "cosmosdb-objtracking" {
   partition_key_path  = "/objectType"
 }
 
-
+resource "azurerm_cosmosdb_sql_container" "cosmosdb-activityhistory" {
+  name                = var.COSMOS_ACTIVITY_HISTORY_COL
+  resource_group_name = var.APP_RG_NAME
+  account_name        = azurerm_cosmosdb_account.cosmosacct.name
+  database_name       = azurerm_cosmosdb_sql_database.cosmosdb.name
+  partition_key_path  = "/correlationId"
+}
 
 
 output "DB_CREATION_DONE" {
