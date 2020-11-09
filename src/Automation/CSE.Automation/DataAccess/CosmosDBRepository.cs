@@ -385,7 +385,7 @@ namespace CSE.Automation.DataAccess
             return await InternalCosmosDBSqlQuery(sql).ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<TEntity>> GetMostRecentAsync(string objectId, int topValue = 1)
+        public async Task<IEnumerable<TEntity>> GetMostRecentAsync(string objectId, int limit = 1)
         {
             Guid guidValue;
             try
@@ -399,7 +399,7 @@ namespace CSE.Automation.DataAccess
                 _logger.LogCritical(ex, $"Invalid GUID value {objectId}");
             }
 
-            string sql = $"select top {topValue} * from c  c.objectId = {objectId} order by c._ts desc";
+            string sql = $"SELECT * FROM c WHERE c.objectId = '{objectId}'  ORDER BY c._ts DESC OFFSET 0 LIMIT {limit}";
 
             return await InternalCosmosDBSqlQuery(sql).ConfigureAwait(false);
         }

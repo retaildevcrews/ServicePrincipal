@@ -38,11 +38,12 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
         }
         public bool Validate()
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            return true;
         }
         public void Dispose()
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
     }
 }

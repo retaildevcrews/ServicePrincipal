@@ -36,7 +36,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
             getNewObjectTrackingItem.Wait();
 
             string resultValidatorClassName=  _inputGenerator.GetTestCaseId().GetObjectValidator();
-            string objectToInstantiate = $"CSE.Automation.FunctionsUnitTests.TestCaseStateValidators.ObjectTrackingResults.{resultValidatorClassName}, CSE.Automation.Tests";
+            string objectToInstantiate = $"CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrackingResults.{resultValidatorClassName}, CSE.Automation.Tests";
 
             var objectType = Type.GetType(objectToInstantiate);
 
@@ -49,7 +49,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
         } 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
     }

@@ -105,7 +105,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 
         private ServicePrincipalWrapper GetServicePrincipalWrapper(bool requery = false)
         {
-            if (_servicePrincipalWrapper == null && requery)
+            if (_servicePrincipalWrapper == null || requery)
             {
                 _servicePrincipalWrapper = GetAADServicePrincipal(_config[_testCase.ToString()], _testCase);
 

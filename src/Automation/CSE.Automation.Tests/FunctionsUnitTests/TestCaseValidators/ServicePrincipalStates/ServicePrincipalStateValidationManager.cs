@@ -12,7 +12,8 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
         {
 
             string stateDefinitionClassName= testCase.GetStateDefinition();
-            string objectToInstantiate = $"CSE.Automation.FunctionsUnitTests.TestCaseStateValidators.ServicePrincipalStates.{stateDefinitionClassName}, CSE.Automation.Tests";
+                                          
+            string objectToInstantiate = $"CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalStates.{stateDefinitionClassName}, CSE.Automation.Tests";
 
             var objectType = Type.GetType(objectToInstantiate);
 
