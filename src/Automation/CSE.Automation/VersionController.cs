@@ -40,7 +40,7 @@ namespace CSE.Automation
 
       if (String.IsNullOrEmpty(this.Version)) // local build
       {
-        this.Version = $"{File.ReadAllLines(".version")[0]}-alpha";
+        this.Version = $"{File.ReadAllLines("version.config")[0]}-alpha";
       }
     }
   }

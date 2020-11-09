@@ -39,7 +39,7 @@ jobs:
     - name: Calculate Patch Verison
       uses: avakar/derive-version@v1
       with:
-        file: src/Automation/CSE.Automation/.version
+        file: src/Automation/CSE.Automation/version.config
       id: version
     - name: Build Container
       run: |
