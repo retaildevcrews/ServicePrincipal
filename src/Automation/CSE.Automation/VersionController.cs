@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System;
+using System.IO;
 using System.Reflection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,37 +12,12 @@ using Microsoft.Extensions.Logging;
 
 namespace CSE.Automation
 {
-  [System.AttributeUsage(System.AttributeTargets.Assembly, Inherited = false, AllowMultiple = false)]
-  sealed class VersionMajorMinorAttribute : System.Attribute
+  sealed class SemanticVersionAttribute : System.Attribute
   {
     public string Value { get; }
-    public VersionMajorMinorAttribute(string VersionMajorMinor)
+    public SemanticVersionAttribute(string SemanticVersion)
     {
-        this.Value = VersionMajorMinor;
-    }
-  }
-  sealed class VersionRunIdAttribute : System.Attribute
-  {
-    public string Value { get; }
-    public VersionRunIdAttribute(string VersionRunId)
-    {
-        this.Value = VersionRunId;
-    }
-  }
-  sealed class VersionGitHashAttribute : System.Attribute
-  {
-    public string Value { get; }
-    public VersionGitHashAttribute(string VersionGitHash)
-    {
-        this.Value = VersionGitHash;
-    }
-  }
-  sealed class VersionQualityTagAttribute : System.Attribute
-  {
-    public string Value { get; }
-    public VersionQualityTagAttribute(string VersionQualityTag)
-    {
-        this.Value = VersionQualityTag;
+        this.Value = SemanticVersion;
     }
   }
   sealed class BuildTimestampAttribute : System.Attribute
@@ -59,24 +35,12 @@ namespace CSE.Automation
     public string BuildTs { get; }
     public VersionMetaData()
     {
-      string majorMinor = this.GetType().Assembly.GetCustomAttribute<VersionMajorMinorAttribute>().Value;
-
-      // These properties get injected by Dockerfile
-      string runId = this.GetType().Assembly.GetCustomAttribute<VersionRunIdAttribute>().Value;
-      string gitHash = this.GetType().Assembly.GetCustomAttribute<VersionGitHashAttribute>().Value;
-      string qualityTag = this.GetType().Assembly.GetCustomAttribute<VersionQualityTagAttribute>().Value;
-
+      this.Version = this.GetType().Assembly.GetCustomAttribute<SemanticVersionAttribute>().Value;
       this.BuildTs = this.GetType().Assembly.GetCustomAttribute<BuildTimestampAttribute>().Value;
 
-      if (String.IsNullOrEmpty(runId))
+      if (String.IsNullOrEmpty(this.Version)) // local build
       {
-        // version if solution not being run by docker (e.g. local development)
-        this.Version = $"{majorMinor}-alpha";
-      }
-      else
-      {
-        // version if being run by docker (e.g. production)
-        this.Version = $"{majorMinor}.{runId}-{qualityTag}+{gitHash}";
+        this.Version = $"{File.ReadAllLines(".version")[0]}-alpha";
       }
     }
   }

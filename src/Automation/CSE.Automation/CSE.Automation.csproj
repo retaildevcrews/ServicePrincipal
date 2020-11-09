@@ -6,27 +6,20 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
       <!-- TODO: set to true -->
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <!-- DO NOT SEPARATE VersionMajorMinor INTO MULTIPLE LINES -->
-    <VersionMajorMinor>0.2</VersionMajorMinor>
     <BuildUTC>$([System.DateTime]::UtcNow.ToString("o"))</BuildUTC>
   </PropertyGroup>
 
   <ItemGroup>
-    <AssemblyAttribute Include="CSE.Automation.VersionMajorMinorAttribute">
-      <_Parameter1>$(VersionMajorMinor)</_Parameter1>
-    </AssemblyAttribute>
-    <AssemblyAttribute Include="CSE.Automation.VersionRunIdAttribute">
-      <_Parameter1>$(VersionRunId)</_Parameter1>
-    </AssemblyAttribute>
-    <AssemblyAttribute Include="CSE.Automation.VersionGitHashAttribute">
-      <_Parameter1>$(VersionGitHash)</_Parameter1>
-    </AssemblyAttribute>
-    <AssemblyAttribute Include="CSE.Automation.VersionQualityTagAttribute">
-      <_Parameter1>$(VersionQualityTag)</_Parameter1>
+    <AssemblyAttribute Include="CSE.Automation.SemanticVersionAttribute">
+      <_Parameter1>$(SemanticVersion)</_Parameter1>
     </AssemblyAttribute>
     <AssemblyAttribute Include="CSE.Automation.BuildTimestampAttribute">
       <_Parameter1>$(BuildUTC)</_Parameter1>
     </AssemblyAttribute>
+    <Content Include=".version">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

@@ -7,7 +7,7 @@ WORKDIR /home/site/wwwroot
 ARG VERSION_RUN_ID
 ARG VERSION_GIT_HASH
 ARG VERSION_QUALITY_TAG
-RUN dotnet publish -p:VersionRunId=${VERSION_RUN_ID} -p:VersionGitHash=${VERSION_GIT_HASH} -p:VersionQualityTag=${VERSION_QUALITY_TAG} /src/CSE.Automation/*.csproj --output .
+RUN dotnet publish -p:SemanticVersion=${SEMANTIC_VERSION} /src/CSE.Automation/*.csproj --output .
 
 FROM mcr.microsoft.com/azure-functions/dotnet:3.0 as final
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot

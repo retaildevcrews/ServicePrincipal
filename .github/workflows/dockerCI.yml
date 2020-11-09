@@ -35,24 +35,25 @@ jobs:
       ACR_LOGGED_IN    : false
       DKR_IMG_IS_BUILT : false
       TEMP_IMG_NAME    : sp_image
-      RUN_ID           : ${{ github.run_number }}
-      QUALITY_TAG      : beta
 
     steps:
-    - uses: actions/checkout@v2
-
+    - name: Checkout Code and Calculate Patch Verison
+      uses: avakar/derive-version@v1
+      file: src/Automation/CSE.Automation/.version
+      id: version
     - name: Build Container
       run: |
-        # Update Quality Tag If This Is A Push To main
-        if [[ "${{ github.event_name }}" == "push" ]]; then
-          export QUALITY_TAG=release
+        GIT_HASH=$( echo ${{ github.sha }} | cut -c1-7 )
+        if [[ "${{ github.event_name }}" == "push" ]]
+        then
+          SEMANTIC_VERSION="${{ steps.version.outputs.version }}+${GIT_HASH}"
+        else
+          PR_NUMBER=$(echo "${{ github.ref }}" | awk 'BEGIN { FS = "/" } ; { print $3 }')
+          SEMANTIC_VERSION="${{ steps.version.outputs.version }}-beta+PR${PR_NUMBER}+${GIT_HASH}"
         fi
-        export GIT_HASH=$( echo ${{ github.sha }} | cut -c1-7 )
         # Build Image
         docker build --pull -t ${TEMP_IMG_NAME} \
-                    --build-arg VERSION_RUN_ID=${RUN_ID} \
-                    --build-arg VERSION_GIT_HASH=${GIT_HASH} \
-                    --build-arg VERSION_QUALITY_TAG=${QUALITY_TAG} \
+                    --build-arg SEMANTIC_VERSION=${SEMANTIC_VERSION} \
                     -f src/Automation/CSE.Automation/Dockerfile src/Automation
     
     - name: Login to Azure registry
@@ -66,17 +67,20 @@ jobs:
         echo "${{ secrets.SERVICE_PRINCIPAL_SECRET }}" | docker login "${ACR_REG_REPO_URL}" -u ${{ secrets.SERVICE_PRINCIPAL_ID }} --password-stdin
 
     - name: Docker Push
-      if: ${{ github.event.pull_request.merged != 'true'}}
       run: |
-        # Extract Major and Minor Versions
-        export MAJOR_MINOR=$(cat src/Automation/CSE.Automation/CSE.Automation.csproj | grep "<VersionMajorMinor>" | sed 's/\s*<VersionMajorMinor>\(.*\)<\/VersionMajorMinor>.*/\1/')
         export GIT_HASH=$( echo ${{ github.sha }} | cut -c1-7 )
-        #only run this step if pull request or push to main not on merge
-        if [[ "${{ github.event_name }}" == "push" ]]; then
-          export QUALITY_TAG=release
+        if [[ "${{ github.event_name }}" == "push" ]]
+        then
           docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:latest
+          SEMANTIC_VERSION="${{ steps.version.outputs.version }}-${GIT_HASH}"
+        else
+          PR_NUMBER=$(echo "${{ github.ref }}" | awk 'BEGIN { FS = "/" } ; { print $3 }')
+          SEMANTIC_VERSION="${{ steps.version.outputs.version }}-beta-PR${PR_NUMBER}-${GIT_HASH}"
         fi
-        docker tag ${TEMP_IMG_NAME} "${ACR_REG_REPO_URL}:${MAJOR_MINOR}.${RUN_ID}-${QUALITY_TAG}-${GIT_HASH}"
-        
-        # Push images after merge
+        docker tag ${TEMP_IMG_NAME} "${ACR_REG_REPO_URL}:${SEMANTIC_VERSION}"
         docker push ${ACR_REG_REPO_URL}
+    - name:
+      if: github.event_name == 'push'
+      uses: avakar/tag-and-release@v1
+      with:
+        tag_name: ${{ steps.version.outputs.version }}
