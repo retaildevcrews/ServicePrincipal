@@ -22,7 +22,7 @@ jobs:
       # with:
       #   creds: ${{ secrets.AZURE_CREDENTIALS }}
       run: |
-      # login to Azure
+        # login to Azure
         az login --service-principal -u ${{ secrets.SERVICE_PRINCIPAL }} --tenant ${{ secrets.TENANT }} -p ${{ secrets.SERVICE_PRINCIPAL_SECRET }}
     
     - name: Azure CLI script
