@@ -79,7 +79,7 @@ jobs:
         fi
         docker tag ${TEMP_IMG_NAME} "${ACR_REG_REPO_URL}:${SEMANTIC_VERSION}"
         docker push ${ACR_REG_REPO_URL}
-    - name:
+    - name: Tag Release
       if: github.event_name == 'push'
       uses: avakar/tag-and-release@v1
       with:
