@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Text;
+using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Table;
