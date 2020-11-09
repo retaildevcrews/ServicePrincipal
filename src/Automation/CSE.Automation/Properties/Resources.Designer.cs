@@ -61,6 +61,15 @@ namespace CSE.Automation.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Processor lock conflict.
+        /// </summary>
+        internal static string LockConflictMessage {
+            get {
+                return ResourceManager.GetString("LockConflictMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
         internal static byte[] ServicePrincipalProcessorConfiguration {
