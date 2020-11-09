@@ -39,7 +39,7 @@ jobs:
     steps:
     - name: Checkout Code and Calculate Patch Verison
       uses: avakar/derive-version@v1
-      inputs:
+      with:
         file: src/Automation/CSE.Automation/.version
       id: version
     - name: Build Container
