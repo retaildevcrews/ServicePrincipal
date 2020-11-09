@@ -8,9 +8,8 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
-    variables:
-    - name: test
-      value: testValue
+    env:
+      testValue: testVal
 
     steps:    
     - name: Azure Login
@@ -25,4 +24,4 @@ jobs:
         inlineScript: |
           az account show
           az storage -h
-          echo ${{ variables.one }}
+          echo ${{ env.testValue }}
