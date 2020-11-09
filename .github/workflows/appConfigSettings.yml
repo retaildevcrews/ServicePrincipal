@@ -1,0 +1,28 @@
+# File: .github/workflows/workflow.yml
+name: AzureCLIAppConfigSettings
+
+on: [push]
+
+jobs:
+
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    variables:
+    - name: test
+      value: testValue
+
+    steps:    
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.SERVICE_PRINCIPAL_SECRET }}
+    
+    - name: Azure CLI script
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.0.72
+        inlineScript: |
+          az account show
+          az storage -h
+          echo ${{ variables.one }}
