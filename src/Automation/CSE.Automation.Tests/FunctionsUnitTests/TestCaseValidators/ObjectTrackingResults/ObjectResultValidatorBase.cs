@@ -10,8 +10,14 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
     {
         public TestCase TestCaseID { get; }
 
+        public TrackingModel SavedObjectTracking { get; }
+
+        public TrackingModel NewObjectTracking { get;  }
+
         public ObjectResultValidatorBase(TrackingModel savedObjectTracking, TrackingModel newObjectTracking, TestCase testCase)
         {
+            SavedObjectTracking = savedObjectTracking;
+            NewObjectTracking = newObjectTracking;
             TestCaseID = testCase;
         }
 

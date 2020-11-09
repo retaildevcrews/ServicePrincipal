@@ -24,23 +24,28 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
 
         public void SaveState()
         {
+            _savedTrackingModel = GetObjectTrackingModel();
+        }
+    
+        private TrackingModel GetObjectTrackingModel()
+        {
             Task<TrackingModel> getObjectTrackingItem = Task.Run(() => _objectTrackingRepository.GetByIdAsync(_inputGenerator.GetServicePrincipal().Id, "ServicePrincipal"));
             getObjectTrackingItem.Wait();
 
-            _savedTrackingModel = getObjectTrackingItem.Result;
+            return getObjectTrackingItem.Result;
+
         }
-    
         public bool Validate()
         {
-            Task<TrackingModel> getNewObjectTrackingItem = Task.Run(() => _objectTrackingRepository.GetByIdAsync(_inputGenerator.GetServicePrincipal().Id, "ServicePrincipal"));
-            getNewObjectTrackingItem.Wait();
+            string resultValidatorClassName = _inputGenerator.TestCaseId.GetObjectValidator();
 
-            string resultValidatorClassName=  _inputGenerator.GetTestCaseId().GetObjectValidator();
             string objectToInstantiate = $"CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrackingResults.{resultValidatorClassName}, CSE.Automation.Tests";
 
             var objectType = Type.GetType(objectToInstantiate);
 
-            object[] args = { _savedTrackingModel, getNewObjectTrackingItem.Result, _inputGenerator.GetTestCaseId()};
+            var newObjectTrackingModel = GetObjectTrackingModel();
+
+            object[] args = { _savedTrackingModel, newObjectTrackingModel, _inputGenerator.TestCaseId};
 
             var instantiatedObject = Activator.CreateInstance(objectType, args) as IObjectResultValidator;
 

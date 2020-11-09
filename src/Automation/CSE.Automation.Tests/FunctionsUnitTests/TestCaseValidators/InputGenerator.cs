@@ -53,7 +53,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 
         private readonly IConfigurationRoot _config;
 
-        private readonly TestCase _testCase;
+        public TestCase TestCaseId { get; }
 
         private ServicePrincipalWrapper _servicePrincipalWrapper;
 
@@ -61,15 +61,12 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
         internal InputGenerator(IConfigurationRoot config, TestCase testCase)
         {
             _config = config;
-            _testCase = testCase;
+            TestCaseId = testCase;
 
             InitGraphHelper();
         }
         
-        internal TestCase GetTestCaseId()
-        {
-            return _testCase;
-        }
+      
         internal byte[] GetTestMessageContent()
         {
             ServicePrincipalWrapper spTest = GetServicePrincipalWrapper();
@@ -107,11 +104,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
         {
             if (_servicePrincipalWrapper == null || requery)
             {
-                _servicePrincipalWrapper = GetAADServicePrincipal(_config[_testCase.ToString()], _testCase);
+                _servicePrincipalWrapper = GetAADServicePrincipal(_config[TestCaseId.ToString()], TestCaseId);
 
                 if (_servicePrincipalWrapper == null)
                 {
-                    throw new Exception($"Unable to create ServicePrincipalWrapper for Test Case Id: {_testCase}");
+                    throw new Exception($"Unable to create ServicePrincipalWrapper for Test Case Id: {TestCaseId}");
                 }
             }
             return _servicePrincipalWrapper;

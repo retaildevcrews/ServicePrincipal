@@ -26,20 +26,42 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
 
         public void SaveState()
         {
+            _savedAuditEntry = GetMostRecentAuditEntryItem();
+        }
+
+        private AuditEntry GetMostRecentAuditEntryItem()
+        {
             Task<IEnumerable<AuditEntry>> getAuditItems = Task.Run(() => _auditRepository.GetMostRecentAsync(_inputGenerator.GetServicePrincipal().Id));
             getAuditItems.Wait();
 
+            AuditEntry result = null;
             var dataResult = getAuditItems.Result.ToList();
             if (dataResult.Count > 0)
             {
-                _savedAuditEntry = dataResult[0];
+                result = dataResult[0];
+            }
+            else
+            {
+                throw new Exception($"Unable to Get the most recent Audit item  for Test Case Id: {_inputGenerator.TestCaseId}");
             }
 
+            return result;
         }
+
         public bool Validate()
         {
-            //throw new NotImplementedException();
-            return true;
+            string resultValidatorClassName = _inputGenerator.TestCaseId.GetAuditValidator();
+            string objectToInstantiate = $"CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResults.{resultValidatorClassName}, CSE.Automation.Tests";
+
+            var objectType = Type.GetType(objectToInstantiate);
+
+            var newAuditEntry = GetMostRecentAuditEntryItem();
+            object[] args = { _savedAuditEntry, newAuditEntry, _inputGenerator.TestCaseId};
+
+            var instantiatedObject = Activator.CreateInstance(objectType, args) as IAuditResultValidator;
+
+            return instantiatedObject.Validate();
+          
         }
         public void Dispose()
         {
