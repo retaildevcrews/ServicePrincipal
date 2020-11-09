@@ -1,27 +1,43 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.Graph;
+using Newtonsoft.Json;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalResults
 {
-    class ServicePrincipalValidationManager : IDisposable, IResults
+    class ServicePrincipalValidationManager : IDisposable, IResultsManager
     {
-        private InputGenerator inputGenerator;
+        private InputGenerator _inputGenerator;
+
+        private string _savedServicePrincipalAsString;
 
         public ServicePrincipalValidationManager(InputGenerator inputGenerator)
         {
-            this.inputGenerator = inputGenerator;
+            _inputGenerator = inputGenerator;
+            SaveState();
         }
 
 
         public void SaveState()
         {
-            throw new NotImplementedException();
+            _savedServicePrincipalAsString = JsonConvert.SerializeObject(_inputGenerator.GetServicePrincipal());
         }
 
         public bool Validate()
         {
-            throw new NotImplementedException();
+            string resultValidatorClassName=  _inputGenerator.GetTestCaseId().GetSpValidator();
+            string objectToInstantiate = $"CSE.Automation.FunctionsUnitTests.TestCaseStateValidators.ServicePrincipalResults.{resultValidatorClassName}, CSE.Automation.Tests";
+
+            var objectType = Type.GetType(objectToInstantiate);
+
+            object[] args = { _savedServicePrincipalAsString, _inputGenerator.GetServicePrincipal(true), _inputGenerator.GetTestCaseId()};
+
+            var instantiatedObject = Activator.CreateInstance(objectType, args) as ISpResultValidator;
+
+            return instantiatedObject.Validate();
+
+
         } 
         public void Dispose()
         {

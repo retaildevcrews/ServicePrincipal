@@ -33,7 +33,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
             return attr.StateDefinitionName;
         }
 
-        public static string GetValidator(this Enum value)
+        public static string GetSpValidator(this Enum value)
         {
             var type = value.GetType();
             string name = Enum.GetName(type, value);
@@ -49,7 +49,57 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
                 return null;
             }
 
-            var attr = Attribute.GetCustomAttribute(field, typeof(ValidatorAttribute)) as ValidatorAttribute;
+            var attr = Attribute.GetCustomAttribute(field, typeof(SpValidatorAttribute)) as SpValidatorAttribute;
+            if (attr == null)
+            {
+                return null;
+            }
+
+            return attr.ValidatorName;
+        }
+
+        public static string GetObjectValidator(this Enum value)
+        {
+            var type = value.GetType();
+            string name = Enum.GetName(type, value);
+
+            if (name == null)
+            {
+                return null;
+            }
+
+            var field = type.GetField(name);
+            if (field == null)
+            {
+                return null;
+            }
+
+            var attr = Attribute.GetCustomAttribute(field, typeof(ObjectValidatorAttribute)) as ObjectValidatorAttribute;
+            if (attr == null)
+            {
+                return null;
+            }
+
+            return attr.ValidatorName;
+        }
+
+        public static string GetAuditValidator(this Enum value)
+        {
+            var type = value.GetType();
+            string name = Enum.GetName(type, value);
+
+            if (name == null)
+            {
+                return null;
+            }
+
+            var field = type.GetField(name);
+            if (field == null)
+            {
+                return null;
+            }
+
+            var attr = Attribute.GetCustomAttribute(field, typeof(AuditValidatorAttribute)) as AuditValidatorAttribute;
             if (attr == null)
             {
                 return null;

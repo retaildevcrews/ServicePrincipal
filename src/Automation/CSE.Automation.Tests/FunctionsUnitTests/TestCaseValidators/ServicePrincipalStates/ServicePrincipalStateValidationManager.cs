@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Graph;
-using static CSE.Automation.Tests.FunctionsUnitTests.InputGenerator;
+using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGenerator;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalStates
 {
-    internal class StateValidationManager : IDisposable
+    internal class ServicePrincipalStateValidationManager : IDisposable
     {
-        public ServicePrincipalWrapper Validate(ServicePrincipal servicePrincipal, TestCase testCase)
+        public ServicePrincipalWrapper ValidatePrecondition(ServicePrincipal servicePrincipal, TestCase testCase)
         {
 
             string stateDefinitionClassName= testCase.GetStateDefinition();
@@ -16,7 +16,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
             var objectType = Type.GetType(objectToInstantiate);
 
-            object[] args = { servicePrincipal };
+            object[] args = { servicePrincipal , testCase};
 
             var instantiatedObject = Activator.CreateInstance(objectType, args) as IStateDefinition;
 

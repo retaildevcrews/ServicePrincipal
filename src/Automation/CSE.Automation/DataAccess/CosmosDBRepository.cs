@@ -385,6 +385,25 @@ namespace CSE.Automation.DataAccess
             return await InternalCosmosDBSqlQuery(sql).ConfigureAwait(false);
         }
 
+        public async Task<IEnumerable<TEntity>> GetMostRecentAsync(string objectId, int topValue = 1)
+        {
+            Guid guidValue;
+            try
+            {
+                guidValue = Guid.Parse(objectId); // to prevent SQL injection attack
+            }
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch (Exception ex)
+#pragma warning restore CA1031 // Do not catch general exception types
+            {
+                _logger.LogCritical(ex, $"Invalid GUID value {objectId}");
+            }
+
+            string sql = $"select top {topValue} * from c  c.objectId = {objectId} order by c._ts desc";
+
+            return await InternalCosmosDBSqlQuery(sql).ConfigureAwait(false);
+        }
+
         #region IDisposable
         public void Dispose()
         {

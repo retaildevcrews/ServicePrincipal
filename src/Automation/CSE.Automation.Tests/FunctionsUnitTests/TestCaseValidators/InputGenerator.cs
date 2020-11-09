@@ -17,17 +17,30 @@ using Microsoft.Identity.Client;
 using Newtonsoft.Json;
 using Xunit.Sdk;
 
-namespace CSE.Automation.Tests.FunctionsUnitTests
+namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 {
     internal class InputGenerator : IDisposable
     {
 
         internal enum TestCase {
             [StateDefinition("StateDefinition1")]
-            [Validator("Validator1")]
-            TC1, 
-            TC2, 
+            [SpValidator("SpResultValidator1")]
+            [ObjectValidator("ObjectResultValidator1")]
+            [AuditValidator("AuditResultValidator1")]
+            TC1,
+
+            [StateDefinition("StateDefinition2")]
+            [SpValidator("SpResultValidator2")]
+            [ObjectValidator("ObjectResultValidator2")]
+            [AuditValidator("AuditResultValidator2")]
+            TC2,
+
+            [StateDefinition("StateDefinition3")]
+            [SpValidator("SpResultValidator3")]
+            [ObjectValidator("ObjectResultValidator3")]
+            [AuditValidator("AuditResultValidator3")]
             TC3, 
+
             TC4, 
             TC5, 
             TC6, 
@@ -42,6 +55,8 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         private readonly TestCase _testCase;
 
+        private ServicePrincipalWrapper _servicePrincipalWrapper;
+
 
         internal InputGenerator(IConfigurationRoot config, TestCase testCase)
         {
@@ -51,9 +66,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             InitGraphHelper();
         }
         
+        internal TestCase GetTestCaseId()
+        {
+            return _testCase;
+        }
         internal byte[] GetTestMessageContent()
         {
-            ServicePrincipalWrapper spTest = GetServicePrincipalFor(_testCase);
+            ServicePrincipalWrapper spTest = GetServicePrincipalWrapper();
 
             var servicePrincipal = new ServicePrincipalModel()
             {
@@ -73,39 +92,30 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             var payload = JsonConvert.SerializeObject(myMessage);
 
-            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(payload);
+            var plainTextBytes = Encoding.UTF8.GetBytes(payload);
             return plainTextBytes;
             
         }
 
-        internal ServicePrincipal GetServicePrincipal()
+        internal ServicePrincipal GetServicePrincipal(bool requery = false)
         {
-            return GetServicePrincipalFor(_testCase).AADServicePrincipal;
+            return GetServicePrincipalWrapper(requery).AADServicePrincipal;
 
         }
 
-        private ServicePrincipalWrapper GetServicePrincipalFor(TestCase testCase)
+        private ServicePrincipalWrapper GetServicePrincipalWrapper(bool requery = false)
         {
-            ServicePrincipalWrapper result;
-            switch (testCase)
+            if (_servicePrincipalWrapper == null && requery)
             {
-                case TestCase.TC1:
-                    result = GetAADServicePrincipal(_config[testCase.ToString()], testCase);
-                    break;
+                _servicePrincipalWrapper = GetAADServicePrincipal(_config[_testCase.ToString()], _testCase);
 
-                case TestCase.TC2:
-                    result = GetAADServicePrincipal(_config[testCase.ToString()], testCase);
-                    break;
-
-                case TestCase.TC3:
-                    result = GetAADServicePrincipal(_config[testCase.ToString()], testCase);
-                    break;
-
-                default:
-                    throw new Exception($"Prerequisites are not setup for Test Case Id: {testCase}");
+                if (_servicePrincipalWrapper == null)
+                {
+                    throw new Exception($"Unable to create ServicePrincipalWrapper for Test Case Id: {_testCase}");
+                }
             }
-
-            return result;
+            return _servicePrincipalWrapper;
+           
         }
 
         private ServicePrincipalWrapper GetAADServicePrincipal(string spDisplayName, TestCase testCase)
@@ -118,19 +128,19 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             ServicePrincipal spObject = servicePrincipalList.FirstOrDefault(x => x.DisplayName == spDisplayName);
 
-            return ValidateServicePrincipalStateFor(spObject, testCase);
+            return ValidateServicePrincipalPreconditionStateFor(spObject, testCase);
         }
 
-        private ServicePrincipalWrapper ValidateServicePrincipalStateFor(ServicePrincipal spObject, TestCase testCase)
+        private ServicePrincipalWrapper ValidateServicePrincipalPreconditionStateFor(ServicePrincipal spObject, TestCase testCase)
         {
             if (spObject == null)
             {
                 throw new NullException(spObject);
             }
 
-            using var stateValidationManager = new StateValidationManager();
+            using var stateValidationManager = new ServicePrincipalStateValidationManager();
             
-            return stateValidationManager.Validate(spObject,  testCase);
+            return stateValidationManager.ValidatePrecondition(spObject,  testCase);
             
 
         }

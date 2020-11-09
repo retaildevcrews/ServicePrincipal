@@ -15,12 +15,30 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
             }
         }
 
-        internal class ValidatorAttribute : Attribute
+        internal class SpValidatorAttribute : Attribute
         {
             public string ValidatorName;
-            public ValidatorAttribute(string validatorName) 
+            public SpValidatorAttribute(string validatorName) 
             {
                 ValidatorName = validatorName; 
+            }
+        }
+
+        internal class ObjectValidatorAttribute : Attribute
+        {
+            public string ValidatorName;
+            public ObjectValidatorAttribute(string validatorName)
+            {
+                ValidatorName = validatorName;
+            }
+        }
+
+        internal class AuditValidatorAttribute : Attribute
+        {
+            public string ValidatorName;
+            public AuditValidatorAttribute(string validatorName)
+            {
+                ValidatorName = validatorName;
             }
         }
     }

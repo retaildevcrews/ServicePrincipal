@@ -14,11 +14,11 @@ using NSubstitute;
 using System;
 using System.Threading.Tasks;
 using Xunit;
-using System.Collections.Generic;
-using static CSE.Automation.Tests.FunctionsUnitTests.InputGenerator;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrackingResults;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResults;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalResults;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators;
+using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGenerator;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests
 {
@@ -174,23 +174,23 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
 
-            using ObjectTrackingValidationManager objectTrackingValidationManager = new ObjectTrackingValidationManager(inputGenerator);
-            objectTrackingValidationManager.SaveState();//will snapshot last ObjectTracking item for SP
+            //Create Validators 
+            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator);
 
-            using AuditValidationManager auditValidationManager = new AuditValidationManager(inputGenerator);
-            auditValidationManager.SaveState();//will snapshot last Audit item for SP
+            using var objectTrackingValidationManager = new ObjectTrackingValidationManager(inputGenerator, _objectRespository);
+ 
+            using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespository);
+ 
 
             Task thisTaks = Task.Run (() => _graphDeltaProcessor.Evaluate(cloudQueueMessage, _graphLogger));
             thisTaks.Wait();
 
-            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator);
+            //Validate Outcome and state after execution for Service Principal, Audit and ObjectTracking objects based on TestCase injected thru InputGenerator
+            bool validServicePrincipal = servicePrincipalValidationManager.Validate(); 
 
-            bool validServicePrincipal = servicePrincipalValidationManager.Validate();
+            bool validAudit =  auditValidationManager.Validate(); 
 
-
-            bool validAudit =  auditValidationManager.Validate();
-
-            bool validObjectTracking =  objectTrackingValidationManager.Validate();
+            bool validObjectTracking =  objectTrackingValidationManager.Validate();   
 
              Assert.True(validObjectTracking && validAudit && validServicePrincipal);
 

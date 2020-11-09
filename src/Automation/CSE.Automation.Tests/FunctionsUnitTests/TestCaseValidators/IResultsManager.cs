@@ -4,7 +4,7 @@ using System.Text;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 {
-    internal interface IResults
+    internal interface IResultsManager
     {
         void SaveState();
 
