@@ -9,13 +9,18 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      testValue: testVal
+      # RG/FUNCTION APP INFO
+      RESOURCE_GROUP_NAME: serviceprincipal-rg-dev
+      FUNCTION_APP_NAME: sp-funcn-dev
+
+      # CONFIG SETTINGS
+      KEYVAULT_NAME: sp-kv-dev
 
     steps:    
     - name: Azure Login
       uses: azure/login@v1
       with:
-        creds: ${{ secrets.SERVICE_PRINCIPAL_SECRET }}
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
     
     - name: Azure CLI script
       uses: azure/CLI@v1
@@ -24,4 +29,7 @@ jobs:
         inlineScript: |
           az account show
           az storage -h
-          echo ${{ env.testValue }}
+          echo ${{ env.KEYVAULT_NAME }}
+          az functionapp config appsettings set --name ${{ env.FUNCTION_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
+            --settings KEYVAULT_NAME=${{ env.KEYVAULT_NAME }}
