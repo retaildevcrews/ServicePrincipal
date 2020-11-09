@@ -19,7 +19,7 @@ using Xunit.Sdk;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests
 {
-    internal class CommonFunctions : IDisposable
+    internal class InputGenerator : IDisposable
     {
 
         internal enum TestCase {
@@ -40,15 +40,20 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         private readonly IConfigurationRoot _config;
 
-        internal CommonFunctions(IConfigurationRoot config)
+        private readonly TestCase _testCase;
+
+
+        internal InputGenerator(IConfigurationRoot config, TestCase testCase)
         {
             _config = config;
+            _testCase = testCase;
+
             InitGraphHelper();
         }
         
-        internal byte[] GetTestMessageContent(TestCase testCase)
+        internal byte[] GetTestMessageContent()
         {
-            ServicePrincipalWrapper spTest = GetServicePrincipalFor(testCase);
+            ServicePrincipalWrapper spTest = GetServicePrincipalFor(_testCase);
 
             var servicePrincipal = new ServicePrincipalModel()
             {
@@ -71,6 +76,12 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(payload);
             return plainTextBytes;
             
+        }
+
+        internal ServicePrincipal GetServicePrincipal()
+        {
+            return GetServicePrincipalFor(_testCase).AADServicePrincipal;
+
         }
 
         private ServicePrincipalWrapper GetServicePrincipalFor(TestCase testCase)

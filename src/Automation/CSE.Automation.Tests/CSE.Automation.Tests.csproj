@@ -38,8 +38,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="FunctionsUnitTests\TestCaseValidators\AuditResults\" />
-    <Folder Include="FunctionsUnitTests\TestCaseValidators\ObjectTrackingResults\" />
     <Folder Include="LinkedDependencies\" />
   </ItemGroup>
 

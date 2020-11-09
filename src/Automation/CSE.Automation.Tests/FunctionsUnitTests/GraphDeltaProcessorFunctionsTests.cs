@@ -15,7 +15,10 @@ using System;
 using System.Threading.Tasks;
 using Xunit;
 using System.Collections.Generic;
-using static CSE.Automation.Tests.FunctionsUnitTests.CommonFunctions;
+using static CSE.Automation.Tests.FunctionsUnitTests.InputGenerator;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrackingResults;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResults;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalResults;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests
 {
@@ -167,26 +170,30 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         [Fact]
         public void FunctionEvaluateTestCase1()
         {
-            using var commonFunctions = new CommonFunctions(_config);
+            using var inputGenerator = new InputGenerator(_config, TestCase.TC1);
 
-            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(commonFunctions.GetTestMessageContent(TestCase.TC1));
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
+
+            using ObjectTrackingValidationManager objectTrackingValidationManager = new ObjectTrackingValidationManager(inputGenerator);
+            objectTrackingValidationManager.SaveState();//will snapshot last ObjectTracking item for SP
+
+            using AuditValidationManager auditValidationManager = new AuditValidationManager(inputGenerator);
+            auditValidationManager.SaveState();//will snapshot last Audit item for SP
 
             Task thisTaks = Task.Run (() => _graphDeltaProcessor.Evaluate(cloudQueueMessage, _graphLogger));
             thisTaks.Wait();
 
-            // TODO: Upon Task execution success, Validate ObjectTracking and/or Audit for  TestCase.TC1
-            /*
-              using var objectTrackingValidationManager = new ObjectTrackingValidationManager();
+            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator);
 
-              bool validObjectTracking =  objectTrackingValidationManager.Validate(spObject, testCase);
+            bool validServicePrincipal = servicePrincipalValidationManager.Validate();
 
-              using var auditValidationManager = new AuditValidationManager();
 
-              bool validAudit =  auditValidationManager.Validate(spObject, testCase);
+            bool validAudit =  auditValidationManager.Validate();
 
-              Assert.True(validObjectTracking && validAudit);
-            */
-            Assert.True(true);
+            bool validObjectTracking =  objectTrackingValidationManager.Validate();
+
+             Assert.True(validObjectTracking && validAudit && validServicePrincipal);
+
         }
 
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Graph;
-using static CSE.Automation.Tests.FunctionsUnitTests.CommonFunctions;
+using static CSE.Automation.Tests.FunctionsUnitTests.InputGenerator;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalStates
 {
