@@ -8,6 +8,7 @@ using CSE.Automation.Extensions;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
 using CSE.Automation.Processors;
+using CSE.Automation.Properties;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Storage.Queue;
@@ -24,9 +25,6 @@ namespace CSE.Automation
         private readonly IActivityService activityService;
         private readonly IServicePrincipalProcessor processor;
         private readonly ILogger logger;
-
-        // TODO: move to resource
-        private const string LockConflictMessage = "Processor lock conflict";
 
         public GraphDeltaProcessor(IServiceProvider serviceProvider, IActivityService activityService, IServicePrincipalProcessor processor, ILogger<GraphDeltaProcessor> logger)
         {
@@ -129,7 +127,7 @@ namespace CSE.Automation
                 context.Activity.Status = ActivityHistoryStatus.Failed;
 
                 ex.Data["activityContext"] = context;
-                log.LogError(ex, LockConflictMessage);
+                log.LogError(ex, Resources.LockConflictMessage);
             }
         }
 
