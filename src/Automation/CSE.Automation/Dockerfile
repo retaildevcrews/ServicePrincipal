@@ -4,9 +4,7 @@ COPY ["CSE.Automation/CSE.Automation.csproj", "CSE.Automation/"]
 RUN dotnet restore "CSE.Automation/CSE.Automation.csproj"
 COPY . .
 WORKDIR /home/site/wwwroot
-ARG VERSION_RUN_ID
-ARG VERSION_GIT_HASH
-ARG VERSION_QUALITY_TAG
+ARG SEMANTIC_VERSION
 RUN dotnet publish -p:SemanticVersion=${SEMANTIC_VERSION} /src/CSE.Automation/*.csproj --output .
 
 FROM mcr.microsoft.com/azure-functions/dotnet:3.0 as final
