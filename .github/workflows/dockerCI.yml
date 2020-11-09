@@ -31,13 +31,12 @@ jobs:
 
     env:
       ACR_REG_REPO_URL : serviceprincipalacrdev.azurecr.io/serviceprincipal
-      # These are used in if: conditions
-      ACR_LOGGED_IN    : false
-      DKR_IMG_IS_BUILT : false
       TEMP_IMG_NAME    : sp_image
 
     steps:
-    - name: Checkout Code and Calculate Patch Verison
+    - name: Checkout Code
+      uses: actions/checkout@v2
+    - name: Calculate Patch Verison
       uses: avakar/derive-version@v1
       with:
         file: src/Automation/CSE.Automation/.version
