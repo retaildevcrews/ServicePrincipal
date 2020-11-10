@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using CSE.Automation.DataAccess;
 using CSE.Automation.Extensions;
 using CSE.Automation.Graph;
@@ -109,10 +110,11 @@ namespace CSE.Automation
             builder.Services.Replace(ServiceDescriptor.Singleton(typeof(IConfiguration), hostConfig));
         }
 
-        private static void RegisterSettings(IFunctionsHostBuilder builder)
+        private void RegisterSettings(IFunctionsHostBuilder builder)
         {
             Assembly thisAssembly = Assembly.GetExecutingAssembly();
             VersionMetadata versionConfig = new VersionMetadata(thisAssembly);
+            _logger.LogInformation(JsonSerializer.Serialize(versionConfig));
             var serviceProvider = builder.Services.BuildServiceProvider();
             var config = serviceProvider.GetRequiredService<IConfiguration>();
 
