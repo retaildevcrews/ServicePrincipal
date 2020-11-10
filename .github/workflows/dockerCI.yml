@@ -73,7 +73,7 @@ jobs:
         if [[ "${{ github.event_name }}" == "push" ]]
         then
           VERSION_SUFFIX="${GIT_HASH}"
-          docker tag ${TEMP_IMG_NAME} "${ACR_REG_REPO_URL}:latest
+          docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:latest
         else
           PR_NUMBER=$(echo "${{ github.ref }}" | awk 'BEGIN { FS = "/" } ; { print $3 }')
           VERSION_SUFFIX="PR${PR_NUMBER}-${GIT_HASH}"
