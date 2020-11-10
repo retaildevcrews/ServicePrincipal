@@ -6,7 +6,7 @@ COPY . .
 WORKDIR /home/site/wwwroot
 ARG VERSION_PREFIX
 ARG VERSION_SUFFIX
-RUN dotnet publish -p:VersionPrefix=${VERSION_PREFIX} -p:VersionSuffix=${VERSION_SUFFIX} /src/CSE.Automation/*.csproj --output .
+RUN dotnet publish -p:VersionPrefix=${VERSION_PREFIX} -p:VersionSuffix=${VERSION_SUFFIX} --verbosity n /src/CSE.Automation/*.csproj --output .
 
 FROM mcr.microsoft.com/azure-functions/dotnet:3.0 as final
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot
