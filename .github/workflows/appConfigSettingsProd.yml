@@ -1,7 +1,10 @@
-# File: .github/workflows/workflow.yml
-name: AzureCLIAppConfigSettings
+# File: .github/workflows/appConfigSettingsProd.yml
+name: Update Function App Config Settings on Production
 
-on: [push]
+on:
+  push:
+    branches:
+      - dummy-main
 
 jobs:
 
@@ -29,7 +32,7 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.8 #install the python needed
-        
+
     - name: execute py script # run the run.py to get the latest data
       run: |
         python .github/workflows/appConfigSettings.py prod

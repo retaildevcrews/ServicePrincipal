@@ -24,24 +24,24 @@ def main(argv):
 
     prodDict['ScanLimit'] = "2000"
 
-    devEnvDict = {}
-    devEnvDict['RESOURCE_GROUP_NAME']  = "serviceprincipal-rg-dev"
-    devEnvDict['FUNCTION_APP_NAME']    = "sp-funcn-dev"
+    qaEnvDict = {}
+    qaEnvDict['RESOURCE_GROUP_NAME']  = "serviceprincipal-rg-dev"
+    qaEnvDict['FUNCTION_APP_NAME']    = "sp-funcn-dev"
 
-    devDict ={}
+    qaDict ={}
 
-    devDict['KEYVAULT_NAME'] = "sp-kv-dev"
+    qaDict['KEYVAULT_NAME'] = "sp-kv-dev"
 
-    devDict['SPAuditCollection']           = "Audit"
-    devDict['SPConfigurationCollection']   = "Configuration"
-    devDict['SPObjectTrackingCollection']  = "ObjectTracking"
+    qaDict['SPAuditCollection']           = "Audit"
+    qaDict['SPConfigurationCollection']   = "Configuration"
+    qaDict['SPObjectTrackingCollection']  = "ObjectTracking"
 
-    devDict['SPDeltaDiscoverySchedule']    = "\"0 */30 * * * *\""
+    qaDict['SPDeltaDiscoverySchedule']    = "\"0 */30 * * * *\""
 
-    devDict['SPEvaluateQueue'] = "evaluate"
-    devDict['SPUpdateQueue']   = "update"
+    qaDict['SPEvaluateQueue'] = "evaluate"
+    qaDict['SPUpdateQueue']   = "update"
 
-    devDict['ScanLimit'] = "2000"
+    qaDict['ScanLimit'] = "2000"
 
 
 
@@ -64,10 +64,10 @@ def main(argv):
 
         print ("Applying QA environment app function config settings")
 
-        for setting in prodDict:
+        for setting in qaDict:
             print(f"Updating {setting}")
-            print(f"az functionapp config appsettings set --name {prodEnvDict['FUNCTION_APP_NAME']} --resource-group {prodEnvDict['RESOURCE_GROUP_NAME']} --settings {setting}={prodDict[setting]}")
-            os.system(f"az functionapp config appsettings set --name {prodEnvDict['FUNCTION_APP_NAME']} --resource-group {prodEnvDict['RESOURCE_GROUP_NAME']} --settings {setting}={prodDict[setting]}")
+            print(f"az functionapp config appsettings set --name {qaEnvDict['FUNCTION_APP_NAME']} --resource-group {qaEnvDict['RESOURCE_GROUP_NAME']} --settings {setting}={qaDict[setting]}")
+            os.system(f"az functionapp config appsettings set --name {qaEnvDict['FUNCTION_APP_NAME']} --resource-group {qaEnvDict['RESOURCE_GROUP_NAME']} --settings {setting}={qaDict[setting]}")
 
     else:
         print("appConfigSetting.py <mode>, where mode = prod | qa")
