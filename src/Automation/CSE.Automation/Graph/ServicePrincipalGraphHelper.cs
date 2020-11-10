@@ -1,11 +1,11 @@
-﻿using CSE.Automation.Model;
-using Microsoft.Graph;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using System.Linq;
+using System.Threading.Tasks;
 using CSE.Automation.Interfaces;
+using CSE.Automation.Model;
+using Microsoft.Extensions.Logging;
+using Microsoft.Graph;
 
 #pragma warning disable CA1031 // Do not catch general exception types
 
@@ -13,9 +13,10 @@ namespace CSE.Automation.Graph
 {
     internal class ServicePrincipalGraphHelper : GraphHelperBase<ServicePrincipal>
     {
-
-
-        public ServicePrincipalGraphHelper(GraphHelperSettings settings, IAuditService auditService, ILogger<ServicePrincipalGraphHelper> logger) : base(settings, auditService, logger) { }
+        public ServicePrincipalGraphHelper(GraphHelperSettings settings, IAuditService auditService, ILogger<ServicePrincipalGraphHelper> logger)
+                : base(settings, auditService, logger)
+        {
+        }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Console.WriteLine will be changed to logs")]
         public override async Task<(GraphOperationMetrics metrics, IEnumerable<ServicePrincipal> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string selectFields = null)
@@ -26,6 +27,7 @@ namespace CSE.Automation.Graph
             {
                 throw new ArgumentNullException(nameof(config));
             }
+
             if (string.IsNullOrWhiteSpace(selectFields))
             {
                 selectFields = string.Join(',', config.SelectFields);
@@ -42,8 +44,6 @@ namespace CSE.Automation.Graph
                 servicePrincipalCollectionPage = await GraphClient.ServicePrincipals
                 .Delta()
                 .Request()
-                //.Select(selectFields)
-                .Top(500)
                 .GetAsync()
                 .ConfigureAwait(false);
             }
@@ -65,7 +65,7 @@ namespace CSE.Automation.Graph
             metrics.Considered = servicePrincipalList.Count;
             while (servicePrincipalCollectionPage.NextPageRequest != null)
             {
-                servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.Top(500).GetAsync().ConfigureAwait(false);
+                servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
 
                 var pageList = servicePrincipalCollectionPage.CurrentPage;
                 var count = pageList.Count;
@@ -103,7 +103,7 @@ namespace CSE.Automation.Graph
             return (metrics, servicePrincipalList);
         }
 
-        public async override Task<ServicePrincipal> GetGraphObject(string id)
+        public async override Task<ServicePrincipal> GetGraphObjectWithOwners(string id)
         {
             var entity = await GraphClient.ServicePrincipals[id]
                 .Request()
@@ -114,14 +114,6 @@ namespace CSE.Automation.Graph
             return entity;
         }
 
-        //public async override Task<IEnumerable<ServicePrincipal>> GetGraphObjects(IEnumerable<QueryOption> queryOptions)
-        //{
-        //    var entityList = await graphClient.ServicePrincipals
-        //                        .Request(queryOptions)
-        //                        .GetAsync()
-        //                        .ConfigureAwait(false);
-        //    return entityList;
-        //}
         public async override Task PatchGraphObject(ServicePrincipal servicePrincipal)
         {
             // API call uses a PATCH so only include properties to change
@@ -131,15 +123,12 @@ namespace CSE.Automation.Graph
                     .ConfigureAwait(false);
         }
 
-        #region HELPER
-
         private static bool IsSeedRun(ProcessorConfiguration config)
         {
             return
                 config.RunState == RunState.Seedonly ||
                 config.RunState == RunState.SeedAndRun ||
-                String.IsNullOrEmpty(config.DeltaLink);
+                string.IsNullOrEmpty(config.DeltaLink);
         }
-        #endregion
     }
 }

@@ -8,7 +8,7 @@ using Microsoft.OData.UriParser;
 
 namespace CSE.Automation.Interfaces
 {
-    public interface IAuditService
+    internal interface IAuditService
     {
         Task PutFail(ActivityContext context, AuditCode code, string objectId, string attributeName, string existingAttributeValue, string message = null, DateTimeOffset? auditTime = null);
 

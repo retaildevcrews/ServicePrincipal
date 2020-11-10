@@ -21,7 +21,7 @@ namespace CSE.Automation.Graph
             throw new NotImplementedException();
         }
 
-        public async override Task<User> GetGraphObject(string id)
+        public async override Task<User> GetGraphObjectWithOwners(string id)
         {
             try
             {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -77,6 +78,8 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
                 AppId = spTest.AADServicePrincipal.AppId,
                 DisplayName = spTest.AADServicePrincipal.DisplayName,
                 Notes = spTest.AADServicePrincipal.Notes,
+                Created = DateTimeOffset.Parse(spTest.AADServicePrincipal.AdditionalData["createdDateTime"].ToString(), CultureInfo.CurrentCulture),
+                Deleted = spTest.AADServicePrincipal.DeletedDateTime,
                 Owners = spTest.HasOwners ? spTest.AADUsers : null
             };
 

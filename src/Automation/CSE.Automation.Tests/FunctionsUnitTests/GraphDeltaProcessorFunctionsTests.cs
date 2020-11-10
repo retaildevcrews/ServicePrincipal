@@ -19,39 +19,45 @@ using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResults;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalResults;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators;
 using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGenerator;
+using System.Runtime.CompilerServices;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests
 {
     public class GraphDeltaProcessorFunctionsTests
     {
-        private  readonly GraphDeltaProcessor _graphDeltaProcessor;
-        private  readonly IServicePrincipalProcessor _processor;
-        private  ServicePrincipalProcessorSettings _servicePrincipalProcessorSettings;
+        private readonly GraphDeltaProcessor _graphDeltaProcessor;
+        private readonly IServicePrincipalProcessor _processor;
+        private ServicePrincipalProcessorSettings _servicePrincipalProcessorSettings;
 
-        private  ISecretClient _secretClient;
-        private  IGraphHelper<ServicePrincipal> _graphHelper;
-        private  IQueueServiceFactory _queueServiceFactory;
-        private  IConfigService<ProcessorConfiguration> _configService;
+        private ISecretClient _secretClient;
+        private IGraphHelper<ServicePrincipal> _graphHelper;
+        private IQueueServiceFactory _queueServiceFactory;
+        private IConfigService<ProcessorConfiguration> _configService;
 
         
-        private  ObjectTrackingService _objectService;
-        private  ObjectTrackingRepository _objectRespository;
-        private  ObjectTrackingRepositorySettings _objectTrackingRepositorySettings;
+        private ObjectTrackingService _objectService;
+        private ObjectTrackingRepository _objectRespository;
+        private ObjectTrackingRepositorySettings _objectTrackingRepositorySettings;
 
-        private  AuditService _auditService;
-        private  AuditRepository _auditRespository;
-        private  AuditRespositorySettings _auditRespositorySettings;
+        private AuditService _auditService;
+        private AuditRepository _auditRespository;
+        private AuditRepositorySettings _auditRespositorySettings;
 
-        private  ILogger<ServicePrincipalProcessor> _spProcessorLogger;
-        private  ILogger<GraphDeltaProcessor> _graphLogger;
-        private  ILogger<AuditService> _auditServiceLogger;
-        private  ILogger<AuditRepository> _auditRepoLogger;
-        private  ILogger<ObjectTrackingService> _objectTrackingServiceLogger;
-        private  ILogger<ObjectTrackingRepository> _objectTrackingRepoLogger;
+        private ActivityService _activityService;
+        private ActivityHistoryRepository _auditHistoryRespository;
+        private ActivityHistoryRepositorySettings _activityRespositorySettings;
 
-        private  IServiceProvider _serviceProvider;
-        private  IConfigurationRoot _config;
-        private  IModelValidatorFactory _modelValidatorFactory;
+        private ILogger<ServicePrincipalProcessor> _spProcessorLogger;
+        private ILogger<GraphDeltaProcessor> _graphLogger;
+        private ILogger<AuditService> _auditServiceLogger;
+        private ILogger<AuditRepository> _auditRepoLogger;
+        private ILogger<ObjectTrackingService> _objectTrackingServiceLogger;
+        private ILogger<ObjectTrackingRepository> _objectTrackingRepoLogger;
+        private ILogger<ActivityService> _activityServiceLogger;
+
+        private IServiceProvider _serviceProvider;
+        private IConfigurationRoot _config;
+        private IModelValidatorFactory _modelValidatorFactory;
 
         public GraphDeltaProcessorFunctionsTests()
         {
@@ -67,10 +73,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             CreateSettings();
             CreateServices();
 
-            _processor = new ServicePrincipalProcessor(_servicePrincipalProcessorSettings, _graphHelper, _queueServiceFactory,
-                        _configService, _objectService, _auditService, _modelValidatorFactory, _spProcessorLogger);
+            _processor = new ServicePrincipalProcessor(_servicePrincipalProcessorSettings, _graphHelper, _queueServiceFactory, _configService,
+                        _objectService, _auditService, _activityService, _modelValidatorFactory, _spProcessorLogger);
 
-            _graphDeltaProcessor = new GraphDeltaProcessor(_serviceProvider, _processor, _graphLogger, true);
+            _graphDeltaProcessor = new GraphDeltaProcessor(_serviceProvider, _activityService, _processor, _graphLogger); //, true);
         }
 
         private void CreateServices()
@@ -81,11 +87,15 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             _objectRespository = new ObjectTrackingRepository(_objectTrackingRepositorySettings, _objectTrackingRepoLogger);
             _objectService = new ObjectTrackingService(_objectRespository, _auditService, _objectTrackingServiceLogger);
+
+            _auditHistoryRespository = new ActivityHistoryRepository(_activityRespositorySettings, _auditRepoLogger);
+            _activityService = new ActivityService(_auditHistoryRespository, _activityServiceLogger);
+
         }
 
         private void CreateSettings()
         {
-            _auditRespositorySettings = new AuditRespositorySettings(_secretClient)
+            _auditRespositorySettings = new AuditRepositorySettings(_secretClient)
             {
                 Uri = _config[Constants.CosmosDBURLName],
                 Key = _config[Constants.CosmosDBKeyName],
@@ -111,6 +121,17 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 QueueRecordProcessThreshold = _config["queueRecordProcessThreshold"].ToInt(10),
                 AADUpdateMode = _config["aadUpdateMode"].As<UpdateMode>(UpdateMode.Update)
             };
+
+
+            _activityRespositorySettings = new ActivityHistoryRepositorySettings(_secretClient)
+            {
+                Uri = _config[Constants.CosmosDBURLName],
+                Key = _config[Constants.CosmosDBKeyName],
+                DatabaseName = _config[Constants.CosmosDBDatabaseName],
+                CollectionName = _config[Constants.CosmosDBActivityHistoryCollectionName],
+
+            };
+                    
         }
 
         private void CreateLoggers()
@@ -121,6 +142,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _objectTrackingRepoLogger = CreateLogger<ObjectTrackingRepository>();
             _spProcessorLogger = CreateLogger<ServicePrincipalProcessor>();
             _graphLogger = CreateLogger<GraphDeltaProcessor>();
+            _activityServiceLogger = CreateLogger<ActivityService>();
         }
 
         private void CreateMocks()
@@ -128,7 +150,9 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _queueServiceFactory = Substitute.For<IQueueServiceFactory>();
             _secretClient = Substitute.For<ISecretClient>();
             _graphHelper = Substitute.For<IGraphHelper<ServicePrincipal>>();
-            _serviceProvider = Substitute.For<IServiceProvider>();
+
+            //_serviceProvider = Substitute.For<IServiceProvider>();
+            _serviceProvider = new ServiceCollection().BuildServiceProvider();
 
             _modelValidatorFactory = Substitute.For<IModelValidatorFactory>();
             _configService = Substitute.For<IConfigService<ProcessorConfiguration>>();

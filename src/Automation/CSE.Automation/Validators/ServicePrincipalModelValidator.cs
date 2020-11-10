@@ -9,20 +9,12 @@ using System.Runtime.CompilerServices;
 
 namespace CSE.Automation.Validators
 {
-    public class ServicePrincipalModelValidator : AbstractValidator<ServicePrincipalModel>, IModelValidator<ServicePrincipalModel>
+    internal class ServicePrincipalModelValidator : AbstractValidator<ServicePrincipalModel>, IModelValidator<ServicePrincipalModel>
     {
         public ServicePrincipalModelValidator(IGraphHelper<User> graphHelper)
         {
             Include(new GraphModelValidator());
-            RuleFor(m => m.AppId)
-                .NotEmpty()
-                .MaximumLength(Constants.MaxStringLength);
-            //RuleFor(m => m.AppDisplayName)
-            //    .NotEmpty()
-            //    .MaximumLength(Constants.MaxStringLength);
-            //RuleFor(m => m.DisplayName)
-            //    .NotEmpty()
-            //    .MaximumLength(Constants.MaxStringLength);
+
             RuleFor(m => m.Notes)
                 .NotEmpty()
                 .HasOnlyEmailAddresses()
@@ -30,7 +22,7 @@ namespace CSE.Automation.Validators
                 {
                     field?.Split(',', ';').ToList().ForEach(token =>
                     {
-                        if (graphHelper.GetGraphObject(token).Result is null)
+                        if (graphHelper.GetGraphObjectWithOwners(token).Result is null)
                         {
                             context.AddFailure($"'{token}' is not a valid UserPrincipalName in this directory");
                         }
