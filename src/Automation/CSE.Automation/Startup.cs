@@ -109,11 +109,11 @@ namespace CSE.Automation
             builder.Services.Replace(ServiceDescriptor.Singleton(typeof(IConfiguration), hostConfig));
         }
 
-        private static void RegisterSettings(IFunctionsHostBuilder builder)
+        private void RegisterSettings(IFunctionsHostBuilder builder)
         {
             Assembly thisAssembly = Assembly.GetExecutingAssembly();
             VersionMetadata versionConfig = new VersionMetadata(thisAssembly);
-            var _logger = CreateBootstrapLogger();
+            //var _logger = CreateBootstrapLogger();
             _logger.LogInformation($"Product Version: {versionConfig.ProductVersion}");
             var serviceProvider = builder.Services.BuildServiceProvider();
             var config = serviceProvider.GetRequiredService<IConfiguration>();
