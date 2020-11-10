@@ -31,7 +31,6 @@ jobs:
 
     env:
       ACR_REG_REPO_URL : serviceprincipalacrdev.azurecr.io/serviceprincipal
-      TEMP_IMG_NAME    : sp_image
 
     steps:
     - name: Checkout Code
@@ -52,7 +51,7 @@ jobs:
           VERSION_SUFFIX="PR${PR_NUMBER}-${GIT_HASH}"
         fi
         # Build Image
-        docker build --pull -t ${TEMP_IMG_NAME} \
+        docker build --pull -t temp \
                     --build-arg VERSION_PREFIX="${{ steps.version.outputs.version }}" \
                     --build-arg VERSION_SUFFIX="${VERSION_SUFFIX}" \
                     -f src/Automation/CSE.Automation/Dockerfile src/Automation
@@ -73,13 +72,13 @@ jobs:
         if [[ "${{ github.event_name }}" == "push" ]]
         then
           VERSION_SUFFIX="${GIT_HASH}"
-          docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:latest
+          docker tag temp ${ACR_REG_REPO_URL}:latest
         else
           PR_NUMBER=$(echo "${{ github.ref }}" | awk 'BEGIN { FS = "/" } ; { print $3 }')
           VERSION_SUFFIX="PR${PR_NUMBER}-${GIT_HASH}"
         fi
         SEMANTIC_VERSION="${{ steps.version.outputs.version }}-${VERSION_SUFFIX}"
-        docker tag ${TEMP_IMG_NAME} "${ACR_REG_REPO_URL}:${SEMANTIC_VERSION}"
+        docker tag temp "${ACR_REG_REPO_URL}:${SEMANTIC_VERSION}"
         docker push ${ACR_REG_REPO_URL}
     - name: Tag Release
       if: github.event_name == 'push'
