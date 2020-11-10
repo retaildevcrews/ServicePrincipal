@@ -18,21 +18,18 @@ jobs:
 
     steps:    
     - name: Azure Login
-      # uses: azure/login@v1
-      # with:
-      #   creds: ${{ secrets.SERVICE_PRINCIPAL }}
       run: |
         # login to Azure
         az login --service-principal -u ${{ secrets.SERVICE_PRINCIPAL_ID }} --tenant ${{ secrets.TENANT_ID }} -p ${{ secrets.SERVICE_PRINCIPAL_SECRET }}
     
-    - name: Azure CLI script
-      uses: azure/CLI@v1
+    - name: checkout repo content
+      uses: actions/checkout@v2 # checkout the repository content to github runner.
+
+    - name: setup python
+      uses: actions/setup-python@v2
       with:
-        azcliversion: 2.0.72
-        inlineScript: |
-          az account show
-          az storage -h
-          echo ${{ env.KEYVAULT_NAME }}
-          az functionapp config appsettings set --name ${{ env.FUNCTION_APP_NAME }} \
-            --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
-            --settings KEYVAULT_NAME=${{ env.KEYVAULT_NAME }}
+        python-version: 3.8 #install the python needed
+        
+    - name: execute py script # run the run.py to get the latest data
+      run: |
+        python .github/workflows/appConfigSettings.py prod
