@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Text.Json;
 using CSE.Automation.DataAccess;
 using CSE.Automation.Extensions;
 using CSE.Automation.Graph;
@@ -114,7 +113,7 @@ namespace CSE.Automation
         {
             Assembly thisAssembly = Assembly.GetExecutingAssembly();
             VersionMetadata versionConfig = new VersionMetadata(thisAssembly);
-            _logger.LogInformation(JsonSerializer.Serialize(versionConfig));
+            _logger.LogInformation(versionConfig.ToString());
             var serviceProvider = builder.Services.BuildServiceProvider();
             var config = serviceProvider.GetRequiredService<IConfiguration>();
 
