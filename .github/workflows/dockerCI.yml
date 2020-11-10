@@ -46,14 +46,15 @@ jobs:
         GIT_HASH=$( echo ${{ github.sha }} | cut -c1-7 )
         if [[ "${{ github.event_name }}" == "push" ]]
         then
-          SEMANTIC_VERSION="${{ steps.version.outputs.version }}+${GIT_HASH}"
+          VERSION_SUFFIX="${GIT_HASH}"
         else
           PR_NUMBER=$(echo "${{ github.ref }}" | awk 'BEGIN { FS = "/" } ; { print $3 }')
-          SEMANTIC_VERSION="${{ steps.version.outputs.version }}-beta+PR${PR_NUMBER}+${GIT_HASH}"
+          VERSION_SUFFIX="PR${PR_NUMBER}-${GIT_HASH}"
         fi
         # Build Image
         docker build --pull -t ${TEMP_IMG_NAME} \
-                    --build-arg SEMANTIC_VERSION=${SEMANTIC_VERSION} \
+                    --build-arg VERSION_PREFIX="${{ steps.version.outputs.version }}" \
+                    --build-arg VERSION_SUFFIX="${VERSION_SUFFIX}" \
                     -f src/Automation/CSE.Automation/Dockerfile src/Automation
     
     - name: Login to Azure registry
@@ -71,12 +72,12 @@ jobs:
         export GIT_HASH=$( echo ${{ github.sha }} | cut -c1-7 )
         if [[ "${{ github.event_name }}" == "push" ]]
         then
-          docker tag ${TEMP_IMG_NAME} ${ACR_REG_REPO_URL}:latest
-          SEMANTIC_VERSION="${{ steps.version.outputs.version }}-${GIT_HASH}"
+          VERSION_SUFFIX="${GIT_HASH}"
         else
           PR_NUMBER=$(echo "${{ github.ref }}" | awk 'BEGIN { FS = "/" } ; { print $3 }')
-          SEMANTIC_VERSION="${{ steps.version.outputs.version }}-beta-PR${PR_NUMBER}-${GIT_HASH}"
+          VERSION_SUFFIX="PR${PR_NUMBER}-${GIT_HASH}"
         fi
+        SEMANTIC_VERSION="${{ steps.version.outputs.version }}-${VERSION_SUFFIX}"
         docker tag ${TEMP_IMG_NAME} "${ACR_REG_REPO_URL}:${SEMANTIC_VERSION}"
         docker push ${ACR_REG_REPO_URL}
     - name: Tag Release
