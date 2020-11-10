@@ -11,29 +11,31 @@ namespace CSE.Automation.Services
 {
     internal class ObjectTrackingService : IObjectTrackingService
     {
-        private readonly IObjectTrackingRepository _objectRepository;
-        private readonly IAuditService _auditService;
-        private readonly ILogger _logger;
+        private readonly IObjectTrackingRepository objectRepository;
+        private readonly IAuditService auditService;
+        private readonly ILogger logger;
 
         public ObjectTrackingService(IObjectTrackingRepository objectRepository, IAuditService auditService, ILogger<ObjectTrackingService> logger)
         {
-            _objectRepository = objectRepository;
-            _auditService = auditService;
-            _logger = logger;
+            this.objectRepository = objectRepository;
+            this.auditService = auditService;
+            this.logger = logger;
         }
 
-        public async Task<TrackingModel> Get<TEntity>(string id) where TEntity : GraphModel
+        public async Task<TrackingModel> Get<TEntity>(string id)
+            where TEntity : GraphModel
         {
-            var entity = await _objectRepository
+            var entity = await objectRepository
                                     .GetByIdAsync(id, EntityToObjectType(typeof(TEntity)).ToString().ToCamelCase())
                                     .ConfigureAwait(false);
 
             return entity;
         }
 
-        public async Task<TEntity> GetAndUnwrap<TEntity>(string id) where TEntity : GraphModel
+        public async Task<TEntity> GetAndUnwrap<TEntity>(string id)
+            where TEntity : GraphModel
         {
-            var entity = await _objectRepository
+            var entity = await objectRepository
                                     .GetByIdAsync(id, EntityToObjectType(typeof(TEntity)).ToString().ToCamelCase())
                                     .ConfigureAwait(false);
 
@@ -42,37 +44,39 @@ namespace CSE.Automation.Services
 
         public async Task<TrackingModel> Put(ActivityContext context, TrackingModel entity)
         {
-            _objectRepository.GenerateId(entity);
-            entity.CorrelationId = context.ActivityId.ToString();
+            objectRepository.GenerateId(entity);
+            entity.CorrelationId = context.Activity.Id.ToString();
             entity.LastUpdated = DateTimeOffset.Now;
-            return await _objectRepository.UpsertDocumentAsync(entity).ConfigureAwait(false);
+            return await objectRepository.UpsertDocumentAsync(entity).ConfigureAwait(false);
         }
 
-        public async Task<TrackingModel> Put<TEntity>(ActivityContext context, TEntity entity) where TEntity : GraphModel
+        public async Task<TrackingModel> Put<TEntity>(ActivityContext context, TEntity entity) 
+            where TEntity : GraphModel
         {
             var now = DateTimeOffset.Now;
             var model = new TrackingModel<TEntity>
             {
-                CorrelationId = context.ActivityId.ToString(),
+                CorrelationId = context.Activity.Id.ToString(),
                 Created = now,
                 LastUpdated = now,
                 TypedEntity = entity,
             };
-            _objectRepository.GenerateId(model);
-            return await _objectRepository.UpsertDocumentAsync(model).ConfigureAwait(false);
+            objectRepository.GenerateId(model);
+            return await objectRepository.UpsertDocumentAsync(model).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Type map between enumeration value and Type
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        static ObjectType EntityToObjectType(Type type)
+        /// <param name="type">Type of the model corresponding to an <see cref="ObjectType"/>.</param>
+        /// <returns>An enumeration value of type <see cref="ObjectType"/>.</returns>
+        public static ObjectType EntityToObjectType(Type type)
         {
             if (type == typeof(ServicePrincipalModel))
             {
                 return ObjectType.ServicePrincipal;
             }
+
             throw new ApplicationException($"Unexpected tracking object type {type.Name}");
         }
     }

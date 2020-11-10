@@ -1,63 +1,25 @@
-﻿using CSE.Automation.Interfaces;
-using CSE.Automation.Model;
-using CSE.Automation.Properties;
-using Newtonsoft.Json;
-using System;
-using System.Configuration;
-using System.IO;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Azure.Cosmos;
-using SettingsBase = CSE.Automation.Model.SettingsBase;
-using Microsoft.Identity.Client;
-using System.Net.WebSockets;
 using CSE.Automation.Graph;
+using CSE.Automation.Interfaces;
+using CSE.Automation.Model;
 using Microsoft.Extensions.Logging;
 
 namespace CSE.Automation.Processors
 {
-    public class DeltaProcessorSettings : SettingsBase
-    {
-        public DeltaProcessorSettings(ISecretClient secretClient)
-                : base(secretClient)
-        {
-        }
-
-        public Guid ConfigurationId { get; set; }
-        public int VisibilityDelayGapSeconds { get; set; }
-        public int QueueRecordProcessThreshold { get; set; }
-
-        public override void Validate()
-        {
-            base.Validate();
-            if (this.ConfigurationId == Guid.Empty)
-            {
-                throw new ConfigurationErrorsException($"{this.GetType().Name}: ConfigurationId is invalid");
-            }
-
-            if (this.VisibilityDelayGapSeconds <= 0 || this.VisibilityDelayGapSeconds > Constants.MaxVisibilityDelayGapSeconds)
-            {
-                throw new ConfigurationErrorsException($"{this.GetType().Name}: VisibilityDelayGapSeconds is invalid");
-            }
-
-            if (this.QueueRecordProcessThreshold <= 0 || this.QueueRecordProcessThreshold > Constants.MaxQueueRecordProcessThreshold)
-            {
-                throw new ConfigurationErrorsException($"{this.GetType().Name}: QueueRecordProcessThreshold is invalid");
-            }
-        }
-    }
-
     internal abstract class DeltaProcessorBase : IDeltaProcessor
     {
+        protected readonly ILogger logger;
+        protected readonly IConfigService<ProcessorConfiguration> configService;
+        protected ProcessorConfiguration config;
+        private bool initialized;
+
         protected DeltaProcessorBase(IConfigService<ProcessorConfiguration> configService, ILogger logger)
         {
-            _configService = configService;
-            _logger = logger;
+            this.configService = configService;
+            this.logger = logger;
         }
-
-        protected readonly ILogger _logger;
-        protected readonly IConfigService<ProcessorConfiguration> _configService;
-        protected ProcessorConfiguration _config;
-        private bool _initialized;
 
         public abstract int VisibilityDelayGapSeconds { get; }
         public abstract int QueueRecordProcessThreshold { get; }
@@ -65,11 +27,23 @@ namespace CSE.Automation.Processors
         public abstract ProcessorType ProcessorType { get; }
         protected abstract string DefaultConfigurationResourceName { get; }
 
+        public abstract Task RequestDiscovery(ActivityContext context, DiscoveryMode discoveryMode, string source);
+        public abstract Task<IEnumerable<ActivityHistory>> GetActivityStatus(ActivityContext context, string activityId, string correlationId);
         public abstract Task<GraphOperationMetrics> DiscoverDeltas(ActivityContext context, bool forceReseed = false);
+
+        public async Task Lock()
+        {
+            await configService.Lock(this.ConfigurationId.ToString(), this.DefaultConfigurationResourceName).ConfigureAwait(false);
+        }
+
+        public async Task Unlock()
+        {
+            await configService.Unlock().ConfigureAwait(false);
+        }
 
         protected void EnsureInitialized()
         {
-            if (_initialized)
+            if (initialized)
             {
                 return;
             }
@@ -79,20 +53,11 @@ namespace CSE.Automation.Processors
 
         private void Initialize()
         {
-            _logger.LogInformation($"Initializing {this.GetType().Name}");
+            logger.LogInformation($"Initializing {this.GetType().Name}");
 
-            _config = _configService.Get(this.ConfigurationId.ToString(), ProcessorType, DefaultConfigurationResourceName, true);
-            _initialized = true;
+            config = configService.Get(this.ConfigurationId.ToString(), ProcessorType, DefaultConfigurationResourceName, true);
+            initialized = true;
         }
 
-        public async Task Lock()
-        {
-            await _configService.Lock(this.ConfigurationId.ToString(), this.DefaultConfigurationResourceName).ConfigureAwait(false);
-        }
-
-        public async Task Unlock()
-        {
-            await _configService.Unlock().ConfigureAwait(false);
-        }
     }
 }

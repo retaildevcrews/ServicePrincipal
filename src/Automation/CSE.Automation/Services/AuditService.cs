@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Globalization;
 using System.Threading.Tasks;
-using CSE.Automation.DataAccess;
 using CSE.Automation.Extensions;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
@@ -31,7 +30,7 @@ namespace CSE.Automation.Services
 
             var entry = new AuditEntry
             {
-                CorrelationId = context.ActivityId.ToString(),
+                CorrelationId = context.Activity.Id.ToString(),
                 ObjectId = objectId,
                 Type = AuditActionType.Fail,
                 Code = (int)code,
@@ -56,7 +55,7 @@ namespace CSE.Automation.Services
 
             var entry = new AuditEntry
             {
-                CorrelationId = context.ActivityId.ToString(),
+                CorrelationId = context.Activity.Id.ToString(),
                 ObjectId = objectId,
                 Type = AuditActionType.Pass,
                 Code = (int)code,
@@ -81,7 +80,7 @@ namespace CSE.Automation.Services
 
             var entry = new AuditEntry
             {
-                CorrelationId = context.ActivityId.ToString(),
+                CorrelationId = context.Activity.Id.ToString(),
                 ObjectId = objectId,
                 Type = AuditActionType.Ignore,
                 Code = (int)code,
@@ -106,7 +105,7 @@ namespace CSE.Automation.Services
 
             var entry = new AuditEntry
             {
-                CorrelationId = context.ActivityId.ToString(),
+                CorrelationId = context.Activity.Id.ToString(),
                 ObjectId = objectId,
                 Type = AuditActionType.Change,
                 Code = (int)code,
