@@ -35,12 +35,18 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v2
+    - name: Wait for code checkout
+      uses: juliangruber/sleep-action@v1
+      with:
+        time: 3s
     - name: Calculate Patch Verison
       uses: avakar/derive-version@v1
       with:
         file: src/Automation/CSE.Automation/version.config
       id: version
     - name: Build Container
+    # Version Prefix must be of following format: ^\d+(\.\d+){1,3}$
+    # Version Suffix must be of following format: ^[0-9A-Za-z-]*$
       run: |
         GIT_HASH=$( echo ${{ github.sha }} | cut -c1-7 )
         if [[ "${{ github.event_name }}" == "push" ]]
