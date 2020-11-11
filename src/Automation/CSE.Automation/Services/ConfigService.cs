@@ -22,7 +22,7 @@ namespace CSE.Automation.Services
             this._configRepository = configRepository;
         }
 
-        public ProcessorConfiguration Get(string id, ProcessorType processorType, string defaultConfigResourceName, bool createIfNotFound = false)
+        public ProcessorConfiguration Get(string id, ProcessorType processorType, string defaultConfigResourceName, bool createIfNotFound = true)
         {
             ProcessorConfiguration configuration = _configRepository.GetByIdAsync(id, processorType.ToString()).GetAwaiter().GetResult();
             if (configuration == null && createIfNotFound)

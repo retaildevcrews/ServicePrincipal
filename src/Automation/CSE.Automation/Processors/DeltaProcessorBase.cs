@@ -55,7 +55,7 @@ namespace CSE.Automation.Processors
         {
             logger.LogInformation($"Initializing {this.GetType().Name}");
 
-            config = configService.Get(this.ConfigurationId.ToString(), ProcessorType, DefaultConfigurationResourceName, true);
+            config = configService.Get(this.ConfigurationId.ToString(), ProcessorType, DefaultConfigurationResourceName);
             initialized = true;
         }
 
