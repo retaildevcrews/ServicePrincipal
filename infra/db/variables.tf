@@ -26,7 +26,6 @@ variable "COSMOS_DB" {
   default     = "testDB"
 }
 
-
 variable "ENV" {
   type        = string
   description = "The last suffix which should be used for all resources in this example. Used by all modules"
@@ -47,7 +46,7 @@ variable "COSMOS_OBJ_TRACKING_COL" {
   description = "The Collection used to hold ServicePrincipal and other AAD object items being tracked"
 }
 
-# variable "REPO" {
-#   type        = string
-#   description = "The Service Principal repo"
-# }
+variable "COSMOS_ACTIVITY_HISTORY_COL" {
+  type        = string
+  description = "The Collection used to hold status of tracked Activities"
+}

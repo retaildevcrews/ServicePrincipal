@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
+using System.Text.Json;
 using CSE.Automation.DataAccess;
 using CSE.Automation.Extensions;
 using CSE.Automation.Graph;
@@ -107,6 +109,10 @@ namespace CSE.Automation
 
         private static void RegisterSettings(IFunctionsHostBuilder builder)
         {
+            Assembly thisAssembly = Assembly.GetExecutingAssembly();
+            VersionMetadata versionConfig = new VersionMetadata(thisAssembly);
+            var _logger = CreateBootstrapLogger();
+            _logger.LogInformation(JsonSerializer.Serialize(versionConfig.ProductVersion));
             var serviceProvider = builder.Services.BuildServiceProvider();
             var config = serviceProvider.GetRequiredService<IConfiguration>();
 
@@ -115,6 +121,7 @@ namespace CSE.Automation
             var credServiceSettings = new CredentialServiceSettings() { AuthType = config[Constants.AuthType].As<AuthenticationType>() };
 
             builder.Services
+                .AddSingleton<VersionMetadata>(versionConfig)
                 .AddSingleton(credServiceSettings)
                 .AddSingleton(secretServiceSettings)
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<SecretServiceSettings>())
@@ -201,8 +208,10 @@ namespace CSE.Automation
 
         private static void RegisterServices(IFunctionsHostBuilder builder)
         {
+            string path = builder.GetContext().ApplicationRootPath;
             // register the concrete as the singleton, then use forwarder pattern to register same singleton with alternate interfaces
             builder.Services
+                .AddSingleton<VersionService>(x => new VersionService(x.GetRequiredService<VersionMetadata>()))
                 .AddSingleton<ICredentialService>(x => new CredentialService(x.GetRequiredService<CredentialServiceSettings>()))
                 .AddSingleton<ISecretClient>(x => new SecretService(x.GetRequiredService<SecretServiceSettings>(), x.GetRequiredService<ICredentialService>()))
 

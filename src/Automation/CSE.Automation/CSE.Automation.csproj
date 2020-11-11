@@ -4,9 +4,20 @@
     <AzureFunctionsVersion>v3</AzureFunctionsVersion>
     <DockerFastModeProjectMountDirectory>/home/site/wwwroot</DockerFastModeProjectMountDirectory>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-      <!-- TODO: set to true -->
+    <!-- DEFAULT VERSION WHEN RUNNING FROM DEV MACHINE -->
+    <VersionPrefix>0.0.0</VersionPrefix>
+    <VersionSuffix>local</VersionSuffix>
+    <!-- TODO: set to true -->
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <BuildUTC>$([System.DateTime]::UtcNow.ToString("o"))</BuildUTC>
   </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="CSE.Automation.BuildTimestampAttribute">
+      <_Parameter1>$(BuildUTC)</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Remove="SolutionScripts\**" />
     <EmbeddedResource Remove="SolutionScripts\**" />

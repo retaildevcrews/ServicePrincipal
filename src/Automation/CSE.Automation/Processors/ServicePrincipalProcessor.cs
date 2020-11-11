@@ -251,10 +251,14 @@ namespace CSE.Automation.Processors
             servicePrincipalCount = 0;
             enrichedPrincipals.ForEach(async sp =>
             {
-                var myMessage = new QueueMessage<ServicePrincipalModel>()
+                var myMessage = new QueueMessage<EvaluateServicePrincipalCommand>()
                 {
                     QueueMessageType = QueueMessageType.Data,
-                    Document = sp,
+                    Document = new EvaluateServicePrincipalCommand
+                    {
+                        CorrelationId = context.CorrelationId,
+                        Model = sp,
+                    },
                     Attempt = 0,
                 };
 
@@ -481,7 +485,7 @@ namespace CSE.Automation.Processors
 
         private static async Task CommandAADUpdate(ActivityContext context, ServicePrincipalUpdateCommand command, IAzureQueueService queueService)
         {
-            command.CorrelationId = context.Activity.Id.ToString();
+            command.CorrelationId = context.CorrelationId;
             var message = new QueueMessage<ServicePrincipalUpdateCommand>()
             {
                 QueueMessageType = QueueMessageType.Data,
