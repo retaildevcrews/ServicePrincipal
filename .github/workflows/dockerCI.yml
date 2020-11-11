@@ -42,7 +42,7 @@ jobs:
         export patch=$(git log ${lasthash}..${currenthash} --pretty=oneline | wc -l | sed "s/\s//g")
         export majorminor=$(cat src/Automation/CSE.Automation/version.config | sed "s/\s//g")
         export VERSION_PREFIX=${majorminor}.${patch}
-        echo "::set-env name=VERSION_PREFIX::$VERSION_PREFIX"
+        echo "VERSION_PREFIX=${VERSION_PREFIX}" >> $GITHUB_ENV
     - name: Build Container
     # Version Prefix must be of following format: ^\d+(\.\d+){1,3}$
     # Version Suffix must be of following format: ^[0-9A-Za-z-]*$
