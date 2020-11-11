@@ -3,7 +3,7 @@ name: Docker CI
 on:
   push:
     branches:
-      - dummy-main
+      - main
 
     paths-ignore:
       - 'docs/**'
@@ -16,7 +16,7 @@ on:
   pull_request:
     types: [ opened, reopened, synchronize ]
     branches:
-      - dummy-main
+      - main
 
     paths-ignore:
     - 'docs/**'
@@ -38,7 +38,7 @@ jobs:
     - name: Wait for code checkout
       uses: juliangruber/sleep-action@v1
       with:
-        time: 5s
+        time: 15s
     - name: Calculate Patch Verison
       uses: avakar/derive-version@v1
       with:
@@ -92,5 +92,5 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ steps.version.outputs.version }}
-        release_name: ${{ steps.version.outputs.version }}
+        tag_name: "v${{ steps.version.outputs.version }}"
+        release_name: "v${{ steps.version.outputs.version }}"
