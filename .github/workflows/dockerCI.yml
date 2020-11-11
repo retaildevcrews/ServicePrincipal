@@ -43,7 +43,7 @@ jobs:
         export currenthash=$(git rev-parse HEAD)
         export lasthash=$(echo ${version_from_config} | awk '{print $1}')
         export patch=$(git log ${lasthash}..${currenthash} --pretty=oneline | wc -l | sed "s/\s//g")
-        export majorminor=$(echo $version_from_config | grep -oP '\d\+\(\.\d\+\)\+')
+        export majorminor=$(echo $version_from_config | grep -oP '\d+(\.\d+)+'
         export VERSION_PREFIX=${majorminor}.${patch}
         echo $VERSION_PREFIX
         echo "VERSION_PREFIX=${VERSION_PREFIX}" >> $GITHUB_ENV
