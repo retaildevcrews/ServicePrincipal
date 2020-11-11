@@ -251,10 +251,14 @@ namespace CSE.Automation.Processors
             servicePrincipalCount = 0;
             enrichedPrincipals.ForEach(async sp =>
             {
-                var myMessage = new QueueMessage<ServicePrincipalModel>()
+                var myMessage = new QueueMessage<EvaluateServicePrincipalCommand>()
                 {
                     QueueMessageType = QueueMessageType.Data,
-                    Document = sp,
+                    Document = new EvaluateServicePrincipalCommand
+                    {
+                        CorrelationId = context.CorrelationId,
+                        Model = sp,
+                    },
                     Attempt = 0,
                 };
 
