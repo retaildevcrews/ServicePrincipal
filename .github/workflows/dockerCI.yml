@@ -39,12 +39,14 @@ jobs:
         fetch-depth: 0 # needed to calulate patch
     - name: Calculate Version
       run: |
+        git blame src/Automation/CSE.Automation/CSE.Automation.csproj
         export version_from_config=$(git blame src/Automation/CSE.Automation/CSE.Automation.csproj | grep "</VersionPrefix>")
         export currenthash=$(git rev-parse HEAD)
         export lasthash=$(echo ${version_from_config} | awk '{print $1}')
         export patch=$(git log ${lasthash}..${currenthash} --pretty=oneline | wc -l | sed "s/\s//g")
         export majorminor=$(echo $version_from_config | grep -o '\d\+\(\.\d\+\)\+')
         export VERSION_PREFIX=${majorminor}.${patch}
+        echo $VERSION_PREFIX
         echo "VERSION_PREFIX=${VERSION_PREFIX}" >> $GITHUB_ENV
     - name: Build Container
     # Version Prefix must be of following format: ^\d+(\.\d+){1,3}$
