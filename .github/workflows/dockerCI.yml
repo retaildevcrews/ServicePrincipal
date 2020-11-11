@@ -3,7 +3,7 @@ name: Docker CI
 on:
   push:
     branches:
-      - main
+      - dummy-main
 
     paths-ignore:
       - 'docs/**'
@@ -16,7 +16,7 @@ on:
   pull_request:
     types: [ opened, reopened, synchronize ]
     branches:
-      - main
+      - dummy-main
 
     paths-ignore:
     - 'docs/**'
@@ -88,6 +88,9 @@ jobs:
         docker push ${ACR_REG_REPO_URL}
     - name: Tag Release
       if: github.event_name == 'push'
-      uses: avakar/tag-and-release@v1
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ steps.version.outputs.version }}
+        release_name: ${{ steps.version.outputs.version }}
