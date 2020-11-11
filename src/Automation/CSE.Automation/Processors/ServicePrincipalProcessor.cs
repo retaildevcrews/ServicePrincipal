@@ -485,7 +485,7 @@ namespace CSE.Automation.Processors
 
         private static async Task CommandAADUpdate(ActivityContext context, ServicePrincipalUpdateCommand command, IAzureQueueService queueService)
         {
-            command.CorrelationId = context.Activity.Id.ToString();
+            command.CorrelationId = context.CorrelationId;
             var message = new QueueMessage<ServicePrincipalUpdateCommand>()
             {
                 QueueMessageType = QueueMessageType.Data,
