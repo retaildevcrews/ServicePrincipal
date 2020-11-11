@@ -13,7 +13,5 @@ namespace CSE.Automation.Model
         public DateTimeOffset? LastUpdated { get; set; }
 
         public ObjectType ObjectType { get; set; }
-
-        public Status Status { get; set; }
     }
 }

@@ -1,3 +1,10 @@
+resource azurerm_storage_queue discover-queue {
+  depends_on = [
+    var.STORAGE_ACCOUNT_DONE
+  ]
+  name                 = "discover"
+  storage_account_name = var.STORAGE_ACCOUNT_NAME
+}
 
 resource azurerm_storage_queue evaluate-queue {
   depends_on = [
@@ -13,6 +20,12 @@ resource azurerm_storage_queue update-queue {
   ]
   name                 = "update"
   storage_account_name = var.STORAGE_ACCOUNT_NAME
+}
+
+output "DISCOVER_QUEUE_NAME" {
+  depends_on  = [azurerm_storage_queue.evaluate-queue]
+  value       = azurerm_storage_queue.discover-queue.name
+  description = "Discover queue name"
 }
 
 output "EVALUATE_QUEUE_NAME" {

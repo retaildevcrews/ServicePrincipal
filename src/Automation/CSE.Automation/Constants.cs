@@ -1,4 +1,7 @@
-﻿namespace CSE.Automation
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+namespace CSE.Automation
 {
     public sealed class Constants
     {
@@ -21,9 +24,11 @@
         public const string CosmosDBConfigCollectionName = "SPConfigurationCollection";
         public const string CosmosDBAuditCollectionName = "SPAuditCollection";
         public const string CosmosDBObjectTrackingCollectionName = "SPObjectTrackingCollection";
+        public const string CosmosDBActivityHistoryCollectionName = "SPActivityHistoryCollection";
 
         // Azure Storage Queue Constants
         public const string SPStorageConnectionString = "SPStorageConnectionString";
+        public const string DiscoverQueueAppSetting = "%SPDiscoverQueue%";
         public const string EvaluateQueueAppSetting = "%SPEvaluateQueue%";
         public const string UpdateQueueAppSetting = "%SPUpdateQueue%";
 

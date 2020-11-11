@@ -42,6 +42,7 @@ namespace CSE.Automation.Processors
         private string _queueConnectionString;
         private string _evaluateQueueName;
         private string _updateQueueName;
+        private string _discoverQueueName;
 
         public ServicePrincipalProcessorSettings(ISecretClient secretClient)
             : base(secretClient) { }
@@ -49,7 +50,7 @@ namespace CSE.Automation.Processors
         [Secret(Constants.SPStorageConnectionString)]
         public string QueueConnectionString
         {
-            get { return _queueConnectionString ?? base.GetSecret(); }
+            get { return _queueConnectionString ?? GetSecret(); }
             set { _queueConnectionString = value; }
         }
 
@@ -67,6 +68,12 @@ namespace CSE.Automation.Processors
             set { _updateQueueName = value?.ToLower(); }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1304:Specify CultureInfo", Justification = "Not a localizable setting")]
+        public string DiscoverQueueName
+        {
+            get { return _discoverQueueName; }
+            set { _discoverQueueName = value?.ToLower(); }
+        }
         public UpdateMode AADUpdateMode { get; set; }
 
         public override void Validate()
@@ -87,17 +94,22 @@ namespace CSE.Automation.Processors
                 throw new ConfigurationErrorsException($"{this.GetType().Name}: UpdateQueueName is invalid");
             }
 
+            if (string.IsNullOrEmpty(this.DiscoverQueueName))
+            {
+                throw new ConfigurationErrorsException($"{this.GetType().Name}: DiscoverQueueName is invalid");
+            }
         }
     }
 
     internal class ServicePrincipalProcessor : DeltaProcessorBase, IServicePrincipalProcessor
     {
-        private readonly IGraphHelper<ServicePrincipal> _graphHelper;
-        private readonly ServicePrincipalProcessorSettings _settings;
-        private readonly IQueueServiceFactory _queueServiceFactory;
-        private readonly IObjectTrackingService _objectService;
-        private readonly IAuditService _auditService;
-        private readonly IEnumerable<IModelValidator<ServicePrincipalModel>> _validators;
+        private readonly IGraphHelper<ServicePrincipal> graphHelper;
+        private readonly ServicePrincipalProcessorSettings settings;
+        private readonly IQueueServiceFactory queueServiceFactory;
+        private readonly IObjectTrackingService objectService;
+        private readonly IAuditService auditService;
+        private readonly IActivityService activityService;
+        private readonly IEnumerable<IModelValidator<ServicePrincipalModel>> validators;
 
         public ServicePrincipalProcessor(
             ServicePrincipalProcessorSettings settings,
@@ -106,25 +118,75 @@ namespace CSE.Automation.Processors
             IConfigService<ProcessorConfiguration> configService,
             IObjectTrackingService objectService,
             IAuditService auditService,
+            IActivityService activityService,
             IModelValidatorFactory modelValidatorFactory,
             ILogger<ServicePrincipalProcessor> logger)
             : base(configService, logger)
         {
-            _settings = settings;
-            _graphHelper = graphHelper;
-            _objectService = objectService;
-            _auditService = auditService;
+            this.settings = settings;
+            this.graphHelper = graphHelper;
+            this.objectService = objectService;
+            this.auditService = auditService;
+            this.activityService = activityService;
+            this.queueServiceFactory = queueServiceFactory;
 
-            _queueServiceFactory = queueServiceFactory;
-
-            _validators = modelValidatorFactory.Get<ServicePrincipalModel>();
+            validators = modelValidatorFactory.Get<ServicePrincipalModel>();
         }
 
-        public override int VisibilityDelayGapSeconds => _settings.VisibilityDelayGapSeconds;
-        public override int QueueRecordProcessThreshold => _settings.QueueRecordProcessThreshold;
-        public override Guid ConfigurationId => _settings.ConfigurationId;
+        public override int VisibilityDelayGapSeconds => settings.VisibilityDelayGapSeconds;
+        public override int QueueRecordProcessThreshold => settings.QueueRecordProcessThreshold;
+        public override Guid ConfigurationId => settings.ConfigurationId;
         public override ProcessorType ProcessorType => ProcessorType.ServicePrincipal;
         protected override string DefaultConfigurationResourceName => "ServicePrincipalProcessorConfiguration";
+
+        /// REQUESTDISCOVERY
+        /// <summary>
+        /// Submit a request to perform a Discovery
+        /// </summary>
+        /// <param name="context">An instance of an <see cref="ActivityContext"/>.</param>
+        /// <param name="discoveryMode">Type of discovery to perform.</param>
+        /// <returns>A Task that may be awaited.</returns>
+        public override async Task RequestDiscovery(ActivityContext context, DiscoveryMode discoveryMode, string source)
+        {
+            var message = new QueueMessage<RequestDiscoveryCommand>()
+            {
+                QueueMessageType = QueueMessageType.Data,
+                Document = new RequestDiscoveryCommand
+                {
+                    CorrelationId = context.CorrelationId,
+                    DiscoveryMode = discoveryMode,
+                    Source = source,
+                },
+                Attempt = 0,
+            };
+
+            await queueServiceFactory
+                    .Create(settings.QueueConnectionString, settings.DiscoverQueueName)
+                    .Send(message, 0)
+                    .ConfigureAwait(false);
+        }
+
+        /// DISCOVERYSTATUS
+        /// <summary>
+        /// Return the status of an activity from activityhistory.
+        /// </summary>
+        /// <param name="context">An instance of an <see cref="ActivityContext"/>.</param>
+        /// <param name="activityId">Id of the activity to report.</param>
+        /// <param name="correlationId">Correlation id of the activities to report.</param>
+        /// <returns>A Task that may be awaited.</returns>
+        /// <remarks>Either activityId or correlationId must be provided.</remarks>
+        public override async Task<IEnumerable<ActivityHistory>> GetActivityStatus(ActivityContext context, string activityId, string correlationId)
+        {
+            if (string.IsNullOrWhiteSpace(correlationId))
+            {
+                var activity = await activityService.Get(activityId).ConfigureAwait(false);
+                return new[] { activity };
+            }
+            else
+            {
+                return await activityService.GetCorrelated(correlationId).ConfigureAwait(false);
+            }
+        }
 
         /// DISCOVER
         /// <summary>
@@ -132,40 +194,43 @@ namespace CSE.Automation.Processors
         /// </summary>
         /// <param name="context">Context of the activity.</param>
         /// <param name="forceReseed">Force a reseed regardless of config runstate or deltalink.</param>
-        /// <returns>The number of items Found in the Directory for evaluation.</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Console.WriteLine will be changed to logs")]
+        /// <returns>A Task that returns an instance of <see cref="GraphOperationMetrics"/>.</returns>
         public override async Task<GraphOperationMetrics> DiscoverDeltas(ActivityContext context, bool forceReseed = false)
         {
             EnsureInitialized();
 
             if (forceReseed)
             {
-                _config.RunState = RunState.SeedAndRun;
+                config.RunState = RunState.SeedAndRun;
             }
 
-            IAzureQueueService queueService = _queueServiceFactory.Create(_settings.QueueConnectionString, _settings.EvaluateQueueName);
+            // Create the queue client for when we need to post the evaluate commands
+            IAzureQueueService queueService = queueServiceFactory.Create(settings.QueueConnectionString, settings.EvaluateQueueName);
 
+            // Perform the delta query against the Graph
             // var selectFields = new[] { "appId", "displayName", "notes", "additionalData" };
-            var servicePrincipalResult = await _graphHelper.GetDeltaGraphObjects(context, _config, /*string.Join(',', selectFields)*/ null).ConfigureAwait(false);
+            var servicePrincipalResult = await graphHelper.GetDeltaGraphObjects(context, config, /*string.Join(',', selectFields)*/ null).ConfigureAwait(false);
 
             var metrics = servicePrincipalResult.metrics;
             string updatedDeltaLink = metrics.AdditionalData;
             var servicePrincipalList = servicePrincipalResult.data.ToList();
 
-            _logger.LogInformation($"Resolving Owners for ServicePrincipal objects...");
+            logger.LogInformation($"Resolving Owners for ServicePrincipal objects...");
             int servicePrincipalCount = 0;
 
             var enrichedPrincipals = new List<ServicePrincipalModel>();
+
+            // TODO: Look at this filter, is it necessary?
             foreach (var sp in servicePrincipalList.Where(sp => string.IsNullOrWhiteSpace(sp.AppId) == false && string.IsNullOrWhiteSpace(sp.DisplayName) == false))
             {
-                var fullSP = await _graphHelper.GetGraphObject(sp.Id).ConfigureAwait(false);
+                var fullSP = await graphHelper.GetGraphObjectWithOwners(sp.Id).ConfigureAwait(false);
                 var owners = fullSP?.Owners.Select(x => (x as User)?.UserPrincipalName).ToList();
 
                 servicePrincipalCount++;
 
                 if (servicePrincipalCount % QueueRecordProcessThreshold == 0)
                 {
-                    _logger.LogInformation($"\t{servicePrincipalCount}");
+                    logger.LogInformation($"\t{servicePrincipalCount}");
                 }
 
                 enrichedPrincipals.Add(new ServicePrincipalModel()
@@ -179,16 +244,21 @@ namespace CSE.Automation.Processors
                     Owners = owners,
                 });
             }
-            _logger.LogInformation($"{enrichedPrincipals.Count} ServicePrincipals resolved.");
 
-            _logger.LogInformation($"Sending Evaluate messages.");
+            logger.LogInformation($"{enrichedPrincipals.Count} ServicePrincipals resolved.");
+
+            logger.LogInformation($"Sending Evaluate messages.");
             servicePrincipalCount = 0;
             enrichedPrincipals.ForEach(async sp =>
             {
-                var myMessage = new QueueMessage<ServicePrincipalModel>()
+                var myMessage = new QueueMessage<EvaluateServicePrincipalCommand>()
                 {
                     QueueMessageType = QueueMessageType.Data,
-                    Document = sp,
+                    Document = new EvaluateServicePrincipalCommand
+                    {
+                        CorrelationId = context.CorrelationId,
+                        Model = sp,
+                    },
                     Attempt = 0,
                 };
 
@@ -197,27 +267,29 @@ namespace CSE.Automation.Processors
 
                 if (servicePrincipalCount % QueueRecordProcessThreshold == 0)
                 {
-                    _logger.LogInformation($"\t{servicePrincipalCount}");
+                    logger.LogInformation($"\t{servicePrincipalCount}");
                 }
             });
-            _logger.LogInformation($"Evaluate messages complete.");
+            logger.LogInformation($"Evaluate messages complete.");
 
-
-            if (_config.RunState == RunState.SeedAndRun || _config.RunState == RunState.Seedonly)
+            if (config.RunState == RunState.SeedAndRun || config.RunState == RunState.Seedonly)
             {
-                _config.LastSeedTime = DateTimeOffset.Now;
+                config.LastSeedTime = DateTimeOffset.Now;
             }
             else
             {
-                _config.LastDeltaRun = DateTimeOffset.Now;
+                config.LastDeltaRun = DateTimeOffset.Now;
             }
 
-            _config.DeltaLink = updatedDeltaLink;
-            _config.RunState = RunState.DeltaRun;
+            config.DeltaLink = updatedDeltaLink;
+            config.RunState = RunState.DeltaRun;
 
-            await _configService.Put(_config).ConfigureAwait(false);
+            await configService.Put(config).ConfigureAwait(false);
 
-            _logger.LogInformation($"Finished Processing {servicePrincipalCount} Service Principal Objects.");
+            logger.LogInformation($"Finished Processing {servicePrincipalCount} Service Principal Objects.");
+
+            context.Activity.MergeMetrics(metrics.ToDictionary());
+            await activityService.Put(context.Activity).ConfigureAwait(false);
             return metrics;
         }
 
@@ -230,17 +302,17 @@ namespace CSE.Automation.Processors
         /// <returns>Task to be awaited.</returns>
         public async Task Evaluate(ActivityContext context, ServicePrincipalModel entity)
         {
-            IAzureQueueService queueService = _queueServiceFactory.Create(_settings.QueueConnectionString, _settings.UpdateQueueName);
+            IAzureQueueService queueService = queueServiceFactory.Create(settings.QueueConnectionString, settings.UpdateQueueName);
 
-            var errors = _validators.SelectMany(v => v.Validate(entity).Errors).ToList();
+            var errors = validators.SelectMany(v => v.Validate(entity).Errors).ToList();
             if (errors.Count > 0)
             {
                 // emit into Operations log
                 var errorMsg = string.Join('\n', errors);
-                _logger.LogError($"ServicePrincipal {entity.Id} failed validation.\n{errorMsg}");
+                logger.LogError($"ServicePrincipal {entity.Id} failed validation.\n{errorMsg}");
 
                 // emit into Audit log, all failures
-                errors.ForEach(async error => await _auditService.PutFail(
+                errors.ForEach(async error => await auditService.PutFail(
                                    context: context,
                                    code: AuditCode.Fail_AttributeValidation,
                                    objectId: entity.Id,
@@ -266,7 +338,7 @@ namespace CSE.Automation.Processors
             {
                 // remember this was the last time we saw the prinicpal as 'good'
                 await UpdateLastKnownGood(context, entity).ConfigureAwait(true);
-                await _auditService.PutPass(context, AuditCode.Pass_ServicePrincipal, entity.Id, null, null).ConfigureAwait(false);
+                await auditService.PutPass(context, AuditCode.Pass_ServicePrincipal, entity.Id, null, null).ConfigureAwait(false);
             }
         }
 
@@ -281,11 +353,11 @@ namespace CSE.Automation.Processors
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "All failure condition logging")]
         public async Task UpdateServicePrincipal(ActivityContext context, ServicePrincipalUpdateCommand command)
         {
-            if (_settings.AADUpdateMode == UpdateMode.Update)
+            if (settings.AADUpdateMode == UpdateMode.Update)
             {
                 try
                 {
-                    await _graphHelper.PatchGraphObject(new ServicePrincipal
+                    await graphHelper.PatchGraphObject(new ServicePrincipal
                     {
                         Id = command.Id,
                         Notes = command.Notes.Changed,
@@ -293,14 +365,14 @@ namespace CSE.Automation.Processors
                 }
                 catch (Microsoft.Graph.ServiceException exSvc)
                 {
-                    _logger.LogError(exSvc, $"Failed to update AAD Service Principal {command.Id}");
+                    logger.LogError(exSvc, $"Failed to update AAD Service Principal {command.Id}");
                     try
                     {
-                        await _auditService.PutFail(context, AuditCode.Fail_AADUpdate, command.Id, "Notes", command.Notes.Current, exSvc.Message).ConfigureAwait(false);
+                        await auditService.PutFail(context, AuditCode.Fail_AADUpdate, command.Id, "Notes", command.Notes.Current, exSvc.Message).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, $"Failed to Audit update to AAD Service Principal {command.Id}");
+                        logger.LogError(ex, $"Failed to Audit update to AAD Service Principal {command.Id}");
 
                         // do not rethrow, it will hide the real failure
                     }
@@ -308,17 +380,17 @@ namespace CSE.Automation.Processors
 
                 try
                 {
-                    await _auditService.PutChange(context, AuditCode.Change_ServicePrincipalUpdated, command.Id, "Notes", command.Notes.Current, command.Notes.Changed, command.Message).ConfigureAwait(false);
+                    await auditService.PutChange(context, AuditCode.Change_ServicePrincipalUpdated, command.Id, "Notes", command.Notes.Current, command.Notes.Changed, command.Message).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"Failed to Audit update to AAD Service Principal {command.Id}");
+                    logger.LogError(ex, $"Failed to Audit update to AAD Service Principal {command.Id}");
                     throw;
                 }
             }
             else
             {
-                _logger.LogInformation($"Update mode is {_settings.AADUpdateMode}, ServicePrincipal {command.Id} will not be updated.");
+                logger.LogInformation($"Update mode is {settings.AADUpdateMode}, ServicePrincipal {command.Id} will not be updated.");
             }
         }
 
@@ -331,7 +403,7 @@ namespace CSE.Automation.Processors
         /// <returns>A Task that returns nothing.</returns>
         private async Task UpdateNotesFromOwners(ActivityContext context, ServicePrincipalModel entity, IAzureQueueService queueService)
         {
-            TrackingModel lastKnownGoodWrapper = await _objectService.Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(true);
+            TrackingModel lastKnownGoodWrapper = await objectService.Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(true);
             var lastKnownGood = TrackingModel.Unwrap<ServicePrincipalModel>(lastKnownGoodWrapper);
 
             // get new value for Notes (from the list of Owners)
@@ -362,13 +434,13 @@ namespace CSE.Automation.Processors
         /// <returns>A Task that returns nothing.</returns>
         private async Task RevertToLastKnownGood(ActivityContext context, ServicePrincipalModel entity, IAzureQueueService queueService)
         {
-            TrackingModel lastKnownGoodWrapper = await _objectService.Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(false);
+            TrackingModel lastKnownGoodWrapper = await objectService.Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(false);
             var lastKnownGood = TrackingModel.Unwrap<ServicePrincipalModel>(lastKnownGoodWrapper);
 
             // bad SP Notes, bad SP Owners, last known good found
             if (lastKnownGood != null)
             {
-                _logger.LogInformation($"Reverting {entity.Id} to last known good state from {lastKnownGood.LastUpdated}");
+                logger.LogInformation($"Reverting {entity.Id} to last known good state from {lastKnownGood.LastUpdated}");
 
                 // build the command here so we don't need to pass the delta values down the call tree
                 var updateCommand = new ServicePrincipalUpdateCommand()
@@ -402,18 +474,18 @@ namespace CSE.Automation.Processors
                 trackingModel.Entity = model;
 
                 // make sure to write the wrapper back to get the same document updated
-                await _objectService.Put(context, trackingModel).ConfigureAwait(false);
+                await objectService.Put(context, trackingModel).ConfigureAwait(false);
             }
         }
 
         private async Task UpdateLastKnownGood(ActivityContext context, ServicePrincipalModel entity)
         {
-            await _objectService.Put(context, entity).ConfigureAwait(false);
+            await objectService.Put(context, entity).ConfigureAwait(false);
         }
 
         private static async Task CommandAADUpdate(ActivityContext context, ServicePrincipalUpdateCommand command, IAzureQueueService queueService)
         {
-            command.CorrelationId = context.ActivityId.ToString();
+            command.CorrelationId = context.CorrelationId;
             var message = new QueueMessage<ServicePrincipalUpdateCommand>()
             {
                 QueueMessageType = QueueMessageType.Data,
@@ -436,8 +508,8 @@ namespace CSE.Automation.Processors
             {
                 // TODO: move reason text to resource
                 var message = "Missing Owners on ServicePrincipal, cannot remediate.";
-                await _auditService.PutFail(context, AuditCode.Fail_MissingOwners, entity.Id, "Owners", null, message).ConfigureAwait(true);
-                _logger.LogWarning($"AUDIT FAIL: {entity.Id} {message}");
+                await auditService.PutFail(context, AuditCode.Fail_MissingOwners, entity.Id, "Owners", null, message).ConfigureAwait(true);
+                logger.LogWarning($"AUDIT FAIL: {entity.Id} {message}");
             }
             catch (Exception)
             {

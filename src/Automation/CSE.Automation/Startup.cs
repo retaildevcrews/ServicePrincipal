@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
+using System.Text.Json;
 using CSE.Automation.DataAccess;
 using CSE.Automation.Extensions;
 using CSE.Automation.Graph;
@@ -25,12 +27,12 @@ namespace CSE.Automation
 {
     public class Startup : FunctionsStartup
     {
-        private ILogger _logger;
+        private ILogger logger;
 
         /// <summary>
         /// Configure the host runtime
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="builder">An instance of <see cref="IFunctionsHostBuilder"/>.</param>
         /// <remarks>
         /// 1. Load configuration for host context
         /// 2. Register runtime services in container
@@ -44,9 +46,9 @@ namespace CSE.Automation
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            _logger = CreateBootstrapLogger();
-            _logger.LogInformation($"Bootstrap logger initialized.");
-            _logger.LogDebug($"AUTH_TYPE: {Environment.GetEnvironmentVariable("AUTH_TYPE")}");
+            logger = CreateBootstrapLogger();
+            logger.LogInformation($"Bootstrap logger initialized.");
+            logger.LogDebug($"AUTH_TYPE: {Environment.GetEnvironmentVariable("AUTH_TYPE")}");
 
             // CONFIGURATION
             BuildConfiguration(builder);
@@ -57,15 +59,12 @@ namespace CSE.Automation
             RegisterServices(builder);
 
             ValidateSettings(builder);
-
-            //ValidateServices(builder);
-
         }
 
         /// <summary>
         /// Create a basic logger (low dependency) so that we can get some logs out of bootstrap
         /// </summary>
-        /// <returns></returns>
+        /// <returns>An instance of <see cref="ILogger"/>.</returns>
         private static ILogger CreateBootstrapLogger()
         {
             var serviceProvider = new ServiceCollection()
@@ -110,6 +109,10 @@ namespace CSE.Automation
 
         private static void RegisterSettings(IFunctionsHostBuilder builder)
         {
+            Assembly thisAssembly = Assembly.GetExecutingAssembly();
+            VersionMetadata versionConfig = new VersionMetadata(thisAssembly);
+            var _logger = CreateBootstrapLogger();
+            _logger.LogInformation(JsonSerializer.Serialize(versionConfig.ProductVersion));
             var serviceProvider = builder.Services.BuildServiceProvider();
             var config = serviceProvider.GetRequiredService<IConfiguration>();
 
@@ -118,6 +121,7 @@ namespace CSE.Automation
             var credServiceSettings = new CredentialServiceSettings() { AuthType = config[Constants.AuthType].As<AuthenticationType>() };
 
             builder.Services
+                .AddSingleton<VersionMetadata>(versionConfig)
                 .AddSingleton(credServiceSettings)
                 .AddSingleton(secretServiceSettings)
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<SecretServiceSettings>())
@@ -134,14 +138,14 @@ namespace CSE.Automation
                 })
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ConfigRespositorySettings>())
 
-                .AddSingleton<AuditRespositorySettings>(x => new AuditRespositorySettings(x.GetRequiredService<ISecretClient>())
+                .AddSingleton<AuditRepositorySettings>(x => new AuditRepositorySettings(x.GetRequiredService<ISecretClient>())
                 {
                     Uri = config[Constants.CosmosDBURLName],
                     Key = config[Constants.CosmosDBKeyName],
                     DatabaseName = config[Constants.CosmosDBDatabaseName],
                     CollectionName = config[Constants.CosmosDBAuditCollectionName],
                 })
-                .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<AuditRespositorySettings>())
+                .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<AuditRepositorySettings>())
 
                 .AddSingleton<ObjectTrackingRepositorySettings>(x => new ObjectTrackingRepositorySettings(x.GetRequiredService<ISecretClient>())
                 {
@@ -152,11 +156,21 @@ namespace CSE.Automation
                 })
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ObjectTrackingRepositorySettings>())
 
+                .AddSingleton<ActivityHistoryRepositorySettings>(x => new ActivityHistoryRepositorySettings(x.GetRequiredService<ISecretClient>())
+                {
+                    Uri = config[Constants.CosmosDBURLName],
+                    Key = config[Constants.CosmosDBKeyName],
+                    DatabaseName = config[Constants.CosmosDBDatabaseName],
+                    CollectionName = config[Constants.CosmosDBActivityHistoryCollectionName],
+                })
+                .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ActivityHistoryRepositorySettings>())
+
                 .AddSingleton(x => new ServicePrincipalProcessorSettings(x.GetRequiredService<ISecretClient>())
                 {
                     QueueConnectionString = config[Constants.SPStorageConnectionString],
                     EvaluateQueueName = config[Constants.EvaluateQueueAppSetting.Trim('%')],
                     UpdateQueueName = config[Constants.UpdateQueueAppSetting.Trim('%')],
+                    DiscoverQueueName = config[Constants.DiscoverQueueAppSetting.Trim('%')],
                     ConfigurationId = config["configId"].ToGuid(Guid.Parse("02a54ac9-441e-43f1-88ee-fde420db2559")),
                     VisibilityDelayGapSeconds = config["visibilityDelayGapSeconds"].ToInt(8),
                     QueueRecordProcessThreshold = config["queueRecordProcessThreshold"].ToInt(10),
@@ -179,29 +193,32 @@ namespace CSE.Automation
                 }
                 catch (Azure.Identity.CredentialUnavailableException credEx)
                 {
-                    _logger.LogCritical(credEx, $"Failed to validate application configuration: Azure Identity is incorrect.");
+                    logger.LogCritical(credEx, $"Failed to validate application configuration: Azure Identity is incorrect.");
                     throw;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogCritical(ex, $"Failed to validate application configuration");
+                    logger.LogCritical(ex, $"Failed to validate application configuration");
                     throw;
                 }
             }
 
-            _logger.LogInformation($"All settings classes validated.");
+            logger.LogInformation($"All settings classes validated.");
         }
 
         private static void RegisterServices(IFunctionsHostBuilder builder)
         {
+            string path = builder.GetContext().ApplicationRootPath;
             // register the concrete as the singleton, then use forwarder pattern to register same singleton with alternate interfaces
             builder.Services
+                .AddSingleton<VersionService>(x => new VersionService(x.GetRequiredService<VersionMetadata>()))
                 .AddSingleton<ICredentialService>(x => new CredentialService(x.GetRequiredService<CredentialServiceSettings>()))
                 .AddSingleton<ISecretClient>(x => new SecretService(x.GetRequiredService<SecretServiceSettings>(), x.GetRequiredService<ICredentialService>()))
 
                 .AddSingleton<ConfigRepository>()
                 .AddSingleton<IConfigRepository, ConfigRepository>(provider => provider.GetRequiredService<ConfigRepository>())
                 .AddSingleton<ICosmosDBRepository<ProcessorConfiguration>, ConfigRepository>(provider => provider.GetRequiredService<ConfigRepository>())
+
                 .AddSingleton<AuditRepository>()
                 .AddSingleton<IAuditRepository, AuditRepository>(provider => provider.GetRequiredService<AuditRepository>())
                 .AddSingleton<ICosmosDBRepository<AuditEntry>, AuditRepository>(provider => provider.GetRequiredService<AuditRepository>())
@@ -209,6 +226,10 @@ namespace CSE.Automation
                 .AddSingleton<ObjectTrackingRepository>()
                 .AddSingleton<IObjectTrackingRepository, ObjectTrackingRepository>(provider => provider.GetRequiredService<ObjectTrackingRepository>())
                 .AddSingleton<ICosmosDBRepository<TrackingModel>, ObjectTrackingRepository>(provider => provider.GetRequiredService<ObjectTrackingRepository>())
+
+                .AddSingleton<ActivityHistoryRepository>()
+                .AddSingleton<IActivityHistoryRepository, ActivityHistoryRepository>(provider => provider.GetRequiredService<ActivityHistoryRepository>())
+                .AddSingleton<ICosmosDBRepository<ActivityHistory>, ActivityHistoryRepository>(provider => provider.GetRequiredService<ActivityHistoryRepository>())
 
                 .AddScoped<ConfigService>()
                 .AddScoped<IConfigService<ProcessorConfiguration>, ConfigService>()
@@ -219,6 +240,7 @@ namespace CSE.Automation
 
                 .AddScoped<IObjectTrackingService, ObjectTrackingService>()
                 .AddScoped<IAuditService, AuditService>()
+                .AddScoped<IActivityService, ActivityService>()
 
                 .AddScoped<IModelValidator<GraphModel>, GraphModelValidator>()
                 .AddScoped<IModelValidator<ServicePrincipalModel>, ServicePrincipalModelValidator>()
@@ -226,6 +248,8 @@ namespace CSE.Automation
                 .AddSingleton<IModelValidatorFactory, ModelValidatorFactory>()
 
                 .AddScoped<GraphDeltaProcessor>()
+
+                .AddScoped<IServicePrincipalClassifier, ServicePrincipalClassifier>()
 
                 .AddTransient<IQueueServiceFactory, AzureQueueServiceFactory>();
         }

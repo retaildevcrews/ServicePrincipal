@@ -43,7 +43,7 @@ module "acr" {
   ACR_SP_SECRET = var.ACR_SP_SECRET
 }
 
-# Create Storage Queue
+# Create Storage Queues
 
 module "asq" {
   source        = "./asq"
@@ -67,6 +67,7 @@ module "db" {
   COSMOS_AUDIT_COL = var.COSMOS_AUDIT_COL
   COSMOS_CONFIG_COL = var.COSMOS_CONFIG_COL
   COSMOS_OBJ_TRACKING_COL = var.COSMOS_OBJ_TRACKING_COL
+  COSMOS_ACTIVITY_HISTORY_COL = var.COSMOS_ACTIVITY_HISTORY_COL
 }
 
 # Create other Web components that have a direct deendency such as WebApp, Functions, Appinsights, KeyVault etc. 

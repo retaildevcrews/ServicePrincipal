@@ -1,58 +1,17 @@
 ﻿using CSE.Automation.Config;
 using CSE.Automation.Interfaces;
-using CSE.Automation.Model;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Fluent;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using SettingsBase = CSE.Automation.Model.SettingsBase;
 
 namespace CSE.Automation.DataAccess
 {
-
-    class CosmosDBSettings : SettingsBase, ICosmosDBSettings
-    {
-        private string _uri;
-        private string _key;
-        private string _databaseName;
-
-        public CosmosDBSettings(ISecretClient secretClient) : base(secretClient) { }
-
-        [Secret(Constants.CosmosDBURLName)]
-        public string Uri
-        {
-            get { return _uri ?? base.GetSecret(); }
-            set { _uri = value; }
-        }
-
-        [Secret(Constants.CosmosDBKeyName)]
-        public string Key
-        {
-            get { return _key ?? base.GetSecret(); }
-            set { _key = value; }
-        }
-
-        [Secret(Constants.CosmosDBDatabaseName)]
-        public string DatabaseName
-        {
-            get { return _databaseName ?? base.GetSecret(); }
-            set { _databaseName = value; }
-        }
-
-
-        public override void Validate()
-        {
-            if (string.IsNullOrWhiteSpace(this.Uri)) throw new ConfigurationErrorsException($"{this.GetType().Name}: Uri is invalid");
-            if (string.IsNullOrWhiteSpace(this.Key)) throw new ConfigurationErrorsException($"{this.GetType().Name}: Key is invalid");
-            if (string.IsNullOrWhiteSpace(this.DatabaseName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: DatabaseName is invalid");
-        }
-    }
 
     internal abstract class CosmosDBRepository<TEntity> : ICosmosDBRepository<TEntity>, IDisposable
                                                     where TEntity : class
@@ -105,9 +64,7 @@ namespace CSE.Automation.DataAccess
                                                     .Build();
         private Container Container { get { lock (lockObj) { return _container ??= GetContainer(Client); } } }
 
-
         public abstract string GenerateId(TEntity entity);
-
 
         /// <summary>
         /// Recreate the Cosmos Client / Container (after a key rotation)
@@ -125,7 +82,6 @@ namespace CSE.Automation.DataAccess
                 {
                     _logger.LogError($"Failed to reconnect to CosmosDB {_settings.DatabaseName}:{this.CollectionName}");
                 }
-
             }
         }
 
@@ -143,7 +99,6 @@ namespace CSE.Automation.DataAccess
                 throw;
             }
         }
-
 
         public async Task<bool> Test()
         {
@@ -179,7 +134,7 @@ namespace CSE.Automation.DataAccess
         /// <summary>
         /// Query the database for all the containers defined and return a list of the container names.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A list of container names present in the configured database.</returns>
         private async Task<IList<string>> GetContainerNames()
         {
             var containerNames = new List<string>();
@@ -220,8 +175,9 @@ namespace CSE.Automation.DataAccess
             }
             catch (Exception ex)
             {
-                _logger.LogCritical(ex, $"Failed to connect to CosmosDB {_settings.DatabaseName}:{this.CollectionName}");
-                throw;
+                var message = $"Failed to connect to CosmosDB {_settings.DatabaseName}:{this.CollectionName}";
+                _logger.LogCritical(ex, message);
+                throw new ApplicationException(message, ex);
             }
         }
 
@@ -233,6 +189,31 @@ namespace CSE.Automation.DataAccess
         protected async Task<ContainerProperties> GetContainerProperties(Container container = null)
         {
             return (await (container ?? Container).ReadContainerAsync().ConfigureAwait(false)).Resource;
+        }
+
+        /// <summary>
+        /// Generic function to be used by subclasses to execute arbitrary queries and return type T.
+        /// </summary>
+        /// <typeparam name="TEntity">POCO type to which results are serialized and returned.</typeparam>
+        /// <param name="sql">Query to be executed.</param>
+        /// <param name="options">Query options</param>
+        /// <returns>Enumerable list of objects of type T.</returns>
+        protected async Task<IEnumerable<TEntity>> InternalCosmosDBSqlQuery(string sql, QueryRequestOptions options = null)
+        {
+            // run query
+            var query = this.Container.GetItemQueryIterator<TEntity>(sql, requestOptions: options ?? _options.QueryRequestOptions);
+
+            var results = new List<TEntity>();
+
+            while (query.HasMoreResults)
+            {
+                foreach (var doc in await query.ReadNextAsync().ConfigureAwait(false))
+                {
+                    results.Add(doc);
+                }
+            }
+
+            return results;
         }
 
         /// <summary>
@@ -256,29 +237,6 @@ namespace CSE.Automation.DataAccess
                 }
             }
 
-            return results;
-        }
-
-        /// <summary>
-        /// Generic function to be used by subclasses to execute arbitrary queries and return type T.
-        /// </summary>
-        /// <typeparam name="TEntity">POCO type to which results are serialized and returned.</typeparam>
-        /// <param name="sql">Query to be executed.</param>
-        /// <returns>Enumerable list of objects of type T.</returns>
-        private async Task<IEnumerable<TEntity>> InternalCosmosDBSqlQuery(string sql, QueryRequestOptions options = null)
-        {
-            // run query
-            var query = this.Container.GetItemQueryIterator<TEntity>(sql, requestOptions: options ?? _options.QueryRequestOptions);
-
-            var results = new List<TEntity>();
-
-            while (query.HasMoreResults)
-            {
-                foreach (var doc in await query.ReadNextAsync().ConfigureAwait(false))
-                {
-                    results.Add(doc);
-                }
-            }
             return results;
         }
 
@@ -309,6 +267,7 @@ namespace CSE.Automation.DataAccess
             {
                 // swallow exception
             }
+
             return entityWithMeta;
         }
 
@@ -336,7 +295,6 @@ namespace CSE.Automation.DataAccess
         public async Task<IEnumerable<TEntity>> GetPagedAsync(string q, int offset = 0, int limit = Constants.DefaultPageSize)
         {
             string sql = q;
-
 
             if (limit < 1)
             {
@@ -371,7 +329,6 @@ namespace CSE.Automation.DataAccess
             }
 
             return await InternalCosmosDBSqlQuery(queryDefinition).ConfigureAwait(false);
-
         }
 
         public async Task<IEnumerable<TEntity>> GetAllAsync(TypeFilter filter = TypeFilter.any)
