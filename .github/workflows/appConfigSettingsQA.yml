@@ -1,7 +1,7 @@
-# File: .github/workflows/appConfigSettingsQA.yml
+# File: .github/workflows/appConfigSettingsQA.yml NOTE: Need to disable until QA infrastructure (function app, etc.) is provisioned
 name: Update Function App Config Settings on QA
 
-on:  [push]
+on:  [pull_request]
 
 jobs:
 
