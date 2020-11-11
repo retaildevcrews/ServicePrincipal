@@ -1,7 +1,7 @@
 # File: .github/workflows/appConfigSettingsQA.yml
 name: Update Function App Config Settings on QA
 
-on:  [pull_request]
+on:  [push]
 
 jobs:
 

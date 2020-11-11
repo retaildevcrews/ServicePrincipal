@@ -23,6 +23,7 @@ def main(argv):
     prodDict['SPUpdateQueue']   = "update"
 
     prodDict['ScanLimit'] = "2000"
+    prodDict['aadUpdateMode'] = "ReportOnly"
 
     qaEnvDict = {}
     qaEnvDict['RESOURCE_GROUP_NAME']  = "serviceprincipal-rg-dev"
@@ -42,6 +43,7 @@ def main(argv):
     qaDict['SPUpdateQueue']   = "update"
 
     qaDict['ScanLimit'] = "2000"
+    qaDict['aadUpdateMode'] = "ReportOnly"
 
 
 
