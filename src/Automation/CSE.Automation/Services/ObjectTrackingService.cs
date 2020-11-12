@@ -48,7 +48,7 @@ namespace CSE.Automation.Services
         public async Task<TrackingModel> Put(ActivityContext context, TrackingModel entity)
         {
             objectRepository.GenerateId(entity);
-            entity.CorrelationId = context.Activity.Id.ToString();
+            entity.CorrelationId = context.CorrelationId;
             entity.LastUpdated = DateTimeOffset.Now;
             return await objectRepository.UpsertDocumentAsync(entity).ConfigureAwait(false);
         }
@@ -59,7 +59,7 @@ namespace CSE.Automation.Services
             var now = DateTimeOffset.Now;
             var model = new TrackingModel<TEntity>
             {
-                CorrelationId = context.Activity.Id.ToString(),
+                CorrelationId = context.CorrelationId,
                 Created = now,
                 LastUpdated = now,
                 TypedEntity = entity,
