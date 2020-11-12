@@ -1,0 +1,38 @@
+# File: .github/workflows/appConfigSettings.yml
+name: Update Function App Config Settings
+
+on:
+  push:
+    branches:
+      - nudoyen/enhance-cd-pipeline
+
+  pull_request:
+  types: [ opened, reopened, synchronize ]
+
+jobs:
+
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:    
+    - name: Azure Login
+      run: |
+        # login to Azure
+        az login --service-principal -u ${{ secrets.SERVICE_PRINCIPAL_ID }} --tenant ${{ secrets.TENANT_ID }} -p ${{ secrets.SERVICE_PRINCIPAL_SECRET }}
+    
+    - name: checkout repo content
+      uses: actions/checkout@v2 # checkout the repository content to github runner.
+
+    - name: Install jq  
+      run: sudo apt-get install jq
+
+    - name: execute shell script # run the run.py to get the latest data
+      run: |
+        
+        if [[ "${{ github.event_name }}" == "push" ]]
+        then
+          .github/workflows/appConfigSettings.sh prod
+        elif [[ "${{ github.event_name }}" == "pull_request" ]]
+        then
+          .github/workflows/appConfigSettings.sh qa
+        fi
