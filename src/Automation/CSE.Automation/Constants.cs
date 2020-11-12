@@ -5,16 +5,16 @@ namespace CSE.Automation
 {
     public sealed class Constants
     {
-        //secure execution constants
+        // secure execution constants
         public const string AuthType = "AUTH_TYPE";
         public const string KeyVaultName = "KEYVAULT_NAME";
 
-        //Graph API constants
+        // Graph API constants
         public const string GraphAppClientIdKey = "graphAppClientId";
         public const string GraphAppTenantIdKey = "graphAppTenantId";
         public const string GraphAppClientSecretKey = "graphAppClientSecret";
 
-        //CosmosDB Constants
+        // CosmosDB Constants
         public const int DefaultPageSize = 100;
         public const int MaxPageSize = 1000;
 
@@ -35,7 +35,7 @@ namespace CSE.Automation
         // Azure Timer Function Constants
         public const string DeltaDiscoverySchedule = "%SPDeltaDiscoverySchedule%";
 
-        //Queueing Constants
+        // Queueing Constants
         public const int MaxVisibilityDelayGapSeconds = 500;
         public const int MaxQueueRecordProcessThreshold = 3000;
 

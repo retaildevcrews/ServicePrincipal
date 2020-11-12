@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -111,8 +114,8 @@ namespace CSE.Automation
         {
             Assembly thisAssembly = Assembly.GetExecutingAssembly();
             VersionMetadata versionConfig = new VersionMetadata(thisAssembly);
-            var _logger = CreateBootstrapLogger();
-            _logger.LogInformation(JsonSerializer.Serialize(versionConfig.ProductVersion));
+            var logger = CreateBootstrapLogger();
+            logger.LogInformation(JsonSerializer.Serialize(versionConfig.ProductVersion));
             var serviceProvider = builder.Services.BuildServiceProvider();
             var config = serviceProvider.GetRequiredService<IConfiguration>();
 
@@ -177,8 +180,6 @@ namespace CSE.Automation
                     AADUpdateMode = config["aadUpdateMode"].As<UpdateMode>(UpdateMode.Update),
                 })
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ServicePrincipalProcessorSettings>());
-
-
         }
 
         private void ValidateSettings(IFunctionsHostBuilder builder)
@@ -209,6 +210,7 @@ namespace CSE.Automation
         private static void RegisterServices(IFunctionsHostBuilder builder)
         {
             string path = builder.GetContext().ApplicationRootPath;
+
             // register the concrete as the singleton, then use forwarder pattern to register same singleton with alternate interfaces
             builder.Services
                 .AddSingleton<VersionService>(x => new VersionService(x.GetRequiredService<VersionMetadata>()))
@@ -253,6 +255,5 @@ namespace CSE.Automation
 
                 .AddTransient<IQueueServiceFactory, AzureQueueServiceFactory>();
         }
-
     }
 }

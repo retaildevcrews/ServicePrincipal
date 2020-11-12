@@ -1,38 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Transactions;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
 using Azure.Core;
-using CSE.Automation.Interfaces;
 using Azure.Identity;
+using CSE.Automation.Interfaces;
 
 namespace CSE.Automation.Services
 {
-    public enum AuthenticationType { MI, CLI, VS }
-
-    class CredentialServiceSettings
+    internal class CredentialService : ICredentialService
     {
-        public AuthenticationType AuthType { get; set; }
-    }
-    class CredentialService : ICredentialService
-    {
-        readonly TokenCredential _currentCredential;
+        private readonly TokenCredential currentCredential;
 
         public CredentialService(CredentialServiceSettings settings)
         {
-            _currentCredential = settings.AuthType switch
+            this.currentCredential = settings.AuthType switch
             {
                 AuthenticationType.CLI => new AzureCliCredential(),
                 AuthenticationType.MI => new ManagedIdentityCredential(),
                 AuthenticationType.VS => new VisualStudioCredential(),
-                _ => _currentCredential
+                _ => currentCredential
             };
         }
 
         public TokenCredential CurrentCredential
         {
-            get { return _currentCredential; }
+            get { return currentCredential; }
         }
-
     }
 }

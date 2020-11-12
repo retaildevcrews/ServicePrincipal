@@ -1,4 +1,8 @@
-﻿using CSE.Automation.Graph;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using CSE.Automation.Graph;
+using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
 using FluentValidation;
 using FluentValidation.Results;
@@ -31,6 +35,5 @@ namespace CSE.Automation.Validators
             RuleFor(m => m.Owners)
                 .NotEmpty();
         }
-
     }
 }

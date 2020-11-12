@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -8,33 +11,22 @@ using CSE.Automation.Interfaces;
 
 namespace CSE.Automation.Model
 {
-
-    [AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = true)]
-    sealed class SecretAttribute : Attribute
-    {
-        private readonly string _name;
-
-        public SecretAttribute(string name)
-        {
-            _name = name.Trim('%');
-        }
-
-        public string SecretName => _name;
-    }
-
-
     public abstract class SettingsBase : ISettingsValidator
     {
-        private readonly ISecretClient _secretClient;
+        public virtual void Validate() { }
+        private readonly ISecretClient secretClient;
 
         protected SettingsBase(ISecretClient secretClient)
         {
-            _secretClient = secretClient;
+            this.secretClient = secretClient;
         }
 
         protected string GetSecret([CallerMemberName] string name = default)
         {
-            if (string.IsNullOrEmpty(name)) return string.Empty;
+            if (string.IsNullOrEmpty(name))
+            {
+                return string.Empty;
+            }
 
             var propInfo = this.GetType().GetProperty(name);
             if (propInfo == null)
@@ -47,15 +39,11 @@ namespace CSE.Automation.Model
             return attr != null
                 ? GetSecretInternal(attr.ConstructorArguments.First().Value.ToString())
                 : GetSecretInternal(propInfo.Name);
-
         }
 
         private string GetSecretInternal(string name)
         {
-            return _secretClient.GetSecretValue(name);
+            return this.secretClient.GetSecretValue(name);
         }
-
-        public virtual void Validate() { }
     }
-
 }

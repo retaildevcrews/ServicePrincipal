@@ -15,7 +15,6 @@ namespace CSE.Automation.Base
         public static class KeyVaultHelper
 #pragma warning restore CA1034 // Nested types should not be visible
         {
-
             /// <summary>
             /// Build the Key Vault URL from the name
             /// </summary>
@@ -32,7 +31,7 @@ namespace CSE.Automation.Base
                 var uriBuilder = new UriBuilder
                 {
                     Scheme = Uri.UriSchemeHttps,
-                    Host = $"{keyVaultName}.vault.azure.net"
+                    Host = $"{keyVaultName}.vault.azure.net",
                 };
 
                 keyvaultConnection = uriBuilder.Uri.AbsoluteUri;
@@ -51,6 +50,7 @@ namespace CSE.Automation.Base
                 {
                     return false;
                 }
+
                 name = name.Trim();
 
                 return name.Length >= 3 && name.Length <= 24;

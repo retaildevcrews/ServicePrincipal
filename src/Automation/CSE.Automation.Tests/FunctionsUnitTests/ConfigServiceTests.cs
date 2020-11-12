@@ -18,7 +18,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 {
     public class ConfigServiceTests
     {
-        private IHost _host;
+        private IHost host;
 
         public ConfigServiceTests()
         {
@@ -28,7 +28,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         void Initialize()
         {
             var builder = CreateHostBuilder(null);
-            _host = builder.Build();
+            host = builder.Build();
         }
 
         static IHostBuilder CreateHostBuilder(string[] args)
@@ -79,7 +79,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         [Fact]
         public async Task TestConfigServiceReadWriteAsync()
         {
-            using (var serviceScope = _host.Services.CreateScope())
+            using (var serviceScope = host.Services.CreateScope())
             {
                 var configService = serviceScope.ServiceProvider.GetService<ConfigService>();
 
@@ -106,9 +106,9 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
-        public async Task TestConfigServiceConfigNotFoundAsync()
+        public void TestConfigServiceConfigNotFoundAsync()
         {
-            using (var serviceScope = _host.Services.CreateScope())
+            using (var serviceScope = host.Services.CreateScope())
             {
                 var configService = serviceScope.ServiceProvider.GetService<ConfigService>();
 
@@ -122,7 +122,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         [Fact]
         public async Task TestConfigServiceConfigNewAsync()
         {
-            using (var serviceScope = _host.Services.CreateScope())
+            using (var serviceScope = host.Services.CreateScope())
             {
                 var configService = serviceScope.ServiceProvider.GetService<ConfigService>();
 

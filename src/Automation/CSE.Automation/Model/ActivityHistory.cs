@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -16,13 +19,14 @@ namespace CSE.Automation.Model
         public string Id { get; set; }
 
         /// <summary>
-        /// Gets or sets the correlation Id of the activity 
+        /// Gets or sets the correlation Id of the activity
         /// </summary>
         public string CorrelationId { get; set; }
 
         public string Name { get; set; }
 
         public string CommandSource { get; set; }
+
         /// <summary>
         /// Gets or sets the status of the activity
         /// </summary>
@@ -43,7 +47,7 @@ namespace CSE.Automation.Model
         /// </summary>
         public DateTimeOffset LastUpdated { get; set; }
 
-        public void MergeMetrics(IDictionary<string,object> dict)
+        public void MergeMetrics(IDictionary<string, object> dict)
         {
             Metrics = Metrics.Concat(dict).ToDictionary(x => x.Key, x => x.Value);
         }

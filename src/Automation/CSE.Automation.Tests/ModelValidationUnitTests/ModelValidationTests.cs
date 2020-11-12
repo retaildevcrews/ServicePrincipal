@@ -11,6 +11,7 @@ using CSE.Automation.Validators;
 using CSE.Automation.Graph;
 using Microsoft.Graph;
 using System.Threading.Tasks;
+using CSE.Automation.Interfaces;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests
 {

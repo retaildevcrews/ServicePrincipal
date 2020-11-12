@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AssemblyAttribute Include="CSE.Automation.BuildTimestampAttribute">
+    <AssemblyAttribute Include="CSE.Automation.Model.BuildTimestampAttribute">
       <_Parameter1>$(BuildUTC)</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>

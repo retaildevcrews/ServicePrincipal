@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Text;
@@ -11,27 +14,13 @@ using Microsoft.Graph;
 
 namespace CSE.Automation.DataAccess
 {
-    internal class ObjectTrackingRepositorySettings : CosmosDBSettings
-    {
-        public ObjectTrackingRepositorySettings(ISecretClient secretClient) : base(secretClient)
-        {
-        }
-
-        public string CollectionName { get; set; }
-        public override void Validate()
-        {
-            base.Validate();
-            if (string.IsNullOrEmpty(this.CollectionName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: CollectionName is invalid");
-        }
-    }
-
-    internal interface IObjectTrackingRepository : ICosmosDBRepository<TrackingModel> { }
     internal class ObjectTrackingRepository : CosmosDBRepository<TrackingModel>, IObjectTrackingRepository
     {
-        private readonly ObjectTrackingRepositorySettings _settings;
-        public ObjectTrackingRepository(ObjectTrackingRepositorySettings settings, ILogger<ObjectTrackingRepository> logger) : base(settings, logger)
+        private readonly ObjectTrackingRepositorySettings settings;
+        public ObjectTrackingRepository(ObjectTrackingRepositorySettings settings, ILogger<ObjectTrackingRepository> logger)
+        : base(settings, logger)
         {
-            _settings = settings;
+            this.settings = settings;
         }
 
         public override string GenerateId(TrackingModel entity)
@@ -40,9 +29,10 @@ namespace CSE.Automation.DataAccess
             {
                 entity.Id = Guid.NewGuid().ToString();
             }
+
             return entity.Id;
         }
 
-        public override string CollectionName => _settings.CollectionName;
+        public override string CollectionName => this.settings.CollectionName;
     }
 }
