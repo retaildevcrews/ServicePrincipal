@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Text;
@@ -11,29 +14,13 @@ using Microsoft.Graph;
 
 namespace CSE.Automation.DataAccess
 {
-    internal class ConfigRespositorySettings : CosmosDBSettings
-    {
-        public ConfigRespositorySettings(ISecretClient secretClient) : base(secretClient)
-        {
-        }
-
-        public string CollectionName { get; set; }
-
-        public override void Validate()
-        {
-            base.Validate();
-            if (string.IsNullOrWhiteSpace(this.CollectionName)) throw new ConfigurationErrorsException($"{this.GetType().Name}: CollectionName is invalid");
-        }
-    }
-
-    internal interface IConfigRepository : ICosmosDBRepository<ProcessorConfiguration> { }
-
     internal class ConfigRepository : CosmosDBRepository<ProcessorConfiguration>, IConfigRepository
     {
-        private readonly ConfigRespositorySettings _settings;
-        public ConfigRepository(ConfigRespositorySettings settings, ILogger<ConfigRepository> logger) : base(settings, logger)
+        private readonly ConfigRespositorySettings settings;
+        public ConfigRepository(ConfigRespositorySettings settings, ILogger<ConfigRepository> logger)
+        : base(settings, logger)
         {
-            _settings = settings;
+            this.settings = settings;
         }
 
         public override string GenerateId(ProcessorConfiguration entity)
@@ -41,6 +28,6 @@ namespace CSE.Automation.DataAccess
             return entity.Id;
         }
 
-        public override string CollectionName => _settings.CollectionName;
+        public override string CollectionName => this.settings.CollectionName;
     }
 }

@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CSE.Automation.Graph;
@@ -55,9 +58,8 @@ namespace CSE.Automation.Processors
         {
             logger.LogInformation($"Initializing {this.GetType().Name}");
 
-            config = configService.Get(this.ConfigurationId.ToString(), ProcessorType, DefaultConfigurationResourceName, true);
+            config = configService.Get(this.ConfigurationId.ToString(), ProcessorType, DefaultConfigurationResourceName);
             initialized = true;
         }
-
     }
 }

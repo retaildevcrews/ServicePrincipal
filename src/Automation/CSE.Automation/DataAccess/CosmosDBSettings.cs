@@ -1,11 +1,14 @@
-﻿using CSE.Automation.Interfaces;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
 using System.Configuration;
 using SettingsBase = CSE.Automation.Model.SettingsBase;
 
 namespace CSE.Automation.DataAccess
 {
-    class CosmosDBSettings : SettingsBase, ICosmosDBSettings
+    internal class CosmosDBSettings : SettingsBase, ICosmosDBSettings
     {
         private string uri;
         private string key;

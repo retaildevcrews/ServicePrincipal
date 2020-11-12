@@ -11,16 +11,16 @@ namespace CSE.Automation.Processors
     // TODO: Examine this and IDALResolve and see if they may be refactored to a single class.
     public class ProcessorResolver : IServiceResolver
     {
-        private IDAL _configDAL;
-        private ISecretClient _secretService;
-        private GraphHelperBase<ServicePrincipal> _spGraphHelper;
-        private ConcurrentDictionary<string, IDeltaProcessor> _registeredProcessors = new System.Collections.Concurrent.ConcurrentDictionary<string, IDeltaProcessor>();
+        private IDAL configDAL;
+        private ISecretClient secretService;
+        private GraphHelperBase<ServicePrincipal> spGraphHelper;
+        private ConcurrentDictionary<string, IDeltaProcessor> registeredProcessors = new System.Collections.Concurrent.ConcurrentDictionary<string, IDeltaProcessor>();
 
         public ProcessorResolver(IDAL configDAL, ISecretClient secretService, GraphHelperBase<ServicePrincipal> spGraphHelper)
         {
-            _configDAL = configDAL;
-            _secretService = secretService;
-            _spGraphHelper = spGraphHelper;
+            this.configDAL = configDAL;
+            this.secretService = secretService;
+            this.spGraphHelper = spGraphHelper;
         }
 
         private IDeltaProcessor CreateProcessor(ProcessorType processorType)
@@ -31,7 +31,7 @@ namespace CSE.Automation.Processors
             switch (processorType)
             {
                 case ProcessorType.ServicePrincipal:
-                    returnProcessor = new ServicePrincipalProcessor(_configDAL, _secretService, _spGraphHelper, 0, 0);
+                    returnProcessor = new ServicePrincipalProcessor(configDAL, secretService, spGraphHelper, 0, 0);
                     break;
                 case ProcessorType.User:
                     throw new NotImplementedException();
@@ -48,7 +48,7 @@ namespace CSE.Automation.Processors
 
             ProcessorType processorType = Enum.Parse<ProcessorType>(keyName);
 
-            return (T)_registeredProcessors.GetOrAdd(keyName, CreateProcessor(processorType));
+            return (T)registeredProcessors.GetOrAdd(keyName, CreateProcessor(processorType));
         }
     }
 }

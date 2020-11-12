@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using System.Collections.Generic;
 using System.Configuration;
 using System.Threading.Tasks;
 using CSE.Automation.Extensions;
@@ -12,55 +15,20 @@ using SettingsBase = CSE.Automation.Model.SettingsBase;
 
 namespace CSE.Automation.Graph
 {
-    public class GraphHelperSettings : SettingsBase
-    {
-        public GraphHelperSettings(ISecretClient secretClient)
-                : base(secretClient)
-        {
-        }
-
-        [Secret(Constants.GraphAppClientIdKey)]
-        public string GraphAppClientId => GetSecret();
-
-        [Secret(Constants.GraphAppTenantIdKey)]
-        public string GraphAppTenantId => GetSecret();
-
-        [Secret(Constants.GraphAppClientSecretKey)]
-        public string GraphAppClientSecret => GetSecret();
-
-        public override void Validate()
-        {
-            if (this.GraphAppClientId.IsNull())
-                throw new ConfigurationErrorsException($"{this.GetType().Name}: GraphAppClientId is null");
-            if (this.GraphAppTenantId.IsNull())
-                throw new ConfigurationErrorsException($"{this.GetType().Name}: GraphAppTenantId is null");
-            if (this.GraphAppClientSecret.IsNull())
-                throw new ConfigurationErrorsException($"{this.GetType().Name}: GraphAppClientSecret is null");
-        }
-    }
-
-    internal interface IGraphHelper<TEntity>
-    {
-        Task<(GraphOperationMetrics metrics, IEnumerable<TEntity> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string selectFields = null);
-        Task<TEntity> GetGraphObjectWithOwners(string id);
-        Task PatchGraphObject(TEntity entity);
-    }
-
     internal abstract class GraphHelperBase<TEntity> : IGraphHelper<TEntity>
     {
-
         protected GraphServiceClient GraphClient { get; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1051:Do not declare visible instance fields", Justification = "Used to super-classes")]
-        protected readonly ILogger _logger;
-        protected readonly GraphHelperSettings _settings;
-        protected IAuditService _auditService;
+        protected readonly ILogger logger;
+        protected readonly GraphHelperSettings settings;
+        protected IAuditService auditService;
 
         protected GraphHelperBase(GraphHelperSettings settings, IAuditService auditService, ILogger logger)
         {
-            _settings = settings;
-            _auditService = auditService;
-            _logger = logger;
+            this.settings = settings;
+            this.auditService = auditService;
+            this.logger = logger;
             IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
 #pragma warning disable CA1062 // Validate arguments of public methods, settings is injected from parent via Container
                                                                                .Create(settings.GraphAppClientId)

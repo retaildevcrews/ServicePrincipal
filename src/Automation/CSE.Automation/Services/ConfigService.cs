@@ -1,4 +1,7 @@
-﻿using CSE.Automation.DataAccess;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using CSE.Automation.DataAccess;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
 using CSE.Automation.Properties;
@@ -16,15 +19,15 @@ namespace CSE.Automation.Services
 {
     internal class ConfigService : IConfigService<ProcessorConfiguration>
     {
-        private readonly IConfigRepository _configRepository;
+        private readonly IConfigRepository configRepository;
         public ConfigService(IConfigRepository configRepository)
         {
-            this._configRepository = configRepository;
+            this.configRepository = configRepository;
         }
 
-        public ProcessorConfiguration Get(string id, ProcessorType processorType, string defaultConfigResourceName, bool createIfNotFound = false)
+        public ProcessorConfiguration Get(string id, ProcessorType processorType, string defaultConfigResourceName, bool createIfNotFound = true)
         {
-            ProcessorConfiguration configuration = _configRepository.GetByIdAsync(id, processorType.ToString()).GetAwaiter().GetResult();
+            ProcessorConfiguration configuration = configRepository.GetByIdAsync(id, processorType.ToString()).GetAwaiter().GetResult();
             if (configuration == null && createIfNotFound)
             {
                 if (string.IsNullOrWhiteSpace(defaultConfigResourceName))
@@ -39,7 +42,7 @@ namespace CSE.Automation.Services
                 {
                     ProcessorConfiguration defaultConfiguration = JsonConvert.DeserializeObject<ProcessorConfiguration>(initalDocumentAsString);
                     defaultConfiguration.Id = id;
-                    return _configRepository.CreateDocumentAsync(defaultConfiguration).Result;
+                    return configRepository.CreateDocumentAsync(defaultConfiguration).Result;
                 }
                 catch (Exception ex)
                 {
@@ -52,7 +55,7 @@ namespace CSE.Automation.Services
 
         public async Task<ProcessorConfiguration> Put(ProcessorConfiguration newDocument)
         {
-            return await _configRepository.ReplaceDocumentAsync(newDocument.Id, newDocument).ConfigureAwait(false);
+            return await configRepository.ReplaceDocumentAsync(newDocument.Id, newDocument).ConfigureAwait(false);
         }
 
         public async Task Lock(string id, string defaultConfigResourceName)
@@ -60,7 +63,7 @@ namespace CSE.Automation.Services
             try
             {
                 Get(id, ProcessorType.ServicePrincipal, defaultConfigResourceName);
-                var configWithMeta = _configRepository.GetByIdWithMetaAsync(id, "ServicePrincipal").Result;
+                var configWithMeta = await configRepository.GetByIdWithMetaAsync(id, "ServicePrincipal").ConfigureAwait(false);
                 ItemRequestOptions requestOptions = new ItemRequestOptions { IfMatchEtag = configWithMeta.ETag };
                 ProcessorConfiguration config = configWithMeta.Resource;
                 if (config.IsProcessorLocked)
@@ -70,7 +73,7 @@ namespace CSE.Automation.Services
                 else
                 {
                     config.IsProcessorLocked = true;
-                    id = _configRepository.ReplaceDocumentAsync(config.Id, config, requestOptions).Result.Id;
+                    id = configRepository.ReplaceDocumentAsync(config.Id, config, requestOptions).Result.Id;
                     Console.WriteLine("Lock Successfull Acquired For: " + id);
                 }
             }
@@ -82,9 +85,9 @@ namespace CSE.Automation.Services
 
         public async Task Unlock()
         {
-            var config = _configRepository.GetByIdAsync("02a54ac9-441e-43f1-88ee-fde420db2559", "ServicePrincipal").Result;
+            var config = configRepository.GetByIdAsync("02a54ac9-441e-43f1-88ee-fde420db2559", "ServicePrincipal").Result;
             config.IsProcessorLocked = false;
-            await _configRepository.ReplaceDocumentAsync(config.Id, config).ConfigureAwait(false);
+            await configRepository.ReplaceDocumentAsync(config.Id, config).ConfigureAwait(false);
         }
     }
 }

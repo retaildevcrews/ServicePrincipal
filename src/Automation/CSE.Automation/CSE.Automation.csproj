@@ -4,8 +4,7 @@
     <AzureFunctionsVersion>v3</AzureFunctionsVersion>
     <DockerFastModeProjectMountDirectory>/home/site/wwwroot</DockerFastModeProjectMountDirectory>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    <!-- DEFAULT VERSION WHEN RUNNING FROM DEV MACHINE -->
-    <VersionPrefix>0.0.0</VersionPrefix>
+    <VersionPrefix>0.2</VersionPrefix>
     <VersionSuffix>local</VersionSuffix>
     <!-- TODO: set to true -->
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
@@ -13,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AssemblyAttribute Include="CSE.Automation.BuildTimestampAttribute">
+    <AssemblyAttribute Include="CSE.Automation.Model.BuildTimestampAttribute">
       <_Parameter1>$(BuildUTC)</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>

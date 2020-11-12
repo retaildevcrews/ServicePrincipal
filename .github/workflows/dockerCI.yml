@@ -35,15 +35,18 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v2
-    - name: Wait for code checkout
-      uses: juliangruber/sleep-action@v1
       with:
-        time: 5s
-    - name: Calculate Patch Verison
-      uses: avakar/derive-version@v1
-      with:
-        file: src/Automation/CSE.Automation/version.config
-      id: version
+        fetch-depth: 0 # needed to calulate patch
+    - name: Calculate Version
+      run: |
+        export version_from_config=$(git blame src/Automation/CSE.Automation/CSE.Automation.csproj | grep "</VersionPrefix>")
+        export currenthash=$(git rev-parse HEAD)
+        export lasthash=$(echo ${version_from_config} | awk '{print $1}')
+        export patch=$(git log ${lasthash}..${currenthash} --pretty=oneline | wc -l | sed "s/\s//g")
+        export majorminor=$(echo $version_from_config | grep -oP '\d+(\.\d+)+')
+        export VERSION_PREFIX=${majorminor}.${patch}
+        echo $VERSION_PREFIX
+        echo "VERSION_PREFIX=${VERSION_PREFIX}" >> $GITHUB_ENV
     - name: Build Container
     # Version Prefix must be of following format: ^\d+(\.\d+){1,3}$
     # Version Suffix must be of following format: ^[0-9A-Za-z-]*$
@@ -58,7 +61,7 @@ jobs:
         fi
         # Build Image
         docker build --pull -t temp \
-                    --build-arg VERSION_PREFIX="${{ steps.version.outputs.version }}" \
+                    --build-arg VERSION_PREFIX="${VERSION_PREFIX}" \
                     --build-arg VERSION_SUFFIX="${VERSION_SUFFIX}" \
                     -f src/Automation/CSE.Automation/Dockerfile src/Automation
     
@@ -83,11 +86,14 @@ jobs:
           PR_NUMBER=$(echo "${{ github.ref }}" | awk 'BEGIN { FS = "/" } ; { print $3 }')
           VERSION_SUFFIX="PR${PR_NUMBER}-${GIT_HASH}"
         fi
-        SEMANTIC_VERSION="${{ steps.version.outputs.version }}-${VERSION_SUFFIX}"
+        SEMANTIC_VERSION="${VERSION_PREFIX}-${VERSION_SUFFIX}"
         docker tag temp "${ACR_REG_REPO_URL}:${SEMANTIC_VERSION}"
         docker push ${ACR_REG_REPO_URL}
     - name: Tag Release
       if: github.event_name == 'push'
-      uses: avakar/tag-and-release@v1
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ steps.version.outputs.version }}
+        tag_name: ${VERSION_PREFIX}
+        release_name: ${VERSION_PREFIX}

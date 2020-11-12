@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Text;
@@ -14,7 +17,7 @@ namespace CSE.Automation.DataAccess
     internal class AuditRepository : CosmosDBRepository<AuditEntry>, IAuditRepository
     {
         private readonly AuditRepositorySettings settings;
-        public AuditRepository(AuditRepositorySettings settings, ILogger<AuditRepository> logger) 
+        public AuditRepository(AuditRepositorySettings settings, ILogger<AuditRepository> logger)
             : base(settings, logger)
         {
             this.settings = settings;

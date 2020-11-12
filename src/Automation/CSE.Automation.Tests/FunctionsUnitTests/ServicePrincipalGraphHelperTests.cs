@@ -18,7 +18,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 {
     public class ServicePrincipalGraphHelperTests
     {
-        private IHost _host;
+        private IHost host;
 
         public ServicePrincipalGraphHelperTests()
         {
@@ -28,17 +28,17 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         void Initialize()
         {
             var builder = CreateHostBuilder(null);
-            _host = builder.Build();
+            host = builder.Build();
         }
 
         static IHostBuilder CreateHostBuilder(string[] args)
         {
             // SERVICES SETTINGS
-            //var secretServiceSettings = new SecretServiceSettings() { KeyVaultName = config[Constants.KeyVaultName] };
-            //var credServiceSettings = new CredentialServiceSettings() { AuthType = config[Constants.AuthType].As<AuthenticationType>() };
+            // var secretServiceSettings = new SecretServiceSettings() { KeyVaultName = config[Constants.KeyVaultName] };
+            // var credServiceSettings = new CredentialServiceSettings() { AuthType = config[Constants.AuthType].As<AuthenticationType>() };
 
             return
-                //Host.CreateDefaultBuilder(args)
+                // Host.CreateDefaultBuilder(args)
                 new HostBuilder()
                 .ConfigureLogging(builder =>
                 {
@@ -55,7 +55,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                         .AddTransient<GraphHelperSettings>()
                         .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>();
 
-                    //services.AddSingleton<IRevolutionMapperConfiguration, RevolutionMapperConfiguration>(provider =>
+                    // services.AddSingleton<IRevolutionMapperConfiguration, RevolutionMapperConfiguration>(provider =>
                     //{
                     //    var configuration = new MapperConfiguration(cfg =>
                     //    {
@@ -99,7 +99,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         [Fact]
         public async Task GetDeltaGraphObjects_GetAll()
         {
-            using (var serviceScope = _host.Services.CreateScope())
+            using (var serviceScope = host.Services.CreateScope())
             {
                 var config = GetConfiguration();
                 var service = serviceScope.ServiceProvider.GetService<IGraphHelper<ServicePrincipal>>();

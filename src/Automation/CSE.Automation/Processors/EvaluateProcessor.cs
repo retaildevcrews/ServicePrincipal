@@ -12,15 +12,15 @@ namespace CSE.Automation.Processors
 
     internal class EvaluateProcessor : IEvaluateProcessor
     {
-        private readonly ILogger _logger;
-        private readonly IObjectTrackingService _objectService;
-        private readonly IAuditService _auditService;
+        private readonly ILogger logger;
+        private readonly IObjectTrackingService objectService;
+        private readonly IAuditService auditService;
 
         public EvaluateProcessor(IObjectTrackingService objectService, IAuditService auditService, ILogger<EvaluateProcessor> logger)
         {
-            _objectService = objectService;
-            _auditService = auditService;
-            _logger = logger;
+            this.objectService = objectService;
+            this.auditService = auditService;
+            this.logger = logger;
         }
 
         /// <summary>

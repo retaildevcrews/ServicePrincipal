@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using CSE.Automation.Interfaces;
+using System;
 using System.Collections.Generic;
 using FluentValidation;
 using FluentValidation.Results;
@@ -6,28 +10,17 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CSE.Automation.Model
 {
-
-    public interface IModelValidator<T>
+    internal class ModelValidatorFactory : IModelValidatorFactory
     {
-        ValidationResult Validate(T model);
-    }
-
-    public interface IModelValidatorFactory
-    {
-        IEnumerable<IModelValidator<TEntity>> Get<TEntity>();
-    }
-
-    class ModelValidatorFactory : IModelValidatorFactory
-    {
-        IServiceProvider _serviceProvider;
+        private IServiceProvider serviceProvider;
         public ModelValidatorFactory(IServiceProvider serviceProvider)
         {
-            _serviceProvider = serviceProvider;
+            this.serviceProvider = serviceProvider;
         }
 
         public IEnumerable<IModelValidator<T>> Get<T>()
         {
-            return _serviceProvider.GetServices<IModelValidator<T>>();
+            return this.serviceProvider.GetServices<IModelValidator<T>>();
         }
     }
 }

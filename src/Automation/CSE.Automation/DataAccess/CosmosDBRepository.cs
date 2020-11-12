@@ -1,4 +1,7 @@
-﻿using CSE.Automation.Config;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using CSE.Automation.Config;
 using CSE.Automation.Interfaces;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Fluent;
@@ -12,19 +15,17 @@ using System.Threading.Tasks;
 
 namespace CSE.Automation.DataAccess
 {
-
     internal abstract class CosmosDBRepository<TEntity> : ICosmosDBRepository<TEntity>, IDisposable
                                                     where TEntity : class
     {
-        const string pagedOffsetString = " offset {0} limit {1}";
-
-        private readonly CosmosConfig _options;
-        private static CosmosClient _client;
-        private Container _container;
-        private ContainerProperties _containerProperties;
-        private readonly ICosmosDBSettings _settings;
-        private readonly ILogger _logger;
-        private PropertyInfo _partitionKeyPI;
+        private const string PagedOffsetString = " offset {0} limit {1}";
+        private readonly ICosmosDBSettings settings;
+        private readonly ILogger logger;
+        private readonly CosmosConfig options;
+        private static CosmosClient client;
+        private Container container;
+        private ContainerProperties containerProperties;
+        private PropertyInfo partitionKeyPI;
 
         /// <summary>
         /// Data Access Layer Constructor
@@ -33,10 +34,10 @@ namespace CSE.Automation.DataAccess
         /// <param name="logger">Instance of logger.</param>
         protected CosmosDBRepository(ICosmosDBSettings settings, ILogger logger)
         {
-            _settings = settings;
-            _logger = logger;
+            this.settings = settings;
+            this.logger = logger;
 
-            _options = new CosmosConfig
+            this.options = new CosmosConfig
             {
                 MaxRows = MaxPageSize,
                 Timeout = CosmosTimeout,
@@ -48,11 +49,11 @@ namespace CSE.Automation.DataAccess
         public int CosmosTimeout { get; set; } = 60;
         public int CosmosMaxRetries { get; set; } = 10;
         public abstract string CollectionName { get; }
-        public string DatabaseName => _settings.DatabaseName;
+        public string DatabaseName => this.settings.DatabaseName;
         private object lockObj = new object();
 
         // NOTE: CosmosDB library currently wraps the Newtonsoft JSON serializer.  Align Attributes and Converters to Newtonsoft on the domain models.
-        private CosmosClient Client => _client ??= new CosmosClientBuilder(_settings.Uri, _settings.Key)
+        private CosmosClient Client => client ??= new CosmosClientBuilder(this.settings.Uri, this.settings.Key)
                                                     .WithRequestTimeout(TimeSpan.FromSeconds(CosmosTimeout))
                                                     .WithThrottlingRetryOptions(TimeSpan.FromSeconds(CosmosTimeout), CosmosMaxRetries)
                                                     .WithSerializerOptions(new CosmosSerializationOptions
@@ -62,7 +63,16 @@ namespace CSE.Automation.DataAccess
                                                         IgnoreNullValues = true,
                                                     })
                                                     .Build();
-        private Container Container { get { lock (lockObj) { return _container ??= GetContainer(Client); } } }
+        private Container Container
+        {
+            get
+            {
+                lock (lockObj)
+                {
+                    return this.container ??= GetContainer(Client);
+                }
+            }
+        }
 
         public abstract string GenerateId(TEntity entity);
 
@@ -73,14 +83,13 @@ namespace CSE.Automation.DataAccess
         /// <returns>Task</returns>
         public async Task Reconnect(bool force = false)
         {
-            if (force || _container.Id != this.CollectionName)
+            if (force || this.container.Id != this.CollectionName)
             {
-
                 // open and test a new client / container
-                _client = null;
+                client = null;
                 if (await Test().ConfigureAwait(true) == false)
                 {
-                    _logger.LogError($"Failed to reconnect to CosmosDB {_settings.DatabaseName}:{this.CollectionName}");
+                    logger.LogError($"Failed to reconnect to CosmosDB {this.settings.DatabaseName}:{this.CollectionName}");
                 }
             }
         }
@@ -89,12 +98,12 @@ namespace CSE.Automation.DataAccess
         {
             try
             {
-                var value = new PartitionKey(_partitionKeyPI.GetValue(entity).ToString());
+                var value = new PartitionKey(this.partitionKeyPI.GetValue(entity).ToString());
                 return value;
             }
             catch (Exception ex)
             {
-                ex.Data["partitionKeyPath"] = _containerProperties.PartitionKeyPath;
+                ex.Data["partitionKeyPath"] = this.containerProperties.PartitionKeyPath;
                 ex.Data["entityType"] = typeof(TEntity);
                 throw;
             }
@@ -112,133 +121,24 @@ namespace CSE.Automation.DataAccess
             {
                 var containers = await GetContainerNames().ConfigureAwait(false);
                 var containerNames = string.Join(',', containers);
-                _logger.LogDebug($"Test {this.Id} -- '{containerNames}'");
+                logger.LogDebug($"Test {this.Id} -- '{containerNames}'");
                 if (containers.Any(x => x == this.CollectionName) == false)
                 {
-                    throw new ApplicationException();  // use same error path 
+                    throw new ApplicationException();  // use same error path
                 }
+
                 return true;
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)
 #pragma warning restore CA1031 // Do not catch general exception types
             {
-                _logger.LogError(ex, $"Failed to find collection in CosmosDB {_settings.DatabaseName}:{this.CollectionName}");
+                logger.LogError(ex, $"Failed to find collection in CosmosDB {this.settings.DatabaseName}:{this.CollectionName}");
                 return false;
             }
-
         }
 
         public string Id => $"{DatabaseName}:{CollectionName}";
-
-        /// <summary>
-        /// Query the database for all the containers defined and return a list of the container names.
-        /// </summary>
-        /// <returns>A list of container names present in the configured database.</returns>
-        private async Task<IList<string>> GetContainerNames()
-        {
-            var containerNames = new List<string>();
-            var database = this.Client.GetDatabase(_settings.DatabaseName);
-            using var iter = database.GetContainerQueryIterator<ContainerProperties>();
-            while (iter.HasMoreResults)
-            {
-                var response = await iter.ReadNextAsync().ConfigureAwait(false);
-
-                containerNames.AddRange(response.Select(c => c.Id));
-            }
-
-            return containerNames;
-        }
-
-        /// <summary>
-        /// Get a proxy to the container.
-        /// </summary>
-        /// <param name="client">An instance of <see cref="CosmosClient"/></param>
-        /// <returns>An instance of <see cref="Container"/>.</returns>
-        Container GetContainer(CosmosClient client)
-        {
-            try
-            {
-                var container = client.GetContainer(_settings.DatabaseName, this.CollectionName);
-
-                _containerProperties = GetContainerProperties(container).Result;
-                var partitionKeyName = _containerProperties.PartitionKeyPath.TrimStart('/');
-                _partitionKeyPI = typeof(TEntity).GetProperty(partitionKeyName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-                if (_partitionKeyPI is null)
-                {
-                    throw new ApplicationException($"Failed to find partition key property {partitionKeyName} on {typeof(TEntity).Name}.  Collection definition does not match Entity definition");
-                }
-
-                _logger.LogDebug($"{CollectionName} partition key path {_containerProperties.PartitionKeyPath}");
-
-                return container;
-            }
-            catch (Exception ex)
-            {
-                var message = $"Failed to connect to CosmosDB {_settings.DatabaseName}:{this.CollectionName}";
-                _logger.LogCritical(ex, message);
-                throw new ApplicationException(message, ex);
-            }
-        }
-
-        /// <summary>
-        /// Get the properties for the container.
-        /// </summary>
-        /// <param name="container">Instance of a container or null.</param>
-        /// <returns>An instance of <see cref="ContainerProperties"/> or null.</returns>
-        protected async Task<ContainerProperties> GetContainerProperties(Container container = null)
-        {
-            return (await (container ?? Container).ReadContainerAsync().ConfigureAwait(false)).Resource;
-        }
-
-        /// <summary>
-        /// Generic function to be used by subclasses to execute arbitrary queries and return type T.
-        /// </summary>
-        /// <typeparam name="TEntity">POCO type to which results are serialized and returned.</typeparam>
-        /// <param name="sql">Query to be executed.</param>
-        /// <param name="options">Query options</param>
-        /// <returns>Enumerable list of objects of type T.</returns>
-        protected async Task<IEnumerable<TEntity>> InternalCosmosDBSqlQuery(string sql, QueryRequestOptions options = null)
-        {
-            // run query
-            var query = this.Container.GetItemQueryIterator<TEntity>(sql, requestOptions: options ?? _options.QueryRequestOptions);
-
-            var results = new List<TEntity>();
-
-            while (query.HasMoreResults)
-            {
-                foreach (var doc in await query.ReadNextAsync().ConfigureAwait(false))
-                {
-                    results.Add(doc);
-                }
-            }
-
-            return results;
-        }
-
-        /// <summary>
-        /// Generic function to be used by subclasses to execute arbitrary queries and return type T.
-        /// </summary>
-        /// <typeparam name="T">POCO type to which results are serialized and returned.</typeparam>
-        /// <param name="queryDefinition">Query to be executed.</param>
-        /// <returns>Enumerable list of objects of type T.</returns>
-        private async Task<IEnumerable<TEntity>> InternalCosmosDBSqlQuery(QueryDefinition queryDefinition)
-        {
-            // run query
-            var query = this.Container.GetItemQueryIterator<TEntity>(queryDefinition, requestOptions: _options.QueryRequestOptions);
-
-            var results = new List<TEntity>();
-
-            while (query.HasMoreResults)
-            {
-                foreach (var doc in await query.ReadNextAsync().ConfigureAwait(false))
-                {
-                    results.Add(doc);
-                }
-            }
-
-            return results;
-        }
 
         /// <summary>
         /// Given a document id and its partition value, retrieve the document, if it exists.
@@ -305,7 +205,7 @@ namespace CSE.Automation.DataAccess
                 limit = Constants.MaxPageSize;
             }
 
-            string offsetLimit = string.Format(CultureInfo.InvariantCulture, pagedOffsetString, offset, limit);
+            string offsetLimit = string.Format(CultureInfo.InvariantCulture, PagedOffsetString, offset, limit);
 
             if (!string.IsNullOrEmpty(q))
             {
@@ -331,10 +231,10 @@ namespace CSE.Automation.DataAccess
             return await InternalCosmosDBSqlQuery(queryDefinition).ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<TEntity>> GetAllAsync(TypeFilter filter = TypeFilter.any)
+        public async Task<IEnumerable<TEntity>> GetAllAsync(TypeFilter filter = TypeFilter.Any)
         {
             string sql = "select * from m";
-            if (filter != TypeFilter.any)
+            if (filter != TypeFilter.Any)
             {
                 sql += ($" m.objectType='{0}'", Enum.GetName(typeof(TypeFilter), filter));
             }
@@ -353,7 +253,7 @@ namespace CSE.Automation.DataAccess
             catch (Exception ex)
 #pragma warning restore CA1031 // Do not catch general exception types
             {
-                _logger.LogCritical(ex, $"Invalid GUID value {objectId}");
+                this.logger.LogCritical(ex, $"Invalid GUID value {objectId}");
             }
 
             string sql = $"SELECT * FROM c WHERE c.objectId = '{objectId}'  ORDER BY c._ts DESC OFFSET 0 LIMIT {limit}";
@@ -361,11 +261,117 @@ namespace CSE.Automation.DataAccess
             return await InternalCosmosDBSqlQuery(sql).ConfigureAwait(false);
         }
 
-        #region IDisposable
         public void Dispose()
         {
-            //_client?.Dispose();
         }
-        #endregion
+
+        /// <summary>
+        /// Get a proxy to the container.
+        /// </summary>
+        /// <param name="client">An instance of <see cref="CosmosClient"/></param>
+        /// <returns>An instance of <see cref="Container"/>.</returns>
+        internal Container GetContainer(CosmosClient client)
+        {
+            try
+            {
+                var container = client.GetContainer(this.settings.DatabaseName, this.CollectionName);
+
+                this.containerProperties = GetContainerProperties(container).Result;
+                var partitionKeyName = this.containerProperties.PartitionKeyPath.TrimStart('/');
+                this.partitionKeyPI = typeof(TEntity).GetProperty(partitionKeyName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                if (this.partitionKeyPI is null)
+                {
+                    throw new ApplicationException($"Failed to find partition key property {partitionKeyName} on {typeof(TEntity).Name}.  Collection definition does not match Entity definition");
+                }
+
+                logger.LogDebug($"{CollectionName} partition key path {this.containerProperties.PartitionKeyPath}");
+
+                return container;
+            }
+            catch (Exception ex)
+            {
+                var message = $"Failed to connect to CosmosDB {this.settings.DatabaseName}:{this.CollectionName}";
+                logger.LogCritical(ex, message);
+                throw new ApplicationException(message, ex);
+            }
+        }
+
+        /// <summary>
+        /// Get the properties for the container.
+        /// </summary>
+        /// <param name="container">Instance of a container or null.</param>
+        /// <returns>An instance of <see cref="ContainerProperties"/> or null.</returns>
+        protected async Task<ContainerProperties> GetContainerProperties(Container container = null)
+        {
+            return (await (container ?? Container).ReadContainerAsync().ConfigureAwait(false)).Resource;
+        }
+
+        /// <summary>
+        /// Generic function to be used by subclasses to execute arbitrary queries and return type T.
+        /// </summary>
+        /// <typeparam name="TEntity">POCO type to which results are serialized and returned.</typeparam>
+        /// <param name="sql">Query to be executed.</param>
+        /// <param name="options">Query options</param>
+        /// <returns>Enumerable list of objects of type T.</returns>
+        protected async Task<IEnumerable<TEntity>> InternalCosmosDBSqlQuery(string sql, QueryRequestOptions options = null)
+        {
+            // run query
+            var query = this.Container.GetItemQueryIterator<TEntity>(sql, requestOptions: options ?? this.options.QueryRequestOptions);
+
+            var results = new List<TEntity>();
+
+            while (query.HasMoreResults)
+            {
+                foreach (var doc in await query.ReadNextAsync().ConfigureAwait(false))
+                {
+                    results.Add(doc);
+                }
+            }
+
+            return results;
+        }
+
+        /// <summary>
+        /// Generic function to be used by subclasses to execute arbitrary queries and return type T.
+        /// </summary>
+        /// <typeparam name="T">POCO type to which results are serialized and returned.</typeparam>
+        /// <param name="queryDefinition">Query to be executed.</param>
+        /// <returns>Enumerable list of objects of type T.</returns>
+        private async Task<IEnumerable<TEntity>> InternalCosmosDBSqlQuery(QueryDefinition queryDefinition)
+        {
+            // run query
+            var query = this.Container.GetItemQueryIterator<TEntity>(queryDefinition, requestOptions: this.options.QueryRequestOptions);
+
+            var results = new List<TEntity>();
+
+            while (query.HasMoreResults)
+            {
+                foreach (var doc in await query.ReadNextAsync().ConfigureAwait(false))
+                {
+                    results.Add(doc);
+                }
+            }
+
+            return results;
+        }
+
+        /// <summary>
+        /// Query the database for all the containers defined and return a list of the container names.
+        /// </summary>
+        /// <returns>A list of container names present in the configured database.</returns>
+        private async Task<IList<string>> GetContainerNames()
+        {
+            var containerNames = new List<string>();
+            var database = this.Client.GetDatabase(this.settings.DatabaseName);
+            using var iter = database.GetContainerQueryIterator<ContainerProperties>();
+            while (iter.HasMoreResults)
+            {
+                var response = await iter.ReadNextAsync().ConfigureAwait(false);
+
+                containerNames.AddRange(response.Select(c => c.Id));
+            }
+
+            return containerNames;
+        }
     }
 }

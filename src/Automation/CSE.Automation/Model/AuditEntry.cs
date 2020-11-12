@@ -1,4 +1,7 @@
-﻿using FluentValidation;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using FluentValidation;
 using FluentValidation.Results;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -30,7 +33,7 @@ namespace CSE.Automation.Model
         /// <summary>
         /// IGNORE audit action
         /// </summary>
-        Ignore
+        Ignore,
     }
 
     // Make sure this serializes as an int
@@ -97,7 +100,5 @@ namespace CSE.Automation.Model
         public string ExistingAttributeValue { get; set; }
 
         public string UpdatedAttributeValue { get; set; }
-
     }
 }
-
