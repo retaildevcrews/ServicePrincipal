@@ -5,7 +5,7 @@
     "SPAuditCollection": "Audit",
     "SPConfigurationCollection": "Configuration",
     "SPObjectTrackingCollection": "ObjectTracking",
-    "SPDeltaDiscoverySchedule": "\"0 */30 * * * *\"",
+    "SPDeltaDiscoverySchedule": "0 */30 * * * *",
     "SPEvaluateQueue": "evaluate",
     "SPUpdateQueue": "update",
     "ScanLimit": "2000",
