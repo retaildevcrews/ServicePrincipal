@@ -25,9 +25,9 @@ then
 fi
 
 # set enviroment to dev if not set
-if [ -z $svc_ppl_Enviroment ]
+if [ -z $svc_ppl_Environment ]
 then
-  export svc_ppl_Enviroment=dev
+  export svc_ppl_Environment=dev
 fi
 
 
@@ -42,12 +42,12 @@ fi
 # store az info into variables
 export svc_ppl_TENANT_ID=$(az account show -o tsv --query tenantId)
 export svc_ppl_SUB_ID=$(az account show -o tsv --query id)
-export svc_ppl_CLIENT_SECRET=$(az ad sp create-for-rbac -n http://${svc_ppl_Name}-tf-sp-${svc_ppl_Enviroment} --query password -o tsv)
-export svc_ppl_CLIENT_ID=$(az ad sp show --id http://${svc_ppl_Name}-tf-sp-${svc_ppl_Enviroment} --query appId -o tsv)
-export svc_ppl_ACR_SP_SECRET=$(az ad sp create-for-rbac --skip-assignment -n http://${svc_ppl_Name}-acr-sp-${svc_ppl_Enviroment} --query password -o tsv)
-export svc_ppl_ACR_SP_ID=$(az ad sp show --id http://${svc_ppl_Name}-acr-sp-${svc_ppl_Enviroment} --query appId -o tsv)
-export svc_ppl_GRAPH_SP_SECRET=$(az ad sp create-for-rbac --skip-assignment -n http://${svc_ppl_Name}-graph-${svc_ppl_Enviroment} --query password -o tsv)
-export svc_ppl_GRAPH_SP_ID=$(az ad sp show --id http://${svc_ppl_Name}-graph-${svc_ppl_Enviroment} --query appId -o tsv)
+export svc_ppl_CLIENT_SECRET=$(az ad sp create-for-rbac -n http://${svc_ppl_Name}-tf-sp-${svc_ppl_Environment} --query password -o tsv)
+export svc_ppl_CLIENT_ID=$(az ad sp show --id http://${svc_ppl_Name}-tf-sp-${svc_ppl_Environment} --query appId -o tsv)
+export svc_ppl_ACR_SP_SECRET=$(az ad sp create-for-rbac --skip-assignment -n http://${svc_ppl_Name}-acr-sp-${svc_ppl_Environment} --query password -o tsv)
+export svc_ppl_ACR_SP_ID=$(az ad sp show --id http://${svc_ppl_Name}-acr-sp-${svc_ppl_Environment} --query appId -o tsv)
+export svc_ppl_GRAPH_SP_SECRET=$(az ad sp create-for-rbac --skip-assignment -n http://${svc_ppl_Name}-graph-${svc_ppl_Environment} --query password -o tsv)
+export svc_ppl_GRAPH_SP_ID=$(az ad sp show --id http://${svc_ppl_Name}-graph-${svc_ppl_Environment} --query appId -o tsv)
 
 
 
@@ -56,7 +56,7 @@ cat example.tfvars | \
 sed "s|<<svc_ppl_Name>>|$svc_ppl_Name|" | \
 sed "s|<<svc_ppl_ShortName>>|$svc_ppl_ShortName|" | \
 sed "s|<<svc_ppl_Location>>|$svc_ppl_Location|" | \
-sed "s|<<svc_ppl_Enviroment>>|$svc_ppl_Enviroment|" | \
+sed "s|<<svc_ppl_Environment>>|$svc_ppl_Environment|" | \
 sed "s|<<svc_ppl_Repo>>|$svc_ppl_Repo|" | \
 # sed "s|<<svc_ppl_Email>>|$svc_ppl_Email|" | \
 sed "s|<<svc_ppl_TENANT_ID>>|$svc_ppl_TENANT_ID|" | \
@@ -74,7 +74,7 @@ cat terraform.tfvars
 
 # Grant Application.ReadWrite.All and Directory.Read.All API access to Service Principal (${svc_ppl_Name}-tf-sp)
 # Get service principal App ID
-export servicePricipalId=$svc_ppl_CLIENT_ID #$(az ad sp list --query "[?appDisplayName=='${svc_ppl_Name}-tf-sp-${svc_ppl_Enviroment}'].appId | [0]" --all) 
+export servicePricipalId=$svc_ppl_CLIENT_ID #$(az ad sp list --query "[?appDisplayName=='${svc_ppl_Name}-tf-sp-${svc_ppl_Environment}'].appId | [0]" --all) 
 servicePricipalId=$(eval echo $servicePricipalId)
 echo "Service Principal AppID: " $servicePricipalId
 
@@ -132,7 +132,7 @@ az ad app permission admin-consent --id $graphServicePricipalId
 
 
 # create tf_state resource group
-export TF_RG_NAME=$svc_ppl_Name-rg-$svc_ppl_Enviroment
+export TF_RG_NAME=$svc_ppl_Name-rg-$svc_ppl_Environment
 echo "Creating the TF Resource Group"
 if echo ${TF_RG_NAME} > /dev/null 2>&1 && echo ${svc_ppl_Location} > /dev/null 2>&1; then
     if ! az group create --name ${TF_RG_NAME} --location ${svc_ppl_Location} -o table; then
@@ -144,7 +144,7 @@ fi
 
 # create storage account for state file
 export TFSUB_ID=$(az account show -o tsv --query id)
-export TFSA_NAME=$svc_ppl_Name"st"$svc_ppl_Enviroment
+export TFSA_NAME=$svc_ppl_Name"st"$svc_ppl_Environment
 echo "Creating File Storage Account and Container"
 
 
@@ -166,7 +166,7 @@ if echo ${TF_RG_NAME} > /dev/null 2>&1; then
     echo "TF Storage Account Access Key = $ARM_ACCESS_KEY"
 fi
 
-export TFCI_NAME=$svc_ppl_Name"citfstate"$svc_ppl_Enviroment
+export TFCI_NAME=$svc_ppl_Name"citfstate"$svc_ppl_Environment
 
 if echo ${TF_RG_NAME} > /dev/null 2>&1; then
     if ! az storage container create --name $TFCI_NAME --account-name $TFSA_NAME --account-key $ARM_ACCESS_KEY -o table; then
@@ -188,7 +188,7 @@ fi
 #     resource_group_name  = "${TF_RG_NAME}"
 #     storage_account_name = "${TFSA_NAME}"
 #     container_name       = "${TFSA_CONTAINER}"
-#     key                  = "${svc_ppl_Name}.terraform.tfstate.${svc_ppl_Enviroment}"
+#     key                  = "${svc_ppl_Name}.terraform.tfstate.${svc_ppl_Environment}"
 #   }
 # }
 # EOF
