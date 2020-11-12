@@ -53,15 +53,17 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
         private bool _initialized = false;
 
         private readonly IConfigurationRoot _config;
+        private readonly ActivityContext _activityContext;
 
         public TestCase TestCaseId { get; }
 
         private ServicePrincipalWrapper _servicePrincipalWrapper;
 
 
-        internal InputGenerator(IConfigurationRoot config, TestCase testCase)
+        internal InputGenerator(IConfigurationRoot config, ActivityContext activityContext,  TestCase testCase)
         {
             _config = config;
+            _activityContext = activityContext;
             TestCaseId = testCase;
 
             InitGraphHelper();
@@ -83,10 +85,15 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
                 Owners = spTest.HasOwners ? spTest.AADUsers : null
             };
 
-            var myMessage = new QueueMessage<ServicePrincipalModel>()
+
+            var myMessage = new QueueMessage<EvaluateServicePrincipalCommand>()
             {
                 QueueMessageType = QueueMessageType.Data,
-                Document = servicePrincipal,
+                Document = new EvaluateServicePrincipalCommand
+                {
+                    CorrelationId = _activityContext.CorrelationId, 
+                    Model = servicePrincipal,
+                },
                 Attempt = 0
             };
 

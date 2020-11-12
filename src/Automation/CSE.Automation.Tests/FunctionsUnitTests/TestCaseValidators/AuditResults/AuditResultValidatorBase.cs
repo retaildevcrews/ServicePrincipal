@@ -9,16 +9,16 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
     abstract class AuditResultValidatorBase : IAuditResultValidator
     {
         public TestCase TestCaseID { get; }
-
         public AuditEntry SavedAuditEntry { get; }
-
         public AuditEntry NewAuditEntry { get; }
+        public ActivityContext Context { get; }
 
-        public AuditResultValidatorBase(AuditEntry savedAuditEntry, AuditEntry newAuditEntry, TestCase testCase)
+        public AuditResultValidatorBase(AuditEntry savedAuditEntry, AuditEntry newAuditEntry, ActivityContext activityContext,  TestCase testCase)
         {
             SavedAuditEntry = savedAuditEntry;
             NewAuditEntry = newAuditEntry;
             TestCaseID = testCase;
+            Context = activityContext;
         }
 
         public abstract bool Validate();

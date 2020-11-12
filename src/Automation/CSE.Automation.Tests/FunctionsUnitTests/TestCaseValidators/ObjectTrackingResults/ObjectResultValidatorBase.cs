@@ -14,11 +14,14 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
 
         public TrackingModel NewObjectTracking { get;  }
 
-        public ObjectResultValidatorBase(TrackingModel savedObjectTracking, TrackingModel newObjectTracking, TestCase testCase)
+        public ActivityContext Context { get; }
+
+        public ObjectResultValidatorBase(TrackingModel savedObjectTracking, TrackingModel newObjectTracking, ActivityContext activityContext, TestCase testCase)
         {
             SavedObjectTracking = savedObjectTracking;
             NewObjectTracking = newObjectTracking;
             TestCaseID = testCase;
+            Context = activityContext;
         }
 
         public abstract bool Validate();

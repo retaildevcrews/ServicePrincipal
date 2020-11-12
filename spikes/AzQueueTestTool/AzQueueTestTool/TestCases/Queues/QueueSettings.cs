@@ -9,10 +9,13 @@ namespace AzQueueTestTool.TestCases.Queues
     public class QueueSettings : IDisposable
     {
         public string StorageConnectionString { get; }
+        public bool PushMessagesToQueueEvaluate { get; }
 
         public QueueSettings()
         {
             StorageConnectionString = ConfigurationManager.AppSettings.Get("storageConnectionString");
+
+            PushMessagesToQueueEvaluate = bool.Parse(ConfigurationManager.AppSettings.Get("pushMessagesToQueueEvaluate"));
         }
 
         public void Dispose()

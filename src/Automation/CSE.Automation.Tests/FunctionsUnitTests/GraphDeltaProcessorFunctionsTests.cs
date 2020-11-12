@@ -175,9 +175,9 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         private void BuildConfiguration()
         {
             var configBuilder = new ConfigurationBuilder()
-                //.SetBasePath(appDirectory)
                 .AddJsonFile("appconfig.json", true)
-                .AddAzureKeyVaultConfiguration(Constants.KeyVaultName);
+                .AddAzureKeyVaultConfiguration(Constants.KeyVaultName)
+                .AddJsonFile("appsettings.Development.json", true);
 
             _config = configBuilder.Build();
         }
@@ -194,16 +194,19 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         [Fact]
         public void FunctionEvaluateTestCase1()
         {
-            using var inputGenerator = new InputGenerator(_config, TestCase.TC1);
+            using var activityContext = _activityService.CreateContext($"{DiscoveryMode.Deltas.Description()} - Test Case [{TestCase.TC1}] ", withTracking: true);
+
+            using var inputGenerator = new InputGenerator(_config, activityContext, TestCase.TC1);
+
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
 
             //Create Validators 
             using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator);
 
-            using var objectTrackingValidationManager = new ObjectTrackingValidationManager(inputGenerator, _objectRespository);
+            using var objectTrackingValidationManager = new ObjectTrackingValidationManager(inputGenerator, _objectRespository, activityContext);
  
-            using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespository);
+            using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespository, activityContext);
  
 
             Task thisTaks = Task.Run (() => _graphDeltaProcessor.Evaluate(cloudQueueMessage, _graphLogger));

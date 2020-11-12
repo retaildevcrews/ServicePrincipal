@@ -8,19 +8,21 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
 {
     internal class AuditResultValidator1 : AuditResultValidatorBase, IAuditResultValidator
     {
-        public AuditResultValidator1(AuditEntry savedAuditEntry, AuditEntry newAuditEntry, TestCase testCase) : base(savedAuditEntry, newAuditEntry, testCase)
+        public AuditResultValidator1(AuditEntry savedAuditEntry, AuditEntry newAuditEntry, ActivityContext activityContext, TestCase testCase) 
+                : base(savedAuditEntry, newAuditEntry, activityContext, testCase)
         {
         }
         public override bool Validate()
         {
             //AUDIT PASS record exists with correlation id of activity
+
             bool typePass = (NewAuditEntry.Type == AuditActionType.Pass);
 
             bool isNewAuditEntry = NewAuditEntry.Timestamp > SavedAuditEntry.Timestamp;
             
-            //Should AuditCorrelationId match something else? e.g ObjectTracking Id ?
-            bool validCorrelationId = Guid.TryParse(NewAuditEntry.CorrelationId, out Guid dummyGuid);
-            
+            bool validCorrelationId = Guid.TryParse(NewAuditEntry.CorrelationId, out Guid dummyGuid) &&
+                                        NewAuditEntry.CorrelationId.Equals(Context.CorrelationId);
+
             return (typePass && isNewAuditEntry && validCorrelationId);
 
         }

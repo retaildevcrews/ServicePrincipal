@@ -12,13 +12,15 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
     {
         private readonly InputGenerator _inputGenerator;
         private readonly ObjectTrackingRepository _objectTrackingRepository;
+        private readonly ActivityContext _activityContext;
 
         private TrackingModel _savedTrackingModel;
 
-        public ObjectTrackingValidationManager(InputGenerator inputGenerator, ObjectTrackingRepository objectTrackingRepository)
+        public ObjectTrackingValidationManager(InputGenerator inputGenerator, ObjectTrackingRepository objectTrackingRepository, ActivityContext activityContext)
         {
             _inputGenerator = inputGenerator;
             _objectTrackingRepository = objectTrackingRepository;
+            _activityContext = activityContext;
             SaveState();
         }
 
@@ -45,7 +47,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
 
             var newObjectTrackingModel = GetObjectTrackingModel();
 
-            object[] args = { _savedTrackingModel, newObjectTrackingModel, _inputGenerator.TestCaseId};
+            object[] args = { _savedTrackingModel, newObjectTrackingModel, _activityContext,_inputGenerator.TestCaseId};
 
             var instantiatedObject = Activator.CreateInstance(objectType, args) as IObjectResultValidator;
 

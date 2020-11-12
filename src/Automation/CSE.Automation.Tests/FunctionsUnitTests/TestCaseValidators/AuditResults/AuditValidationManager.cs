@@ -11,15 +11,16 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
     internal class AuditValidationManager : IResultsManager, IDisposable
     {
         private readonly InputGenerator _inputGenerator;
-
         private readonly AuditRepository _auditRepository;
+        private ActivityContext _activityContext;
 
         private AuditEntry _savedAuditEntry;
 
-        public AuditValidationManager(InputGenerator inputGenerator, AuditRepository auditRepository)
+        public AuditValidationManager(InputGenerator inputGenerator, AuditRepository auditRepository, ActivityContext activityContext)
         {
             _inputGenerator = inputGenerator;
             _auditRepository = auditRepository;
+            _activityContext = activityContext;
 
             SaveState();
         }
@@ -56,7 +57,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
             var objectType = Type.GetType(objectToInstantiate);
 
             var newAuditEntry = GetMostRecentAuditEntryItem();
-            object[] args = { _savedAuditEntry, newAuditEntry, _inputGenerator.TestCaseId};
+            object[] args = { _savedAuditEntry, newAuditEntry, _activityContext,  _inputGenerator.TestCaseId};
 
             var instantiatedObject = Activator.CreateInstance(objectType, args) as IAuditResultValidator;
 
