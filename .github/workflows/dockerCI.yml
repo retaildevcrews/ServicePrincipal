@@ -95,5 +95,5 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${VERSION_PREFIX}
-        release_name: ${VERSION_PREFIX}
+        tag_name: ${{ env.VERSION_PREFIX }}
+        release_name: ${{ env.VERSION_PREFIX }}
