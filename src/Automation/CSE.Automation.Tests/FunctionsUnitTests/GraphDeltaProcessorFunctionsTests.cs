@@ -31,6 +31,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             this.processor = Substitute.For<IServicePrincipalProcessor>();
             this.serviceProvider = Substitute.For<IServiceProvider>();
             this.logger = Substitute.For<ILogger<GraphDeltaProcessor>>();
+            this.activityService = Substitute.For<IActivityService>();
             this.subject = new GraphDeltaProcessor(serviceProvider, activityService, processor, this.logger);
         }
 

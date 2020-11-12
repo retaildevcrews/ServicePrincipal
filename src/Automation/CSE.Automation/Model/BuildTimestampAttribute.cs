@@ -12,12 +12,14 @@ using Microsoft.Extensions.Logging;
 
 namespace CSE.Automation.Model
 {
-  internal sealed class BuildTimestampAttribute : System.Attribute
-  {
-    public string Value { get; }
-    public BuildTimestampAttribute(string buildTimestamp)
+    [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false)]
+    internal sealed class BuildTimestampAttribute : System.Attribute
     {
-        this.Value = buildTimestamp;
+        public string Value { get; }
+
+        public BuildTimestampAttribute(string buildTimestamp)
+        {
+            this.Value = buildTimestamp;
+        }
     }
-  }
 }

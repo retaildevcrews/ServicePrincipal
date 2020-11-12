@@ -106,7 +106,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
-        public async Task TestConfigServiceConfigNotFoundAsync()
+        public void TestConfigServiceConfigNotFoundAsync()
         {
             using (var serviceScope = host.Services.CreateScope())
             {

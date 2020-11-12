@@ -63,7 +63,7 @@ namespace CSE.Automation.Services
             try
             {
                 Get(id, ProcessorType.ServicePrincipal, defaultConfigResourceName);
-                var configWithMeta = configRepository.GetByIdWithMetaAsync(id, "ServicePrincipal").Result;
+                var configWithMeta = await configRepository.GetByIdWithMetaAsync(id, "ServicePrincipal").ConfigureAwait(false);
                 ItemRequestOptions requestOptions = new ItemRequestOptions { IfMatchEtag = configWithMeta.ETag };
                 ProcessorConfiguration config = configWithMeta.Resource;
                 if (config.IsProcessorLocked)
