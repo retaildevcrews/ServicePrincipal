@@ -4,7 +4,7 @@ name: Update Function App Config Settings
 on:
   push:
     branches:
-      - nudoyen/enhance-cd-pipeline
+      - main
 
   pull_request:
     types: [ opened, reopened, synchronize ]
