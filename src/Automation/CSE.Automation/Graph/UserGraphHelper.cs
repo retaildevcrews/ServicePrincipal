@@ -1,4 +1,7 @@
-﻿using CSE.Automation.Interfaces;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
@@ -12,11 +15,11 @@ namespace CSE.Automation.Graph
     internal class UserGraphHelper : GraphHelperBase<User>
     {
         public UserGraphHelper(GraphHelperSettings settings, IAuditService auditService, ILogger<UserGraphHelper> logger)
-                : base(settings, auditService, logger) 
+                : base(settings, auditService, logger)
         {
         }
 
-        public async override Task<(GraphOperationMetrics metrics, IEnumerable<User> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string selectFields = null)
+        public override Task<(GraphOperationMetrics metrics, IEnumerable<User> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string selectFields = null)
         {
             throw new NotImplementedException();
         }
@@ -37,7 +40,7 @@ namespace CSE.Automation.Graph
             }
         }
 
-        public async override Task PatchGraphObject(User entity)
+        public override Task PatchGraphObject(User entity)
         {
             throw new NotImplementedException();
         }

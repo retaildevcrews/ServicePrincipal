@@ -1,17 +1,10 @@
-﻿using CSE.Automation.Interfaces;
-using CSE.Automation.Model;
-using CSE.Automation.Properties;
-using Newtonsoft.Json;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using CSE.Automation.Interfaces;
 using System;
 using System.Configuration;
-using System.IO;
-using System.Threading.Tasks;
-using Microsoft.Azure.Cosmos;
 using SettingsBase = CSE.Automation.Model.SettingsBase;
-using Microsoft.Identity.Client;
-using System.Net.WebSockets;
-using CSE.Automation.Graph;
-using Microsoft.Extensions.Logging;
 
 namespace CSE.Automation.Processors
 {

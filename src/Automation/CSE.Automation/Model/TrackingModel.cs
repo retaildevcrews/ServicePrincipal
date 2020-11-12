@@ -1,9 +1,12 @@
-﻿using Newtonsoft.Json;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using Newtonsoft.Json;
 using System;
 
 namespace CSE.Automation.Model
 {
-    class TrackingModel
+    internal class TrackingModel
     {
         public string Id { get; set; }
 
@@ -20,33 +23,10 @@ namespace CSE.Automation.Model
 
         public object Entity { get; set; }
 
-        public static TEntity Unwrap<TEntity>(TrackingModel entity) where TEntity : class
+        public static TEntity Unwrap<TEntity>(TrackingModel entity)
+        where TEntity : class
         {
             return entity?.Entity as TEntity;
         }
-    }
-
-    class TrackingModel<TEntity> : TrackingModel where TEntity : GraphModel
-    {
-        [JsonIgnore]
-        public TEntity TypedEntity
-        {
-            get
-            {
-                return base.Entity is null
-                    ? null
-                    : JsonConvert.DeserializeObject<TEntity>(base.Entity.ToString());
-            }
-            set
-            {
-                base.Entity = value;
-                if (value != null)
-                {
-                    base.Id = value.Id;
-                }
-            }
-        }
-
-
     }
 }

@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -38,7 +41,7 @@ namespace CSE.Automation.Graph
 
             if (IsSeedRun(config))
             {
-                _logger.LogInformation("Seeding Service Principal objects from Graph...");
+                logger.LogInformation("Seeding Service Principal objects from Graph...");
                 metrics.Name = "Full Seed";
 
                 servicePrincipalCollectionPage = await GraphClient.ServicePrincipals
@@ -51,7 +54,7 @@ namespace CSE.Automation.Graph
             {
                 metrics.Name = "Delta Discovery";
 
-                _logger.LogInformation("Fetching Service Principal Delta objects from Graph...");
+                logger.LogInformation("Fetching Service Principal Delta objects from Graph...");
 
                 servicePrincipalCollectionPage = new ServicePrincipalDeltaCollectionPage();
                 servicePrincipalCollectionPage.InitializeNextPageRequest(GraphClient, config.DeltaLink);
@@ -60,7 +63,7 @@ namespace CSE.Automation.Graph
 
             servicePrincipalList.AddRange(servicePrincipalCollectionPage.CurrentPage);
 
-            _logger.LogDebug($"\tDiscovered {servicePrincipalCollectionPage.CurrentPage.Count} Service Principals");
+            logger.LogDebug($"\tDiscovered {servicePrincipalCollectionPage.CurrentPage.Count} Service Principals");
 
             metrics.Considered = servicePrincipalList.Count;
             while (servicePrincipalCollectionPage.NextPageRequest != null)
@@ -72,12 +75,12 @@ namespace CSE.Automation.Graph
 
                 metrics.Considered += count;
 
-                _logger.LogDebug($"\tDiscovered {count} Service Principals");
+                logger.LogDebug($"\tDiscovered {count} Service Principals");
 
                 if (IsSeedRun(config))
                 {
                     pageList = pageList.Where(x => x.AdditionalData.Keys.Contains("@removed") == false).ToList();
-                    pageList.ToList().ForEach(sp => _auditService.PutIgnore(
+                    pageList.ToList().ForEach(sp => auditService.PutIgnore(
                         context: context,
                         code: AuditCode.Ignore_ServicePrincipalDeleted,
                         objectId: sp.Id,
@@ -86,14 +89,14 @@ namespace CSE.Automation.Graph
 
                     var removedCount = count - pageList.Count;
 
-                    _logger.LogInformation($"\tTrimmed {removedCount} ServicePrincipals.");
+                    logger.LogInformation($"\tTrimmed {removedCount} ServicePrincipals.");
                     metrics.Removed += removedCount;
                 }
 
                 servicePrincipalList.AddRange(pageList);
             }
 
-            _logger.LogInformation($"Discovered {servicePrincipalList.Count} delta objects.");
+            logger.LogInformation($"Discovered {servicePrincipalList.Count} delta objects.");
             metrics.Found = servicePrincipalList.Count;
 
             servicePrincipalCollectionPage.AdditionalData.TryGetValue("@odata.deltaLink", out object updatedDeltaLink);

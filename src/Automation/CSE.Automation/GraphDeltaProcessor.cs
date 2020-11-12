@@ -61,10 +61,10 @@ namespace CSE.Automation
                 var result = await CommandDiscovery(discoveryMode, "HTTP", log).ConfigureAwait(false);
 
                 return hasRedirect
+
                         // TODO: construct this URI properly
                         ? new RedirectResult($"{req.Scheme}://{req.Host}/api/Activities?correlationId={result.CorrelationId}")
                         : (IActionResult)new JsonResult(result);
-
             }
             catch (Exception ex)
             {

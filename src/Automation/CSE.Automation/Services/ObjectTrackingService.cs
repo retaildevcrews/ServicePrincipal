@@ -1,4 +1,7 @@
-﻿using CSE.Automation.DataAccess;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using CSE.Automation.DataAccess;
 using CSE.Automation.Extensions;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
@@ -50,7 +53,7 @@ namespace CSE.Automation.Services
             return await objectRepository.UpsertDocumentAsync(entity).ConfigureAwait(false);
         }
 
-        public async Task<TrackingModel> Put<TEntity>(ActivityContext context, TEntity entity) 
+        public async Task<TrackingModel> Put<TEntity>(ActivityContext context, TEntity entity)
             where TEntity : GraphModel
         {
             var now = DateTimeOffset.Now;

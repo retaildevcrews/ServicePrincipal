@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Net.Mail;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
 using FluentValidation;
-using System.Diagnostics;
+using System;
+using System.Net.Mail;
+using System.Text.Json;
 
 namespace CSE.Automation.Validators
 {
@@ -33,7 +34,10 @@ namespace CSE.Automation.Validators
 
         protected static bool BeValidModelDateSequence(GraphModel model)
         {
-            if (model == null) throw new ArgumentNullException(nameof(model));
+            if (model == null)
+            {
+                throw new ArgumentNullException(nameof(model));
+            }
 
             if (model.Deleted.HasValue)
             {
@@ -51,7 +55,7 @@ namespace CSE.Automation.Validators
         {
             try
             {
-                JsonSerializer.Deserialize<object>(json); //bring in static settings
+                JsonSerializer.Deserialize<object>(json); // bring in static settings
                 return true;
             }
             catch (JsonException)

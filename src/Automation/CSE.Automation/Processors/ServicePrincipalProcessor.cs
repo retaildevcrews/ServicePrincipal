@@ -17,12 +17,6 @@ using Newtonsoft.Json.Converters;
 
 namespace CSE.Automation.Processors
 {
-    internal interface IServicePrincipalProcessor : IDeltaProcessor
-    {
-        Task Evaluate(ActivityContext context, ServicePrincipalModel entity);
-        Task UpdateServicePrincipal(ActivityContext context, ServicePrincipalUpdateCommand command);
-    }
-
     [JsonConverter(typeof(StringEnumConverter))]
     internal enum UpdateMode
     {
@@ -35,70 +29,6 @@ namespace CSE.Automation.Processors
         /// AAD Update logic only reports a requested change but does not attempt to write to AAD
         /// </summary>
         ReportOnly,
-    }
-
-    internal class ServicePrincipalProcessorSettings : DeltaProcessorSettings
-    {
-        private string _queueConnectionString;
-        private string _evaluateQueueName;
-        private string _updateQueueName;
-        private string _discoverQueueName;
-
-        public ServicePrincipalProcessorSettings(ISecretClient secretClient)
-            : base(secretClient) { }
-
-        [Secret(Constants.SPStorageConnectionString)]
-        public string QueueConnectionString
-        {
-            get { return _queueConnectionString ?? GetSecret(); }
-            set { _queueConnectionString = value; }
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1304:Specify CultureInfo", Justification = "Not a localizable setting")]
-        public string EvaluateQueueName
-        {
-            get { return _evaluateQueueName; }
-            set { _evaluateQueueName = value?.ToLower(); }
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1304:Specify CultureInfo", Justification = "Not a localizable setting")]
-        public string UpdateQueueName
-        {
-            get { return _updateQueueName; }
-            set { _updateQueueName = value?.ToLower(); }
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1304:Specify CultureInfo", Justification = "Not a localizable setting")]
-        public string DiscoverQueueName
-        {
-            get { return _discoverQueueName; }
-            set { _discoverQueueName = value?.ToLower(); }
-        }
-        public UpdateMode AADUpdateMode { get; set; }
-
-        public override void Validate()
-        {
-            base.Validate();
-            if (string.IsNullOrEmpty(this.QueueConnectionString))
-            {
-                throw new ConfigurationErrorsException($"{this.GetType().Name}: QueueConnectionString is invalid");
-            }
-
-            if (string.IsNullOrEmpty(this.EvaluateQueueName))
-            {
-                throw new ConfigurationErrorsException($"{this.GetType().Name}: EvaluateQueueName is invalid");
-            }
-
-            if (string.IsNullOrEmpty(this.UpdateQueueName))
-            {
-                throw new ConfigurationErrorsException($"{this.GetType().Name}: UpdateQueueName is invalid");
-            }
-
-            if (string.IsNullOrEmpty(this.DiscoverQueueName))
-            {
-                throw new ConfigurationErrorsException($"{this.GetType().Name}: DiscoverQueueName is invalid");
-            }
-        }
     }
 
     internal class ServicePrincipalProcessor : DeltaProcessorBase, IServicePrincipalProcessor
@@ -341,7 +271,6 @@ namespace CSE.Automation.Processors
                 await auditService.PutPass(context, AuditCode.Pass_ServicePrincipal, entity.Id, null, null).ConfigureAwait(false);
             }
         }
-
 
         /// UPDATE
         /// <summary>
