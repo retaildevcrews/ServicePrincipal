@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "DEPRECATED: Use provision-environment.sh"
+exit 2
+
 # check if svc_ppl_Name is valid
 
 Name_Size=${#svc_ppl_Name}

@@ -86,6 +86,11 @@ variable "COSMOS_OBJ_TRACKING_COL" {
   description = "The Collection used to hold ServicePrincipal and other AAD object items being tracked"
 }
 
+variable "COSMOS_ACTIVITY_HISTORY_COL" {
+  type        = string
+  description = "The Collection used to hold the activity history for long running activities"
+}
+
 variable "REPO" {
   type        = string
   description = "The databricks-scim-automation repo"
