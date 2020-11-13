@@ -4,6 +4,7 @@
 using Azure.Storage.Queues;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
@@ -13,16 +14,16 @@ namespace CSE.Automation.Services
     public class AzureQueueService : IAzureQueueService
     {
         private readonly QueueClient queueClient;
+        private readonly ILogger logger;
 
-        public AzureQueueService(string connectionString, string queueName)
+        public AzureQueueService(string connectionString, string queueName, ILogger<AzureQueueService> logger)
         {
             queueClient = new QueueClient(connectionString, queueName);
+            this.logger = logger;
 
             if (!queueClient.Exists())
             {
-                Console.WriteLine($"Queue {queueName} doesn't exist"); // TODO Change this to log
-
-                // TODO end gracefully
+                logger.LogTrace($"Queue {queueName} doesn't exist");
             }
         }
 
@@ -49,7 +50,7 @@ namespace CSE.Automation.Services
                 }
                 catch (Azure.RequestFailedException e)
                 {
-                    Console.WriteLine($"Cannot send message to queue {queueClient.Name} - Attempt:{numOfAttempts} - Message:{e.Message}"); // TODO Change this to log
+                    logger.LogTrace($"Cannot send message to queue {queueClient.Name} - Attempt:{numOfAttempts} - Message:{e.Message}");
                 }
 
                 numOfAttempts++;
