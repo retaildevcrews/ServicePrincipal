@@ -16,29 +16,32 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
         }
         public override ServicePrincipalWrapper Validate()
         {
-            ServicePrincipalWrapper result = new ServicePrincipalWrapper();
+            ServicePrincipalWrapper result = null;
             Dictionary<string,string> ownersList = GraphHelper.GetOwnersDisplayNameAndUserPrincipalNameKeyValuePair(ServicePrincipalObject);
             if (ownersList.Count > 0 && !string.IsNullOrEmpty(ServicePrincipalObject.Notes))
             {
                 foreach (var ownerName in ownersList.Values)
                 {
-                    //var semicolonSeparatedOwnersEmail = string.Join(";", ownersList);
                     if (!ServicePrincipalObject.Notes.Contains(ownerName))
+                    {
                         throw new InvalidDataException($"Service Principal: [{ServicePrincipalObject.DisplayName}] does not match Test Case [{TestCaseID}] rules.");
+                    }
                 }
+
+                result = new ServicePrincipalWrapper();
 
                 result.SetAADServicePrincipal(ServicePrincipalObject);
                 result.HasOwners = true;
                 result.AADUsers = ownersList.Keys.ToList();
 
-                return result;
-
             }
-            else
+
+            if (result == null)
             {
-                return null;
+                throw new InvalidDataException($"Service Principal: [{ServicePrincipalObject.DisplayName}] does not match Test Case [{TestCaseID}] rules.");
             }
 
+            return result;
         }
     }
 }

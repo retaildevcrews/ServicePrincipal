@@ -14,7 +14,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
         }
         public override bool Validate()
         {
-            //AUDIT PASS record exists with correlation id of activity
+
 
             bool typePass = (NewAuditEntry.Type == AuditActionType.Pass);
 

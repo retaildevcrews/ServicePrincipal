@@ -9,6 +9,7 @@
   "TC2": "sp-AzQueueTesting-4",
   "TC3": "sp-AzQueueTesting-7",
 
-  "KEYVAULT_NAME": "sp-kv-dev"
+  "KEYVAULT_NAME": "sp-kv-dev",
+  "AUTH_TYPE": "VS"
 
 }

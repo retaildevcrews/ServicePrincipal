@@ -11,6 +11,7 @@
     <Compile Include="..\..\..\src\Automation\CSE.Automation\Model\EvaluateServicePrincipalCommand.cs" Link="TestCases\Queues\Model\EvaluateServicePrincipalCommand.cs" />
     <Compile Include="..\..\..\src\Automation\CSE.Automation\Model\GraphModel.cs" Link="TestCases\ServicePrincipals\Model\GraphModel.cs" />
     <Compile Include="..\..\..\src\Automation\CSE.Automation\Model\QueueMessage.cs" Link="TestCases\Queues\Model\QueueMessage.cs" />
+    <Compile Include="..\..\..\src\Automation\CSE.Automation\Model\QueueMessage{TDocument}.cs" Link="TestCases\Queues\Model\QueueMessage{TDocument}.cs" />
     <Compile Include="..\..\..\src\Automation\CSE.Automation\Model\ServicePrincipalModel.cs" Link="TestCases\ServicePrincipals\Model\ServicePrincipalModel.cs" />
     <Compile Include="..\..\..\src\Automation\CSE.Automation\Services\AzureQueueService.cs" Link="TestCases\Services\AzureQueueService.cs" />
   </ItemGroup>

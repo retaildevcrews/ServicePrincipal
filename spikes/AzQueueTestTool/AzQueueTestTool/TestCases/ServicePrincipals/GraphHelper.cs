@@ -180,6 +180,37 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
             }
         }
 
+        internal static bool AreValidAADUsers(string spNotes)
+        {
+
+            List<string> spNotesAsList = spNotes.Split(';').ToList();
+
+            try
+            {
+                List<User> usersList = new List<User>();
+
+                Parallel.ForEach(spNotesAsList, userEmail =>
+                {
+                    var usersPage =  _graphClient.Users
+                    .Request()
+                    //.Filter($"startswith(userPrincipalName,'{userEmail}')")
+                    .Filter($"userPrincipalName eq '{userEmail}'")
+                    .GetAsync();
+
+                    usersList.AddRange(usersPage.Result);
+                });
+
+                return usersList.Count == usersList.Count;
+
+            }
+            catch (ServiceException ex)
+            {
+                Console.WriteLine($"Error Checking if AreValidAADUsers: {ex.Message}");
+                throw;
+            }
+        }
+
+
         internal static void ClearNotesField(List<ServicePrincipal> targetServicePrincipals)
         {
             if (targetServicePrincipals != null && targetServicePrincipals.Count() > 0)

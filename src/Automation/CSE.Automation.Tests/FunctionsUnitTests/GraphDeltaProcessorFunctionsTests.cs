@@ -20,6 +20,8 @@ using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipa
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators;
 using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGenerator;
 using System.Runtime.CompilerServices;
+using CSE.Automation.Validators;
+using CSE.Automation.KeyVault;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests
 {
@@ -55,9 +57,16 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         private ILogger<ObjectTrackingRepository> _objectTrackingRepoLogger;
         private ILogger<ActivityService> _activityServiceLogger;
 
+        private ILogger<ServicePrincipalGraphHelper> _spGraphHelperLogger;
+        private ILogger<UserGraphHelper> _userGraphLogger;
+
+        
+
         private IServiceProvider _serviceProvider;
+        private ServiceCollection _builder;
         private IConfigurationRoot _config;
-        private IModelValidatorFactory _modelValidatorFactory;
+        //private IModelValidatorFactory _modelValidatorFactory;
+        //private ModelValidatorFactory _modelValidatorFactory;
 
         public GraphDeltaProcessorFunctionsTests()
         {
@@ -73,10 +82,12 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             CreateSettings();
             CreateServices();
 
-            _processor = new ServicePrincipalProcessor(_servicePrincipalProcessorSettings, _graphHelper, _queueServiceFactory, _configService,
-                        _objectService, _auditService, _activityService, _modelValidatorFactory, _spProcessorLogger);
+            var modelValidatorFactory = _serviceProvider.GetService<IModelValidatorFactory>();
 
-            _graphDeltaProcessor = new GraphDeltaProcessor(_serviceProvider, _activityService, _processor, _graphLogger); //, true);
+            _processor = new ServicePrincipalProcessor(_servicePrincipalProcessorSettings, _graphHelper, _queueServiceFactory, _configService,
+                        _objectService, _auditService, _activityService, modelValidatorFactory, _spProcessorLogger);
+
+            _graphDeltaProcessor = new GraphDeltaProcessor(_serviceProvider, _activityService, _processor, _graphLogger); 
         }
 
         private void CreateServices()
@@ -90,6 +101,38 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             _auditHistoryRespository = new ActivityHistoryRepository(_activityRespositorySettings, _auditRepoLogger);
             _activityService = new ActivityService(_auditHistoryRespository, _activityServiceLogger);
+
+
+            _builder = new ServiceCollection();
+
+            var secretServiceSettings = new SecretServiceSettings() { KeyVaultName = _config[Constants.KeyVaultName] };
+            var credServiceSettings = new CredentialServiceSettings() { AuthType = _config[Constants.AuthType].As<AuthenticationType>() };
+
+
+            _builder
+                .AddSingleton(credServiceSettings)
+                .AddSingleton(secretServiceSettings)
+
+                .AddSingleton<ICredentialService>(x => new CredentialService(x.GetRequiredService<CredentialServiceSettings>()))
+                .AddSingleton<ISecretClient>(x => new SecretService(x.GetRequiredService<SecretServiceSettings>(), x.GetRequiredService<ICredentialService>()))
+
+                //.AddTransient<GraphHelperSettings>(x => new GraphHelperSettings(_secretClient))
+                .AddTransient<GraphHelperSettings>(x => new GraphHelperSettings(x.GetRequiredService<ISecretClient>()))
+                .AddScoped<ILogger<ServicePrincipalGraphHelper>>(x => _spGraphHelperLogger) 
+                .AddScoped<ILogger<UserGraphHelper>>(x => _userGraphLogger) 
+
+                .AddScoped<IAuditService>(x => _auditService) 
+
+                .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>()
+                .AddScoped<IGraphHelper<User>, UserGraphHelper>()
+                .AddScoped<IModelValidator<GraphModel>, GraphModelValidator>()
+                .AddScoped<IModelValidator<ServicePrincipalModel>, ServicePrincipalModelValidator>()
+                .AddScoped<IModelValidator<AuditEntry>, AuditEntryValidator>()
+                .AddSingleton<IModelValidatorFactory, ModelValidatorFactory>();
+
+            _serviceProvider = _builder.BuildServiceProvider();
+
+
 
         }
 
@@ -143,6 +186,9 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _spProcessorLogger = CreateLogger<ServicePrincipalProcessor>();
             _graphLogger = CreateLogger<GraphDeltaProcessor>();
             _activityServiceLogger = CreateLogger<ActivityService>();
+
+            _spGraphHelperLogger =  CreateLogger<ServicePrincipalGraphHelper>();
+            _userGraphLogger = CreateLogger<UserGraphHelper>();
         }
 
         private void CreateMocks()
@@ -151,10 +197,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _secretClient = Substitute.For<ISecretClient>();
             _graphHelper = Substitute.For<IGraphHelper<ServicePrincipal>>();
 
-            //_serviceProvider = Substitute.For<IServiceProvider>();
-            _serviceProvider = new ServiceCollection().BuildServiceProvider();
-
-            _modelValidatorFactory = Substitute.For<IModelValidatorFactory>();
+            //_modelValidatorFactory = Substitute.For<IModelValidatorFactory>();
             _configService = Substitute.For<IConfigService<ProcessorConfiguration>>();
         }
 
@@ -194,9 +237,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         [Fact]
         public void FunctionEvaluateTestCase1()
         {
-            using var activityContext = _activityService.CreateContext($"{DiscoveryMode.Deltas.Description()} - Test Case [{TestCase.TC1}] ", withTracking: true);
+            TestCase thisTestCase = TestCase.TC1;
 
-            using var inputGenerator = new InputGenerator(_config, activityContext, TestCase.TC1);
+            using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
+
+            using var inputGenerator = new InputGenerator(_config, activityContext, thisTestCase);
 
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
@@ -223,6 +268,40 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         }
 
+
+        [Fact]
+        public void FunctionEvaluateTestCase2()
+        {
+            TestCase thisTestCase = TestCase.TC2;
+
+            using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
+
+            using var inputGenerator = new InputGenerator(_config, activityContext, thisTestCase);
+
+
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
+
+            //Create Validators 
+            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator);
+
+            using var objectTrackingValidationManager = new ObjectTrackingValidationManager(inputGenerator, _objectRespository, activityContext);
+
+            using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespository, activityContext);
+
+
+            Task thisTaks = Task.Run (() => _graphDeltaProcessor.Evaluate(cloudQueueMessage, _graphLogger));
+            thisTaks.Wait();
+
+            //Validate Outcome and state after execution for Service Principal, Audit and ObjectTracking objects based on TestCase injected thru InputGenerator
+            bool validServicePrincipal = servicePrincipalValidationManager.Validate();
+
+            bool validAudit =  auditValidationManager.Validate();
+
+            bool validObjectTracking =  objectTrackingValidationManager.Validate();
+
+            Assert.True(validObjectTracking && validAudit && validServicePrincipal);
+
+        }
 
     }
 }
