@@ -23,10 +23,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
             {
                 if (GraphHelper.AreValidAADUsers(ServicePrincipalObject.Notes))
                 {
-                    result = new ServicePrincipalWrapper();
-                    result.SetAADServicePrincipal(ServicePrincipalObject);
-                    result.HasOwners = false;
-                    result.AADUsers = ownersList.Keys.ToList();
+                    result = new ServicePrincipalWrapper(ServicePrincipalObject, ownersList.Keys.ToList(), true);
                 }
             }
 

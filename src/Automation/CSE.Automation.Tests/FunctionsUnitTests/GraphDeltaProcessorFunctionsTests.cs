@@ -272,6 +272,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         [Fact]
         public void FunctionEvaluateTestCase2()
         {
+
             TestCase thisTestCase = TestCase.TC2;
 
             using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);

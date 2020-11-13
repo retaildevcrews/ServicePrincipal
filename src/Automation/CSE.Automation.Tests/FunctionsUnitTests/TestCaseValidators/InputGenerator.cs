@@ -26,18 +26,21 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
         internal enum TestCase {
             [StateDefinition("StateDefinition1")]
             [SpValidator("SpResultValidator1")]
+            [ObjectStateDefinition("ObjectStateDefinition1")]
             [ObjectValidator("ObjectResultValidator1")]
             [AuditValidator("AuditResultValidator1")]
             TC1,
 
             [StateDefinition("StateDefinition2")]
             [SpValidator("SpResultValidator1")]// TC2 uses same SpValidator as TC1
+            [ObjectStateDefinition("ObjectStateDefinition2")]
             [ObjectValidator("ObjectResultValidator2")]
             [AuditValidator("AuditResultValidator2")]
             TC2,
 
             [StateDefinition("StateDefinition3")]
             [SpValidator("SpResultValidator3")]
+            [ObjectStateDefinition("ObjectStateDefinition3")]
             [ObjectValidator("ObjectResultValidator3")]
             [AuditValidator("AuditResultValidator3")]
             TC3, 
@@ -50,6 +53,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
             TC9 
         }
 
+      
         private bool _initialized = false;
 
         private readonly IConfigurationRoot _config;
@@ -72,19 +76,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
       
         internal byte[] GetTestMessageContent()
         {
-            ServicePrincipalWrapper spTest = GetServicePrincipalWrapper();
-
-            var servicePrincipal = new ServicePrincipalModel()
-            {
-                Id = spTest.AADServicePrincipal.Id,  
-                AppId = spTest.AADServicePrincipal.AppId,
-                DisplayName = spTest.AADServicePrincipal.DisplayName,
-                Notes = spTest.AADServicePrincipal.Notes,
-                Created = DateTimeOffset.Parse(spTest.AADServicePrincipal.AdditionalData["createdDateTime"].ToString(), CultureInfo.CurrentCulture),
-                Deleted = spTest.AADServicePrincipal.DeletedDateTime,
-                Owners = spTest.HasOwners ? spTest.AADUsers : null
-            };
-
+            var spTest = GetServicePrincipalWrapper();
 
             var myMessage = new QueueMessage<EvaluateServicePrincipalCommand>()
             {
@@ -92,7 +84,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
                 Document = new EvaluateServicePrincipalCommand
                 {
                     CorrelationId = _activityContext.CorrelationId, 
-                    Model = servicePrincipal,
+                    Model = _servicePrincipalWrapper.SPModel,
                 },
                 Attempt = 0
             };
@@ -104,10 +96,14 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
             
         }
 
+        internal ServicePrincipalModel GetServicePrincipalModel()
+        {
+            return _servicePrincipalWrapper.SPModel;
+        }
+
         internal ServicePrincipal GetServicePrincipal(bool requery = false)
         {
             return GetServicePrincipalWrapper(requery).AADServicePrincipal;
-
         }
 
         private ServicePrincipalWrapper GetServicePrincipalWrapper(bool requery = false)
@@ -136,6 +132,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
             ServicePrincipal spObject = servicePrincipalList.FirstOrDefault(x => x.DisplayName == spDisplayName);
 
             return ValidateServicePrincipalPreconditionStateFor(spObject, testCase);
+
         }
 
         private ServicePrincipalWrapper ValidateServicePrincipalPreconditionStateFor(ServicePrincipal spObject, TestCase testCase)

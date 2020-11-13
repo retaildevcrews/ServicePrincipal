@@ -107,5 +107,30 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 
             return attr.ValidatorName;
         }
+
+        public static string GetObjectStateDefinition(this Enum value)
+        {
+            var type = value.GetType();
+
+            string name = Enum.GetName(type, value);
+            if (name == null)
+            {
+                return null;
+            }
+
+            var field = type.GetField(name);
+            if (field == null)
+            {
+                return null;
+            }
+
+            var attr = Attribute.GetCustomAttribute(field, typeof(ObjectStateDefinitionAttribute)) as ObjectStateDefinitionAttribute;
+            if (attr == null)
+            {
+                return null;
+            }
+
+            return attr.ObjectStateDefinitionName;
+        }
     }
 }

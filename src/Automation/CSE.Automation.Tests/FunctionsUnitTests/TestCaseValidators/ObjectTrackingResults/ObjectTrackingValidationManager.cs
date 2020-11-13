@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CSE.Automation.DataAccess;
 using CSE.Automation.Model;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrackingState;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrackingResults
 {
@@ -21,6 +22,12 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
             _inputGenerator = inputGenerator;
             _objectTrackingRepository = objectTrackingRepository;
             _activityContext = activityContext;
+
+            using var objectTrackingValidationManager = new ObjectTrackingStateValidationManager(inputGenerator, _objectTrackingRepository, activityContext);
+            
+            //this method wil ensure that  the Objectracking Item in the collection  match the precondition for the corresponding TestCase
+            objectTrackingValidationManager.ValidatePrecondition();
+
             SaveState();
         }
 

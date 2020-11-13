@@ -28,11 +28,8 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
                     }
                 }
 
-                result = new ServicePrincipalWrapper();
+                result = new ServicePrincipalWrapper(ServicePrincipalObject, ownersList.Keys.ToList(),true);
 
-                result.SetAADServicePrincipal(ServicePrincipalObject);
-                result.HasOwners = true;
-                result.AADUsers = ownersList.Keys.ToList();
 
             }
 
