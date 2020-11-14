@@ -21,6 +21,7 @@ green=`tput setaf 2`
 yellow=`tput setaf 3`
 reset=`tput sgr0`
 die() { echo -e "${red}$*${reset}" >&2; exit 2; }  # complain to STDERR and exit with error
+goodbye() { [ ! -z "${1##*[!0-9]*}" ] && exit $1 || exit 2; }  # complain to STDERR and exit with error
 #needs_arg() { if [ -z "$OPTARG" ]; then die "No arg for --$OPT option"; fi; }
 
 function parse_args()
@@ -41,14 +42,18 @@ function parse_args()
             echo "${yellow}usage: $0" >&2
             echo "          -h|--help" >&2
             echo "          -a|--appname <applicationname>" >&2
-            echo "          -e|--env qa|prod" >&2
+            echo "          -e|--env qa|dev" >&2
+            echo "               environment for deployment" >&2
             echo "          -f|--first-run" >&2
+            echo "               create a new tfvars. If this is not set, attempt to recreate tfvars from keyvault" >&2
             echo "          -i|--init" >&2
+            echo "               force initialization of terraform. By default if .terraform directory exists it will not be overwritten." >&2
             echo "          -l|--location <azure location>" >&2
             echo "          -r|--repo <repository name>" >&2
             echo "          -v|--validate-only" >&2
+            echo "               do not try to apply terraform changes" >&2
             echo "             --what-if${reset}" >&2
-            die
+            goodbye 1
             ;;
         (--what-if)
           WHAT_IF=1
