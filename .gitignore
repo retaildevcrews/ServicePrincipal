@@ -316,3 +316,4 @@ terraform.tfvars
 
 # App Config Secrets Files
 **/[Aa]pp.secrets.config
+*.plan
