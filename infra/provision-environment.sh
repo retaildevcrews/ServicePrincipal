@@ -33,6 +33,7 @@ function parse_args()
     REPO=""
     PARAMS=""
     VALIDATE_ONLY=0
+    INIT=0
 
     while (( "$#" )); do
       case "$1" in
@@ -42,6 +43,7 @@ function parse_args()
             echo "          -a|--appname <applicationname>" >&2
             echo "          -e|--env qa|prod" >&2
             echo "          -f|--first-run" >&2
+            echo "          -i|--init" >&2
             echo "          -l|--location <azure location>" >&2
             echo "          -r|--repo <repository name>" >&2
             echo "          -v|--validate-only" >&2
@@ -72,6 +74,10 @@ function parse_args()
           FIRST_RUN=1
           shift 1
           ;;      
+        -i|--init)
+          INIT=1
+          shift 1
+          ;;                
         -l|--location)
           if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
             LOCATION=$2
@@ -206,8 +212,10 @@ function Prepare_Environment()
 
 function Initialize_Terraform()
 {
-    #echo "${svc_ppl_Name}-rg-${svc_ppl_Environment}"
-    terraform init -backend-config="resource_group_name=${svc_ppl_Name}-rg-${svc_ppl_Environment}" -backend-config="storage_account_name=${svc_ppl_Name}st${svc_ppl_Enviroment}" -backend-config="container_name=${svc_ppl_Name}citfstate${svc_ppl_Enviroment}" -backend-config="key=${svc_ppl_Name}.terraform.tfstate.${svc_ppl_Enviroment}"
+    if [ ! -d ./.terraform ] || [ $INIT -eq 1 ]
+    then
+        terraform init -backend-config="resource_group_name=${svc_ppl_Name}-rg-${svc_ppl_Environment}" -backend-config="storage_account_name=${svc_ppl_Name}st${svc_ppl_Environment}" -backend-config="container_name=${svc_ppl_Name}citfstate${svc_ppl_Environment}" -backend-config="key=${svc_ppl_Name}.${svc_ppl_Environment}.terraform.tfstate"
+    fi
 }
 
 function Validate_Terraform()

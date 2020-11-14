@@ -47,10 +47,10 @@ function parse_args()
     esac
   done
 
-  echo "FIRST_RUN: $FIRST_RUN"
-  echo "WHAT_IF: $WHAT_IF"
-  echo "NO_CLOBBER: $NO_CLOBBER"
-  echo ""
+  # echo "FIRST_RUN: $FIRST_RUN"
+  # echo "WHAT_IF: $WHAT_IF"
+  # echo "NO_CLOBBER: $NO_CLOBBER"
+  # echo ""
 }
 
 function validate_environment_vars()
