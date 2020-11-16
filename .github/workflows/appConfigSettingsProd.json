@@ -5,6 +5,7 @@
     "SPAuditCollection": "Audit",
     "SPConfigurationCollection": "Configuration",
     "SPObjectTrackingCollection": "ObjectTracking",
+    "SPActivityHistoryCollection": "ActivityHistory",
     "SPDeltaDiscoverySchedule": "0 */30 * * * *",
     "SPEvaluateQueue": "evaluate",
     "SPUpdateQueue": "update",
