@@ -23,9 +23,24 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
             return instantiatedObject.Validate();
         }
+        internal ServicePrincipalWrapper GetNewServicePrincipalWrapper(ServicePrincipal servicePrincipal, TestCase testCase)
+        {
+            string stateDefinitionClassName= testCase.GetSpStateDefinition();
+
+            string objectToInstantiate = $"CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalStates.{stateDefinitionClassName}, CSE.Automation.Tests";
+
+            var objectType = Type.GetType(objectToInstantiate);
+
+            object[] args = { servicePrincipal , testCase};
+
+            var instantiatedObject = Activator.CreateInstance(objectType, args) as ISpStateDefinition;
+
+            return instantiatedObject.GetNewServicePrincipalWrapper();
+        }
+
         public void Dispose()
-        {         
-           // throw new NotImplementedException();
+        {
+            // throw new NotImplementedException();
         }
     }
 }

@@ -2,29 +2,35 @@
 using System.Collections.Generic;
 using System.Text;
 using CSE.Automation.Model;
-using Microsoft.Graph;
 using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGenerator;
+using CSE.Automation.Extensions;
+using Microsoft.Graph;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResults
 {
-    internal class AuditResultValidator1 : AuditResultValidatorBase, IAuditResultValidator
+    internal class AuditResultValidator2_2 : AuditResultValidatorBase, IAuditResultValidator
     {
-        public AuditResultValidator1(AuditEntry savedAuditEntry, AuditEntry newAuditEntry, ActivityContext activityContext, TestCase testCase) 
+        public AuditResultValidator2_2(AuditEntry savedAuditEntry, AuditEntry newAuditEntry, ActivityContext activityContext, TestCase testCase)
                                         : base(savedAuditEntry, newAuditEntry, activityContext, testCase)
         {
         }
         public override bool Validate()
         {
 
+            bool typePass = (NewAuditEntry.Type == AuditActionType.Fail);
 
-            bool typePass = (NewAuditEntry.Type == AuditActionType.Pass);
+
+            bool validReason = (NewAuditEntry.Reason == AuditCode.Fail_AttributeValidation.Description() ||
+                               NewAuditEntry.Reason == AuditCode.Fail_MissingOwners.Description());
+
+            bool validAttributeName = (NewAuditEntry.AttributeName == "Owners");
 
             bool isNewAuditEntry = NewAuditEntry.Timestamp > SavedAuditEntry.Timestamp;
             
             bool validCorrelationId = Guid.TryParse(NewAuditEntry.CorrelationId, out Guid dummyGuid) &&
                                         NewAuditEntry.CorrelationId.Equals(Context.CorrelationId);
 
-            return (typePass && isNewAuditEntry && validCorrelationId);
+            return (typePass && isNewAuditEntry && validCorrelationId && validReason && validAttributeName);
 
         }
     }

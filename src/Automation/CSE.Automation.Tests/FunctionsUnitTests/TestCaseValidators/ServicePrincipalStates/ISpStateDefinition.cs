@@ -15,5 +15,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
         ServicePrincipalModel SPModel { get; }
 
         ServicePrincipalWrapper Validate();
+
+        ServicePrincipalWrapper GetNewServicePrincipalWrapper();
     }
 }

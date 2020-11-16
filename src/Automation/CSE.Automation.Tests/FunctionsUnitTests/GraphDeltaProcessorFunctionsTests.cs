@@ -305,7 +305,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
-        public void FunctionEvaluateTestCase2_2() //TC – 2.2 – Existing SP has no Owners, valid Notes, LKG (AUDIT FAIL)
+        public void FunctionEvaluateTestCase2_2()
         {
             TestCase thisTestCase = TestCase.TC2_2;
 
@@ -335,6 +335,41 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             bool validObjectTracking =  objectTrackingValidationManager.Validate();
 
             Assert.True(validObjectTracking && validAudit && validServicePrincipal);
+        }
+
+        [Fact]
+        public void FunctionEvaluateTestCase3() 
+        {
+            TestCase thisTestCase = TestCase.TC3;
+
+            using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
+
+            using var inputGenerator = new InputGenerator(_config, activityContext, thisTestCase);
+
+
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
+
+            //Create Validators 
+            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator);
+
+            using var objectTrackingValidationManager = new ObjectTrackingValidationManager(inputGenerator, _objectRespository, activityContext);
+
+            using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespository, activityContext);
+
+
+            Task thisTaks = Task.Run (() => _graphDeltaProcessor.Evaluate(cloudQueueMessage, _graphLogger));
+            thisTaks.Wait();
+
+            //Validate Outcome and state after execution for Service Principal, Audit and ObjectTracking objects based on TestCase injected thru InputGenerator
+            
+            // Waiting For Jim's feedback  
+            //bool validServicePrincipal = servicePrincipalValidationManager.Validate();
+
+            bool validAudit =  auditValidationManager.Validate();
+
+            bool validObjectTracking =  objectTrackingValidationManager.Validate();
+
+            Assert.True(validObjectTracking && validAudit );
         }
 
     }

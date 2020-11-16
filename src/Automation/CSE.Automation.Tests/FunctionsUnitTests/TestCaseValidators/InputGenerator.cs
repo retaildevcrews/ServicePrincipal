@@ -33,21 +33,21 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 
             [SpStateDefinition("SpStateDefinition2")]
             [ObjectStateDefinition("ObjectStateDefinition2")]
-            [SpValidator("SpResultValidator1")]// NOTE: TC2 uses same SpResultValidator as TC1
+            [SpValidator("SpResultValidator2")]
             [ObjectValidator("ObjectResultValidator2")]
             [AuditValidator("AuditResultValidator2")]
             TC2,
 
-            [SpStateDefinition("SpStateDefinition2")]
-            [ObjectStateDefinition("ObjectStateDefinition1")]// NOTE: TC2_2 uses same ObjectStateDefinition1 as TC1
-            [SpValidator("SpResultValidator1")]// NOTE: TC2 uses same SpResultValidator as TC1
+            [SpStateDefinition("SpStateDefinition2_2")]
+            [ObjectStateDefinition("ObjectStateDefinition2_2")]
+            [SpValidator("SpResultValidator2_2")]
             [ObjectValidator("ObjectResultValidator2_2")]
-            [AuditValidator("AuditResultValidator2")]
+            [AuditValidator("AuditResultValidator2_2")]
             TC2_2,
 
             [SpStateDefinition("SpStateDefinition3")]
-            [SpValidator("SpResultValidator3")]
             [ObjectStateDefinition("ObjectStateDefinition3")]
+            [SpValidator("SpResultValidator3")]
             [ObjectValidator("ObjectResultValidator3")]
             [AuditValidator("AuditResultValidator3")]
             TC3, 
@@ -117,7 +117,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
         {
             if (_servicePrincipalWrapper == null || requery)
             {
-                _servicePrincipalWrapper = GetAADServicePrincipal(_config[TestCaseId.ToString()], TestCaseId);
+                _servicePrincipalWrapper = GetAADServicePrincipal(_config[TestCaseId.ToString()], TestCaseId, requery);
 
                 if (_servicePrincipalWrapper == null)
                 {
@@ -128,7 +128,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
            
         }
 
-        private ServicePrincipalWrapper GetAADServicePrincipal(string spDisplayName, TestCase testCase)
+        private ServicePrincipalWrapper GetAADServicePrincipal(string spDisplayName, TestCase testCase, bool getWrapperWithoutPreconditionValidation = false)
         {
 
             string servicePrincipalPrefix = _config["servicePrincipalPrefix"];
@@ -138,11 +138,12 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 
             ServicePrincipal spObject = servicePrincipalList.FirstOrDefault(x => x.DisplayName == spDisplayName);
 
-            return ValidateServicePrincipalPreconditionStateFor(spObject, testCase);
+            return ValidateServicePrincipalPreconditionStateFor(spObject, testCase, getWrapperWithoutPreconditionValidation);
 
         }
 
-        private ServicePrincipalWrapper ValidateServicePrincipalPreconditionStateFor(ServicePrincipal spObject, TestCase testCase)
+        private ServicePrincipalWrapper ValidateServicePrincipalPreconditionStateFor(ServicePrincipal spObject, TestCase testCase,
+                                        bool getWrapperWithoutPreconditionValidation = false)
         {
             if (spObject == null)
             {
@@ -151,7 +152,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 
             using var stateValidationManager = new ServicePrincipalPreconditionValidationManager();
             
-            return stateValidationManager.ValidatePrecondition(spObject,  testCase);
+            if (getWrapperWithoutPreconditionValidation)
+                return stateValidationManager.GetNewServicePrincipalWrapper(spObject, testCase);
+            else
+                return stateValidationManager.ValidatePrecondition(spObject,  testCase);
             
 
         }

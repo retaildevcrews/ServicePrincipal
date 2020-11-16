@@ -131,7 +131,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
             Console.WriteLine("User Object creation done, press a key to continue");
         }
 
-        private static string GetDomainName()
+        public static string GetDomainName()
         {
             Task<IGraphServiceDomainsCollectionPage> domains = _graphClient.Domains.Request().GetAsync();
 
