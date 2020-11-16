@@ -333,7 +333,6 @@ namespace CSE.Automation.Processors
         private async Task UpdateNotesFromOwners(ActivityContext context, ServicePrincipalModel entity, IAzureQueueService queueService)
         {
             TrackingModel lastKnownGoodWrapper = await objectService.Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(true);
-            var lastKnownGood = TrackingModel.Unwrap<ServicePrincipalModel>(lastKnownGoodWrapper);
 
             // get new value for Notes (from the list of Owners)
             // var owners = sp.Owners.Select(x => (x as User)?.UserPrincipalName);

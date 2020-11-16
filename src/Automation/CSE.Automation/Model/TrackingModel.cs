@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 
 namespace CSE.Automation.Model
@@ -26,7 +27,11 @@ namespace CSE.Automation.Model
         public static TEntity Unwrap<TEntity>(TrackingModel entity)
         where TEntity : class
         {
-            return entity?.Entity as TEntity;
+            JObject entityAsJObject = entity?.Entity as JObject;
+
+            string entityAsString = entityAsJObject?.ToString(Formatting.None);
+
+            return string.IsNullOrEmpty(entityAsString) ? null : JsonConvert.DeserializeObject<TEntity>(entityAsString);
         }
     }
 }
