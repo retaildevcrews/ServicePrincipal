@@ -23,7 +23,8 @@ namespace CSE.Automation.Services
 
             if (!queueClient.Exists())
             {
-                logger.LogTrace($"Queue {queueName} doesn't exist");
+                logger.LogError($"Queue {queueName} doesn't exist");
+                throw new Exception($"Queue {queueName} doesn't exist");
             }
         }
 
@@ -50,7 +51,7 @@ namespace CSE.Automation.Services
                 }
                 catch (Azure.RequestFailedException e)
                 {
-                    logger.LogTrace($"Cannot send message to queue {queueClient.Name} - Attempt:{numOfAttempts} - Message:{e.Message}");
+                    logger.LogError(e, $"Cannot send message to queue {queueClient.Name} - Attempt:{numOfAttempts} - Message:{e.Message}");
                 }
 
                 numOfAttempts++;
