@@ -23,7 +23,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
             _objectTrackingRepository = objectTrackingRepository;
             _activityContext = activityContext;
 
-            using var objectTrackingValidationManager = new ObjectTrackingStateValidationManager(inputGenerator, _objectTrackingRepository, activityContext);
+            using var objectTrackingValidationManager = new ObjectTrackingPreconditionValidationManager(inputGenerator, _objectTrackingRepository, activityContext);
             
             //this method wil ensure that  the Objectracking Item in the collection  match the precondition for the corresponding TestCase
             objectTrackingValidationManager.ValidatePrecondition();

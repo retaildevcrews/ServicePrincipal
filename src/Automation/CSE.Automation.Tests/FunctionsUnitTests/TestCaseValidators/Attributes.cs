@@ -6,12 +6,12 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 {
     namespace System.ComponentModel
     {
-        internal class StateDefinitionAttribute : Attribute
+        internal class SpStateDefinitionAttribute : Attribute
         {
-            public string StateDefinitionName;
-            public StateDefinitionAttribute(string stateDefinitionName)
+            public string SpStateDefinitionName;
+            public SpStateDefinitionAttribute(string spStateDefinitionName)
             {
-                StateDefinitionName = stateDefinitionName;
+                SpStateDefinitionName = spStateDefinitionName;
             }
         }
 

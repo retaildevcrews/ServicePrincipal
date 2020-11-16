@@ -8,7 +8,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
     static class Extensions
     {
      
-        public static string GetStateDefinition(this Enum value)
+        public static string GetSpStateDefinition(this Enum value)
         {
             var type = value.GetType();
 
@@ -24,13 +24,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
                 return null;
             }
 
-            var attr = Attribute.GetCustomAttribute(field, typeof(StateDefinitionAttribute)) as StateDefinitionAttribute;
+            var attr = Attribute.GetCustomAttribute(field, typeof(SpStateDefinitionAttribute)) as SpStateDefinitionAttribute;
             if (attr == null)
             {
                 return null;
             }
 
-            return attr.StateDefinitionName;
+            return attr.SpStateDefinitionName;
         }
 
         public static string GetSpValidator(this Enum value)

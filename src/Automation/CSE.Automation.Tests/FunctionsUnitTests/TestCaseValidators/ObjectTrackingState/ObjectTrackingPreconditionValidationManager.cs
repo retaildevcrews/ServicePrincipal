@@ -8,14 +8,14 @@ using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGen
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrackingState
 {
-    class ObjectTrackingStateValidationManager : IDisposable
+    class ObjectTrackingPreconditionValidationManager : IDisposable
     {
 
         private readonly InputGenerator _inputGenerator;
         private readonly ObjectTrackingRepository _objectTrackingRepository;
         private readonly ActivityContext _activityContext;
 
-        public ObjectTrackingStateValidationManager(InputGenerator inputGenerator, ObjectTrackingRepository objectTrackingRepository, ActivityContext activityContext)
+        public ObjectTrackingPreconditionValidationManager(InputGenerator inputGenerator, ObjectTrackingRepository objectTrackingRepository, ActivityContext activityContext)
         {
             _inputGenerator = inputGenerator;
             _objectTrackingRepository = objectTrackingRepository;

@@ -36,7 +36,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         private IQueueServiceFactory _queueServiceFactory;
         private IConfigService<ProcessorConfiguration> _configService;
 
-        
+
         private ObjectTrackingService _objectService;
         private ObjectTrackingRepository _objectRespository;
         private ObjectTrackingRepositorySettings _objectTrackingRepositorySettings;
@@ -60,7 +60,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         private ILogger<ServicePrincipalGraphHelper> _spGraphHelperLogger;
         private ILogger<UserGraphHelper> _userGraphLogger;
 
-        
+
 
         private IServiceProvider _serviceProvider;
         private ServiceCollection _builder;
@@ -87,7 +87,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _processor = new ServicePrincipalProcessor(_servicePrincipalProcessorSettings, _graphHelper, _queueServiceFactory, _configService,
                         _objectService, _auditService, _activityService, modelValidatorFactory, _spProcessorLogger);
 
-            _graphDeltaProcessor = new GraphDeltaProcessor(_serviceProvider, _activityService, _processor, _graphLogger); 
+            _graphDeltaProcessor = new GraphDeltaProcessor(_serviceProvider, _activityService, _processor, _graphLogger);
         }
 
         private void CreateServices()
@@ -118,10 +118,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
                 //.AddTransient<GraphHelperSettings>(x => new GraphHelperSettings(_secretClient))
                 .AddTransient<GraphHelperSettings>(x => new GraphHelperSettings(x.GetRequiredService<ISecretClient>()))
-                .AddScoped<ILogger<ServicePrincipalGraphHelper>>(x => _spGraphHelperLogger) 
-                .AddScoped<ILogger<UserGraphHelper>>(x => _userGraphLogger) 
+                .AddScoped<ILogger<ServicePrincipalGraphHelper>>(x => _spGraphHelperLogger)
+                .AddScoped<ILogger<UserGraphHelper>>(x => _userGraphLogger)
 
-                .AddScoped<IAuditService>(x => _auditService) 
+                .AddScoped<IAuditService>(x => _auditService)
 
                 .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>()
                 .AddScoped<IGraphHelper<User>, UserGraphHelper>()
@@ -174,7 +174,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 CollectionName = _config[Constants.CosmosDBActivityHistoryCollectionName],
 
             };
-                    
+
         }
 
         private void CreateLoggers()
@@ -187,7 +187,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _graphLogger = CreateLogger<GraphDeltaProcessor>();
             _activityServiceLogger = CreateLogger<ActivityService>();
 
-            _spGraphHelperLogger =  CreateLogger<ServicePrincipalGraphHelper>();
+            _spGraphHelperLogger = CreateLogger<ServicePrincipalGraphHelper>();
             _userGraphLogger = CreateLogger<UserGraphHelper>();
         }
 
@@ -214,7 +214,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             return serviceProvider.GetService<ILoggerFactory>().CreateLogger<T>();
         }
 
-       
+
         private void BuildConfiguration()
         {
             var configBuilder = new ConfigurationBuilder()
@@ -224,15 +224,15 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             _config = configBuilder.Build();
         }
-        
 
-        [Fact]
-        public void FunctionsTestScaffolding()
-        {
-            //TODO: This is basically scaffolding for the unit tests
-            //for our functions
-            Assert.True(true);
-        }
+
+        //[Fact]
+        //public void FunctionsTestScaffolding()
+        //{
+        //    //TODO: This is basically scaffolding for the unit tests
+        //    //for our functions
+        //    Assert.True(true);
+        //}
 
         [Fact]
         public void FunctionEvaluateTestCase1()
@@ -250,21 +250,21 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator);
 
             using var objectTrackingValidationManager = new ObjectTrackingValidationManager(inputGenerator, _objectRespository, activityContext);
- 
+
             using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespository, activityContext);
- 
+
 
             Task thisTaks = Task.Run (() => _graphDeltaProcessor.Evaluate(cloudQueueMessage, _graphLogger));
             thisTaks.Wait();
 
             //Validate Outcome and state after execution for Service Principal, Audit and ObjectTracking objects based on TestCase injected thru InputGenerator
-            bool validServicePrincipal = servicePrincipalValidationManager.Validate(); 
+            bool validServicePrincipal = servicePrincipalValidationManager.Validate();
 
-            bool validAudit =  auditValidationManager.Validate(); 
+            bool validAudit =  auditValidationManager.Validate();
 
-            bool validObjectTracking =  objectTrackingValidationManager.Validate();   
+            bool validObjectTracking =  objectTrackingValidationManager.Validate();
 
-             Assert.True(validObjectTracking && validAudit && validServicePrincipal);
+            Assert.True(validObjectTracking && validAudit && validServicePrincipal);
 
         }
 
@@ -302,6 +302,39 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             Assert.True(validObjectTracking && validAudit && validServicePrincipal);
 
+        }
+
+        [Fact]
+        public void FunctionEvaluateTestCase2_2() //TC – 2.2 – Existing SP has no Owners, valid Notes, LKG (AUDIT FAIL)
+        {
+            TestCase thisTestCase = TestCase.TC2_2;
+
+            using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
+
+            using var inputGenerator = new InputGenerator(_config, activityContext, thisTestCase);
+
+
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
+
+            //Create Validators 
+            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator);
+
+            using var objectTrackingValidationManager = new ObjectTrackingValidationManager(inputGenerator, _objectRespository, activityContext);
+
+            using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespository, activityContext);
+
+
+            Task thisTaks = Task.Run (() => _graphDeltaProcessor.Evaluate(cloudQueueMessage, _graphLogger));
+            thisTaks.Wait();
+
+            //Validate Outcome and state after execution for Service Principal, Audit and ObjectTracking objects based on TestCase injected thru InputGenerator
+            bool validServicePrincipal = servicePrincipalValidationManager.Validate();
+
+            bool validAudit =  auditValidationManager.Validate();
+
+            bool validObjectTracking =  objectTrackingValidationManager.Validate();
+
+            Assert.True(validObjectTracking && validAudit && validServicePrincipal);
         }
 
     }

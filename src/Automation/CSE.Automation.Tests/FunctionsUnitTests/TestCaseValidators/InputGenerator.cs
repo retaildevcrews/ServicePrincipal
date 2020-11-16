@@ -24,21 +24,28 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
     {
 
         internal enum TestCase {
-            [StateDefinition("StateDefinition1")]
-            [SpValidator("SpResultValidator1")]
+            [SpStateDefinition("SpStateDefinition1")]
             [ObjectStateDefinition("ObjectStateDefinition1")]
+            [SpValidator("SpResultValidator1")]
             [ObjectValidator("ObjectResultValidator1")]
             [AuditValidator("AuditResultValidator1")]
             TC1,
 
-            [StateDefinition("StateDefinition2")]
-            [SpValidator("SpResultValidator1")]// TC2 uses same SpValidator as TC1
+            [SpStateDefinition("SpStateDefinition2")]
             [ObjectStateDefinition("ObjectStateDefinition2")]
+            [SpValidator("SpResultValidator1")]// NOTE: TC2 uses same SpResultValidator as TC1
             [ObjectValidator("ObjectResultValidator2")]
             [AuditValidator("AuditResultValidator2")]
             TC2,
 
-            [StateDefinition("StateDefinition3")]
+            [SpStateDefinition("SpStateDefinition2")]
+            [ObjectStateDefinition("ObjectStateDefinition1")]// NOTE: TC2_2 uses same ObjectStateDefinition1 as TC1
+            [SpValidator("SpResultValidator1")]// NOTE: TC2 uses same SpResultValidator as TC1
+            [ObjectValidator("ObjectResultValidator2")]
+            [AuditValidator("AuditResultValidator2")]
+            TC2_2,
+
+            [SpStateDefinition("SpStateDefinition3")]
             [SpValidator("SpResultValidator3")]
             [ObjectStateDefinition("ObjectStateDefinition3")]
             [ObjectValidator("ObjectResultValidator3")]
@@ -142,7 +149,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
                 throw new NullException(spObject);
             }
 
-            using var stateValidationManager = new ServicePrincipalStateValidationManager();
+            using var stateValidationManager = new ServicePrincipalPreconditionValidationManager();
             
             return stateValidationManager.ValidatePrecondition(spObject,  testCase);
             

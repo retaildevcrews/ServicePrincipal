@@ -8,7 +8,7 @@ using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGen
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalStates
 {
-    abstract class StateDefinitionBase : IStateDefinition
+    abstract class SpStateDefinitionBase : ISpStateDefinition
     {
         public ServicePrincipal ServicePrincipalObject { get; }
 
@@ -16,7 +16,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
         public TestCase TestCaseID { get; }
 
-        public StateDefinitionBase(ServicePrincipal servicePrincipal, TestCase testCase)
+        public SpStateDefinitionBase(ServicePrincipal servicePrincipal, TestCase testCase)
         {
             ServicePrincipalObject = servicePrincipal;
             TestCaseID = testCase;

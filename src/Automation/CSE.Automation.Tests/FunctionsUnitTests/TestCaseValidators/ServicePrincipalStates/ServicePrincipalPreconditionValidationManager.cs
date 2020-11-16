@@ -6,12 +6,12 @@ using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGen
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalStates
 {
-    internal class ServicePrincipalStateValidationManager : IDisposable
+    internal class ServicePrincipalPreconditionValidationManager : IDisposable
     {
         public ServicePrincipalWrapper ValidatePrecondition(ServicePrincipal servicePrincipal, TestCase testCase)
         {
 
-            string stateDefinitionClassName= testCase.GetStateDefinition();
+            string stateDefinitionClassName= testCase.GetSpStateDefinition();
                                           
             string objectToInstantiate = $"CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalStates.{stateDefinitionClassName}, CSE.Automation.Tests";
 
@@ -19,7 +19,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
             object[] args = { servicePrincipal , testCase};
 
-            var instantiatedObject = Activator.CreateInstance(objectType, args) as IStateDefinition;
+            var instantiatedObject = Activator.CreateInstance(objectType, args) as ISpStateDefinition;
 
             return instantiatedObject.Validate();
         }

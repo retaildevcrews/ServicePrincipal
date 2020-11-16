@@ -7,7 +7,7 @@ using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGen
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalStates
 {
-    interface IStateDefinition
+    interface ISpStateDefinition
     {
         TestCase TestCaseID { get; }
         ServicePrincipal ServicePrincipalObject { get; }

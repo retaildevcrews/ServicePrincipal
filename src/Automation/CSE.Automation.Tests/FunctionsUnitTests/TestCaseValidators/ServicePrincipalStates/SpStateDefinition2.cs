@@ -9,9 +9,9 @@ using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGen
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalStates
 {
-    internal class StateDefinition2 : StateDefinitionBase, IStateDefinition
+    internal class SpStateDefinition2 : SpStateDefinitionBase, ISpStateDefinition
     {
-        public StateDefinition2(ServicePrincipal servicePrincipal, TestCase testCase) : base(servicePrincipal, testCase)
+        public SpStateDefinition2(ServicePrincipal servicePrincipal, TestCase testCase) : base(servicePrincipal, testCase)
         {
         }
         public override ServicePrincipalWrapper Validate()
