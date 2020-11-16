@@ -6,10 +6,10 @@ using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGen
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrackingResults
 {
-    internal class ObjectResultValidator1 : ObjectResultValidatorBase, IObjectResultValidator
+    internal class ObjectResultValidator2_2 : ObjectResultValidatorBase, IObjectResultValidator
     {
 
-        public ObjectResultValidator1(TrackingModel savedObjectTracking, TrackingModel newObjectTracking, ActivityContext activityContext, TestCase testCase)
+        public ObjectResultValidator2_2(TrackingModel savedObjectTracking, TrackingModel newObjectTracking, ActivityContext activityContext, TestCase testCase)
             : base(savedObjectTracking, newObjectTracking, activityContext, testCase)
         {
         }
@@ -23,10 +23,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
             bool validCorrelationId = Guid.TryParse(NewObjectTracking.CorrelationId, out Guid dummyGuid) &&
                                         NewObjectTracking.CorrelationId.Equals(Context.CorrelationId);
 
-            bool wasCreated = NewObjectTracking.LastUpdated > SavedObjectTracking.LastUpdated &&
-                            NewObjectTracking.LastUpdated == NewObjectTracking.Created;// same timestamp
+            bool wasUpdated = NewObjectTracking.LastUpdated > SavedObjectTracking.LastUpdated &&
+                            NewObjectTracking.LastUpdated > NewObjectTracking.Created;//Different timestamp
 
-            return (objectExists && validCorrelationId && wasCreated);
+            return (objectExists && validCorrelationId && wasUpdated);
         }
     }
 }

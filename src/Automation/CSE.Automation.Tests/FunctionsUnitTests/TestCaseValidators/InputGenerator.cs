@@ -41,7 +41,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
             [SpStateDefinition("SpStateDefinition2")]
             [ObjectStateDefinition("ObjectStateDefinition1")]// NOTE: TC2_2 uses same ObjectStateDefinition1 as TC1
             [SpValidator("SpResultValidator1")]// NOTE: TC2 uses same SpResultValidator as TC1
-            [ObjectValidator("ObjectResultValidator2")]
+            [ObjectValidator("ObjectResultValidator2_2")]
             [AuditValidator("AuditResultValidator2")]
             TC2_2,
 
