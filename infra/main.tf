@@ -31,7 +31,6 @@ locals {
 }
 
 # Create Container Registry
-
 module "acr" {
   source        = "./acr"
   NAME          = var.NAME # we are passing the full project name to reduce the chances that the name is already taken 
