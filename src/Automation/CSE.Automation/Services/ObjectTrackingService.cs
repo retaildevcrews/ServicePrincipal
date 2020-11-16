@@ -29,7 +29,7 @@ namespace CSE.Automation.Services
             where TEntity : GraphModel
         {
             var entity = await objectRepository
-                                    .GetByIdAsync(id, EntityToObjectType(typeof(TEntity)).ToString().ToCamelCase())
+                                    .GetByIdAsync(id, EntityToObjectType(typeof(TEntity)).ToString())
                                     .ConfigureAwait(false);
 
             return entity;
@@ -39,10 +39,10 @@ namespace CSE.Automation.Services
             where TEntity : GraphModel
         {
             var entity = await objectRepository
-                                    .GetByIdAsync(id, EntityToObjectType(typeof(TEntity)).ToString().ToCamelCase())
+                                    .GetByIdAsync(id, EntityToObjectType(typeof(TEntity)).ToString())
                                     .ConfigureAwait(false);
 
-            return entity?.Entity as TEntity;
+            return TrackingModel.Unwrap<TEntity>(entity);
         }
 
         public async Task<TrackingModel> Put(ActivityContext context, TrackingModel entity)
