@@ -22,6 +22,11 @@ RUN apt-get update \
 RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
 # INSTALL CREDSCAN
+# NOTE: CredScan is packaged in the Guardian nuget available from the internal SecurityTools nuget feed
+# Log into Azure (MSFT creds) and download using the commands below.  This must be done outside of this dockerfile
+#   az login
+#   az artifacts universal download --organization https://securitytools.visualstudio.com/ --feed Guardian --name Microsoft.Guardian.Cli --version 0.50.0 --path ./install
+
 COPY install/ /var/tmp
 RUN nuget install microsoft.guardian.cli -Source /var/tmp \
     && mkdir -p /usr/bin/credscan \
