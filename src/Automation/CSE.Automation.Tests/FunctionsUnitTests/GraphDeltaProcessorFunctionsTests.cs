@@ -22,6 +22,7 @@ using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGen
 using System.Runtime.CompilerServices;
 using CSE.Automation.Validators;
 using CSE.Automation.KeyVault;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.DataAccess;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests
 {
@@ -44,6 +45,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         private AuditService _auditService;
         private AuditRepository _auditRespository;
         private AuditRepositorySettings _auditRespositorySettings;
+        private AuditRepositoryTest _auditRespositoryTest;
 
         private ActivityService _activityService;
         private ActivityHistoryRepository _auditHistoryRespository;
@@ -94,6 +96,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _auditRespository = new AuditRepository(_auditRespositorySettings, _auditRepoLogger);
             _auditService = new AuditService(_auditRespository, _auditServiceLogger);
 
+            _auditRespositoryTest = new AuditRepositoryTest(_auditRespositorySettings, _auditRepoLogger);
 
             _objectRespository = new ObjectTrackingRepository(_objectTrackingRepositorySettings, _objectTrackingRepoLogger);
             _objectService = new ObjectTrackingService(_objectRespository, _auditService, _objectTrackingServiceLogger);
@@ -250,7 +253,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var objectTrackingValidationManager = new ObjectTrackingValidationManager(inputGenerator, _objectRespository, activityContext);
 
-            using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespository, activityContext);
+            using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespositoryTest, activityContext);
 
 
             Task thisTaks = Task.Run (() => _graphDeltaProcessor.Evaluate(cloudQueueMessage, _graphLogger));
@@ -286,7 +289,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var objectTrackingValidationManager = new ObjectTrackingValidationManager(inputGenerator, _objectRespository, activityContext);
 
-            using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespository, activityContext);
+            using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespositoryTest, activityContext);
 
 
             Task thisTaks = Task.Run (() => _graphDeltaProcessor.Evaluate(cloudQueueMessage, _graphLogger));
@@ -320,7 +323,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var objectTrackingValidationManager = new ObjectTrackingValidationManager(inputGenerator, _objectRespository, activityContext);
 
-            using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespository, activityContext);
+            using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespositoryTest, activityContext);
 
 
             Task thisTaks = Task.Run (() => _graphDeltaProcessor.Evaluate(cloudQueueMessage, _graphLogger));
@@ -353,7 +356,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var objectTrackingValidationManager = new ObjectTrackingValidationManager(inputGenerator, _objectRespository, activityContext);
 
-            using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespository, activityContext);
+            using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespositoryTest, activityContext);
 
 
             Task thisTaks = Task.Run (() => _graphDeltaProcessor.Evaluate(cloudQueueMessage, _graphLogger));
@@ -361,8 +364,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             //Validate Outcome and state after execution for Service Principal, Audit and ObjectTracking objects based on TestCase injected thru InputGenerator
             
-            // Waiting For Jim's feedback  
-            //bool validServicePrincipal = servicePrincipalValidationManager.Validate();
+            bool validServicePrincipal = servicePrincipalValidationManager.Validate();
 
             bool validAudit =  auditValidationManager.Validate();
 
@@ -388,7 +390,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var objectTrackingValidationManager = new ObjectTrackingValidationManager(inputGenerator, _objectRespository, activityContext);
 
-            using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespository, activityContext);
+            using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespositoryTest, activityContext);
 
 
             Task thisTaks = Task.Run (() => _graphDeltaProcessor.Evaluate(cloudQueueMessage, _graphLogger));
@@ -396,8 +398,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             //Validate Outcome and state after execution for Service Principal, Audit and ObjectTracking objects based on TestCase injected thru InputGenerator
 
-            // Waiting For Jim's feedback  
-            //bool validServicePrincipal = servicePrincipalValidationManager.Validate();
+            bool validServicePrincipal = servicePrincipalValidationManager.Validate();
 
             bool validAudit =  auditValidationManager.Validate();
 

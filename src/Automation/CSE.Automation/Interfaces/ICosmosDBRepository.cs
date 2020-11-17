@@ -21,7 +21,6 @@ namespace CSE.Automation.Interfaces
         Task<TEntity> CreateDocumentAsync(TEntity newDocument);
         Task<TEntity> UpsertDocumentAsync(TEntity newDocument);
         Task<TEntity> DeleteDocumentAsync(string id, string partitionKey);
-        Task<IEnumerable<TEntity>> GetMostRecentAsync(string objectId, int limit = 1);
         string DatabaseName { get; }
         string CollectionName { get; }
     }

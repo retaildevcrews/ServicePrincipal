@@ -17,15 +17,15 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
         public override bool Validate()
         {
 
-            bool objectExists = NewObjectTracking != null;
+            bool objectExistsPass = NewObjectTracking != null;
 
 
-            bool validCorrelationId = Guid.TryParse(NewObjectTracking.CorrelationId, out Guid dummyGuid) &&
+            bool validCorrelationIdPass = Guid.TryParse(NewObjectTracking.CorrelationId, out Guid dummyGuid) &&
                                         NewObjectTracking.CorrelationId.Equals(Context.CorrelationId);
 
-            bool created = NewObjectTracking.LastUpdated == NewObjectTracking.Created;// same timestamp
+            bool createdPass = NewObjectTracking.LastUpdated == NewObjectTracking.Created;// same timestamp
 
-            return (objectExists && validCorrelationId && created);
+            return (objectExistsPass && validCorrelationIdPass && createdPass);
         }
     }
 }

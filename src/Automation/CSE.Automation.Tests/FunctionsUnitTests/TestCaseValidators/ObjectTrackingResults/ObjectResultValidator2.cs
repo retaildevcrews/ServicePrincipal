@@ -17,9 +17,9 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
         public override bool Validate()
         {
 
-            bool objectDoesNotExists = NewObjectTracking == null;
+            bool objectDoesNotExistsPass = NewObjectTracking == null;
 
-            return (objectDoesNotExists);
+            return (objectDoesNotExistsPass);
         }
     }
 }

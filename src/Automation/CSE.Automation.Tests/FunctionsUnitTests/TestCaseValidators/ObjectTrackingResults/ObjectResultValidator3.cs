@@ -20,13 +20,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
             bool objectExists = NewObjectTracking != null;
 
 
-            bool validCorrelationId = Guid.TryParse(NewObjectTracking.CorrelationId, out Guid dummyGuid) &&
+            bool validCorrelationIdPass = Guid.TryParse(NewObjectTracking.CorrelationId, out Guid dummyGuid) &&
                                         NewObjectTracking.CorrelationId.Equals(Context.CorrelationId);
 
-            bool updated = NewObjectTracking.LastUpdated > SavedObjectTracking.LastUpdated &&
+            bool updatedPass = NewObjectTracking.LastUpdated > SavedObjectTracking.LastUpdated &&
                             NewObjectTracking.LastUpdated > NewObjectTracking.Created; //Different timestamp
 
-            return (objectExists && validCorrelationId && updated);
+            return (objectExists && validCorrelationIdPass && updatedPass);
         }
     }
 }

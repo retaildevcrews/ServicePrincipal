@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using CSE.Automation.DataAccess;
 using CSE.Automation.Model;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.DataAccess;
 using Microsoft.Graph;
 using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGenerator;
 
@@ -11,8 +12,8 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
     internal class AuditResultValidator1 : AuditResultValidatorBase, IAuditResultValidator
     {
         public AuditResultValidator1(AuditEntry savedAuditEntry, AuditEntry newAuditEntry, ActivityContext activityContext,
-                                        ServicePrincipal servicePrincipal, AuditRepository auditRepository, TestCase testCase) 
-                                        : base(savedAuditEntry, newAuditEntry, activityContext, servicePrincipal, auditRepository, testCase)
+                                        ServicePrincipal servicePrincipal, AuditRepositoryTest auditRepositoryTest, TestCase testCase) 
+                                        : base(savedAuditEntry, newAuditEntry, activityContext, servicePrincipal, auditRepositoryTest, testCase)
         {
         }
         public override bool Validate()

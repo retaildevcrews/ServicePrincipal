@@ -8,14 +8,15 @@ using Microsoft.Graph;
 using CSE.Automation.DataAccess;
 using System.Threading.Tasks;
 using System.Linq;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.DataAccess;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResults
 {
     internal class AuditResultValidator3_2 : AuditResultValidatorBase, IAuditResultValidator
     {
         public AuditResultValidator3_2(AuditEntry savedAuditEntry, AuditEntry newAuditEntry, ActivityContext activityContext,
-                                        ServicePrincipal servicePrincipal, AuditRepository auditRepository, TestCase testCase)
-                                        : base(savedAuditEntry, newAuditEntry, activityContext, servicePrincipal, auditRepository, testCase)
+                                        ServicePrincipal servicePrincipal, AuditRepositoryTest auditRepositoryTest, TestCase testCase)
+                                        : base(savedAuditEntry, newAuditEntry, activityContext, servicePrincipal, auditRepositoryTest, testCase)
         {
         }
         public override bool Validate()

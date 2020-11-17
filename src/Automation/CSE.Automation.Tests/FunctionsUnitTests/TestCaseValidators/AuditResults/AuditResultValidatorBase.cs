@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using CSE.Automation.DataAccess;
 using CSE.Automation.Model;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.DataAccess;
 using Microsoft.Graph;
 using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGenerator;
 
@@ -17,17 +18,17 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
 
         public ServicePrincipal ServicePrincipalObject { get; }
 
-        public AuditRepository Repository { get; }
+        public AuditRepositoryTest Repository { get; }
 
         public AuditResultValidatorBase(AuditEntry savedAuditEntry, AuditEntry newAuditEntry, ActivityContext activityContext, 
-                                        ServicePrincipal servicePrincipal, AuditRepository auditRepository, TestCase testCase)
+                                        ServicePrincipal servicePrincipal, AuditRepositoryTest auditRepositoryTest, TestCase testCase)
         {
             SavedAuditEntry = savedAuditEntry;
             NewAuditEntry = newAuditEntry;
             TestCaseID = testCase;
             Context = activityContext;
             ServicePrincipalObject = servicePrincipal;
-            Repository = auditRepository;
+            Repository = auditRepositoryTest;
         }
 
         public abstract bool Validate();

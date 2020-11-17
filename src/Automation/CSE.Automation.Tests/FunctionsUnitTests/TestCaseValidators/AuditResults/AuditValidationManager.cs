@@ -3,23 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CSE.Automation.DataAccess;
 using CSE.Automation.Model;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.DataAccess;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResults
 {
     internal class AuditValidationManager : IResultsManager, IDisposable
     {
         private readonly InputGenerator _inputGenerator;
-        private readonly AuditRepository _auditRepository;
+        private readonly AuditRepositoryTest _auditRepositoryTest;
         private ActivityContext _activityContext;
 
         private AuditEntry _savedAuditEntry;
 
-        public AuditValidationManager(InputGenerator inputGenerator, AuditRepository auditRepository, ActivityContext activityContext)
+        public AuditValidationManager(InputGenerator inputGenerator, AuditRepositoryTest auditRepositoryTest, ActivityContext activityContext)
         {
             _inputGenerator = inputGenerator;
-            _auditRepository = auditRepository;
+            _auditRepositoryTest = auditRepositoryTest;
             _activityContext = activityContext;
 
             SaveState();
@@ -32,7 +32,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
 
         private AuditEntry GetMostRecentAuditEntryItem()
         {
-            Task<IEnumerable<AuditEntry>> getAuditItems = Task.Run(() => _auditRepository.GetMostRecentAsync(_inputGenerator.GetServicePrincipal().Id));
+            Task<IEnumerable<AuditEntry>> getAuditItems = Task.Run(() => _auditRepositoryTest.GetMostRecentAsync(_inputGenerator.GetServicePrincipal().Id));
             getAuditItems.Wait();
 
             AuditEntry result = null;
@@ -61,7 +61,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
 
             var newAuditEntry = GetMostRecentAuditEntryItem();
 
-            object[] args = { _savedAuditEntry, newAuditEntry, _activityContext, servicePrincipal, _auditRepository,  _inputGenerator.TestCaseId};
+            object[] args = { _savedAuditEntry, newAuditEntry, _activityContext, servicePrincipal, _auditRepositoryTest,  _inputGenerator.TestCaseId};
 
             var instantiatedObject = Activator.CreateInstance(objectType, args) as IAuditResultValidator;
 

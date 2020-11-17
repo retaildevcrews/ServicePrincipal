@@ -243,56 +243,6 @@ namespace CSE.Automation.DataAccess
             return await InternalCosmosDBSqlQuery(sql).ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<TEntity>> GetMostRecentAsync(string objectId, int limit = 1)
-        {
-            Guid guidValue;
-            try
-            {
-                guidValue = Guid.Parse(objectId); // to prevent SQL injection attack
-            }
-#pragma warning disable CA1031 // Do not catch general exception types
-            catch (Exception ex)
-#pragma warning restore CA1031 // Do not catch general exception types
-            {
-                this.logger.LogCritical(ex, $"Invalid GUID value {objectId}");
-            }
-
-            string sql = $"SELECT * FROM c WHERE c.objectId = '{objectId}'  ORDER BY c._ts DESC OFFSET 0 LIMIT {limit}";
-
-            return await InternalCosmosDBSqlQuery(sql).ConfigureAwait(false);
-        }
-
-        public async Task<int> GetCountAsync(string objectId, string correlationId)
-        {
-            Guid guidValue;
-            try
-            {
-                guidValue = Guid.Parse(objectId); // to prevent SQL injection attack
-
-                guidValue = Guid.Parse(correlationId); // to prevent SQL injection attack
-            }
-#pragma warning disable CA1031 // Do not catch general exception types
-            catch (Exception ex)
-#pragma warning restore CA1031 // Do not catch general exception types
-            {
-                this.logger.LogCritical(ex, $"Invalid GUID value(s) '{objectId}' , '{correlationId}'");
-            }
-
-            string sql = $"SELECT VALUE COUNT(1) FROM c where c.correlationId = '{correlationId}' and c.objectId = '{objectId}'";
-
-            var query = this.Container.GetItemQueryIterator<int>(sql);
-
-            int result = 0;
-
-            if (query.HasMoreResults)
-            {
-                var countResponse = await query.ReadNextAsync().ConfigureAwait(false);
-                result = countResponse.Resource.Any() ? countResponse.Resource.First() : 0;
-            }
-
-            return result;
-        }
-
         public void Dispose()
         {
         }
