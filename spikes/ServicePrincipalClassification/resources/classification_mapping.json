@@ -22,5 +22,11 @@
     "tags": {
       "classfication": "internal"
     }
+  },
+  {
+    "matchExpression": "AppOwnerOrganizationId -ne $null",
+    "tags": {
+      "classfication": "external"
+    }
   }
 ]
