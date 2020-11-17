@@ -5,13 +5,15 @@ using CSE.Automation.Model;
 using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGenerator;
 using CSE.Automation.Extensions;
 using Microsoft.Graph;
+using CSE.Automation.DataAccess;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResults
 {
     internal class AuditResultValidator2 : AuditResultValidatorBase, IAuditResultValidator
     {
-        public AuditResultValidator2(AuditEntry savedAuditEntry, AuditEntry newAuditEntry, ActivityContext activityContext, TestCase testCase)
-                                        : base(savedAuditEntry, newAuditEntry, activityContext, testCase)
+        public AuditResultValidator2(AuditEntry savedAuditEntry, AuditEntry newAuditEntry, ActivityContext activityContext,
+                                        ServicePrincipal servicePrincipal, AuditRepository auditRepository, TestCase testCase)
+                                        : base(savedAuditEntry, newAuditEntry, activityContext, servicePrincipal, auditRepository, testCase)
         {
         }
         public override bool Validate()
@@ -20,17 +22,17 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
             bool typePass = (NewAuditEntry.Type == AuditActionType.Fail);
 
 
-            bool validReason = (NewAuditEntry.Reason == AuditCode.Fail_AttributeValidation.Description() ||
+            bool validReasonPass = (NewAuditEntry.Reason == AuditCode.Fail_AttributeValidation.Description() ||
                                NewAuditEntry.Reason == AuditCode.Fail_MissingOwners.Description());
 
-            bool validAttributeName = (NewAuditEntry.AttributeName == "Owners");
+            bool validAttributeNamePass = (NewAuditEntry.AttributeName == "Owners");
 
-            bool isNewAuditEntry = NewAuditEntry.Timestamp > SavedAuditEntry.Timestamp;
+            bool isNewAuditEntryPass = NewAuditEntry.Timestamp > SavedAuditEntry.Timestamp;
             
-            bool validCorrelationId = Guid.TryParse(NewAuditEntry.CorrelationId, out Guid dummyGuid) &&
+            bool validCorrelationIdPass = Guid.TryParse(NewAuditEntry.CorrelationId, out Guid dummyGuid) &&
                                         NewAuditEntry.CorrelationId.Equals(Context.CorrelationId);
 
-            return (typePass && isNewAuditEntry && validCorrelationId && validReason && validAttributeName);
+            return (typePass && isNewAuditEntryPass && validCorrelationIdPass && validReasonPass && validAttributeNamePass);
 
         }
     }

@@ -53,6 +53,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
         {
             string resultValidatorClassName = _inputGenerator.TestCaseId.GetAuditValidator();
 
+            var servicePrincipal = _inputGenerator.GetServicePrincipal();
 
             string objectToInstantiate = $"CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResults.{resultValidatorClassName}, CSE.Automation.Tests";
 
@@ -60,7 +61,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
 
             var newAuditEntry = GetMostRecentAuditEntryItem();
 
-            object[] args = { _savedAuditEntry, newAuditEntry, _activityContext, _inputGenerator.TestCaseId};
+            object[] args = { _savedAuditEntry, newAuditEntry, _activityContext, servicePrincipal, _auditRepository,  _inputGenerator.TestCaseId};
 
             var instantiatedObject = Activator.CreateInstance(objectType, args) as IAuditResultValidator;
 
