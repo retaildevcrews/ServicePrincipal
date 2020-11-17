@@ -247,7 +247,7 @@ namespace CSE.Automation.Processors
                                    code: AuditCode.Fail_AttributeValidation,
                                    objectId: entity.Id,
                                    attributeName: error.PropertyName,
-                                   existingAttributeValue: error.AttemptedValue?.ToString(),
+                                   existingAttributeValue: error.AttemptedValue != null && error.AttemptedValue.GetType() == typeof(List<string>) ? string.Join(",", error.AttemptedValue as List<string>) : error.AttemptedValue?.ToString(),
                                    message: error.ErrorMessage).ConfigureAwait(false));
 
                 // Invalid ServicePrincipal, valid Owners, update the service principal from Owners
