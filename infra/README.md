@@ -14,6 +14,7 @@ az account set -s {subscription name or Id}
 >All commands require you to be in svc_ppl-automation/infra
 
 ### Choose a unique DNS name
+
 ```bash
 # this will be the prefix for all resources
 #  only use a-z and 0-9 - do not include punctuation or uppercase characters
@@ -21,15 +22,18 @@ az account set -s {subscription name or Id}
 #  must start with a-z (only lowercase)
 export svc_ppl_Name=[your unique name]
 
-### if true, change svc_ppl_Name
+### check if accounts exists globally
+az storage account check-name -n ${svc_ppl_Name}
 az cosmosdb check-name-exists -n ${svc_ppl_Name}
+az acr check-name -n ${svc_ppl_Name}
 
-### if nslookup doesn't fail to resolve, change svc_ppl_Name
-nslookup ${svc_ppl_Name}.azurewebsites.net
-nslookup ${svc_ppl_Name}.vault.azure.net
+### if accounts exists globally check if accounts exist in subscription
+### returns 1 if exists
+az storage account list --query "[?name=='${svc_ppl_Name}']" -o tsv | wc -l
+az cosmosdb list --query "[?name=='${svc_ppl_Name}']" -o tsv | wc -l
+az acr list --query "[?name=='${svc_ppl_Name}']" -o tsv | wc -l
 
-# TODO no CR for this project yet
-# nslookup ${svc_ppl_Name}.azurecr.io 
+### if 0 is returned, pick another name
 ```
 
 ### Set additional values
