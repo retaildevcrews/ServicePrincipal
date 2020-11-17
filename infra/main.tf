@@ -19,11 +19,11 @@ provider "azurerm" {
   tenant_id       = var.TF_TENANT_ID
 }
 
-# Create Resource Group - this is created when executing "create-tf-vars.sh" file
-# resource "azurerm_resource_group" "rg" {
-#         name = "${var.NAME}-rg-${var.ENV}"
-#         location = var.LOCATION
-# }
+# Create QA Resource Group 
+resource "azurerm_resource_group" "rgqa" {
+        name = "${var.NAME}-rg-qa"
+        location = var.LOCATION
+}
 
 locals {
   rg_name = "${var.NAME}-rg-${var.ENV}"
@@ -61,6 +61,21 @@ module "db" {
   LOCATION         = var.LOCATION
   ENV              = var.ENV
   APP_RG_NAME      = local.rg_name#azurerm_resource_group.rg.name
+  COSMOS_RU        = var.COSMOS_RU
+  COSMOS_DB        = var.SHORTNAME
+  COSMOS_AUDIT_COL = var.COSMOS_AUDIT_COL
+  COSMOS_CONFIG_COL = var.COSMOS_CONFIG_COL
+  COSMOS_OBJ_TRACKING_COL = var.COSMOS_OBJ_TRACKING_COL
+  COSMOS_ACTIVITY_HISTORY_COL = var.COSMOS_ACTIVITY_HISTORY_COL
+}
+
+# Create QA Cosmos Database
+module "dbQA" {
+  source           = "./db"
+  NAME             = var.SHORTNAME
+  LOCATION         = var.LOCATION
+  ENV              = "qa"
+  APP_RG_NAME      = azurerm_resource_group.rgqa.name
   COSMOS_RU        = var.COSMOS_RU
   COSMOS_DB        = var.SHORTNAME
   COSMOS_AUDIT_COL = var.COSMOS_AUDIT_COL
