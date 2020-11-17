@@ -6,10 +6,10 @@ using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGen
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrackingResults
 {
-    internal class ObjectResultValidator1 : ObjectResultValidatorBase, IObjectResultValidator
+    internal class ObjectResultValidator3_2 : ObjectResultValidatorBase, IObjectResultValidator
     {
 
-        public ObjectResultValidator1(TrackingModel savedObjectTracking, TrackingModel newObjectTracking, ActivityContext activityContext, TestCase testCase)
+        public ObjectResultValidator3_2(TrackingModel savedObjectTracking, TrackingModel newObjectTracking, ActivityContext activityContext, TestCase testCase)
             : base(savedObjectTracking, newObjectTracking, activityContext, testCase)
         {
         }

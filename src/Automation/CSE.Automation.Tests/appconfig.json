@@ -5,10 +5,11 @@
 
   "servicePrincipalPrefix": "sp-AzQueueTesting",
 
-  "TC1"  : "sp-AzQueueTesting-1",
-  "TC2"  : "sp-AzQueueTesting-4",
+  "TC1": "sp-AzQueueTesting-1",
+  "TC2": "sp-AzQueueTesting-4",
   "TC2_2": "sp-AzQueueTesting-5",
-  "TC3"  : "sp-AzQueueTesting-7",
+  "TC3": "sp-AzQueueTesting-7",
+  "TC3_2": "sp-AzQueueTesting-8",
 
   "KEYVAULT_NAME": "sp-kv-dev",
   "AUTH_TYPE": "VS"
