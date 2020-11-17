@@ -23,8 +23,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
             bool validCorrelationId = Guid.TryParse(NewObjectTracking.CorrelationId, out Guid dummyGuid) &&
                                         NewObjectTracking.CorrelationId.Equals(Context.CorrelationId);
 
-            bool created = NewObjectTracking.LastUpdated > SavedObjectTracking.LastUpdated &&
-                            NewObjectTracking.LastUpdated == NewObjectTracking.Created;// same timestamp
+            bool created = NewObjectTracking.LastUpdated == NewObjectTracking.Created;// same timestamp
 
             return (objectExists && validCorrelationId && created);
         }

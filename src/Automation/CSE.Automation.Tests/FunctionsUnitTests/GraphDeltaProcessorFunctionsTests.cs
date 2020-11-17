@@ -65,8 +65,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         private IServiceProvider _serviceProvider;
         private ServiceCollection _builder;
         private IConfigurationRoot _config;
-        //private IModelValidatorFactory _modelValidatorFactory;
-        //private ModelValidatorFactory _modelValidatorFactory;
+
 
         public GraphDeltaProcessorFunctionsTests()
         {
