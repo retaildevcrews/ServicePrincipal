@@ -39,11 +39,6 @@ variable "TF_CLIENT_SECRET" {
   type        = string
   description = "The Client Secret of the Service Principal that TF will use to Authenticate and build resources as. This account should have at least Contributor Role on the subscription. This is only used by the parent main.tf"
 }
-/*
-variable "COSMOS_DB" {
-  type        = string
-  description = "The Cosmos DB database name"
-}*/
 
 variable "COSMOS_RU" {
   type        = number

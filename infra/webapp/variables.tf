@@ -45,6 +45,16 @@ variable "COSMOS_DB" {
 
 }
 
+variable "DEV_DATABASE_NAME" {
+  type = string
+  description = "Name of the dev cosmos database"
+}
+
+variable "QA_DATABASE_NAME" {
+  type = string
+  description = "Name of the qa cosmos database"
+}
+
 variable "COSMOS_AUDIT_COL" {
   type        = string
   description = "The CosmosDB Collection name used to hold Audit records"
@@ -73,17 +83,6 @@ variable "REPO" {
 variable "ENV" {
   type        = string
   description = "The last suffix which should be used for all resources in this example. Used by all modules"
-}
-
-
-variable "EVALUATE_QUEUE_NAME" {
-  type        = string
-  description = "The Evaluate queue name"
-}
-
-variable "UPDATE_QUEUE_NAME" {
-  type        = string
-  description = "The Update queue name"
 }
 
 variable "TF_CLIENT_SP_ID" {

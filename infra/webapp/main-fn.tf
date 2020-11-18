@@ -1,14 +1,5 @@
 # NOTE: Storage account name can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long
 
-# resource azurerm_storage_account svc-ppl-storage-acc {
-#   name                      = "${var.PROJECT_NAME}st${var.ENV}"
-#   location                  = var.LOCATION
-#   resource_group_name       = var.APP_RG_NAME
-#   account_tier              = "Standard"
-#   account_replication_type  = "LRS"
-# }
-
-
 data "azurerm_storage_account" "svc-ppl-storage-acc" {
   name                = var.STORAGE_NAME
   resource_group_name = var.APP_RG_NAME
@@ -21,14 +12,6 @@ output "STORAGE_ACCOUNT_DONE" {
   value       = true
   description = "Storage Account setup is complete"
 }
-
-# output "STORAGE_ACCOUNT_NAME" {
-#   depends_on  = [
-#     data.azurerm_storage_account.svc-ppl-storage-acc
-#    ] 
-#   value       = locals.storage_acc_name
-#   description = "Storage Account name"
-# }
 
 resource "azurerm_app_service_plan" "app-plan" {
   name                = "${var.NAME}-plan-${var.ENV}"
@@ -86,8 +69,34 @@ resource "azurerm_function_app" "fn-default" {
 
 }
 
+resource "azurerm_app_service_slot" "service-slot-prod" {
+  name                = "prod"
+  app_service_name    = azurerm_function_app.fn-default.name
+  location            = var.LOCATION
+  resource_group_name = var.APP_RG_NAME
+  app_service_plan_id = azurerm_app_service_plan.app-plan.id
+  app_settings = {
+    SPCosmosDatabase = var.DEV_DATABASE_NAME
+    SPDiscoverQueue = "discover"
+    SPEvaluateQueue = "evaluate"
+    SPUpdateQueue = "update"
+  }
+}
 
 
+resource "azurerm_app_service_slot" "service-slot-qa" {
+  name                = "qa"
+  app_service_name    = azurerm_function_app.fn-default.name
+  location            = var.LOCATION
+  resource_group_name = var.APP_RG_NAME
+  app_service_plan_id = azurerm_app_service_plan.app-plan.id
+  app_settings = {
+    SPCosmosDatabase = var.QA_DATABASE_NAME
+    SPDiscoverQueue = "discoverqa"
+    SPEvaluateQueue = "evaluateqa"
+    SPUpdateQueue = "updateqa"
+  }
+}
 # https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/data-sources/service_principal
 
 # If you're authenticating using a Service Principal then it must have permissions 
