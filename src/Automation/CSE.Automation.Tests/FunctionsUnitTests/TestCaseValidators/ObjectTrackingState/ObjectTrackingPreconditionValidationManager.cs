@@ -35,7 +35,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
 
             var objectType = Type.GetType(objectToInstantiate);
 
-            object[] args = { servicePrincipal , servicePrincipalModel, _objectTrackingRepository, _activityContext};
+            object[] args = { servicePrincipal , servicePrincipalModel, _objectTrackingRepository, _activityContext, _inputGenerator};
 
             var instantiatedObject = Activator.CreateInstance(objectType, args) as IObjectStateDefinition;
 

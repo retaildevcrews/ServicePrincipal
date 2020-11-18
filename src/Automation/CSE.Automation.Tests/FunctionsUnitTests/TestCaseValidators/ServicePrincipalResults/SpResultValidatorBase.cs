@@ -41,15 +41,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
         public abstract bool Validate();
 
 
-        public bool DoesUpdateMessageExistInQueue()
+        public bool DoesMessageExistInUpdateQueue(string targetQueueMessage)
         {
             var storageAccount = CloudStorageAccount.Parse(_inputGenerator.StorageConnectionString);
             var cmdQueue = storageAccount.CreateCloudQueueClient().GetQueueReference(_inputGenerator.UpdateQueueName);
-
-            Dictionary<string,string> ownersInfoList = GraphHelper.GetOwnersDisplayNameAndUserPrincipalNameKeyValuePair(NewServicePrincipal);
-            List<string> ownersList = ownersInfoList.Values.ToList();
-
-            List<string> spCurrentNotesList = NewServicePrincipal.Notes.Split(";").ToList();
 
             object foundLock = new object();
             bool messageFound = false;
@@ -69,25 +64,26 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
                     if (msg != null && !string.IsNullOrEmpty(msg.AsString))
                     {
                         var command = JsonConvert.DeserializeObject<QueueMessage<ServicePrincipalUpdateCommand>>(msg.AsString).Document;
-
-                        var changeOwners = command.Notes.Changed.Split(";").ToList();
-                        var currentNotes = command.Notes.Current.Split(";").ToList();
-                       
+                      
                         lock (foundLock)// needed for Parallel foreach only
                         {
-                            messageFound = command.CorrelationId == _activityContext.CorrelationId && command.Id == NewServicePrincipal.Id
-                                     && spCurrentNotesList.Except(currentNotes).Count() == 0 // makes sure both list contain same items 
-                                     && ownersList.Except(changeOwners).Count() == 0 // makes sure both list contain same items 
-                                     && command.Message.Equals("Update Notes from Owners", StringComparison.InvariantCultureIgnoreCase); // we need to use Enums instead of "Strings"
-
-                            if (messageFound)
+                            if (!messageFound)/// state.Break(); takes its time and does not break the look immediately 
                             {
-                                state.Break();  
+                                messageFound = command.CorrelationId == _activityContext.CorrelationId && command.Id == NewServicePrincipal.Id
+                                              && command.Message.Equals(targetQueueMessage, StringComparison.InvariantCultureIgnoreCase); // we need to use Enums instead of "Strings"
+
+                                if (messageFound)
+                                {
+                                    state.Break();
+                                }
                             }
                         }
 
                     }
                   });
+
+                if (messageFound)
+                    break; // break While loop
             }
 
             return messageFound;

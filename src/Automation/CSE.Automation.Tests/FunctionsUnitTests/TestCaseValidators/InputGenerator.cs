@@ -58,7 +58,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
             [ObjectValidator("ObjectResultValidator3_2")]
             [AuditValidator("AuditResultValidator3_2")]
             TC3_2,
-
+            [SpStateDefinition("SpStateDefinition4")]
+            [ObjectStateDefinition("ObjectStateDefinition4")]
+            [SpValidator("SpResultValidator4")]
+            [ObjectValidator("ObjectResultValidator4")]
+            [AuditValidator("AuditResultValidator4")]
             TC4, 
             TC5, 
             TC6, 
@@ -77,6 +81,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
         public string StorageConnectionString => _config["SPStorageConnectionString"]; 
         public string UpdateQueueName => _config["SPUpdateQueue"];
 
+        public string AadUserServicePrincipalPrefix => _config["aadUserServicePrincipalPrefix"];
+
+        public string TC4AssignTheseOwnersWhenCreatingAMissingObjectTracking => _config["TC4_AssignTheseOwnersWhenCreatingAMissingObjectTracking"];
+
         private ServicePrincipalWrapper _servicePrincipalWrapper;
 
 
@@ -85,7 +93,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
             _config = config;
             _activityContext = activityContext;
             TestCaseId = testCase;
-
             InitGraphHelper();
         }
         

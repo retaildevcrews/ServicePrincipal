@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using CSE.Automation.DataAccess;
@@ -9,9 +10,9 @@ using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGen
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrackingState
 {
-    internal class ObjectStateDefinition1 : ObjectStateDefinitionBase, IObjectStateDefinition
+    internal class ObjectStateDefinition4 : ObjectStateDefinitionBase, IObjectStateDefinition
     {
-        public ObjectStateDefinition1(ServicePrincipal servicePrincipal, ServicePrincipalModel servicePrincipalModel,
+        public ObjectStateDefinition4(ServicePrincipal servicePrincipal, ServicePrincipalModel servicePrincipalModel,
                                     ObjectTrackingRepository objectTrackingRepository, ActivityContext activityContext, InputGenerator inputGenerator) 
                                     : base(servicePrincipal, servicePrincipalModel, objectTrackingRepository, activityContext, inputGenerator)
         {
@@ -19,8 +20,9 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
 
         public override bool Validate()
         {
+            var assignedOwnersList = GetAssignedOwnersTestCase4Only();
             //ObjectTracking Item must  exist 
-            if (ObjectTrackingItemExists())
+            if (ObjectTrackingItemExistsAndHasNotesSetToOwnersTestCase4Only(assignedOwnersList))
             {
                 return true;
             }
@@ -30,6 +32,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
 
                 var now = DateTimeOffset.Now;
 
+                SPModel.Owners = assignedOwnersList;
+
+                SPModel.Notes = string.Join(';', assignedOwnersList);
+
                 var objectModel = new TrackingModel<ServicePrincipalModel>
                 {
                     CorrelationId = Context.CorrelationId,
@@ -37,7 +43,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
                     LastUpdated = now,
                     TypedEntity = SPModel,
                 };
-
 
                 Repository.GenerateId(objectModel);
 

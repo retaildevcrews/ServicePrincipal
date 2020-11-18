@@ -50,10 +50,32 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.DataAccess
                 throw new InvalidDataException($"Invalid GUID value {objectId}", ex);
             }
 
-            string sql = $"SELECT * FROM c WHERE c.objectId = '{objectId}'  ORDER BY c._ts DESC OFFSET 0 LIMIT {limit}";
+            string sql = $"SELECT * FROM c WHERE c.objectId = '{objectId}' ORDER BY c._ts DESC OFFSET 0 LIMIT {limit}";
 
             return await InternalCosmosDBSqlQuery(sql).ConfigureAwait(false);
         }
+
+        public async Task<IEnumerable<AuditEntry>> GetItemsAsync(string objectId, string correlationId)
+        {
+            Guid guidValue;
+            try
+            {
+                guidValue = Guid.Parse(objectId); // to prevent SQL injection attack
+
+                guidValue = Guid.Parse(correlationId); // to prevent SQL injection attack
+            }
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch (Exception ex)
+#pragma warning restore CA1031 // Do not catch general exception types
+            {
+                throw new InvalidDataException($"Invalid GUID value(s) '{objectId}' , '{correlationId}'", ex);
+            }
+
+            string sql = $"SELECT * FROM c where c.correlationId = '{correlationId}' and c.objectId = '{objectId}' ORDER BY c._ts DESC";
+
+            return await InternalCosmosDBSqlQuery(sql).ConfigureAwait(false);
+        }
+
 
         public async Task<int> GetCountAsync(string objectId, string correlationId)
         {
@@ -86,6 +108,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.DataAccess
 
             return result;
         }
+
 
         private Container GetPrivateContainerInstance()
         {

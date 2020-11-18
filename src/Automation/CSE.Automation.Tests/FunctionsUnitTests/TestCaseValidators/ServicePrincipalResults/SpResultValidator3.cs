@@ -23,7 +23,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
             bool servicePrincipalPass = SavedServicePrincipalAsString.Equals(newServicePrincipalAsString, StringComparison.InvariantCultureIgnoreCase);
 
-            bool messageFound = DoesUpdateMessageExistInQueue();
+            bool messageFound = DoesMessageExistInUpdateQueue("Update Notes from Owners");
 
             return (servicePrincipalPass && messageFound);
 

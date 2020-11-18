@@ -23,25 +23,32 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
         {
             int invalidEmailsCount = ServicePrincipalObject.Notes.Split(';').ToList().Count();
 
-            Task<int> getAuditCount = Task.Run(() => Repository.GetCountAsync(ServicePrincipalObject.Id, Context.CorrelationId));
-            getAuditCount.Wait();
+            Task<IEnumerable<AuditEntry>> getAuditItems = Task.Run(() => Repository.GetItemsAsync(ServicePrincipalObject.Id, Context.CorrelationId));
+            getAuditItems.Wait();
 
-            int auditEntriesCreated =  getAuditCount.Result;
-
-            bool auditCountPass = auditEntriesCreated == invalidEmailsCount;
-
-            bool typePass = (NewAuditEntry.Type == AuditActionType.Fail);
-
-            bool validReasonPass = (NewAuditEntry.Reason == AuditCode.Fail_AttributeValidation.Description());
-
-            bool validAttributeNamePass = (NewAuditEntry.AttributeName == "Notes");
-
-            bool isNewAuditEntryPass = NewAuditEntry.Timestamp > SavedAuditEntry.Timestamp;
             
-            bool validCorrelationIdPass = Guid.TryParse(NewAuditEntry.CorrelationId, out Guid dummyGuid) &&
-                                        NewAuditEntry.CorrelationId.Equals(Context.CorrelationId);
+            if ( getAuditItems.Result.Count() != invalidEmailsCount)
+            {
+                return false;
+            }
 
-            return (typePass && isNewAuditEntryPass && validCorrelationIdPass && validReasonPass && validAttributeNamePass && auditCountPass);
+            foreach (var auditEntry in getAuditItems.Result)
+            {
+                bool typePass = (auditEntry.Type == AuditActionType.Fail);
+
+                bool validReasonPass = (auditEntry.Reason == AuditCode.Fail_AttributeValidation.Description());
+
+                bool validAttributeNamePass = (auditEntry.AttributeName == "Notes");
+
+                bool isNewAuditEntryPass = auditEntry.Timestamp > SavedAuditEntry.Timestamp;
+
+                if (!typePass || !validReasonPass || !validAttributeNamePass || !isNewAuditEntryPass)
+                {
+                    return false; 
+                }
+            }
+
+            return true;
 
         }
     }

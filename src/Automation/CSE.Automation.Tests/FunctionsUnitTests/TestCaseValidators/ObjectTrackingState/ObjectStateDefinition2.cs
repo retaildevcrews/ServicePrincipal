@@ -13,8 +13,8 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
     internal class ObjectStateDefinition2 : ObjectStateDefinitionBase, IObjectStateDefinition
     {
         public ObjectStateDefinition2(ServicePrincipal servicePrincipal, ServicePrincipalModel servicePrincipalModel,
-                                      ObjectTrackingRepository objectTrackingRepository, ActivityContext activityContext)
-                                    : base(servicePrincipal, servicePrincipalModel, objectTrackingRepository, activityContext)
+                                      ObjectTrackingRepository objectTrackingRepository, ActivityContext activityContext, InputGenerator inputGenerator)
+                                    : base(servicePrincipal, servicePrincipalModel, objectTrackingRepository, activityContext, inputGenerator)
         {
         }
 

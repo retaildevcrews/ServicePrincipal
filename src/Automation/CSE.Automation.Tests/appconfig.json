@@ -4,12 +4,19 @@
   "tenantId": "",
 
   "servicePrincipalPrefix": "sp-AzQueueTesting",
+  "aadUserServicePrincipalPrefix": "user-AzQueueTesting",
 
   "TC1": "sp-AzQueueTesting-1",
   "TC2": "sp-AzQueueTesting-4",
   "TC2_2": "sp-AzQueueTesting-5",
   "TC3": "sp-AzQueueTesting-7",
   "TC3_2": "sp-AzQueueTesting-8",
+  "TC4": "sp-AzQueueTesting-10",
+  "TC5": "sp-AzQueueTesting-13",
+  "TC6": "sp-AzQueueTesting-16",
+
+  "TC4_AssignTheseOwnersWhenCreatingAMissingObjectTracking": "user-AzQueueTesting-10; user-AzQueueTesting-11; user-AzQueueTesting-12",
+
 
   "KEYVAULT_NAME": "sp-kv-dev",
   "AUTH_TYPE": "VS"

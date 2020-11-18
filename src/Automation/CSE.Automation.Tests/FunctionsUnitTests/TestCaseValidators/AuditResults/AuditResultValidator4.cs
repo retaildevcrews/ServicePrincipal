@@ -6,15 +6,15 @@ using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGen
 using CSE.Automation.Extensions;
 using Microsoft.Graph;
 using CSE.Automation.DataAccess;
-using System.Threading.Tasks;
-using System.Linq;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.DataAccess;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResults
 {
-    internal class AuditResultValidator3_2 : AuditResultValidatorBase, IAuditResultValidator
+    internal class AuditResultValidator4 : AuditResultValidatorBase, IAuditResultValidator
     {
-        public AuditResultValidator3_2(AuditEntry savedAuditEntry, AuditEntry newAuditEntry, ActivityContext activityContext,
+        public AuditResultValidator4(AuditEntry savedAuditEntry, AuditEntry newAuditEntry, ActivityContext activityContext,
                                         ServicePrincipal servicePrincipal, AuditRepositoryTest auditRepositoryTest, TestCase testCase)
                                         : base(savedAuditEntry, newAuditEntry, activityContext, servicePrincipal, auditRepositoryTest, testCase)
         {
@@ -26,31 +26,48 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
             Task<IEnumerable<AuditEntry>> getAuditItems = Task.Run(() => Repository.GetItemsAsync(ServicePrincipalObject.Id, Context.CorrelationId));
             getAuditItems.Wait();
 
-            if (getAuditItems.Result.Count() != invalidEmailsCount)
+            var auditNoteItems = getAuditItems.Result.Where(x => x.AttributeName == "Notes").ToList();
+            if ( auditNoteItems.Count() != invalidEmailsCount)
             {
                 return false;
             }
 
+            var auditOwnerItems = getAuditItems.Result.Where(x => x.AttributeName == "Owners").ToList();
+            if (auditOwnerItems.Count() == 0)
+            {
+                return false;
+            }
 
-            foreach (var auditEntry in getAuditItems.Result)
+            foreach (var auditEntry in auditNoteItems)
             {
                 bool typePass = (auditEntry.Type == AuditActionType.Fail);
 
                 bool validReasonPass = (auditEntry.Reason == AuditCode.Fail_AttributeValidation.Description());
 
-                bool validAttributeNamePass = (auditEntry.AttributeName == "Notes");
-
                 bool isNewAuditEntryPass = auditEntry.Timestamp > SavedAuditEntry.Timestamp;
 
 
-                if (!typePass || !validReasonPass || !validAttributeNamePass || !isNewAuditEntryPass)
+                if (!typePass || !validReasonPass ||  !isNewAuditEntryPass)
+                {
+                    return false;
+                }
+            }
+
+            foreach (var auditEntry in auditOwnerItems)
+            {
+                bool typePass = (auditEntry.Type == AuditActionType.Fail);
+
+                bool validReasonPass = (auditEntry.Reason == AuditCode.Fail_MissingOwners.Description());
+
+                bool isNewAuditEntryPass = auditEntry.Timestamp > SavedAuditEntry.Timestamp;
+
+                if (!typePass || !validReasonPass || !isNewAuditEntryPass)
                 {
                     return false;
                 }
             }
 
             return true;
-
         }
     }
 }
