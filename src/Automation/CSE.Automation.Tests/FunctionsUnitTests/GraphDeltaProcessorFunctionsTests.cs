@@ -61,6 +61,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         private ILogger<ServicePrincipalGraphHelper> _spGraphHelperLogger;
         private ILogger<UserGraphHelper> _userGraphLogger;
+        private ILogger<AzureQueueService> _queueLogger;
 
 
 
@@ -93,6 +94,9 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         private void CreateServices()
         {
+
+            _queueServiceFactory = new AzureQueueServiceFactory(_queueLogger);
+
             _auditRespository = new AuditRepository(_auditRespositorySettings, _auditRepoLogger);
             _auditService = new AuditService(_auditRespository, _auditServiceLogger);
 
@@ -118,7 +122,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 .AddSingleton<ICredentialService>(x => new CredentialService(x.GetRequiredService<CredentialServiceSettings>()))
                 .AddSingleton<ISecretClient>(x => new SecretService(x.GetRequiredService<SecretServiceSettings>(), x.GetRequiredService<ICredentialService>()))
 
-                //.AddTransient<GraphHelperSettings>(x => new GraphHelperSettings(_secretClient))
                 .AddTransient<GraphHelperSettings>(x => new GraphHelperSettings(x.GetRequiredService<ISecretClient>()))
                 .AddScoped<ILogger<ServicePrincipalGraphHelper>>(x => _spGraphHelperLogger)
                 .AddScoped<ILogger<UserGraphHelper>>(x => _userGraphLogger)
@@ -191,15 +194,14 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             _spGraphHelperLogger = CreateLogger<ServicePrincipalGraphHelper>();
             _userGraphLogger = CreateLogger<UserGraphHelper>();
+            _queueLogger = CreateLogger<AzureQueueService>();
         }
 
         private void CreateMocks()
         {
-            _queueServiceFactory = Substitute.For<IQueueServiceFactory>();
+
             _secretClient = Substitute.For<ISecretClient>();
             _graphHelper = Substitute.For<IGraphHelper<ServicePrincipal>>();
-
-            //_modelValidatorFactory = Substitute.For<IModelValidatorFactory>();
             _configService = Substitute.For<IConfigService<ProcessorConfiguration>>();
         }
 
@@ -249,7 +251,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
 
             //Create Validators 
-            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator);
+            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext);
 
             using var objectTrackingValidationManager = new ObjectTrackingValidationManager(inputGenerator, _objectRespository, activityContext);
 
@@ -285,7 +287,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
 
             //Create Validators 
-            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator);
+            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext);
 
             using var objectTrackingValidationManager = new ObjectTrackingValidationManager(inputGenerator, _objectRespository, activityContext);
 
@@ -319,7 +321,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
 
             //Create Validators 
-            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator);
+            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext);
 
             using var objectTrackingValidationManager = new ObjectTrackingValidationManager(inputGenerator, _objectRespository, activityContext);
 
@@ -352,7 +354,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
 
             //Create Validators 
-            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator);
+            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext);
 
             using var objectTrackingValidationManager = new ObjectTrackingValidationManager(inputGenerator, _objectRespository, activityContext);
 
@@ -386,7 +388,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
 
             //Create Validators 
-            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator);
+            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext);
 
             using var objectTrackingValidationManager = new ObjectTrackingValidationManager(inputGenerator, _objectRespository, activityContext);
 

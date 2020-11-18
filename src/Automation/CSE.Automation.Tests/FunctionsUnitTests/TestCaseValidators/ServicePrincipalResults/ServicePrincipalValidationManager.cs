@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using CSE.Automation.Model;
 using Microsoft.Graph;
 using Newtonsoft.Json;
 
@@ -12,9 +13,12 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
         private string _savedServicePrincipalAsString;
 
-        public ServicePrincipalValidationManager(InputGenerator inputGenerator)
+        private readonly ActivityContext _activityContext;
+
+        public ServicePrincipalValidationManager(InputGenerator inputGenerator, ActivityContext activityContext)
         {
             _inputGenerator = inputGenerator;
+            _activityContext = activityContext;
             SaveState();
         }
 
@@ -31,7 +35,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
             var objectType = Type.GetType(objectToInstantiate);
 
-            object[] args = { _savedServicePrincipalAsString, _inputGenerator.GetServicePrincipal(true), _inputGenerator.TestCaseId};
+            object[] args = { _savedServicePrincipalAsString, _inputGenerator, _activityContext};
 
             var instantiatedObject = Activator.CreateInstance(objectType, args) as ISpResultValidator;
 

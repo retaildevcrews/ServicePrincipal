@@ -32,7 +32,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
                     }
                 }
 
-                result = new ServicePrincipalWrapper(ServicePrincipalObject, ownersList.Keys.ToList(), true);
+                result = new ServicePrincipalWrapper(ServicePrincipalObject, ownersList.Values.ToList(), true);
             }
 
             if (result == null)

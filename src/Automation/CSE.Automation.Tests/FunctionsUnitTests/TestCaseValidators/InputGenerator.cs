@@ -74,6 +74,8 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
         private readonly ActivityContext _activityContext;
 
         public TestCase TestCaseId { get; }
+        public string StorageConnectionString => _config["SPStorageConnectionString"]; 
+        public string UpdateQueueName => _config["SPUpdateQueue"];
 
         private ServicePrincipalWrapper _servicePrincipalWrapper;
 
