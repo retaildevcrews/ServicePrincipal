@@ -30,7 +30,7 @@ function parse_args()
     APP_NAME=""
     ENV="dev"
     FIRST_RUN=0
-    LOCATION="southcentralus"
+    LOCATION="centralus"
     REPO=""
     PARAMS=""
     VALIDATE_ONLY=0

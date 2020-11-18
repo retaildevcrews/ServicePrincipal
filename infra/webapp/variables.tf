@@ -85,17 +85,6 @@ variable "ENV" {
   description = "The last suffix which should be used for all resources in this example. Used by all modules"
 }
 
-
-# variable "EVALUATE_QUEUE_NAME" {
-#   type        = string
-#   description = "The Evaluate queue name"
-# }
-
-# variable "UPDATE_QUEUE_NAME" {
-#   type        = string
-#   description = "The Update queue name"
-# }
-
 variable "TF_CLIENT_SP_ID" {
   type        = string
   description = "The Terraform Service Principal"

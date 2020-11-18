@@ -19,12 +19,6 @@ provider "azurerm" {
   tenant_id       = var.TF_TENANT_ID
 }
 
-# Create QA Resource Group 
-# resource "azurerm_resource_group" "rgqa" {
-#         name = "${var.NAME}-rg-qa"
-#         location = var.LOCATION
-# }
-
 locals {
   rg_name = "${var.NAME}-rg-${var.ENV}"
   storage_acc_name = "${var.NAME}st${var.ENV}"
@@ -38,7 +32,7 @@ module "acr" {
   LOCATION      = var.LOCATION
   REPO          = var.REPO
   ENV           = var.ENV
-  ACR_RG_NAME   = local.rg_name#azurerm_resource_group.rg.name
+  ACR_RG_NAME   = local.rg_name
   ACR_SP_ID     = var.ACR_SP_ID
   ACR_SP_SECRET = var.ACR_SP_SECRET
 }
@@ -49,7 +43,7 @@ module "asq" {
   NAME          = var.SHORTNAME
   LOCATION      = var.LOCATION
   ENV           = var.ENV  
-  APP_RG_NAME   = local.rg_name#azurerm_resource_group.rg.name
+  APP_RG_NAME   = local.rg_name
   QUEUE_NAMES   = local.queue_names
   STORAGE_ACCOUNT_NAME     = local.storage_acc_name
   STORAGE_ACCOUNT_DONE = module.web.STORAGE_ACCOUNT_DONE
@@ -62,7 +56,7 @@ module "db" {
   NAME             = var.SHORTNAME
   LOCATION         = var.LOCATION
   ENV              = var.ENV
-  APP_RG_NAME      = local.rg_name#azurerm_resource_group.rg.name
+  APP_RG_NAME      = local.rg_name
   COSMOS_RU        = var.COSMOS_RU
   COSMOS_DB        = var.SHORTNAME
   COSMOS_AUDIT_COL = var.COSMOS_AUDIT_COL
@@ -79,7 +73,7 @@ module "web" {
   NAME                = var.SHORTNAME
   PROJECT_NAME        = var.NAME
   LOCATION            = var.LOCATION
-  APP_RG_NAME         = local.rg_name#azurerm_resource_group.rg.name
+  APP_RG_NAME         = local.rg_name
   STORAGE_NAME        = local.storage_acc_name
   TENANT_ID           = var.TF_TENANT_ID
   COSMOS_RW_KEY       = module.db.RW_KEY
@@ -92,8 +86,6 @@ module "web" {
   COSMOS_AUDIT_COL    = var.COSMOS_AUDIT_COL
   COSMOS_CONFIG_COL   = var.COSMOS_CONFIG_COL
   COSMOS_OBJ_TRACKING_COL = var.COSMOS_OBJ_TRACKING_COL
-  # EVALUATE_QUEUE_NAME     = module.asq.EVALUATE_QUEUE_NAME
-  # UPDATE_QUEUE_NAME      = module.asq.UPDATE_QUEUE_NAME
   REPO                  = var.REPO
   TF_CLIENT_SP_ID       = var.TF_CLIENT_ID
   TF_CLIENT_SP_SECRET   = var.TF_CLIENT_SECRET

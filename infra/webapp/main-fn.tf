@@ -1,14 +1,5 @@
 # NOTE: Storage account name can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long
 
-# resource azurerm_storage_account svc-ppl-storage-acc {
-#   name                      = "${var.PROJECT_NAME}st${var.ENV}"
-#   location                  = var.LOCATION
-#   resource_group_name       = var.APP_RG_NAME
-#   account_tier              = "Standard"
-#   account_replication_type  = "LRS"
-# }
-
-
 data "azurerm_storage_account" "svc-ppl-storage-acc" {
   name                = var.STORAGE_NAME
   resource_group_name = var.APP_RG_NAME

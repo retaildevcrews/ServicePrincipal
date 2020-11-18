@@ -18,12 +18,6 @@ resource null_resource acr-access {
   }
 }
 
-# resource null_resource acr-import {
-#   provisioner "local-exec" {
-#     command = "az acr import -n ${azurerm_container_registry.svc-ppl-acr.name} --source docker.io/retaildevcrew/${var.REPO}:stable --image ${var.REPO}:latest"
-#   }
-# }
-
 resource "azurerm_container_registry_webhook" "webhook" {
   name                = "${var.NAME}wh${var.ENV}"
   location            = var.LOCATION
