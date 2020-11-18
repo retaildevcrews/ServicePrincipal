@@ -7,7 +7,7 @@ resource "azurerm_key_vault" "kvqa" {
 
   name                            = "${var.NAME}-kv-qa"
   location                        = var.LOCATION
-  resource_group_name             = locals.rgqa_name
+  resource_group_name             = local.rgqa_name
   sku_name                        = "standard"
   tenant_id                       = var.TENANT_ID
   enabled_for_deployment          = false
