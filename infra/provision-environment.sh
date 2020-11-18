@@ -228,10 +228,10 @@ function Validate_Terraform()
     terraform validate
 }
 
-function Apply_Terraform()
-{
-    terraform apply --auto-approve
-}
+# function Apply_Terraform()
+# {
+#     terraform apply --auto-approve
+# }
 
 ############################### MAIN ###################################
 
@@ -243,7 +243,8 @@ Prepare_Environment
 
 Initialize_Terraform
 Validate_Terraform
-if [ $VALIDATE_ONLY -eq 0 ]
-then
-    Apply_Terraform
-fi
+
+# if [ $VALIDATE_ONLY -eq 0 ]
+# then
+#     Apply_Terraform
+# fi

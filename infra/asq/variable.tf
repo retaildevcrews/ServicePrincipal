@@ -32,3 +32,7 @@ variable "STORAGE_ACCOUNT_DONE" {
   type        = bool
 }
 
+variable "QUEUE_NAMES" {
+  type = list(string)
+  description = "List of the queues to create"
+}
