@@ -160,7 +160,7 @@ namespace CSE.Automation.Processors
 
                 if (servicePrincipalCount % QueueRecordProcessThreshold == 0)
                 {
-                    logger.LogInformation($"\t{servicePrincipalCount}");
+                    logger.LogInformation($"\tResolved {servicePrincipalCount} serviceprincipals.");
                 }
 
                 enrichedPrincipals.Add(new ServicePrincipalModel()
@@ -197,7 +197,7 @@ namespace CSE.Automation.Processors
 
                 if (servicePrincipalCount % QueueRecordProcessThreshold == 0)
                 {
-                    logger.LogInformation($"\t{servicePrincipalCount}");
+                    logger.LogInformation($"\tSent {servicePrincipalCount} Evaluate messages.");
                 }
             });
             logger.LogInformation($"Evaluate messages complete.");
