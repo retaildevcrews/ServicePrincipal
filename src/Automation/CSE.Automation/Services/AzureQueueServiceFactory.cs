@@ -21,6 +21,5 @@ namespace CSE.Automation.Services
         {
             return new AzureQueueService(connectionString, queueName, this.logger);
         }
-
     }
 }
