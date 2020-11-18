@@ -1,5 +1,10 @@
-connect-graph -Scopes "Directory.read.all"
-$spList = Get-MgServicePrincipal -All
+[CmdletBinding()]
+param (
+  [string]$OutputFile = $null,
+  [switch]$CSV
+)
+
+$GroupMetadata = Get-Content ./groups.json | ConvertFrom-Json
 
 function ClassifyMicrosoft
 {
@@ -53,16 +58,24 @@ function ClassifyGroup
     [string]$groupName
   )
 
-  if ("Application, f8cdef31-a31e-4b4a-93e4-5f571e91255a", "Application, 72f988bf-86f1-41af-91ab-2d7cd011db47", "Application", "Legacy", "SocialIdp" -contains $groupName) {
-    return "Microsoft"
+  
+  $classification = $GroupMetadata | % {
+    if ($_.MatchValues -contains $groupName)
+    {
+      return $_.Classification
+    }
   }
-  elseif ("Application, 9c26242b-1b00-450c-98b0-a31412ad5a0e", "ManagedIdentity" -contains $groupName) {
-    return "Tenant"
-  }
-  else {
+
+  if ([string]::IsNullOrWhiteSpace($classification)) {
     return "ThirdParty"
   }
+  else {
+    return $classification
+  }
 }
+
+connect-graph -Scopes "Directory.read.all"
+$spList = Get-MgServicePrincipal -All
 
 $groups = $spList | Group-Object -Property ServicePrincipalType,AppOwnerOrganizationId
 $groups | 
@@ -79,3 +92,16 @@ $groups |
     }
   }
   $spList | Group-Object {$_.Tags[-2..-1] -join ", "} | Sort-Object Count -D
+
+  # Classification, Category, SP Id, OwningOrgId, AppId, AppName, ServicePrincipalNames, serviceprincipaltype, owning domain name
+  if ([string]::IsNullOrWhiteSpace($OutputFile)) {
+    if ($CSV) {
+      # $outputstuff  | Export-Csv $OutputFile
+    }
+    else {
+      # $outputstuff  | Out-File $OutputFile
+    }
+  }
+  else {
+    # Write-Output $outputstuff
+  }
