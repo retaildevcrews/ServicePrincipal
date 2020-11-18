@@ -6,9 +6,8 @@ labels: Design Review
 assignees: ''
 
 ---
-_This template is for capturing details needed for Design Review._  
 
-# Design Review
+## Design Review
 
 ## Introduction
 
@@ -30,11 +29,11 @@ _The system will need to take into consideration a few assumptions ...._
 
 ### Goals and Guidelines
 
-- 
+-
 
 ### Development Methods
 
-- 
+-
 
 ## Architectural Strategies
 
@@ -52,7 +51,7 @@ _The system will need to take into consideration a few assumptions ...._
 
 ## System Architecture
 
-- 
+-
 
 ## Policies and Tactics
 
@@ -62,10 +61,10 @@ _The system will need to take into consideration a few assumptions ...._
 - [ ] Design Review approved by team consensus
 - [ ] Initial tasks created as issues in main project and assigned to the project backlog with proper priority
 - [ ] Test plan complete (unit, validation, smoke)
-- [ ] Add "References #<issue number>" to relevant tasks
+- [ ] Add `References #issue_number` to relevant tasks
 
 ## Detailed System Design
 
-### module-1 name or description
+### module name or description
 
 ## Glossary
