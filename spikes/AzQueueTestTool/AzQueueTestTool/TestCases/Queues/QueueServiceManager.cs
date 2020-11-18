@@ -3,6 +3,8 @@ using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 using CSE.Automation.Model;
 using CSE.Automation.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -23,7 +25,8 @@ namespace AzQueueTestTool.TestCases.Queues
 
         public QueueServiceManager(string queueName,  string storageConnectionString )
         {
-            _azureQueueService = new AzureQueueService(storageConnectionString, queueName.Trim());
+            var queueLogger = CreateLogger<AzureQueueService>();
+            _azureQueueService = new AzureQueueService(storageConnectionString, queueName.Trim(), queueLogger);
         }
 
         public void GenerateMessageForRulesAsync(List<IRuleSet> ruleSetsList)
@@ -97,6 +100,19 @@ namespace AzQueueTestTool.TestCases.Queues
                 sbLog.AppendLine($"-> Owners{Environment.NewLine}{string.Join(Environment.NewLine, ruleSet.AADUsers.Select(x => new { name = x.DisplayName, x.Id }).ToList())}");
             else
                 sbLog.AppendLine($"-> Owners{Environment.NewLine} <<none>>");
+        }
+
+        private ILogger<T> CreateLogger<T>()
+        {
+            var serviceProvider = new ServiceCollection()
+                .AddLogging(builder =>
+                {
+                    builder.AddConsole();
+                    builder.AddDebug();
+                })
+                .BuildServiceProvider();
+
+            return serviceProvider.GetService<ILoggerFactory>().CreateLogger<T>();
         }
 
         void IDisposable.Dispose()
