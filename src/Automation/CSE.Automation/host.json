@@ -20,7 +20,7 @@
       "default": "Debug"
     },
     "console": {
-      "isEnabled": true
+      "isEnabled": false
     },
     "applicationInsights": {
       "samplingSettings": {

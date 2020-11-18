@@ -22,12 +22,14 @@ namespace CSE.Automation
 {
     internal class GraphDeltaProcessor
     {
+        private readonly VersionMetadata versionMetadata;
         private readonly IActivityService activityService;
         private readonly IServicePrincipalProcessor processor;
         private readonly ILogger logger;
 
-        public GraphDeltaProcessor(IServiceProvider serviceProvider, IActivityService activityService, IServicePrincipalProcessor processor, ILogger<GraphDeltaProcessor> logger)
+        public GraphDeltaProcessor(VersionMetadata versionMetadata, IServiceProvider serviceProvider, IActivityService activityService, IServicePrincipalProcessor processor, ILogger<GraphDeltaProcessor> logger)
         {
+            this.versionMetadata = versionMetadata;
             this.activityService = activityService;
             this.processor = processor;
             this.logger = logger;
@@ -264,6 +266,13 @@ namespace CSE.Automation
 
                 return new BadRequestObjectResult(ex.Message);
             }
+        }
+
+        [FunctionName("Version")]
+        public Task<IActionResult> Version([HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            log.LogInformation(this.versionMetadata.ProductVersion);
+            return Task.FromResult((IActionResult)new JsonResult(this.versionMetadata));
         }
 
         private async Task<dynamic> CommandDiscovery(DiscoveryMode discoveryMode, string source, ILogger log)

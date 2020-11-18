@@ -1,5 +1,6 @@
 using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
+using CSE.Automation.Model;
 using CSE.Automation.Processors;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
@@ -32,7 +33,8 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             this.serviceProvider = Substitute.For<IServiceProvider>();
             this.logger = Substitute.For<ILogger<GraphDeltaProcessor>>();
             this.activityService = Substitute.For<IActivityService>();
-            this.subject = new GraphDeltaProcessor(serviceProvider, activityService, processor, this.logger);
+            var versionMetadata = new VersionMetadata(typeof(CSE.Automation.Startup).Assembly);
+            this.subject = new GraphDeltaProcessor(versionMetadata, serviceProvider, activityService, processor, this.logger);
         }
 
         [Fact]
