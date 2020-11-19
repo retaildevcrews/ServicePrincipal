@@ -4,7 +4,9 @@ param (
   [switch]$CSV
 )
 
-$GroupMetadata = Get-Content ./groups.json | ConvertFrom-Json
+$ClassificationMapping = Get-Content './resoureces/classification_mapping.json' | ConvertFrom-Json
+
+$CategoryOobeList = Get-Content './resources/category_oobe_list.json' | ConvertFrom-Json
 
 function ClassifyMicrosoft
 {
@@ -12,11 +14,10 @@ function ClassifyMicrosoft
   param (
     $group
   )
-  $oobeList = Get-Content './resources/microsoft_oobe_mapping.json' | ConvertFrom-Json
   $group.Group |
     ForEach-Object {
       $_.Tags += "Microsoft"
-      if ($oobeList -contains $_.AppId){
+      if ($CategoryOobeList -contains $_.AppId){
         $_.Tags += "OOBE"
       }
       else {
@@ -59,7 +60,7 @@ function ClassifyGroup
   )
 
   
-  $classification = $GroupMetadata | % {
+  $classification = $ClassificationMapping | % {
     if ($_.MatchValues -contains $groupName)
     {
       return $_.Classification
@@ -91,17 +92,17 @@ $groups |
       ClassifyThirdParty $_
     }
   }
-  $spList | Group-Object {$_.Tags[-2..-1] -join ", "} | Sort-Object Count -D
 
-  # Classification, Category, SP Id, OwningOrgId, AppId, AppName, ServicePrincipalNames, serviceprincipaltype, owning domain name
   if ([string]::IsNullOrWhiteSpace($OutputFile)) {
+    $results = $spList |
+      Select-Object -Property @{N='Classification';E={$_.Tags[-2]}}, @{N='Category';E={$_.Tags[-1]}}, Id, AppOwnerOrganizationId, AppId, DisplayName, ServicePrincipalNames, ServicePrincipalType
     if ($CSV) {
-      # $outputstuff  | Export-Csv $OutputFile
+      $results | Export-Csv -Path $OutputFile -NoTypeInformation
     }
     else {
-      # $outputstuff  | Out-File $OutputFile
+      $results | ConvertFrom-Json | Out-File -FilePath $OutputFile
     }
   }
   else {
-    # Write-Output $outputstuff
+    Write-Output $results
   }

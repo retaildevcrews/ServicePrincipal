@@ -1,32 +1,19 @@
 [
-  {
-    "matchExpression": "AppOwnerOrganizationId -eq '9c26242b-1b00-450c-98b0-a31412ad5a0e'",
-    "tags": {
-      "classfication": "internal"
-    }
-  },
-  {
-    "matchExpression": "AppOwnerOrganizationId -eq 'f8cdef31-a31e-4b4a-93e4-5f571e91255a'",
-    "tags": {
-      "classfication": "microsoft"
-    }
-  },
-  {
-    "matchExpression": "AppOwnerOrganizationId -eq '72f988bf-86f1-41af-91ab-2d7cd011db47'",
-    "tags": {
-      "classfication": "microsoft"
-    }
-  },
-  {
-    "matchExpression": "AppOwnerOrganizationId -eq $null",
-    "tags": {
-      "classfication": "internal"
-    }
-  },
-  {
-    "matchExpression": "AppOwnerOrganizationId -ne $null",
-    "tags": {
-      "classfication": "external"
-    }
-  }
+    {
+        "Classification" : "Microsoft",
+        "MatchValues" : [
+            "Application, f8cdef31-a31e-4b4a-93e4-5f571e91255a", 
+            "Application, 72f988bf-86f1-41af-91ab-2d7cd011db47", 
+            "Application", 
+            "Legacy", 
+            "SocialIdp"
+        ]
+    },
+    {
+        "Classification" : "Tenant",
+        "MatchValues" : [
+            "Application, 9c26242b-1b00-450c-98b0-a31412ad5a0e", 
+            "ManagedIdentity"        
+        ]
+    }   
 ]
