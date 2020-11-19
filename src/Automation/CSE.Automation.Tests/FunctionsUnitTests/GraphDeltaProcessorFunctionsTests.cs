@@ -23,6 +23,7 @@ using System.Runtime.CompilerServices;
 using CSE.Automation.Validators;
 using CSE.Automation.KeyVault;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.DataAccess;
+using System.Reflection;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests
 {
@@ -36,6 +37,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         private IGraphHelper<ServicePrincipal> _graphHelper;
         private IQueueServiceFactory _queueServiceFactory;
         private IConfigService<ProcessorConfiguration> _configService;
+        private VersionMetadata _versionMetadata;
 
 
         private ObjectTrackingService _objectService;
@@ -89,11 +91,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _processor = new ServicePrincipalProcessor(_servicePrincipalProcessorSettings, _graphHelper, _queueServiceFactory, _configService,
                         _objectService, _auditService, _activityService, modelValidatorFactory, _spProcessorLogger);
 
-            _graphDeltaProcessor = new GraphDeltaProcessor(_serviceProvider, _activityService, _processor, _graphLogger);
+            _graphDeltaProcessor = new GraphDeltaProcessor(_versionMetadata, _serviceProvider, _activityService, _processor, _graphLogger);
         }
 
         private void CreateServices()
         {
+            Assembly thisAssembly = Assembly.GetExecutingAssembly();
+            _versionMetadata = new VersionMetadata(thisAssembly);
 
             _queueServiceFactory = new AzureQueueServiceFactory(_queueLogger);
 
@@ -118,6 +122,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _builder
                 .AddSingleton(credServiceSettings)
                 .AddSingleton(secretServiceSettings)
+                .AddSingleton<VersionMetadata>(_versionMetadata)
 
                 .AddSingleton<ICredentialService>(x => new CredentialService(x.GetRequiredService<CredentialServiceSettings>()))
                 .AddSingleton<ISecretClient>(x => new SecretService(x.GetRequiredService<SecretServiceSettings>(), x.GetRequiredService<ICredentialService>()))
@@ -203,6 +208,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _secretClient = Substitute.For<ISecretClient>();
             _graphHelper = Substitute.For<IGraphHelper<ServicePrincipal>>();
             _configService = Substitute.For<IConfigService<ProcessorConfiguration>>();
+            
         }
 
         private ILogger<T> CreateLogger<T>()

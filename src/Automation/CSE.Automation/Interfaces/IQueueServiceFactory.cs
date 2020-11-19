@@ -7,7 +7,7 @@ using System.Text;
 
 namespace CSE.Automation.Interfaces
 {
-    public interface IQueueServiceFactory
+    internal interface IQueueServiceFactory
     {
         IAzureQueueService Create(string connectionString, string queueName);
     }

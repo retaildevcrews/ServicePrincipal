@@ -37,7 +37,7 @@ namespace CSE.Automation.Model
     }
 
     // Make sure this serializes as an int
-    public enum AuditCode
+    internal enum AuditCode
     {
         /// <summary>
         /// Code for a ServicePrincipal that passed all audit checks
