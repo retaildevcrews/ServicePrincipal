@@ -236,7 +236,7 @@ namespace CSE.Automation.DataAccess
             string sql = "select * from m";
             if (filter != TypeFilter.Any)
             {
-                sql += ($" m.objectType='{0}'", Enum.GetName(typeof(TypeFilter), filter));
+                sql += $" m.objectType='{Enum.GetName(typeof(TypeFilter), filter)}'";
             }
 
             return await InternalCosmosDBSqlQuery(sql).ConfigureAwait(false);
