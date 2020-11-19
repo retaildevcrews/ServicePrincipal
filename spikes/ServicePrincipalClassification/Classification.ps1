@@ -96,8 +96,8 @@ $spList = Get-MgServicePrincipal -All
 
 $groups = $spList | Group-Object -Property ServicePrincipalType,AppOwnerOrganizationId | Sort-Object Count -D
 
-# Print Summary Before Classification
-Write-Output $groups
+Write-Host "Summary of Service Principals Retrieved"
+$groups | Select -Property Count, @{N='AppOwnerOrganizationId';E={$_.Group[0].AppOwnerOrganizationId}}, @{N='ServicePrincipalType';E={$_.Group[0].ServicePrincipalType}} | Out-String | Write-Host
 
 $groups | 
   ForEach-Object {
@@ -116,6 +116,10 @@ $groups |
   if (-not ([string]::IsNullOrWhiteSpace($OutputFile))) {
     $results = $spList |
       Select-Object -Property @{N='Classification';E={$_.Tags[-2]}}, @{N='Category';E={$_.Tags[-1]}}, Id, AppOwnerOrganizationId, AppId, DisplayName, @{N='ServicePrincipalNames';E={$_.ServicePrincipalNames -join ", "}}, ServicePrincipalType
+    
+    Write-Host "Summary of Results"
+    $results | Group-Object -Property Classification, Category | Sort-Object Count -D | Select -Property Count, @{N='Classification';E={$_.Group[0].Classification}}, @{N='Category';E={$_.Group[0].Category}} | Out-String | Write-Host
+
     if ($OutputType -eq "csv") {
       $results | ConvertTo-Csv | Out-File -FilePath $OutputFile
     } elseif ($OutputType -eq "tsv") {
