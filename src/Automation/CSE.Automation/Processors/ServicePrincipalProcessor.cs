@@ -170,6 +170,8 @@ namespace CSE.Automation.Processors
                     Created = DateTimeOffset.Parse(sp.AdditionalData["createdDateTime"].ToString(), CultureInfo.CurrentCulture),
                     Deleted = sp.DeletedDateTime,
                     Owners = owners,
+                    ObjectType = ObjectType.ServicePrincipal,
+                    ServicePrincipalType = sp.ServicePrincipalType,
                 };
 
                 var myMessage = new QueueMessage<EvaluateServicePrincipalCommand>()
