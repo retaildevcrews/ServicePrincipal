@@ -1,21 +1,19 @@
 [CmdletBinding()]
 param (
   [string]$OutputFile = $null,
-  [string]$OutputType = "csv"
+
+  [ValidateSet("csv", "tsv", "json")]
+  [string]$OutputType = "csv", 
+
+  [switch]$PassThru
 )
 
 function ValidateArguments
 {
-  $SupportedTypes = @("csv", "tsv", "json")
-  if ([string]::IsNullOrWhiteSpace($OutputFile)) {
+  if ([string]::IsNullOrWhiteSpace($OutputFile) -and -not $PassThru) {
     Write-Host "File Path Not Set, Only Printing Summary"
   }
-  if ($SupportedTypes -contains $OutputType.ToLower()) {
-    $OutputType = $OutputType.ToLower()
-    Write-Host "Output Type Set To '$OutputType'"
-  } else {
-    Write-Error "Only Output Types Supported are: $SupportedTypes"
-  }
+
 }
 
 $ClassificationMapping = Get-Content './resources/classification_mapping.json' | ConvertFrom-Json
@@ -91,7 +89,7 @@ function ClassifyGroup
 
 ValidateArguments
 
-connect-graph -Scopes "Directory.read.all"
+connect-graph -Scopes "Directory.read.all" | Out-Null
 $spList = Get-MgServicePrincipal -All
 
 $groups = $spList | Group-Object -Property ServicePrincipalType,AppOwnerOrganizationId | Sort-Object Count -D
@@ -113,10 +111,10 @@ $groups |
     }
   }
 
-  if (-not ([string]::IsNullOrWhiteSpace($OutputFile))) {
-    $results = $spList |
+  $results = $spList |
       Select-Object -Property @{N='Classification';E={$_.Tags[-2]}}, @{N='Category';E={$_.Tags[-1]}}, Id, AppOwnerOrganizationId, AppId, DisplayName, @{N='ServicePrincipalNames';E={$_.ServicePrincipalNames -join ", "}}, ServicePrincipalType
-    
+
+  if (-not ([string]::IsNullOrWhiteSpace($OutputFile))) {
     Write-Host "Summary of Results:"
     $results | Group-Object -Property Classification, Category | Sort-Object Count -D | Select -Property Count, @{N='Classification';E={$_.Group[0].Classification}}, @{N='Category';E={$_.Group[0].Category}} | Out-String | Write-Host
 
@@ -126,7 +124,9 @@ $groups |
       $results | ConvertTo-Csv -Delimiter "`t" | Out-File -FilePath $OutputFile
     } elseif ($OutputType -eq "json") {
       $results | ConvertTo-Json | Out-File -FilePath $OutputFile
-    } else {
-      Write-Error "not supported type: $OutputType"
-    }
+    } 
+
+  }
+  else {
+    return $results
   }
