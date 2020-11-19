@@ -13,7 +13,6 @@ function ValidateArguments
   if ([string]::IsNullOrWhiteSpace($OutputFile) -and -not $PassThru) {
     Write-Host "File Path Not Set, Only Printing Summary"
   }
-
 }
 
 $ClassificationMapping = Get-Content './resources/classification_mapping.json' | ConvertFrom-Json
@@ -114,9 +113,10 @@ $groups |
   $results = $spList |
       Select-Object -Property @{N='Classification';E={$_.Tags[-2]}}, @{N='Category';E={$_.Tags[-1]}}, Id, AppOwnerOrganizationId, AppId, DisplayName, @{N='ServicePrincipalNames';E={$_.ServicePrincipalNames -join ", "}}, ServicePrincipalType
 
+  Write-Host "Summary of Results:"
+      $results | Group-Object -Property Classification, Category | Sort-Object Count -D | Select -Property Count, @{N='Classification';E={$_.Group[0].Classification}}, @{N='Category';E={$_.Group[0].Category}} | Out-String | Write-Host
+
   if (-not ([string]::IsNullOrWhiteSpace($OutputFile))) {
-    Write-Host "Summary of Results:"
-    $results | Group-Object -Property Classification, Category | Sort-Object Count -D | Select -Property Count, @{N='Classification';E={$_.Group[0].Classification}}, @{N='Category';E={$_.Group[0].Category}} | Out-String | Write-Host
 
     if ($OutputType -eq "csv") {
       $results | ConvertTo-Csv | Out-File -FilePath $OutputFile
