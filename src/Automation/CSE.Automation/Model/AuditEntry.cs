@@ -64,9 +64,9 @@ namespace CSE.Automation.Model
         Fail_AttributeValidation = -1,
 
         /// <summary>
-        /// Code for a ServicePrincipal missing Owner values.
+        /// Code for a ServicePrincipal missing Owner values in the extension field (Notes).
         /// </summary>
-        [Description("ServicePrincipal is missing Owners.")]
+        [Description("ServicePrincipal is missing Owners in extention field (Notes).")]
         Fail_MissingOwners = -2,
 
         /// <summary>
