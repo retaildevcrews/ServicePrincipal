@@ -113,9 +113,9 @@ namespace CSE.Automation
         private static void RegisterSettings(IFunctionsHostBuilder builder)
         {
             Assembly thisAssembly = Assembly.GetExecutingAssembly();
-            VersionMetadata versionConfig = new VersionMetadata(thisAssembly);
+            var versionMetadata = new VersionMetadata(thisAssembly);
             var logger = CreateBootstrapLogger();
-            logger.LogInformation(JsonSerializer.Serialize(versionConfig.ProductVersion));
+            logger.LogInformation(JsonSerializer.Serialize(versionMetadata.ProductVersion));
             var serviceProvider = builder.Services.BuildServiceProvider();
             var config = serviceProvider.GetRequiredService<IConfiguration>();
 
@@ -124,7 +124,7 @@ namespace CSE.Automation
             var credServiceSettings = new CredentialServiceSettings() { AuthType = config[Constants.AuthType].As<AuthenticationType>() };
 
             builder.Services
-                .AddSingleton<VersionMetadata>(versionConfig)
+                .AddSingleton<VersionMetadata>(versionMetadata)
                 .AddSingleton(credServiceSettings)
                 .AddSingleton(secretServiceSettings)
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<SecretServiceSettings>())
@@ -213,7 +213,6 @@ namespace CSE.Automation
 
             // register the concrete as the singleton, then use forwarder pattern to register same singleton with alternate interfaces
             builder.Services
-                .AddSingleton<VersionService>(x => new VersionService(x.GetRequiredService<VersionMetadata>()))
                 .AddSingleton<ICredentialService>(x => new CredentialService(x.GetRequiredService<CredentialServiceSettings>()))
                 .AddSingleton<ISecretClient>(x => new SecretService(x.GetRequiredService<SecretServiceSettings>(), x.GetRequiredService<ICredentialService>()))
 

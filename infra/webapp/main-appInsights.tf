@@ -9,8 +9,3 @@ output "instrumentation_key" {
   depends_on  = [azurerm_application_insights.svc-ppl-appi]
   value = azurerm_application_insights.svc-ppl-appi.instrumentation_key
 }
-/*
-output "app_id" {
-  value = azurerm_application_insights.svc-ppl-appi.app_id
-}
-*/

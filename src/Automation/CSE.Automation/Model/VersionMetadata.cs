@@ -17,7 +17,7 @@ namespace CSE.Automation.Model
     public string AssemblyVersion { get; }
     public string AssemblyFileVersion { get; }
     public string ProductVersion { get; }
-    public string BuildTs { get; }
+    public string BuildTimestamp { get; }
 
     public VersionMetadata(Assembly assembly)
     {
@@ -25,7 +25,7 @@ namespace CSE.Automation.Model
       var versionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
       this.AssemblyFileVersion = versionInfo.FileVersion;
       this.ProductVersion = versionInfo.ProductVersion;
-      this.BuildTs = this.GetType().Assembly.GetCustomAttribute<BuildTimestampAttribute>().Value;
+      this.BuildTimestamp = this.GetType().Assembly.GetCustomAttribute<BuildTimestampAttribute>().Value;
     }
   }
 }
