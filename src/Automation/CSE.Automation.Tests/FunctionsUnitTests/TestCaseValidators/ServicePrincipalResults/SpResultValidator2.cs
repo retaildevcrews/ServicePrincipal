@@ -19,8 +19,12 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
         public override bool Validate()
         {
             var newServicePrincipalAsString = JsonConvert.SerializeObject(NewServicePrincipal);
+            
+            List<string> targetQueueMessages = new List<string> () {"Update Notes from Owners", "Revert to Last Known Good"};
 
-            return SavedServicePrincipalAsString.Equals(newServicePrincipalAsString, StringComparison.InvariantCultureIgnoreCase);
+            bool messageNotFound = DoesMessageExistInUpdateQueue(targetQueueMessages);
+
+            return !messageNotFound && SavedServicePrincipalAsString.Equals(newServicePrincipalAsString, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

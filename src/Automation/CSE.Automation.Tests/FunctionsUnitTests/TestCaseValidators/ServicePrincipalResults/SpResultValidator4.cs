@@ -23,7 +23,9 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
             bool servicePrincipalPass = SavedServicePrincipalAsString.Equals(newServicePrincipalAsString, StringComparison.InvariantCultureIgnoreCase);
 
-            bool messageFound = DoesMessageExistInUpdateQueue("Revert to Last Known Good");
+            List<string> targetQueueMessages = new List<string> () {"Revert to Last Known Good"};
+
+            bool messageFound = DoesMessageExistInUpdateQueue(targetQueueMessages);
 
             return (servicePrincipalPass && messageFound);
 

@@ -8,10 +8,10 @@ using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGen
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalResults
 {
-    internal class SpResultValidator2_2 : SpResultValidatorBase, ISpResultValidator
+    internal class SpResultValidator5 : SpResultValidatorBase, ISpResultValidator
     {
 
-        public SpResultValidator2_2(string savedServicePrincipalAsString, InputGenerator inputGenerator, ActivityContext activityContext) 
+        public SpResultValidator5(string savedServicePrincipalAsString, InputGenerator inputGenerator, ActivityContext activityContext) 
                                     : base(savedServicePrincipalAsString, inputGenerator, activityContext)
         {
         }
@@ -20,11 +20,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
         {
             var newServicePrincipalAsString = JsonConvert.SerializeObject(NewServicePrincipal);
 
-            List<string> targetQueueMessages = new List<string> () { "Revert to Last Known Good"};
+            List<string> targetQueueMessages = new List<string> () {"Update Notes from Owners", "Revert to Last Known Good"};
 
             bool messageNotFound = DoesMessageExistInUpdateQueue(targetQueueMessages);
 
-            return messageNotFound && SavedServicePrincipalAsString.Equals(newServicePrincipalAsString, StringComparison.InvariantCultureIgnoreCase);
+            return !messageNotFound && SavedServicePrincipalAsString.Equals(newServicePrincipalAsString, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

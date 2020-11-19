@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResults
 {
-    internal class AuditResultValidator4 : AuditResultValidatorBase, IAuditResultValidator
+    internal class AuditResultValidator5 : AuditResultValidatorBase, IAuditResultValidator
     {
-        public AuditResultValidator4(AuditEntry savedAuditEntry, AuditEntry newAuditEntry, ActivityContext activityContext,
+        public AuditResultValidator5(AuditEntry savedAuditEntry, AuditEntry newAuditEntry, ActivityContext activityContext,
                                         ServicePrincipal servicePrincipal, AuditRepositoryTest auditRepositoryTest, TestCase testCase)
                                         : base(savedAuditEntry, newAuditEntry, activityContext, servicePrincipal, auditRepositoryTest, testCase)
         {

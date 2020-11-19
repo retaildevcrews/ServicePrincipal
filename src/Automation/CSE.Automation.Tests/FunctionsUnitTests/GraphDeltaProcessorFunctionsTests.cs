@@ -268,7 +268,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             bool validObjectTracking =  objectTrackingValidationManager.Validate();
 
-            Assert.True(validObjectTracking && validAudit && validServicePrincipal);
 
         }
 
@@ -310,7 +309,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             Assert.True(validServicePrincipal, "Object Tracking Validation");
 
-            Assert.True(validObjectTracking && validAudit && validServicePrincipal);
 
         }
 
@@ -350,7 +348,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             Assert.True(validServicePrincipal, "Object Tracking Validation");
 
-            Assert.True(validObjectTracking && validAudit && validServicePrincipal);
         }
 
         [Fact]
@@ -390,8 +387,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             Assert.True(validServicePrincipal, "Object Tracking Validation");
 
-            Assert.True(validServicePrincipal && validObjectTracking && validAudit );
-        }
+         }
 
         [Fact]
         public void FunctionEvaluateTestCase3_2()
@@ -430,7 +426,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             Assert.True(validServicePrincipal, "Object Tracking Validation");
 
-            Assert.True(validServicePrincipal && validObjectTracking && validAudit);
         }
 
         [Fact]
@@ -470,8 +465,85 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             Assert.True(validServicePrincipal, "Object Tracking Validation");
 
-            Assert.True(validServicePrincipal && validObjectTracking && validAudit);
         }
 
+
+        [Fact]
+        public void FunctionEvaluateTestCase5()
+        {
+            TestCase thisTestCase = TestCase.TC5;
+
+            using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
+
+            using var inputGenerator = new InputGenerator(_config, activityContext, thisTestCase);
+
+
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
+
+            //Create Validators 
+            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext);
+
+            using var objectTrackingValidationManager = new ObjectTrackingValidationManager(inputGenerator, _objectRespository, activityContext);
+
+            using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespositoryTest, activityContext);
+
+
+            Task thisTaks = Task.Run (() => _graphDeltaProcessor.Evaluate(cloudQueueMessage, _graphLogger));
+            thisTaks.Wait();
+
+            //Validate Outcome and state after execution for Service Principal, Audit and ObjectTracking objects based on TestCase injected thru InputGenerator
+
+            bool validServicePrincipal = servicePrincipalValidationManager.Validate();
+
+            Assert.True(validServicePrincipal, "Service Principal Validation");
+
+            bool validAudit =  auditValidationManager.Validate();
+
+            Assert.True(validServicePrincipal, "Audit Validation");
+
+            bool validObjectTracking =  objectTrackingValidationManager.Validate();
+
+            Assert.True(validServicePrincipal, "Object Tracking Validation");
+
+        }
+
+        [Fact]
+        public void FunctionEvaluateTestCase6()
+        {
+            TestCase thisTestCase = TestCase.TC6;
+
+            using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
+
+            using var inputGenerator = new InputGenerator(_config, activityContext, thisTestCase);
+
+
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
+
+            //Create Validators 
+            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext);
+
+            using var objectTrackingValidationManager = new ObjectTrackingValidationManager(inputGenerator, _objectRespository, activityContext);
+
+            using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespositoryTest, activityContext);
+
+
+            Task thisTaks = Task.Run (() => _graphDeltaProcessor.Evaluate(cloudQueueMessage, _graphLogger));
+            thisTaks.Wait();
+
+            //Validate Outcome and state after execution for Service Principal, Audit and ObjectTracking objects based on TestCase injected thru InputGenerator
+
+            bool validServicePrincipal = servicePrincipalValidationManager.Validate();
+
+            Assert.True(validServicePrincipal, "Service Principal Validation");
+
+            bool validAudit =  auditValidationManager.Validate();
+
+            Assert.True(validServicePrincipal, "Audit Validation");
+
+            bool validObjectTracking =  objectTrackingValidationManager.Validate();
+
+            Assert.True(validServicePrincipal, "Object Tracking Validation");
+
+        }
     }
 }

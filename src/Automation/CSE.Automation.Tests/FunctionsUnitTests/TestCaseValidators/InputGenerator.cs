@@ -58,13 +58,26 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
             [ObjectValidator("ObjectResultValidator3_2")]
             [AuditValidator("AuditResultValidator3_2")]
             TC3_2,
+            
             [SpStateDefinition("SpStateDefinition4")]
             [ObjectStateDefinition("ObjectStateDefinition4")]
             [SpValidator("SpResultValidator4")]
             [ObjectValidator("ObjectResultValidator4")]
             [AuditValidator("AuditResultValidator4")]
-            TC4, 
-            TC5, 
+            TC4,
+
+            [SpStateDefinition("SpStateDefinition5")]
+            [ObjectStateDefinition("ObjectStateDefinition5")]
+            [SpValidator("SpResultValidator5")]
+            [ObjectValidator("ObjectResultValidator5")]
+            [AuditValidator("AuditResultValidator5")]
+            TC5,
+
+            [SpStateDefinition("SpStateDefinition6")]
+            [ObjectStateDefinition("ObjectStateDefinition6")]
+            [SpValidator("SpResultValidator6")]
+            [ObjectValidator("ObjectResultValidator6")]
+            [AuditValidator("AuditResultValidator6")]
             TC6, 
             TC7, 
             TC8, 
