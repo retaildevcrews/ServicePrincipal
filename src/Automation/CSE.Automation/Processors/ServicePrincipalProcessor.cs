@@ -3,11 +3,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using CSE.Automation.Extensions;
 using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
@@ -148,22 +148,20 @@ namespace CSE.Automation.Processors
             logger.LogInformation($"Resolving Owners for ServicePrincipal objects...");
             int servicePrincipalCount = 0;
 
-            var enrichedPrincipals = new List<ServicePrincipalModel>();
-
-            // TODO: Look at this filter, is it necessary?
-            foreach (var sp in servicePrincipalList.Where(sp => string.IsNullOrWhiteSpace(sp.AppId) == false && string.IsNullOrWhiteSpace(sp.DisplayName) == false))
+            // foreach (var sp in servicePrincipalList.Where(sp => string.IsNullOrWhiteSpace(sp.AppId) == false && string.IsNullOrWhiteSpace(sp.DisplayName) == false))
+            foreach (var sp in servicePrincipalList)
             {
                 var fullSP = await graphHelper.GetGraphObjectWithOwners(sp.Id).ConfigureAwait(false);
                 var owners = fullSP?.Owners.Select(x => (x as User)?.UserPrincipalName).ToList();
 
                 servicePrincipalCount++;
 
-                if (servicePrincipalCount % QueueRecordProcessThreshold == 0)
+                if (servicePrincipalCount % 200 == 0)
                 {
-                    logger.LogInformation($"\tResolved {servicePrincipalCount} serviceprincipals.");
+                    logger.LogInformation($"\tResolved {servicePrincipalCount} ServicePrincipals.");
                 }
 
-                enrichedPrincipals.Add(new ServicePrincipalModel()
+                var model = new ServicePrincipalModel()
                 {
                     Id = sp.Id,
                     AppId = sp.AppId,
@@ -172,35 +170,25 @@ namespace CSE.Automation.Processors
                     Created = DateTimeOffset.Parse(sp.AdditionalData["createdDateTime"].ToString(), CultureInfo.CurrentCulture),
                     Deleted = sp.DeletedDateTime,
                     Owners = owners,
-                });
-            }
+                    ObjectType = ObjectType.ServicePrincipal,
+                    ServicePrincipalType = sp.ServicePrincipalType,
+                };
 
-            logger.LogInformation($"{enrichedPrincipals.Count} ServicePrincipals resolved.");
-
-            logger.LogInformation($"Sending Evaluate messages.");
-            servicePrincipalCount = 0;
-            enrichedPrincipals.ForEach(async sp =>
-            {
                 var myMessage = new QueueMessage<EvaluateServicePrincipalCommand>()
                 {
                     QueueMessageType = QueueMessageType.Data,
                     Document = new EvaluateServicePrincipalCommand
                     {
                         CorrelationId = context.CorrelationId,
-                        Model = sp,
+                        Model = model,
                     },
                     Attempt = 0,
                 };
 
                 await queueService.Send(myMessage).ConfigureAwait(false);
-                servicePrincipalCount++;
+            }
 
-                if (servicePrincipalCount % QueueRecordProcessThreshold == 0)
-                {
-                    logger.LogInformation($"\tSent {servicePrincipalCount} Evaluate messages.");
-                }
-            });
-            logger.LogInformation($"Evaluate messages complete.");
+            logger.LogInformation($"{servicePrincipalCount} ServicePrincipals resolved.");
 
             if (config.RunState == RunState.SeedAndRun || config.RunState == RunState.Seedonly)
             {
@@ -256,17 +244,17 @@ namespace CSE.Automation.Processors
                     await UpdateNotesFromOwners(context, entity, queueService).ConfigureAwait(false);
                 }
 
-                // Revert the serviceprincipal if we can
+                // Revert the ServicePrincipal if we can
                 else
                 {
                     await RevertToLastKnownGood(context, entity, queueService).ConfigureAwait(false);
                 }
             }
 
-            // No errors, serviceprincipal passes audit
+            // No errors, ServicePrincipal passes audit
             else
             {
-                // remember this was the last time we saw the prinicpal as 'good'
+                // remember this was the last time we saw the ServicePrincipal as 'good'
                 await UpdateLastKnownGood(context, entity).ConfigureAwait(true);
                 await auditService.PutPass(context, AuditCode.Pass_ServicePrincipal, entity.Id, null, null).ConfigureAwait(false);
             }
@@ -434,10 +422,8 @@ namespace CSE.Automation.Processors
         {
             try
             {
-                // TODO: move reason text to resource
-                var message = "Missing Owners on ServicePrincipal, cannot remediate.";
-                await auditService.PutFail(context, AuditCode.Fail_MissingOwners, entity.Id, "Owners", null, message).ConfigureAwait(true);
-                logger.LogWarning($"AUDIT FAIL: {entity.Id} {message}");
+                await auditService.PutFail(context, AuditCode.Fail_MissingOwners, entity.Id, "Notes", null).ConfigureAwait(true);
+                logger.LogWarning($"AUDIT FAIL: {entity.Id} {AuditCode.Fail_MissingOwners.Description()}");
             }
             catch (Exception)
             {
