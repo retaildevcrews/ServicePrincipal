@@ -20,20 +20,17 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
         public override bool Validate()
         {
 
-            bool typePass = (NewAuditEntry.Type == AuditActionType.Fail);
+            bool typePass = (NewAuditEntry.Type == AuditActionType.Pass);
 
 
-            bool validReasonPass = (NewAuditEntry.Reason == AuditCode.Fail_AttributeValidation.Description() ||
-                               NewAuditEntry.Reason == AuditCode.Fail_MissingOwners.Description());
-
-            bool validAttributeNamePass = (NewAuditEntry.AttributeName == "Owners");
+            bool validReasonPass = (NewAuditEntry.Reason == AuditCode.Pass_ServicePrincipal.Description());
 
             bool isNewAuditEntryPass = NewAuditEntry.Timestamp > SavedAuditEntry.Timestamp;
             
             bool validCorrelationIdPass = Guid.TryParse(NewAuditEntry.CorrelationId, out Guid dummyGuid) &&
                                         NewAuditEntry.CorrelationId.Equals(Context.CorrelationId);
 
-            return (typePass && isNewAuditEntryPass && validCorrelationIdPass && validReasonPass && validAttributeNamePass);
+            return (typePass && isNewAuditEntryPass && validCorrelationIdPass && validReasonPass );
 
         }
     }

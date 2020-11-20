@@ -46,10 +46,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
 
                 Repository.GenerateId(objectModel);
 
-                Task<TrackingModel> deleteTask = Task.Run(() => Repository.UpsertDocumentAsync(objectModel));
-                deleteTask.Wait();
+                Task<TrackingModel> createTask = Task.Run(() => Repository.UpsertDocumentAsync(objectModel));
+                createTask.Wait();
 
-                return deleteTask.Result.Id == ServicePrincipalObject.Id;
+                return createTask.Result.Id == ServicePrincipalObject.Id;
                 
             }
         }

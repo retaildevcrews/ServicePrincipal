@@ -19,33 +19,19 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
 
         public override bool Validate()
         {
-            //ObjectTracking Item must  exist 
+            //ObjectTracking Item must NOT exist 
+
             if (ObjectTrackingItemExists())
             {
-                return true;
+
+                Task<TrackingModel> deleteTask = Task.Run(() => Repository.DeleteDocumentAsync(ServicePrincipalObject.Id, "ServicePrincipal"));
+                deleteTask.Wait();
+
+                return deleteTask.Result == null;
             }
             else
             {
-                //Create ObjectTracking item 
-
-                var now = DateTimeOffset.Now;
-
-                var objectModel = new TrackingModel<ServicePrincipalModel>
-                {
-                    CorrelationId = Context.CorrelationId,
-                    Created = now,
-                    LastUpdated = now,
-                    TypedEntity = SPModel,
-                };
-
-
-                Repository.GenerateId(objectModel);
-
-                Task<TrackingModel> deleteTask = Task.Run(() => Repository.UpsertDocumentAsync(objectModel));
-                deleteTask.Wait();
-
-                return deleteTask.Result.Id == ServicePrincipalObject.Id;
-                
+                return true;// Object does not exist
             }
         }
     }

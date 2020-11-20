@@ -235,15 +235,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _config = configBuilder.Build();
         }
 
-
-        //[Fact]
-        //public void FunctionsTestScaffolding()
-        //{
-        //    //TODO: This is basically scaffolding for the unit tests
-        //    //for our functions
-        //    Assert.True(true);
-        //}
-
         [Fact]
         public void FunctionEvaluateTestCase1()
         {
@@ -270,10 +261,15 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             //Validate Outcome and state after execution for Service Principal, Audit and ObjectTracking objects based on TestCase injected thru InputGenerator
             bool validServicePrincipal = servicePrincipalValidationManager.Validate();
 
+            Assert.True(validServicePrincipal, "Service Principal Validation");
+
             bool validAudit =  auditValidationManager.Validate();
+
+            Assert.True(validAudit, "Audit Validation");
 
             bool validObjectTracking =  objectTrackingValidationManager.Validate();
 
+            Assert.True(validObjectTracking, "Object Tracking Validation");
 
         }
 
@@ -309,11 +305,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             bool validAudit =  auditValidationManager.Validate();
 
-            Assert.True(validServicePrincipal, "Audit Validation");
+            Assert.True(validAudit, "Audit Validation");
 
             bool validObjectTracking =  objectTrackingValidationManager.Validate();
 
-            Assert.True(validServicePrincipal, "Object Tracking Validation");
+            Assert.True(validObjectTracking, "Object Tracking Validation");
 
 
         }
@@ -348,11 +344,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             bool validAudit =  auditValidationManager.Validate();
 
-            Assert.True(validServicePrincipal, "Audit Validation");
+            Assert.True(validAudit, "Audit Validation");
 
             bool validObjectTracking =  objectTrackingValidationManager.Validate();
 
-            Assert.True(validServicePrincipal, "Object Tracking Validation");
+            Assert.True(validObjectTracking, "Object Tracking Validation");
 
         }
 
@@ -387,11 +383,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             bool validAudit =  auditValidationManager.Validate();
 
-            Assert.True(validServicePrincipal, "Audit Validation");
+            Assert.True(validAudit, "Audit Validation");
 
             bool validObjectTracking =  objectTrackingValidationManager.Validate();
 
-            Assert.True(validServicePrincipal, "Object Tracking Validation");
+            Assert.True(validObjectTracking, "Object Tracking Validation");
 
          }
 
@@ -426,11 +422,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             bool validAudit =  auditValidationManager.Validate();
 
-            Assert.True(validServicePrincipal, "Audit Validation");
+            Assert.True(validAudit, "Audit Validation");
 
             bool validObjectTracking =  objectTrackingValidationManager.Validate();
 
-            Assert.True(validServicePrincipal, "Object Tracking Validation");
+            Assert.True(validObjectTracking, "Object Tracking Validation");
 
         }
 
@@ -465,11 +461,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             bool validAudit =  auditValidationManager.Validate();
 
-            Assert.True(validServicePrincipal, "Audit Validation");
+            Assert.True(validAudit, "Audit Validation");
 
             bool validObjectTracking =  objectTrackingValidationManager.Validate();
 
-            Assert.True(validServicePrincipal, "Object Tracking Validation");
+            Assert.True(validObjectTracking, "Object Tracking Validation");
 
         }
 
@@ -505,11 +501,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             bool validAudit =  auditValidationManager.Validate();
 
-            Assert.True(validServicePrincipal, "Audit Validation");
+            Assert.True(validAudit, "Audit Validation");
 
             bool validObjectTracking =  objectTrackingValidationManager.Validate();
 
-            Assert.True(validServicePrincipal, "Object Tracking Validation");
+            Assert.True(validObjectTracking, "Object Tracking Validation");
 
         }
 
@@ -544,11 +540,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             bool validAudit =  auditValidationManager.Validate();
 
-            Assert.True(validServicePrincipal, "Audit Validation");
+            Assert.True(validAudit, "Audit Validation");
 
             bool validObjectTracking =  objectTrackingValidationManager.Validate();
 
-            Assert.True(validServicePrincipal, "Object Tracking Validation");
+            Assert.True(validObjectTracking, "Object Tracking Validation");
 
         }
     }

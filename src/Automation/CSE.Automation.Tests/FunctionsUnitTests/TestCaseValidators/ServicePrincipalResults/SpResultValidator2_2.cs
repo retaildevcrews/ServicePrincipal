@@ -20,11 +20,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
         {
             var newServicePrincipalAsString = JsonConvert.SerializeObject(NewServicePrincipal);
 
-            List<string> targetQueueMessages = new List<string> () { "Revert to Last Known Good"};
+            List<string> targetQueueMessages = new List<string> () {"Update Notes from Owners", "Revert to Last Known Good"};
 
             bool messageNotFound = DoesMessageExistInUpdateQueue(targetQueueMessages);
 
-            return messageNotFound && SavedServicePrincipalAsString.Equals(newServicePrincipalAsString, StringComparison.InvariantCultureIgnoreCase);
+            return !messageNotFound && SavedServicePrincipalAsString.Equals(newServicePrincipalAsString, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

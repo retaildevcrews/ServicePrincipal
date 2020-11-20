@@ -32,12 +32,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
                 return false;
             }
 
-            var auditOwnerItems = getAuditItems.Result.Where(x => x.AttributeName == "Owners").ToList();
-            if (auditOwnerItems.Count() == 0)
-            {
-                return false;
-            }
-
             foreach (var auditEntry in auditNoteItems)
             {
                 bool typePass = (auditEntry.Type == AuditActionType.Fail);
@@ -48,20 +42,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
 
 
                 if (!typePass || !validReasonPass ||  !isNewAuditEntryPass)
-                {
-                    return false;
-                }
-            }
-
-            foreach (var auditEntry in auditOwnerItems)
-            {
-                bool typePass = (auditEntry.Type == AuditActionType.Fail);
-
-                //bool validReasonPass = (auditEntry.Reason == AuditCode.Fail_MissingOwners.Description());
-
-                bool isNewAuditEntryPass = auditEntry.Timestamp > SavedAuditEntry.Timestamp;
-
-                if (!typePass || !isNewAuditEntryPass)
                 {
                     return false;
                 }

@@ -24,7 +24,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
                                         NewObjectTracking.CorrelationId.Equals(Context.CorrelationId);
 
             bool updatedPass = NewObjectTracking.LastUpdated > SavedObjectTracking.LastUpdated &&
-                            NewObjectTracking.LastUpdated > NewObjectTracking.Created;//Different timestamp
+                            NewObjectTracking.LastUpdated == NewObjectTracking.Created;//Different timestamp
 
             return (objectExistsPass && validCorrelationIdPass && updatedPass);
         }
