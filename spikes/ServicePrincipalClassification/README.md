@@ -2,6 +2,16 @@
 
 ## Purpose
 
+Small script which enables users to export Service Principals from selected Azure Active Directory.
+
+Script will export Service Principals with classification metadata produced by following configurations contained in `./resources/`.
+
+`./resources/classification_mapping.json` is preconfigured to capture well known microsoft applications.
+
+`./resources/category_oobe_list.json` is preconfigured to categorize microsoft applications as Out Of Box Experience (OOBE) when their ApplicationId matches list of Service Principals created by default with a new Azure Active Directory resource.
+
+This script is expected to be part of an iterative and manual process to aid customers classifying Service Principals.
+
 ## Prerequisites
 
 - Install [Powershell](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.1)
