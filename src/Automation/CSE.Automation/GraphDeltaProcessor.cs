@@ -55,11 +55,6 @@ namespace CSE.Automation
 
             try
             {
-                if (req is null)
-                {
-                    throw new ArgumentNullException(nameof(req));
-                }
-
                 var result = await CommandDiscovery(discoveryMode, "HTTP", log).ConfigureAwait(false);
 
                 return hasRedirect
@@ -156,11 +151,6 @@ namespace CSE.Automation
             {
                 context.Activity.CommandSource = "QUEUE";
 
-                if (msg == null)
-                {
-                    throw new ArgumentNullException(nameof(msg));
-                }
-
                 await processor.Evaluate(context, command.Model).ConfigureAwait(false);
 
                 context.End();
@@ -198,11 +188,6 @@ namespace CSE.Automation
             try
             {
                 context.Activity.CommandSource = "QUEUE";
-
-                if (msg == null)
-                {
-                    throw new ArgumentNullException(nameof(msg));
-                }
 
                 var message = JsonConvert.DeserializeObject<QueueMessage<ServicePrincipalUpdateCommand>>(msg.AsString);
 
@@ -268,6 +253,7 @@ namespace CSE.Automation
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1801:Review unused parameters", Justification = "Necessary for Attribute Binding")]
         [FunctionName("Version")]
         public Task<IActionResult> Version([HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
         {
