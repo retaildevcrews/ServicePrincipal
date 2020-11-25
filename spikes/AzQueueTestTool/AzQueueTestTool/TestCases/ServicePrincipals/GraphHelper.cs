@@ -82,6 +82,21 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
             return true;
         }
 
+        internal static Dictionary<string,string> GetOwnersDisplayNameAndUserPrincipalNameKeyValuePair(ServicePrincipal spObject)
+        {
+            Dictionary<string, string> result = new Dictionary<string, string>();
+            if (spObject != null)
+            {
+                Task<IServicePrincipalOwnersCollectionWithReferencesPage> taskOwners = _graphClient.ServicePrincipals[$"{spObject.Id}"].Owners
+                                                                      .Request()
+                                                                      .GetAsync();
+                taskOwners.Wait();
+                result = taskOwners.Result.CurrentPage.Where(x => (x as User).UserPrincipalName != null).ToDictionary(x => (x as User).DisplayName, x => (x as User).UserPrincipalName);
+            }
+
+            return result;
+        }
+
         internal static void CreateAADUsersAsync(string userNamePattern, int count, int lowerLimit = 1)
         {
             var usersTasks = new List<Task>();
@@ -116,7 +131,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
             Console.WriteLine("User Object creation done, press a key to continue");
         }
 
-        private static string GetDomainName()
+        public static string GetDomainName()
         {
             Task<IGraphServiceDomainsCollectionPage> domains = _graphClient.Domains.Request().GetAsync();
 
@@ -164,6 +179,37 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                 return null;
             }
         }
+
+        internal static bool AreValidAADUsers(string spNotes)
+        {
+
+            List<string> spNotesAsList = spNotes.Split(';').ToList();
+
+            try
+            {
+                List<User> usersList = new List<User>();
+
+                Parallel.ForEach(spNotesAsList, userEmail =>
+                {
+                    var usersPage =  _graphClient.Users
+                    .Request()
+                    //.Filter($"startswith(userPrincipalName,'{userEmail}')")
+                    .Filter($"userPrincipalName eq '{userEmail}'")
+                    .GetAsync();
+
+                    usersList.AddRange(usersPage.Result);
+                });
+
+                return usersList.Count == usersList.Count;
+
+            }
+            catch (ServiceException ex)
+            {
+                Console.WriteLine($"Error Checking if AreValidAADUsers: {ex.Message}");
+                throw;
+            }
+        }
+
 
         internal static void ClearNotesField(List<ServicePrincipal> targetServicePrincipals)
         {

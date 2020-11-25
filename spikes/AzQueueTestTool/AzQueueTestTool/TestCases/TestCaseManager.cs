@@ -52,11 +52,14 @@ namespace AzQueueTestTool.TestCases
             {
                 rulesManager.ExecuteAllRules();
 
-                using (var queueServiceManager = new QueueServiceManager("evaluate", _queueSettings.StorageConnectionString))
+                if (_queueSettings.PushMessagesToQueueEvaluate)
                 {
-                    queueServiceManager.GenerateMessageForRulesAsync(rulesManager.RuleSetsList);
+                    using (var queueServiceManager = new QueueServiceManager("evaluate", _queueSettings.StorageConnectionString))
+                    {
+                        queueServiceManager.GenerateMessageForRulesAsync(rulesManager.RuleSetsList);
 
-                    LogFileName = queueServiceManager.LogFileName;
+                        LogFileName = queueServiceManager.LogFileName;
+                    }
                 }
             }
         }

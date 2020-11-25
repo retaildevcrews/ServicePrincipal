@@ -44,8 +44,8 @@ namespace AzQueueTestTool.TestCases.Rules
             //NOTE:  switch back to regular foreach if you want to get "GetNext(x)" in sequence 
             //However it will increase execution time by 50%
 
-            Parallel.ForEach(_spSettings.TargetTestCaseList, ruleSetName =>
-            //foreach (var ruleSetName in _spSettings.TargetTestCaseList)
+            //Parallel.ForEach(_spSettings.TargetTestCaseList, ruleSetName =>
+            foreach (var ruleSetName in _spSettings.TargetTestCaseList)
             {
                 string objectToInstantiate = $"AzQueueTestTool.TestCases.Rules.{ruleSetName}, AzQueueTestTool";
 
@@ -64,7 +64,7 @@ namespace AzQueueTestTool.TestCases.Rules
                 RuleSetsList.Add(instantiatedObject);
 
                 instantiatedObject.Execute();
-            });
+            }//);
 
             UpdateConsole($"Rules executed...");
         }
