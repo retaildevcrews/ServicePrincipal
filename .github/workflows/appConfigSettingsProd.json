@@ -10,6 +10,5 @@
     "SPDiscoverQueue": "discover",
     "SPEvaluateQueue": "evaluate",
     "SPUpdateQueue": "update",
-    "ScanLimit": "2000",
     "aadUpdateMode": "ReportOnly"
 }

@@ -5,9 +5,11 @@ environment=$1
 if [ $environment = 'prod' ];
 then
     configSettingsFile=".github/workflows/appConfigSettingsProd.json"
+	slotName = "${FUNCTION_APP_NAME}-prod"
 elif [ $environment = 'qa' ];
 then
     configSettingsFile=".github/workflows/appConfigSettingsQA.json"
+	slotName = "${FUNCTION_APP_NAME}-qa"
 else
     exit 1
 fi
@@ -25,5 +27,5 @@ do
     continue
   fi 
   echo "$line"
-  az functionapp config appsettings set --name ${FUNCTION_APP_NAME} --resource-group ${RESOURCE_GROUP_NAME} --settings "$line" > /dev/null 2>&1
+  az functionapp config appsettings set --name ${FUNCTION_APP_NAME} --resource-group ${RESOURCE_GROUP_NAME} --slot ${slotName} --settings "$line" > /dev/null 2>&1
 done
