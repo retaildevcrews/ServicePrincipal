@@ -48,19 +48,27 @@ resource "azurerm_function_app" "fn-default" {
 
   app_settings = {
     APPINSIGHTS_INSTRUMENTATIONKEY = azurerm_application_insights.svc-ppl-appi.instrumentation_key
+    FUNCTIONS_WORKER_RUNTIME       = "dotnet"
+    FUNCTIONS_EXTENSION_VERSION    = "~3"
+    FUNCTION_APP_EDIT_MODE              = "readonly"
+
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING =  data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
+    WEBSITE_CONTENTSHARE                =  "sp-funcn-dev-content"
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
+
     https_only                     = true
 
     DOCKER_REGISTRY_SERVER_URL          = "https://${var.ACR_URI}"
     DOCKER_REGISTRY_SERVER_USERNAME     = var.ACR_SP_ID
     DOCKER_REGISTRY_SERVER_PASSWORD     = var.ACR_SP_SECRET
     DOCKER_CUSTOM_IMAGE_NAME            = "${var.REPO}:latest"
-    WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
-    FUNCTION_APP_EDIT_MODE              = "readonly"
-    WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
-    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING =  data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
-    WEBSITE_CONTENTSHARE                =  "sp-funcn-dev-content"
     AUTH_TYPE     = "MI"
     KEYVAULT_NAME = azurerm_key_vault.kv.name
+
+    SPCosmosDatabase = var.DEV_DATABASE_NAME
+    SPDiscoverQueue = "discover"
+    SPEvaluateQueue = "evaluate"
+    SPUpdateQueue = "update"    
   }
 
   site_config {
@@ -69,32 +77,38 @@ resource "azurerm_function_app" "fn-default" {
 
 }
 
-resource "azurerm_app_service_slot" "service-slot-prod" {
-  name                = "prod"
+resource "azurerm_app_service_slot" "service-slot-staging" {
+  name                = "staging"
   app_service_name    = azurerm_function_app.fn-default.name
   location            = var.LOCATION
   resource_group_name = var.APP_RG_NAME
   app_service_plan_id = azurerm_app_service_plan.app-plan.id
   app_settings = {
-    SPCosmosDatabase = var.DEV_DATABASE_NAME
-    SPDiscoverQueue = "discover"
-    SPEvaluateQueue = "evaluate"
-    SPUpdateQueue = "update"
-  }
-}
+    APPINSIGHTS_INSTRUMENTATIONKEY = azurerm_application_insights.svc-ppl-appi.instrumentation_key
+    FUNCTIONS_WORKER_RUNTIME       = "dotnet"
+    FUNCTIONS_EXTENSION_VERSION    = "~3"
+    FUNCTION_APP_EDIT_MODE              = "readonly"
+
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING =  data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
+    WEBSITE_CONTENTSHARE                =  "sp-funcn-dev-content"
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
+
+    https_only                     = true
+
+    DOCKER_REGISTRY_SERVER_URL          = "https://${var.ACR_URI}"
+    DOCKER_REGISTRY_SERVER_USERNAME     = var.ACR_SP_ID
+    DOCKER_REGISTRY_SERVER_PASSWORD     = var.ACR_SP_SECRET
+    DOCKER_CUSTOM_IMAGE_NAME            = ""
+    AUTH_TYPE     = "MI"
+    KEYVAULT_NAME = azurerm_key_vault.kv.name
 
 
-resource "azurerm_app_service_slot" "service-slot-qa" {
-  name                = "qa"
-  app_service_name    = azurerm_function_app.fn-default.name
-  location            = var.LOCATION
-  resource_group_name = var.APP_RG_NAME
-  app_service_plan_id = azurerm_app_service_plan.app-plan.id
-  app_settings = {
+    # SLOT SPECIFIC SETTINGS
     SPCosmosDatabase = var.QA_DATABASE_NAME
     SPDiscoverQueue = "discoverqa"
     SPEvaluateQueue = "evaluateqa"
     SPUpdateQueue = "updateqa"
+    aadUpdateMode = "ReportOnly"
   }
 }
 # https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/data-sources/service_principal
