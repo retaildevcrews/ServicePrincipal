@@ -4,11 +4,11 @@ environment=$1
 
 if [ $environment = 'prod' ];
 then
-    configSettingsFile=".github/workflows/appConfigSettingsProd.json"
+  configSettingsFile=".github/workflows/appConfigSettingsProd.json"
 	slotName = "${FUNCTION_APP_NAME}-prod"
 elif [ $environment = 'qa' ];
 then
-    configSettingsFile=".github/workflows/appConfigSettingsQA.json"
+  configSettingsFile=".github/workflows/appConfigSettingsQA.json"
 	slotName = "${FUNCTION_APP_NAME}-qa"
 else
     exit 1
