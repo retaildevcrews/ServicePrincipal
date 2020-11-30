@@ -20,7 +20,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         // TODO: create real mocked class
         class MockUserGraphHelper : IGraphHelper<User>
         {
-            public Task<(GraphOperationMetrics, IEnumerable<User>)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string selectFields = null)
+            public Task<(GraphOperationMetrics, IEnumerable<User>)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string displayNamePatternFilter = null, string selectFields = null)
             {
                 throw new NotImplementedException();
             }

@@ -3,7 +3,7 @@
   "clientSecret": "",
   "tenantId": "",
 
-  "servicePrincipalPrefix": "sp-AzQueueTesting",
+  "displayNamePatternFilter": "sp-AzQueueTesting",
   "aadUserServicePrincipalPrefix": "user-AzQueueTesting",
 
   "TC1": "sp-AzQueueTesting-1",
