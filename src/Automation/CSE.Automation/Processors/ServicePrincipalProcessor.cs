@@ -139,7 +139,7 @@ namespace CSE.Automation.Processors
 
             // Perform the delta query against the Graph
             // var selectFields = new[] { "appId", "displayName", "notes", "additionalData" };
-            var servicePrincipalResult = await graphHelper.GetDeltaGraphObjects(context, config, settings.DisplayNamePatternFilter,/*string.Join(',', selectFields)*/ null).ConfigureAwait(false);
+            var servicePrincipalResult = await graphHelper.GetDeltaGraphObjects(context, config, settings.DisplayNamePatternFilter, /*string.Join(',', selectFields)*/ null).ConfigureAwait(false);
 
             var metrics = servicePrincipalResult.metrics;
             string updatedDeltaLink = metrics.AdditionalData;
