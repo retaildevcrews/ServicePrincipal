@@ -42,7 +42,7 @@ namespace CSE.Automation.Graph
             GraphClient = new GraphServiceClient(authProvider);
         }
 
-        public abstract Task<(GraphOperationMetrics metrics, IEnumerable<TEntity> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string selectFields = null);
+        public abstract Task<(GraphOperationMetrics metrics, IEnumerable<TEntity> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string displayNamePatternFilter = null, string selectFields = null);
         public abstract Task<TEntity> GetGraphObjectWithOwners(string id);
         public abstract Task PatchGraphObject(TEntity entity);
     }

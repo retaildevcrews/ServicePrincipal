@@ -18,7 +18,7 @@ namespace CSE.Automation.Interfaces
 {
     internal interface IGraphHelper<TEntity>
     {
-        Task<(GraphOperationMetrics metrics, IEnumerable<TEntity> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string selectFields = null);
+        Task<(GraphOperationMetrics metrics, IEnumerable<TEntity> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string displayNamePatternFilter = null, string selectFields = null);
         Task<TEntity> GetGraphObjectWithOwners(string id);
         Task PatchGraphObject(TEntity entity);
     }

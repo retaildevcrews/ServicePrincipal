@@ -160,7 +160,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
         private ServicePrincipalWrapper GetAADServicePrincipal(string spDisplayName, TestCase testCase, bool getWrapperWithoutPreconditionValidation = false)
         {
 
-            string servicePrincipalPrefix = _config["servicePrincipalPrefix"];
+            string servicePrincipalPrefix = _config["displayNamePatternFilter"];
             
 
             var servicePrincipalList = GraphHelper.GetAllServicePrincipals($"{servicePrincipalPrefix}").Result;
