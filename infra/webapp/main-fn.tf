@@ -5,6 +5,11 @@ data "azurerm_storage_account" "svc-ppl-storage-acc" {
   resource_group_name = var.APP_RG_NAME
 }
 
+# If you're authenticating using a Service Principal then it must have permissions 
+# to both Read and write all applications and Sign in and read user profile 
+# within the Windows Azure Active Directory API.
+
+
 
 output "STORAGE_ACCOUNT_DONE" {
   depends_on = [data.azurerm_storage_account.svc-ppl-storage-acc
@@ -41,6 +46,7 @@ resource "azurerm_function_app" "fn-default" {
   storage_account_access_key = data.azurerm_storage_account.svc-ppl-storage-acc.primary_access_key
   version                    = "~3"
   os_type                    = "linux"
+  https_only                 = true
 
   identity {
     type = "SystemAssigned"
@@ -56,7 +62,7 @@ resource "azurerm_function_app" "fn-default" {
     WEBSITE_CONTENTSHARE                =  "sp-funcn-dev-content"
     WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
 
-    https_only                     = true
+
 
     DOCKER_REGISTRY_SERVER_URL          = "https://${var.ACR_URI}"
     DOCKER_REGISTRY_SERVER_USERNAME     = var.ACR_SP_ID
@@ -65,17 +71,32 @@ resource "azurerm_function_app" "fn-default" {
     AUTH_TYPE     = "MI"
     KEYVAULT_NAME = azurerm_key_vault.kv.name
 
+    # SLOT SPECIFIC SETTINGS - THESE SHOULD BE OVERWRITTED WITH CD PIPELINE
+    SPStorageConnectionString = data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
     SPCosmosDatabase = var.DEV_DATABASE_NAME
     SPDiscoverQueue = "discover"
     SPEvaluateQueue = "evaluate"
-    SPUpdateQueue = "update"    
+    SPUpdateQueue = "update"   
+    SPConfigurationCollection = "Configuration"
+    SPObjectTrackingCollection = "ObjectTracking"
+    SPAuditCollection = "Audit"
+    SPActivityHistoryCollection = "ActivityHistory"
+
   }
 
   site_config {
     linux_fx_version = "DOCKER|${var.ACR_URI}/${var.REPO}:latest"
+    use_32_bit_worker_process = false
   }
 
 }
+
+
+# data "azuread_service_principal" "funcn-system-id" {
+#   depends_on   = [azurerm_function_app.fn-default]
+#   display_name = azurerm_function_app.fn-default.name
+# }
+
 
 resource "azurerm_app_service_slot" "service-slot-staging" {
   name                = "staging"
@@ -83,6 +104,16 @@ resource "azurerm_app_service_slot" "service-slot-staging" {
   location            = var.LOCATION
   resource_group_name = var.APP_RG_NAME
   app_service_plan_id = azurerm_app_service_plan.app-plan.id
+  https_only                 = true
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  site_config {
+    use_32_bit_worker_process = false
+  }
+
   app_settings = {
     APPINSIGHTS_INSTRUMENTATIONKEY = azurerm_application_insights.svc-ppl-appi.instrumentation_key
     FUNCTIONS_WORKER_RUNTIME       = "dotnet"
@@ -103,24 +134,25 @@ resource "azurerm_app_service_slot" "service-slot-staging" {
     KEYVAULT_NAME = azurerm_key_vault.kv.name
 
 
-    # SLOT SPECIFIC SETTINGS
+    # SLOT SPECIFIC SETTINGS - THESE SHOULD BE OVERWRITTED WITH CD PIPELINE
+    SPStorageConnectionString = data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
     SPCosmosDatabase = var.QA_DATABASE_NAME
     SPDiscoverQueue = "discoverqa"
     SPEvaluateQueue = "evaluateqa"
     SPUpdateQueue = "updateqa"
+    SPConfigurationCollection = "Configuration"
+    SPObjectTrackingCollection = "ObjectTracking"
+    SPAuditCollection = "Audit"
+    SPActivityHistoryCollection = "ActivityHistory"
     aadUpdateMode = "ReportOnly"
+    "AzureWebJobs.Discover.Disabled" = "False"
+    "AzureWebJobs.DiscoverDeltas.Disabled" = "True"
+    "AzureWebJobs.Evaluate.Disabled" = "False"
+    "AzureWebJobs.UpdateAAD.Disabled" = "True"
   }
 }
 # https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/data-sources/service_principal
 
-# If you're authenticating using a Service Principal then it must have permissions 
-# to both Read and write all applications and Sign in and read user profile 
-# within the Windows Azure Active Directory API.
-
-data "azuread_service_principal" "funcn-system-id" {
-  depends_on   = [azurerm_function_app.fn-default]
-  display_name = azurerm_function_app.fn-default.name
-}
 
 
 output "function_defaut_name" {
