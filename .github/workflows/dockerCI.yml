@@ -101,9 +101,11 @@ jobs:
       run: |        
         if [[ "${{ github.event_name }}" == "push" ]]
         then
+          az functionapp config container set -g serviceprincipal-rg-dev -n sp-funcn-dev --docker-custom-image-name "${ACR_REG_REPO_URL}:latest"
           .github/workflows/appConfigSettings.sh prod
         elif [[ "${{ github.event_name }}" == "pull_request" ]]
         then
+          az functionapp config container set -g serviceprincipal-rg-dev -n sp-funcn-dev --slot staging --docker-custom-image-name "${ACR_REG_REPO_URL}:${SEMANTIC_VERSION}"
           .github/workflows/appConfigSettings.sh qa
         fi
 
