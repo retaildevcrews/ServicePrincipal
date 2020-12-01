@@ -33,6 +33,8 @@ namespace CSE.Automation.Processors
 
     internal class ServicePrincipalProcessor : DeltaProcessorBase, IServicePrincipalProcessor
     {
+        public static string ConstDefaultConfigurationResourceName = "ServicePrincipalProcessorConfiguration";
+
         private readonly IGraphHelper<ServicePrincipal> graphHelper;
         private readonly ServicePrincipalProcessorSettings settings;
         private readonly IQueueServiceFactory queueServiceFactory;
@@ -40,6 +42,7 @@ namespace CSE.Automation.Processors
         private readonly IAuditService auditService;
         private readonly IActivityService activityService;
         private readonly IEnumerable<IModelValidator<ServicePrincipalModel>> validators;
+
 
         public ServicePrincipalProcessor(
             ServicePrincipalProcessorSettings settings,
@@ -67,7 +70,7 @@ namespace CSE.Automation.Processors
         public override int QueueRecordProcessThreshold => settings.QueueRecordProcessThreshold;
         public override Guid ConfigurationId => settings.ConfigurationId;
         public override ProcessorType ProcessorType => ProcessorType.ServicePrincipal;
-        protected override string DefaultConfigurationResourceName => "ServicePrincipalProcessorConfiguration";
+        protected override string DefaultConfigurationResourceName => ConstDefaultConfigurationResourceName;
 
         /// REQUESTDISCOVERY
         /// <summary>
