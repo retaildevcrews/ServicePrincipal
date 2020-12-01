@@ -73,6 +73,7 @@ resource "azurerm_function_app" "fn-default" {
 
     # SLOT SPECIFIC SETTINGS - THESE SHOULD BE OVERWRITTED WITH CD PIPELINE
     SPStorageConnectionString = data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
+    SPCosmosURL = var.COSMOS_URL
     SPCosmosDatabase = var.DEV_DATABASE_NAME
     SPDiscoverQueue = "discover"
     SPEvaluateQueue = "evaluate"
@@ -136,6 +137,7 @@ resource "azurerm_app_service_slot" "service-slot-staging" {
 
     # SLOT SPECIFIC SETTINGS - THESE SHOULD BE OVERWRITTED WITH CD PIPELINE
     SPStorageConnectionString = data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
+    SPCosmosURL = var.COSMOS_URL
     SPCosmosDatabase = var.QA_DATABASE_NAME
     SPDiscoverQueue = "discoverqa"
     SPEvaluateQueue = "evaluateqa"
