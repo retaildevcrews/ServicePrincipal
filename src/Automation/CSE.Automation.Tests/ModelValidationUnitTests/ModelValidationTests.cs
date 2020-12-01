@@ -7,16 +7,27 @@ using System.Collections.Generic;
 using FluentValidation.Results;
 using System.Linq;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using CSE.Automation.Validators;
 using CSE.Automation.Graph;
 using Microsoft.Graph;
 using System.Threading.Tasks;
 using CSE.Automation.Interfaces;
+using Microsoft.VisualStudio.TestPlatform.Utilities;
+using Newtonsoft.Json;
+using Xunit.Abstractions;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests
 {
     public class ModelValidationTests
     {
+        private readonly ITestOutputHelper output;
+
+        public ModelValidationTests(ITestOutputHelper output)
+        {
+            this.output = output;
+        }
+
         // TODO: create real mocked class
         class MockUserGraphHelper : IGraphHelper<User>
         {
@@ -50,19 +61,21 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             };
 
             var results = servicePrincipalValidator.Validate(servicePrincipal);
+            output.WriteLine(JsonConvert.SerializeObject(results, Formatting.Indented));
+
             Assert.False(results.IsValid);
             Assert.Contains(results.Errors, x => x.PropertyName == "Notes");
         }
 
         [Fact]
-        public void ServicePrinciapalModelValidate_ReturnsTrueIfValid()
+        public void ServicePrincipalModelValidate_ReturnsTrueIfValid()
         {
             var servicePrincipal = new ServicePrincipalModel
             {
                 AppId = "fake app id",
                 AppDisplayName = "fake app display name",
                 DisplayName = "fake display name",
-                Notes = "super fake note",
+                Notes = "email@domain.com",
                 Id = "fake id",
                 Created = new DateTime(2000, 1, 1),
                 Deleted = new DateTime(2001, 1, 1),
@@ -71,6 +84,8 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             };
 
             var results = servicePrincipalValidator.Validate(servicePrincipal);
+            output.WriteLine(JsonConvert.SerializeObject(results, Formatting.Indented));
+            
             Assert.True(results.IsValid);
             Assert.True(results.Errors.Count == 0);
         }
@@ -81,6 +96,8 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             var auditItem = new AuditEntry();
 
             var results = auditEntryValidator.Validate(auditItem);
+            output.WriteLine(JsonConvert.SerializeObject(results, Formatting.Indented));
+
             Assert.False(results.IsValid);
             Assert.Contains(results.Errors, x => x.PropertyName == "CorrelationId");
             Assert.Contains(results.Errors, x => x.PropertyName == "Type");
@@ -99,10 +116,12 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 Reason = "fake action reason",
                 AuditYearMonth = "qweradsf",
                 AttributeName = "asdf",
-                ExistingAttributeValue = "asdf"
+                ExistingAttributeValue = "asdf",
+                Timestamp = DateTimeOffset.Now
             };
 
             var results = auditEntryValidator.Validate(auditItem);
+            output.WriteLine(JsonConvert.SerializeObject(results, Formatting.Indented));
 
             Assert.True(results.IsValid);
             Assert.True(results.Errors.Count == 0);
