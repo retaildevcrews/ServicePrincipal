@@ -52,6 +52,25 @@ resource "azurerm_function_app" "fn-default" {
     type = "SystemAssigned"
   }
 
+  site_config {
+    linux_fx_version = "DOCKER|${var.ACR_URI}/${var.REPO}:latest"
+    use_32_bit_worker_process = false
+  }
+
+  # logs {
+  #     application_logs {
+  #         file_system_level = "Off"
+  #     }
+
+  #     http_logs {
+
+  #         file_system {
+  #             retention_in_days = 5
+  #             retention_in_mb   = 35
+  #         }
+  #     }
+  # }
+
   app_settings = {
     APPINSIGHTS_INSTRUMENTATIONKEY = azurerm_application_insights.svc-ppl-appi.instrumentation_key
     FUNCTIONS_WORKER_RUNTIME       = "dotnet"
@@ -85,10 +104,6 @@ resource "azurerm_function_app" "fn-default" {
 
   }
 
-  site_config {
-    linux_fx_version = "DOCKER|${var.ACR_URI}/${var.REPO}:latest"
-    use_32_bit_worker_process = false
-  }
 
 }
 
@@ -113,6 +128,20 @@ resource "azurerm_app_service_slot" "service-slot-staging" {
 
   site_config {
     use_32_bit_worker_process = false
+  }
+
+  logs {
+      application_logs {
+          file_system_level = "Off"
+      }
+
+      http_logs {
+
+          file_system {
+              retention_in_days = 5
+              retention_in_mb   = 35
+          }
+      }
   }
 
   app_settings = {
