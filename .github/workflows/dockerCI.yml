@@ -45,7 +45,8 @@ jobs:
 
     - name: Run Unit Tests
       run: |
-        echo "RUN UNIT TESTS HERE"
+        cd src/Automation
+        dotnet test /p:CollectCoverage=true /p:CoverletOutput="./TestResults/"
 
     - name: Calculate Version
       run: |
