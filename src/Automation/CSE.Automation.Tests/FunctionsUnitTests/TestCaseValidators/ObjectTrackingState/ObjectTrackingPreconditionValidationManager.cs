@@ -4,18 +4,18 @@ using System.Text;
 using CSE.Automation.DataAccess;
 using CSE.Automation.Model;
 using Microsoft.Graph;
-using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGenerator;
+using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases.TestCaseCollection;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrackingState
 {
     class ObjectTrackingPreconditionValidationManager : IDisposable
     {
 
-        private readonly InputGenerator _inputGenerator;
+        private readonly IInputGenerator _inputGenerator;
         private readonly ObjectTrackingRepository _objectTrackingRepository;
         private readonly ActivityContext _activityContext;
 
-        public ObjectTrackingPreconditionValidationManager(InputGenerator inputGenerator, ObjectTrackingRepository objectTrackingRepository, ActivityContext activityContext)
+        public ObjectTrackingPreconditionValidationManager(IInputGenerator inputGenerator, ObjectTrackingRepository objectTrackingRepository, ActivityContext activityContext)
         {
             _inputGenerator = inputGenerator;
             _objectTrackingRepository = objectTrackingRepository;
@@ -27,9 +27,8 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
             ServicePrincipal servicePrincipal = _inputGenerator.GetServicePrincipal();
             ServicePrincipalModel servicePrincipalModel = _inputGenerator.GetServicePrincipalModel();
 
-            TestCase testCase = _inputGenerator.TestCaseId;
 
-            string objectStateDefinitionClassName = testCase.GetObjectStateDefinition();
+            string objectStateDefinitionClassName = _inputGenerator.TestCaseCollection.GetObjectStateDefinition( _inputGenerator.TestCaseId);  //testCase.GetObjectStateDefinition();
 
             string objectToInstantiate = $"CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrackingState.{objectStateDefinitionClassName}, CSE.Automation.Tests";
 

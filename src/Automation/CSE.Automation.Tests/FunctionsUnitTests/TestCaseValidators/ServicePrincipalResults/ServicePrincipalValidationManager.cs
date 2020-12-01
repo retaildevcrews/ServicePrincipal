@@ -9,19 +9,18 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 {
     class ServicePrincipalValidationManager : IDisposable, IResultsManager
     {
-        private InputGenerator _inputGenerator;
+        private IInputGenerator _inputGenerator;
 
         private string _savedServicePrincipalAsString;
 
         private readonly ActivityContext _activityContext;
 
-        public ServicePrincipalValidationManager(InputGenerator inputGenerator, ActivityContext activityContext)
+        public ServicePrincipalValidationManager(IInputGenerator inputGenerator, ActivityContext activityContext)
         {
             _inputGenerator = inputGenerator;
             _activityContext = activityContext;
             SaveState();
         }
-
 
         public void SaveState()
         {
@@ -30,7 +29,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
         public bool Validate()
         {
-            string resultValidatorClassName=  _inputGenerator.TestCaseId.GetSpValidator();
+            string resultValidatorClassName = _inputGenerator.TestCaseCollection.GetSpValidator(_inputGenerator.TestCaseId);//   _inputGenerator.TestCaseId.GetSpValidator();
             string objectToInstantiate = $"CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalResults.{resultValidatorClassName}, CSE.Automation.Tests";
 
             var objectType = Type.GetType(objectToInstantiate);

@@ -18,12 +18,13 @@ using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrackingR
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResults;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalResults;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators;
-using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGenerator;
+using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases.TestCaseCollection;
 using System.Runtime.CompilerServices;
 using CSE.Automation.Validators;
 using CSE.Automation.KeyVault;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.DataAccess;
 using System.Reflection;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests
 {
@@ -239,11 +240,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         [Fact]
         public void FunctionEvaluateTestCase1()
         {
-            TestCase thisTestCase = TestCase.TC1;
+            using var testCaseCollection = new EvaluateTestCaseCollection();
+
+            TestCase thisTestCase = testCaseCollection.TC1;
 
             using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new InputGenerator(_config, activityContext, thisTestCase);
+            using var inputGenerator = new EvaluateInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
 
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
@@ -278,13 +281,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         [Fact]
         public void FunctionEvaluateTestCase2()
         {
+            using var testCaseCollection = new EvaluateTestCaseCollection();
 
-            TestCase thisTestCase = TestCase.TC2;
+            TestCase thisTestCase = testCaseCollection.TC2;
 
             using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new InputGenerator(_config, activityContext, thisTestCase);
-
+            using var inputGenerator = new EvaluateInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
 
@@ -318,11 +321,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         [Fact]
         public void FunctionEvaluateTestCase2_2()
         {
-            TestCase thisTestCase = TestCase.TC2_2;
+            using var testCaseCollection = new EvaluateTestCaseCollection();
+
+            TestCase thisTestCase = testCaseCollection.TC2_2;
 
             using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new InputGenerator(_config, activityContext, thisTestCase);
+            using var inputGenerator = new EvaluateInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
 
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
@@ -354,14 +359,15 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
-        public void FunctionEvaluateTestCase3() 
+        public void FunctionEvaluateTestCase3()
         {
-            TestCase thisTestCase = TestCase.TC3;
+            using var testCaseCollection = new EvaluateTestCaseCollection();
+
+            TestCase thisTestCase = testCaseCollection.TC3;
 
             using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new InputGenerator(_config, activityContext, thisTestCase);
-
+            using var inputGenerator = new EvaluateInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
 
@@ -390,17 +396,18 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             Assert.True(validObjectTracking, "Object Tracking Validation");
 
-         }
+        }
 
         [Fact]
         public void FunctionEvaluateTestCase3_2()
         {
-            TestCase thisTestCase = TestCase.TC3_2;
+            using var testCaseCollection = new EvaluateTestCaseCollection();
+
+            TestCase thisTestCase = testCaseCollection.TC3_2;
 
             using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new InputGenerator(_config, activityContext, thisTestCase);
-
+            using var inputGenerator = new EvaluateInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
 
@@ -434,12 +441,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         [Fact]
         public void FunctionEvaluateTestCase4()
         {
-            TestCase thisTestCase = TestCase.TC4;
+            using var testCaseCollection = new EvaluateTestCaseCollection();
+
+            TestCase thisTestCase = testCaseCollection.TC4;
 
             using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new InputGenerator(_config, activityContext, thisTestCase);
-
+            using var inputGenerator = new EvaluateInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
 
@@ -474,11 +482,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         [Fact]
         public void FunctionEvaluateTestCase5()
         {
-            TestCase thisTestCase = TestCase.TC5;
+            using var testCaseCollection = new EvaluateTestCaseCollection();
+
+            TestCase thisTestCase = testCaseCollection.TC5;
 
             using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new InputGenerator(_config, activityContext, thisTestCase);
+            using var inputGenerator = new EvaluateInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
 
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
@@ -513,13 +523,15 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         [Fact]
         public void FunctionEvaluateTestCase6()
         {
-            TestCase thisTestCase = TestCase.TC6;
+            using var testCaseCollection = new EvaluateTestCaseCollection();
+
+            TestCase thisTestCase = testCaseCollection.TC6;
 
             using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new InputGenerator(_config, activityContext, thisTestCase);
+            using var inputGenerator = new EvaluateInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
 
-
+           
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
 
             //Create Validators 
@@ -546,6 +558,49 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             bool validObjectTracking =  objectTrackingValidationManager.Validate();
 
             Assert.True(validObjectTracking, "Object Tracking Validation");
+
+        }
+
+        [Fact]
+        public void FunctionDiscoverTestCase1()
+        {
+            using var testCaseCollection = new DiscoverTestCaseCollection();
+
+            TestCase thisTestCase = testCaseCollection.TC1;
+
+            using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
+
+            using var inputGenerator = new DiscoverInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
+
+
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(DiscoveryMode.FullSeed, $"Test Case [{thisTestCase}]"));
+
+            ////Create Validators 
+            //using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext);
+
+            //using var objectTrackingValidationManager = new ObjectTrackingValidationManager(inputGenerator, _objectRespository, activityContext);
+
+            //using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespositoryTest, activityContext);
+
+
+            //Task thisTaks = Task.Run (() => _graphDeltaProcessor.Evaluate(cloudQueueMessage, _graphLogger));
+            //thisTaks.Wait();
+
+            ////Validate Outcome and state after execution for Service Principal, Audit and ObjectTracking objects based on TestCase injected thru InputGenerator
+
+            //bool validServicePrincipal = servicePrincipalValidationManager.Validate();
+
+            //Assert.True(validServicePrincipal, "Service Principal Validation");
+
+            //bool validAudit =  auditValidationManager.Validate();
+
+            //Assert.True(validAudit, "Audit Validation");
+
+            //bool validObjectTracking =  objectTrackingValidationManager.Validate();
+
+            //Assert.True(validObjectTracking, "Object Tracking Validation");
+
+            Assert.True(false);
 
         }
     }

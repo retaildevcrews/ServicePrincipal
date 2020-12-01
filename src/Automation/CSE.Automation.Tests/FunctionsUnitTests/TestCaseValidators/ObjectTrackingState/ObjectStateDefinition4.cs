@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 using CSE.Automation.DataAccess;
 using CSE.Automation.Model;
 using Microsoft.Graph;
-using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGenerator;
+using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases.TestCaseCollection;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrackingState
 {
     internal class ObjectStateDefinition4 : ObjectStateDefinitionBase, IObjectStateDefinition
     {
         public ObjectStateDefinition4(ServicePrincipal servicePrincipal, ServicePrincipalModel servicePrincipalModel,
-                                    ObjectTrackingRepository objectTrackingRepository, ActivityContext activityContext, InputGenerator inputGenerator) 
+                                    ObjectTrackingRepository objectTrackingRepository, ActivityContext activityContext, IInputGenerator inputGenerator) 
                                     : base(servicePrincipal, servicePrincipalModel, objectTrackingRepository, activityContext, inputGenerator)
         {
         }
