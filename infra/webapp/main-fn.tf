@@ -77,6 +77,7 @@ resource "azurerm_function_app" "fn-default" {
     FUNCTIONS_EXTENSION_VERSION    = "~3"
     FUNCTION_APP_EDIT_MODE              = "readonly"
 
+    AzureWebJobsStorage = data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
     WEBSITE_CONTENTAZUREFILECONNECTIONSTRING =  data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
     WEBSITE_CONTENTSHARE                =  "sp-funcn-dev-content"
     WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
@@ -97,6 +98,7 @@ resource "azurerm_function_app" "fn-default" {
     SPDiscoverQueue = "discover"
     SPEvaluateQueue = "evaluate"
     SPUpdateQueue = "update"   
+    SPDeltaDiscoverySchedule = "0 */30 * * * *"    
     SPConfigurationCollection = "Configuration"
     SPObjectTrackingCollection = "ObjectTracking"
     SPAuditCollection = "Audit"
@@ -120,7 +122,7 @@ resource "azurerm_app_service_slot" "service-slot-staging" {
   location            = var.LOCATION
   resource_group_name = var.APP_RG_NAME
   app_service_plan_id = azurerm_app_service_plan.app-plan.id
-  https_only                 = true
+  https_only          = true
 
   identity {
     type = "SystemAssigned"
@@ -150,21 +152,20 @@ resource "azurerm_app_service_slot" "service-slot-staging" {
     FUNCTIONS_EXTENSION_VERSION    = "~3"
     FUNCTION_APP_EDIT_MODE              = "readonly"
 
-    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING =  data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
+    AzureWebJobsStorage = data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING = data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
     WEBSITE_CONTENTSHARE                =  "sp-funcn-dev-content"
     WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
-
-    https_only                     = true
 
     DOCKER_REGISTRY_SERVER_URL          = "https://${var.ACR_URI}"
     DOCKER_REGISTRY_SERVER_USERNAME     = var.ACR_SP_ID
     DOCKER_REGISTRY_SERVER_PASSWORD     = var.ACR_SP_SECRET
-    DOCKER_CUSTOM_IMAGE_NAME            = ""
+    DOCKER_CUSTOM_IMAGE_NAME            = "${var.REPO}:latest" # will be overwritten by CICD pipeline
     AUTH_TYPE     = "MI"
     KEYVAULT_NAME = azurerm_key_vault.kv.name
 
 
-    # SLOT SPECIFIC SETTINGS - THESE SHOULD BE OVERWRITTED WITH CD PIPELINE
+    # SLOT SPECIFIC SETTINGS - THESE SHOULD BE OVERWRITTED WITH CICD PIPELINE
     SPStorageConnectionString = data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
     SPCosmosURL = var.COSMOS_URL
     SPCosmosDatabase = var.QA_DATABASE_NAME
@@ -176,6 +177,7 @@ resource "azurerm_app_service_slot" "service-slot-staging" {
     SPAuditCollection = "Audit"
     SPActivityHistoryCollection = "ActivityHistory"
     aadUpdateMode = "ReportOnly"
+    SPDeltaDiscoverySchedule = "0 */30 * * * *"    
     "AzureWebJobs.Discover.Disabled" = "False"
     "AzureWebJobs.DiscoverDeltas.Disabled" = "True"
     "AzureWebJobs.Evaluate.Disabled" = "False"
