@@ -96,7 +96,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
 
-        [Fact]
+        [Fact(Skip = "Needs Updating")]
         public async Task GetDeltaGraphObjects_GetAll()
         {
             using (var serviceScope = host.Services.CreateScope())
