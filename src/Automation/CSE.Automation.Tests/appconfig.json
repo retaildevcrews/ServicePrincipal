@@ -1,4 +1,5 @@
 {
+  "displayNamePatternFilter": "sp-AzQueueTesting",
   "servicePrincipalPrefix": "sp-AzQueueTesting",
   "aadUserServicePrincipalPrefix": "user-AzQueueTesting",
 

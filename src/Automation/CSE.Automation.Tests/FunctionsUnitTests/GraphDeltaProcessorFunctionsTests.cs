@@ -172,7 +172,8 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 ConfigurationId = _config["configId"].ToGuid(Guid.Parse("02a54ac9-441e-43f1-88ee-fde420db2559")),
                 VisibilityDelayGapSeconds = _config["visibilityDelayGapSeconds"].ToInt(8),
                 QueueRecordProcessThreshold = _config["queueRecordProcessThreshold"].ToInt(10),
-                AADUpdateMode = _config["aadUpdateMode"].As<UpdateMode>(UpdateMode.Update)
+                AADUpdateMode = _config["aadUpdateMode"].As<UpdateMode>(UpdateMode.Update),
+                DisplayNamePatternFilter = _config["displayNamePatternFilter"]
             };
 
 

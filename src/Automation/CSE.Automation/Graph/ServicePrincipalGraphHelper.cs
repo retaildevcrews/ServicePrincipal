@@ -22,7 +22,7 @@ namespace CSE.Automation.Graph
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Console.WriteLine will be changed to logs")]
-        public override async Task<(GraphOperationMetrics metrics, IEnumerable<ServicePrincipal> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string selectFields = null)
+        public override async Task<(GraphOperationMetrics metrics, IEnumerable<ServicePrincipal> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string displayNamePatternFilter = null, string selectFields = null)
         {
             var metrics = new GraphOperationMetrics();
 
@@ -44,9 +44,12 @@ namespace CSE.Automation.Graph
                 logger.LogInformation("Seeding Service Principal objects from Graph...");
                 metrics.Name = "Full Seed";
 
+                string filterString = string.IsNullOrEmpty(displayNamePatternFilter) ? string.Empty : $"startswith(displayName,'{displayNamePatternFilter}')";
+
                 servicePrincipalCollectionPage = await GraphClient.ServicePrincipals
                 .Delta()
                 .Request()
+                .Filter(filterString)
                 .GetAsync()
                 .ConfigureAwait(false);
             }

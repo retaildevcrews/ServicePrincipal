@@ -23,7 +23,6 @@ namespace CSE.Automation.Processors
         private string evaluateQueueName;
         private string updateQueueName;
         private string discoverQueueName;
-
         public ServicePrincipalProcessorSettings(ISecretClient secretClient)
             : base(secretClient) { }
 
@@ -56,6 +55,8 @@ namespace CSE.Automation.Processors
         }
 
         public UpdateMode AADUpdateMode { get; set; }
+
+        public string DisplayNamePatternFilter { get; set; }
 
         public override void Validate()
         {
