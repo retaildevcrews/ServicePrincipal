@@ -129,6 +129,7 @@ resource "azurerm_app_service_slot" "service-slot-staging" {
   }
 
   site_config {
+    linux_fx_version = "DOCKER|${var.ACR_URI}/${var.REPO}:latest"    
     use_32_bit_worker_process = false
   }
 
