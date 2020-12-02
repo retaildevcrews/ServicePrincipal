@@ -106,6 +106,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 
         }
 
+        protected bool ValidateDiscoverServicePrincipalPrecondition(TestCaseCollection.TestCase testCase)
+        {
+            using var stateValidationManager = new ServicePrincipalPreconditionValidationManager(TestCaseCollection);
+
+            return stateValidationManager.DiscoverValidatePrecondition(_config["displayNamePatternFilter"],  testCase);
+
+        }
         private void InitGraphHelper()
         {
             if (_initialized)

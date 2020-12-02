@@ -27,7 +27,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
       
         internal DiscoverInputGenerator(IConfigurationRoot config, ActivityContext activityContext, ITestCaseCollection testCaseCollection, TestCase testCaseId) : base(config, activityContext, testCaseCollection, testCaseId)
         {
-
+            ValidateDiscoverServicePrincipalPrecondition(testCaseId);// the underline logic will throw an exception if fails to validate precondition for the given test case.
         }
 
         public byte[] GetTestMessageContent(DiscoveryMode discoveryMode, string source)

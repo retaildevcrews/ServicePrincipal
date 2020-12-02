@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalStates.Discover;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases;
 using Microsoft.Graph;
 using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases.TestCaseCollection;
@@ -46,6 +47,20 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
             return instantiatedObject.GetNewServicePrincipalWrapper();
         }
 
+        public bool DiscoverValidatePrecondition(string displayNamePatternFilter, TestCaseCollection.TestCase testCase)
+        {
+            string stateDefinitionClassName= _testCaseCollection.GetSpStateDefinition(testCase);
+
+            string objectToInstantiate = $"CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalStates.Discover.{stateDefinitionClassName}, CSE.Automation.Tests";
+
+            var objectType = Type.GetType(objectToInstantiate);
+
+            object[] args = { displayNamePatternFilter, testCase};
+
+            var instantiatedObject = Activator.CreateInstance(objectType, args) as IDiscoverSpStateDefinition;
+
+            return instantiatedObject.Validate();
+        }
 
         public void Dispose()
         {

@@ -15,11 +15,14 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
         private readonly ActivityContext _activityContext;
 
-        public ServicePrincipalValidationManager(IInputGenerator inputGenerator, ActivityContext activityContext)
+        public ServicePrincipalValidationManager(IInputGenerator inputGenerator, ActivityContext activityContext, bool saveCurrentState = true)
         {
             _inputGenerator = inputGenerator;
             _activityContext = activityContext;
-            SaveState();
+            if (saveCurrentState)
+            {
+                SaveState();
+            }
         }
 
         public void SaveState()
