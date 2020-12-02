@@ -98,19 +98,28 @@ jobs:
           PR_NUMBER=$(echo "${{ github.ref }}" | awk 'BEGIN { FS = "/" } ; { print $3 }')
           VERSION_SUFFIX="PR${PR_NUMBER}-${GIT_HASH}"
         fi
+        
         SEMANTIC_VERSION="${VERSION_PREFIX}-${VERSION_SUFFIX}"
-        docker tag temp "${ACR_REG_REPO_URL}:${SEMANTIC_VERSION}"
+
+        IMAGE_NAME="${ACR_REG_REPO_URL}:${SEMANTIC_VERSION}"
+        echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
+
+        docker tag temp "${IMAGE_NAME}"
         docker push ${ACR_REG_REPO_URL}
 
     - name: Deploy Application Settings 
       run: |        
         if [[ "${{ github.event_name }}" == "push" ]]
-        then
-          az functionapp config container set -g serviceprincipal-rg-dev -n sp-funcn-dev --docker-custom-image-name "${ACR_REG_REPO_URL}:latest"
+        then        
           .github/workflows/appConfigSettings.sh prod
         elif [[ "${{ github.event_name }}" == "pull_request" ]]
-        then
-          az functionapp config container set -g serviceprincipal-rg-dev -n sp-funcn-dev --slot staging --docker-custom-image-name "${ACR_REG_REPO_URL}:${SEMANTIC_VERSION}"
+        then          
+          
+          echo "Setting STAGING docker image to ${IMAGE_NAME}"
+
+          az functionapp config container set -g serviceprincipal-rg-dev -n sp-funcn-dev --slot staging --docker-custom-image-name $IMAGE_NAME
+          az functionapp config appsettings set -g serviceprincipal-rg-dev -n sp-funcn-dev --slot staging --settings "DOCKER_CUSTOM_IMAGE_NAME=${IMAGE_NAME}"  
+
           .github/workflows/appConfigSettings.sh qa
         fi
 
