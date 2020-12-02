@@ -3,7 +3,7 @@ name: Docker CI
 on:
   push:
     branches:
-      - jkeane/CICD
+      - main
 
     paths-ignore:
       - 'docs/**'
