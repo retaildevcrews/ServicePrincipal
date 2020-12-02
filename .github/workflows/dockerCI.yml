@@ -46,7 +46,7 @@ jobs:
     - name: Run Unit Tests
       run: |
         cd src/Automation
-        dotnet test /p:CollectCoverage=true /p:CoverletOutput="./TestResults/"
+        dotnet test --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed"        
 
     - name: Calculate Version
       run: |
