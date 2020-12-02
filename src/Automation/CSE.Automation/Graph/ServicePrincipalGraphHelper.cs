@@ -69,7 +69,7 @@ namespace CSE.Automation.Graph
             logger.LogDebug($"\tDiscovered {servicePrincipalCollectionPage.CurrentPage.Count} Service Principals");
 
             metrics.Considered = servicePrincipalList.Count;
-            while (servicePrincipalCollectionPage.NextPageRequest != null)
+            while (servicePrincipalCollectionPage.NextPageRequest != null && servicePrincipalCollectionPage.CurrentPage.Count != 0)
             {
                 servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
 
