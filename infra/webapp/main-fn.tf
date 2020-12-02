@@ -153,6 +153,7 @@ resource "azurerm_app_service_slot" "service-slot-staging" {
     FUNCTION_APP_EDIT_MODE              = "readonly"
 
     AzureWebJobsStorage = data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
+    #AzureWebJobsDashboard = data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
     WEBSITE_CONTENTAZUREFILECONNECTIONSTRING = data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
     WEBSITE_CONTENTSHARE                =  "sp-funcn-dev-content"
     WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
