@@ -56,8 +56,22 @@ resource "azurerm_key_vault_access_policy" "fn-default-pol" {
   depends_on = [azurerm_function_app.fn-default]
 
   key_vault_id = azurerm_key_vault.kv.id
-  tenant_id    = var.TENANT_ID # this access policy will get the name of TenantID -- [svc_ppl_Name]
-  object_id    = data.azuread_service_principal.funcn-system-id.id
+  tenant_id    = var.TENANT_ID 
+  object_id    = azurerm_function_app.fn-default.identity[0].principal_id 
+
+  secret_permissions = [
+    "Get",
+    "List",
+    "Set"
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "fn-staging-slot-policy" {
+  depends_on = [ azurerm_app_service_slot.service-slot-staging ]
+
+  key_vault_id = azurerm_key_vault.kv.id
+  tenant_id    = var.TENANT_ID 
+  object_id    = azurerm_app_service_slot.service-slot-staging.identity[0].principal_id 
 
   secret_permissions = [
     "Get",

@@ -7,9 +7,8 @@
     "SPObjectTrackingCollection": "ObjectTracking",
     "SPActivityHistoryCollection": "ActivityHistory",
     "SPDeltaDiscoverySchedule": "0 */30 * * * *",
-    "SPDiscoverQueue": "discover",
-    "SPEvaluateQueue": "evaluate",
-    "SPUpdateQueue": "update",
-    "ScanLimit": "2000",
+    "SPDiscoverQueue": "discoverqa",
+    "SPEvaluateQueue": "evaluateqa",
+    "SPUpdateQueue": "updateqa",
     "aadUpdateMode": "ReportOnly"
 }
