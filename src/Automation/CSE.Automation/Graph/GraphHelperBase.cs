@@ -24,7 +24,7 @@ namespace CSE.Automation.Graph
         protected readonly GraphHelperSettings settings;
         protected IAuditService auditService;
 
-        protected GraphHelperBase(GraphHelperSettings settings, IAuditService auditService, ILogger logger, IGraphServiceClient graphClient)
+        protected GraphHelperBase(GraphHelperSettings settings, IAuditService auditService, IGraphServiceClient graphClient, ILogger logger)
         {
             this.settings = settings;
             this.auditService = auditService;
