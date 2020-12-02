@@ -16,8 +16,8 @@ namespace CSE.Automation.Graph
 {
     internal class ServicePrincipalGraphHelper : GraphHelperBase<ServicePrincipal>
     {
-        public ServicePrincipalGraphHelper(GraphHelperSettings settings, IAuditService auditService, ILogger<ServicePrincipalGraphHelper> logger)
-                : base(settings, auditService, logger)
+        public ServicePrincipalGraphHelper(GraphHelperSettings settings, IAuditService auditService, ILogger<ServicePrincipalGraphHelper> logger, IGraphServiceClient graphClient)
+                : base(settings, auditService, logger, graphClient)
         {
         }
 
