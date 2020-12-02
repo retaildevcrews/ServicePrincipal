@@ -3,7 +3,7 @@ name: Docker CI
 on:
   push:
     branches:
-      - jkeane/CICD
+      - main
 
     paths-ignore:
       - 'docs/**'
@@ -16,7 +16,7 @@ on:
   pull_request:
     types: [ opened, reopened, synchronize ]
     branches:
-      - jkeane/CICD
+      - main
 
     paths-ignore:
     - 'docs/**'
