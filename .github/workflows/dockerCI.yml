@@ -98,8 +98,9 @@ jobs:
           PR_NUMBER=$(echo "${{ github.ref }}" | awk 'BEGIN { FS = "/" } ; { print $3 }')
           VERSION_SUFFIX="PR${PR_NUMBER}-${GIT_HASH}"
         fi
-        SEMANTIC_VERSION="${VERSION_PREFIX}-${VERSION_SUFFIX}"
-        docker tag temp "${ACR_REG_REPO_URL}:${SEMANTIC_VERSION}"
+        export SEMANTIC_VERSION="${VERSION_PREFIX}-${VERSION_SUFFIX}"
+        export IMAGE_NAME="${ACR_REG_REPO_URL}:${SEMANTIC_VERSION}"
+        docker tag temp "${IMAGE_NAME}"
         docker push ${ACR_REG_REPO_URL}
 
     - name: Deploy Application Settings 
@@ -109,7 +110,7 @@ jobs:
           .github/workflows/appConfigSettings.sh prod
         elif [[ "${{ github.event_name }}" == "pull_request" ]]
         then          
-          IMAGE_NAME="${ACR_REG_REPO_URL}:${SEMANTIC_VERSION}"
+          
           echo "Setting STAGING docker image to ${IMAGE_NAME}"
 
           az functionapp config container set -g serviceprincipal-rg-dev -n sp-funcn-dev --slot staging --docker-custom-image-name $IMAGE_NAME
