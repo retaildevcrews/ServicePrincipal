@@ -43,7 +43,6 @@ namespace CSE.Automation.Processors
         private readonly IActivityService activityService;
         private readonly IEnumerable<IModelValidator<ServicePrincipalModel>> validators;
 
-
         public ServicePrincipalProcessor(
             ServicePrincipalProcessorSettings settings,
             IGraphHelper<ServicePrincipal> graphHelper,
