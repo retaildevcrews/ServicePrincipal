@@ -72,7 +72,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
   ""runState"": ""seedOnly"",
   ""lastDeltaRun"": """",
   ""lastSeedTime"": """",
-  ""description"": ""Descriptive Text"",
+  ""description"": """",
   ""configType"": ""ServicePrincipal""
 }";
             return JsonConvert.DeserializeObject<ProcessorConfiguration>(contents);
