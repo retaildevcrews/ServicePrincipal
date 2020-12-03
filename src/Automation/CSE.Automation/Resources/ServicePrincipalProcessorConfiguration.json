@@ -4,5 +4,6 @@
   "runState": "seedAndRun",
   "lastDeltaRun": "",
   "lastSeedTime": "",
+  "description": "Descriptive Text",
   "configType": "ServicePrincipal"
 }
