@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using CSE.Automation.Model;
-using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGenerator;
+using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases.TestCaseCollection;
 using CSE.Automation.Extensions;
 using Microsoft.Graph;
 using CSE.Automation.DataAccess;

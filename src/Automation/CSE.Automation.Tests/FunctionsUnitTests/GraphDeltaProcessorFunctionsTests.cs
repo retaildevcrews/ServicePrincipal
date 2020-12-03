@@ -133,7 +133,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 .AddScoped<ILogger<UserGraphHelper>>(x => _userGraphLogger)
 
                 .AddScoped<IAuditService>(x => _auditService)
-
+                .AddScoped<IGraphServiceClient, GraphClient>()
                 .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>()
                 .AddScoped<IGraphHelper<User>, UserGraphHelper>()
                 .AddScoped<IModelValidator<GraphModel>, GraphModelValidator>()

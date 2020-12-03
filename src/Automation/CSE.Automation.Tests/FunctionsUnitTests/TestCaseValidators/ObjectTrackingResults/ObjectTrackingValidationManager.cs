@@ -11,13 +11,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
 {
     internal class ObjectTrackingValidationManager : IResultsManager, IDisposable
     {
-        private readonly InputGenerator _inputGenerator;
+        private readonly IInputGenerator _inputGenerator;
         private readonly ObjectTrackingRepository _objectTrackingRepository;
         private readonly ActivityContext _activityContext;
 
         private TrackingModel _savedTrackingModel;
 
-        public ObjectTrackingValidationManager(InputGenerator inputGenerator, ObjectTrackingRepository objectTrackingRepository, ActivityContext activityContext)
+        public ObjectTrackingValidationManager(IInputGenerator inputGenerator, ObjectTrackingRepository objectTrackingRepository, ActivityContext activityContext)
         {
             _inputGenerator = inputGenerator;
             _objectTrackingRepository = objectTrackingRepository;
@@ -46,7 +46,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
         }
         public bool Validate()
         {
-            string resultValidatorClassName = _inputGenerator.TestCaseId.GetObjectValidator();
+            string resultValidatorClassName =  _inputGenerator.TestCaseCollection.GetObjectValidator(_inputGenerator.TestCaseId);  //_inputGenerator.TestCaseId.GetObjectValidator();
 
             string objectToInstantiate = $"CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrackingResults.{resultValidatorClassName}, CSE.Automation.Tests";
 

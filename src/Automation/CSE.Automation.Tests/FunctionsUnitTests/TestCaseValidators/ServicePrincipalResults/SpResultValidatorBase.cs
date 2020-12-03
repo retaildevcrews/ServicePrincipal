@@ -9,7 +9,7 @@ using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Queue;
 using Microsoft.Graph;
 using Newtonsoft.Json;
-using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGenerator;
+using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases.TestCaseCollection;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalResults
 {
@@ -22,12 +22,12 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
         public TestCase TestCaseID { get; }
 
-        private readonly InputGenerator _inputGenerator;
+        private readonly IInputGenerator _inputGenerator;
 
         private readonly ActivityContext _activityContext;
 
 
-        public SpResultValidatorBase(string savedServicePrincipalAsString, InputGenerator inputGenerator, ActivityContext activityContext)
+        public SpResultValidatorBase(string savedServicePrincipalAsString, IInputGenerator inputGenerator, ActivityContext activityContext)
         {
             SavedServicePrincipalAsString = savedServicePrincipalAsString;
 
