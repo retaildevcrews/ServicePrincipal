@@ -16,8 +16,8 @@ namespace CSE.Automation.Graph
 {
     internal class ServicePrincipalGraphHelper : GraphHelperBase<ServicePrincipal>
     {
-        public ServicePrincipalGraphHelper(GraphHelperSettings settings, IAuditService auditService, ILogger<ServicePrincipalGraphHelper> logger)
-                : base(settings, auditService, logger)
+        public ServicePrincipalGraphHelper(GraphHelperSettings settings, IAuditService auditService, IGraphServiceClient graphClient, ILogger<ServicePrincipalGraphHelper> logger)
+                : base(settings, auditService, graphClient, logger)
         {
         }
 
@@ -69,7 +69,9 @@ namespace CSE.Automation.Graph
             logger.LogDebug($"\tDiscovered {servicePrincipalCollectionPage.CurrentPage.Count} Service Principals");
 
             metrics.Considered = servicePrincipalList.Count;
-            while (servicePrincipalCollectionPage.NextPageRequest != null)
+
+            // Tested: Graph server will filter before pagination meaning empty pages with non null next pages are not possible
+            while (servicePrincipalCollectionPage.NextPageRequest != null && servicePrincipalCollectionPage.CurrentPage.Count != 0)
             {
                 servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
 

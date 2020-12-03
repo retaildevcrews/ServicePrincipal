@@ -33,12 +33,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         static IHostBuilder CreateHostBuilder(string[] args)
         {
-            // SERVICES SETTINGS
-            // var secretServiceSettings = new SecretServiceSettings() { KeyVaultName = config[Constants.KeyVaultName] };
-            // var credServiceSettings = new CredentialServiceSettings() { AuthType = config[Constants.AuthType].As<AuthenticationType>() };
-
             return
-                // Host.CreateDefaultBuilder(args)
                 new HostBuilder()
                 .ConfigureLogging(builder =>
                 {
@@ -49,21 +44,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 .ConfigureServices((hostContext, services) =>
                 {
                     services
-                        //.AddSingleton(credServiceSettings)
-                        //.AddSingleton(secretServiceSettings)
-
+                        .AddSingleton<ISecretClient>(Substitute.For<ISecretClient>())
+                        .AddSingleton<IAuditService>(Substitute.For<IAuditService>())
+                        .AddSingleton<IGraphServiceClient>(Substitute.For<IGraphServiceClient>())
                         .AddTransient<GraphHelperSettings>()
                         .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>();
-
-                    // services.AddSingleton<IRevolutionMapperConfiguration, RevolutionMapperConfiguration>(provider =>
-                    //{
-                    //    var configuration = new MapperConfiguration(cfg =>
-                    //    {
-                    //        cfg.AddProfile<RevolutionFHIRModelProfile>();
-                    //    });
-                    //    configuration.CompileMappings();
-                    //    return new RevolutionMapperConfiguration() { Provider = configuration };
-                    //});
                 });
 
         }
@@ -85,7 +70,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
     ""notificationEmailAddresses""
   ],
   ""deltaLink"": """",
-  ""runState"": ""seedAndRun"",
+  ""runState"": ""seedOnly"",
   ""lastDeltaRun"": """",
   ""lastSeedTime"": """",
   ""name"": ""ServicePrincipal Processor"",

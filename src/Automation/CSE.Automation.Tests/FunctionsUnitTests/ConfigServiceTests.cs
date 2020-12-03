@@ -1,3 +1,4 @@
+using System.IO;
 using CSE.Automation.DataAccess;
 using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
+using CSE.Automation.Processors;
 using Xunit;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests
@@ -63,7 +65,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                             {
                                 Uri = "https://sp-cosmosa-dev.documents.azure.com:443/",
                                 Key = secretService.GetSecretValue(Constants.CosmosDBKeyName),
-                                DatabaseName = "sp-cosmos-dev",
+                                DatabaseName = "sp-cosmos-qa",
                                 CollectionName = "Configuration"
                             })
                         .AddScoped<ConfigService>();
@@ -79,62 +81,63 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         [Fact]
         public async Task TestConfigServiceReadWriteAsync()
         {
-            using (var serviceScope = host.Services.CreateScope())
-            {
-                var configService = serviceScope.ServiceProvider.GetService<ConfigService>();
+            using var serviceScope = host.Services.CreateScope();
+            var configService = serviceScope.ServiceProvider.GetService<ConfigService>();
 
-                byte[] defaultConfigurationResource = Resources.ServicePrincipalProcessorConfiguration;
-                var initalDocumentAsString = System.Text.Encoding.Default.GetString(defaultConfigurationResource);
-                ProcessorConfiguration defaultConfiguration = JsonConvert.DeserializeObject<ProcessorConfiguration>(initalDocumentAsString);
+            byte[] defaultConfigurationResource = Resources.ServicePrincipalProcessorConfiguration;
+            var initialDocumentAsString = System.Text.Encoding.Default.GetString(defaultConfigurationResource);
+            ProcessorConfiguration defaultConfiguration = JsonConvert.DeserializeObject<ProcessorConfiguration>(initialDocumentAsString);
 
-                var testProcessorConfiguration = configService.Get(defaultConfiguration.Id, ProcessorType.ServicePrincipal, "ServicePrincipalProcessorConfiguration");
-                string originalDescription = testProcessorConfiguration.Description;
-                testProcessorConfiguration.Description = "Test Value";
+            var config = configService.Get(defaultConfiguration.Id, ProcessorType.ServicePrincipal, ServicePrincipalProcessor.ConstDefaultConfigurationResourceName);
+            string originalDescription = config.Description;
+            config.Description = "Test Value";
 
-                await configService.Put(testProcessorConfiguration);
+            await configService.Put(config);
 
-                Assert.True(originalDescription == "Descriptive Text");
+            var updatedConfig = configService.Get(defaultConfiguration.Id, ProcessorType.ServicePrincipal, ServicePrincipalProcessor.ConstDefaultConfigurationResourceName);
 
-                var updatedProcessorConfiguration = configService.Get(defaultConfiguration.Id, ProcessorType.ServicePrincipal, "ServicePrincipalProcessorConfiguration");
-                string updatedDescription = updatedProcessorConfiguration.Description;
-                updatedProcessorConfiguration.Description = originalDescription;
+            var repository = serviceScope.ServiceProvider.GetService<ConfigRepository>();
+            var item = await repository.DeleteDocumentAsync(config.Id, config.ConfigType.ToString());
 
-                await configService.Put(updatedProcessorConfiguration);
-
-                Assert.True(updatedDescription == "Test Value");
-            }
+            Assert.True(originalDescription == "Descriptive Text");
+            Assert.True(updatedConfig.Description == "Test Value");
         }
 
         [Fact]
-        public void TestConfigServiceConfigNotFoundAsync()
+        public void TestConfigServiceConfigNotFound_NoCreate_Async()
         {
-            using (var serviceScope = host.Services.CreateScope())
-            {
-                var configService = serviceScope.ServiceProvider.GetService<ConfigService>();
+            using var serviceScope = host.Services.CreateScope();
+            var configService = serviceScope.ServiceProvider.GetService<ConfigService>();
 
-                byte[] defaultConfigurationResource = Resources.ServicePrincipalProcessorConfiguration;
+            byte[] defaultConfigurationResource = Resources.ServicePrincipalProcessorConfiguration;
 
-                var testProcessorConfiguration1 = configService.Get("new-pr0cess0r-c0nfig", ProcessorType.ServicePrincipal, "ServicePrincipalProcessorConfiguration");
-                Assert.True(testProcessorConfiguration1 == null);
-            }
+            var configName = Get8CharacterRandomString();
+            var config = configService.Get(configName, ProcessorType.ServicePrincipal, ServicePrincipalProcessor.ConstDefaultConfigurationResourceName, createIfNotFound: false);
+            Assert.True(config == null);
         }
 
         [Fact]
-        public async Task TestConfigServiceConfigNewAsync()
+        public async Task TestConfigServiceConfigNotFound_Create_Async()
         {
-            using (var serviceScope = host.Services.CreateScope())
-            {
-                var configService = serviceScope.ServiceProvider.GetService<ConfigService>();
+            using var serviceScope = host.Services.CreateScope();
+            var configService = serviceScope.ServiceProvider.GetService<ConfigService>();
 
-                byte[] defaultConfigurationResource = Resources.ServicePrincipalProcessorConfiguration;
+            byte[] defaultConfigurationResource = Resources.ServicePrincipalProcessorConfiguration;
 
-                var testProcessorConfiguration2 = configService.Get("new-pr0cess0r-c0nf1g", ProcessorType.ServicePrincipal, "ServicePrincipalProcessorConfiguration", true);
-                Assert.True(testProcessorConfiguration2.Id == "new-pr0cess0r-c0nf1g");
+            var configName = Get8CharacterRandomString();
+            var config = configService.Get(configName, ProcessorType.ServicePrincipal, ServicePrincipalProcessor.ConstDefaultConfigurationResourceName, createIfNotFound:true);
+            Assert.True(config.Id == configName);
 
-                var configRepositoryService = serviceScope.ServiceProvider.GetService<ConfigRepository>();
+            var repository = serviceScope.ServiceProvider.GetService<ConfigRepository>();
 
-                ProcessorConfiguration item = await configRepositoryService.DeleteDocumentAsync("new-pr0cess0r-c0nf1g", "ServicePrincipal");
-            }
+            var item = await repository.DeleteDocumentAsync(configName, config.ConfigType.ToString());
+        }
+
+        public static string Get8CharacterRandomString()
+        {
+            string path = Path.GetRandomFileName();
+            path = path.Replace(".", ""); // Remove period.
+            return path.Substring(0, 8);  // Return 8 character string
         }
     }
 }
