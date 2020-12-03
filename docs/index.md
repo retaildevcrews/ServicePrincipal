@@ -10,5 +10,7 @@ This solution is to automate the process of retrieving specific AAD objects, tra
 * [Overview](overview.md)
 * [Architecture](architecture.md)
 * [Data Dictionary](DataDictionary.md)
+* [Azure Cloud Shell setup](cloudshell.md)
 * [Developer Walkthrough](walkthrough.md)
+* [Versioning Strategy](Versioning.md)
 * [Glossary](glossary.md)
