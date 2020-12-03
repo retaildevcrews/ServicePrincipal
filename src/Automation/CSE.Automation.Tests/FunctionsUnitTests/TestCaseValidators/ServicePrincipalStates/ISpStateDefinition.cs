@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using CSE.Automation.Model;
 using Microsoft.Graph;
-using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases.TestCaseCollection;
+using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGenerator;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalStates
 {

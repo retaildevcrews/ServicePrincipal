@@ -8,7 +8,7 @@ using AzQueueTestTool.TestCases.ServicePrincipals;
 using CSE.Automation.DataAccess;
 using CSE.Automation.Model;
 using Microsoft.Graph;
-using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases.TestCaseCollection;
+using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGenerator;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrackingState
 {
@@ -21,11 +21,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
 
         public ServicePrincipalModel SPModel { get; }
 
-        private IInputGenerator _inputGenerator;
+        private InputGenerator _inputGenerator;
 
 
         public ObjectStateDefinitionBase(ServicePrincipal servicePrincipal, ServicePrincipalModel servicePrincipalModel, 
-                            ObjectTrackingRepository objectTrackingRepository, ActivityContext activityContext, IInputGenerator inputGenerator)
+                            ObjectTrackingRepository objectTrackingRepository, ActivityContext activityContext, InputGenerator inputGenerator)
         {
             ServicePrincipalObject = servicePrincipal;
             SPModel = servicePrincipalModel;
@@ -94,7 +94,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
 
             var userslList = GraphHelper.GetAllUsers($"{usersPrefix}").Result;
 
-            var toBeAssigned = ((EvaluateInputGenerator)_inputGenerator).TC4AssignTheseOwnersWhenCreatingAMissingObjectTracking.Split(';').ToList();
+            var toBeAssigned = _inputGenerator.TC4AssignTheseOwnersWhenCreatingAMissingObjectTracking.Split(';').ToList();
 
             List<string> spUsers = new List<string>();
             foreach(var userName in toBeAssigned)

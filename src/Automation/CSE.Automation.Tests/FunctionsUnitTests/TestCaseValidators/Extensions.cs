@@ -2,23 +2,29 @@
 using System.Collections.Generic;
 using System.Text;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.System.ComponentModel;
-using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 {
     static class Extensions
     {
-
-        public static string GetSpStateDefinition(this ITestCaseCollection testCaseCollection, Enum value)
+     
+        public static string GetSpStateDefinition(this Enum value)
         {
-            var type = testCaseCollection.GetType();
+            var type = value.GetType();
 
-            var typeEnum = value.GetType();
-            string nameEnum = Enum.GetName(typeEnum, value);
+            string name = Enum.GetName(type, value);
+            if (name == null)
+            {
+                return null;
+            }
 
-            var propInfo = type.GetProperty(nameEnum);
+            var field = type.GetField(name);
+            if (field == null)
+            {
+                return null;
+            }
 
-            var attr = Attribute.GetCustomAttribute(propInfo, typeof(SpStateDefinitionAttribute)) as SpStateDefinitionAttribute;
+            var attr = Attribute.GetCustomAttribute(field, typeof(SpStateDefinitionAttribute)) as SpStateDefinitionAttribute;
             if (attr == null)
             {
                 return null;
@@ -27,16 +33,23 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
             return attr.SpStateDefinitionName;
         }
 
-        public static string GetSpValidator(this ITestCaseCollection testCaseCollection, Enum value)
+        public static string GetSpValidator(this Enum value)
         {
-            var type = testCaseCollection.GetType();
+            var type = value.GetType();
+            string name = Enum.GetName(type, value);
 
-            var typeEnum = value.GetType();
-            string nameEnum = Enum.GetName(typeEnum, value);
+            if (name == null)
+            {
+                return null;
+            }
 
-            var propInfo = type.GetProperty(nameEnum);
+            var field = type.GetField(name);
+            if (field == null)
+            {
+                return null;
+            }
 
-            var attr = Attribute.GetCustomAttribute(propInfo, typeof(SpValidatorAttribute)) as SpValidatorAttribute;
+            var attr = Attribute.GetCustomAttribute(field, typeof(SpValidatorAttribute)) as SpValidatorAttribute;
             if (attr == null)
             {
                 return null;
@@ -45,16 +58,23 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
             return attr.ValidatorName;
         }
 
-        public static string GetObjectValidator(this ITestCaseCollection testCaseCollection, Enum value)
+        public static string GetObjectValidator(this Enum value)
         {
-            var type = testCaseCollection.GetType();
+            var type = value.GetType();
+            string name = Enum.GetName(type, value);
 
-            var typeEnum = value.GetType();
-            string nameEnum = Enum.GetName(typeEnum, value);
+            if (name == null)
+            {
+                return null;
+            }
 
-            var propInfo = type.GetProperty(nameEnum);
+            var field = type.GetField(name);
+            if (field == null)
+            {
+                return null;
+            }
 
-            var attr = Attribute.GetCustomAttribute(propInfo, typeof(ObjectValidatorAttribute)) as ObjectValidatorAttribute;
+            var attr = Attribute.GetCustomAttribute(field, typeof(ObjectValidatorAttribute)) as ObjectValidatorAttribute;
             if (attr == null)
             {
                 return null;
@@ -63,16 +83,23 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
             return attr.ValidatorName;
         }
 
-        public static string GetAuditValidator(this ITestCaseCollection testCaseCollection, Enum value)
+        public static string GetAuditValidator(this Enum value)
         {
-            var type = testCaseCollection.GetType();
+            var type = value.GetType();
+            string name = Enum.GetName(type, value);
 
-            var typeEnum = value.GetType();
-            string nameEnum = Enum.GetName(typeEnum, value);
+            if (name == null)
+            {
+                return null;
+            }
 
-            var propInfo = type.GetProperty(nameEnum);
+            var field = type.GetField(name);
+            if (field == null)
+            {
+                return null;
+            }
 
-            var attr = Attribute.GetCustomAttribute(propInfo, typeof(AuditValidatorAttribute)) as AuditValidatorAttribute;
+            var attr = Attribute.GetCustomAttribute(field, typeof(AuditValidatorAttribute)) as AuditValidatorAttribute;
             if (attr == null)
             {
                 return null;
@@ -81,16 +108,23 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
             return attr.ValidatorName;
         }
 
-        public static string GetObjectStateDefinition(this ITestCaseCollection testCaseCollection, Enum value)
+        public static string GetObjectStateDefinition(this Enum value)
         {
-            var type = testCaseCollection.GetType();
+            var type = value.GetType();
 
-            var typeEnum = value.GetType();
-            string nameEnum = Enum.GetName(typeEnum, value);
+            string name = Enum.GetName(type, value);
+            if (name == null)
+            {
+                return null;
+            }
 
-            var propInfo = type.GetProperty(nameEnum);
+            var field = type.GetField(name);
+            if (field == null)
+            {
+                return null;
+            }
 
-            var attr = Attribute.GetCustomAttribute(propInfo, typeof(ObjectStateDefinitionAttribute)) as ObjectStateDefinitionAttribute;
+            var attr = Attribute.GetCustomAttribute(field, typeof(ObjectStateDefinitionAttribute)) as ObjectStateDefinitionAttribute;
             if (attr == null)
             {
                 return null;
@@ -98,6 +132,5 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 
             return attr.ObjectStateDefinitionName;
         }
-
     }
 }

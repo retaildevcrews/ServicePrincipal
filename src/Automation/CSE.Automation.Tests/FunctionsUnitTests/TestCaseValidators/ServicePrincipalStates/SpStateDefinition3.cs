@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using AzQueueTestTool.TestCases.ServicePrincipals;
 using Microsoft.Graph;
-using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases.TestCaseCollection;
+using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGenerator;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalStates
 {

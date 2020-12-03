@@ -10,13 +10,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
 {
     internal class AuditValidationManager : IResultsManager, IDisposable
     {
-        private readonly IInputGenerator _inputGenerator;
+        private readonly InputGenerator _inputGenerator;
         private readonly AuditRepositoryTest _auditRepositoryTest;
         private ActivityContext _activityContext;
 
         private AuditEntry _savedAuditEntry;
 
-        public AuditValidationManager(IInputGenerator inputGenerator, AuditRepositoryTest auditRepositoryTest, ActivityContext activityContext)
+        public AuditValidationManager(InputGenerator inputGenerator, AuditRepositoryTest auditRepositoryTest, ActivityContext activityContext)
         {
             _inputGenerator = inputGenerator;
             _auditRepositoryTest = auditRepositoryTest;
@@ -51,7 +51,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
 
         public bool Validate()
         {
-            string resultValidatorClassName = _inputGenerator.TestCaseCollection.GetAuditValidator(_inputGenerator.TestCaseId); //_inputGenerator.TestCaseId.GetAuditValidator();
+            string resultValidatorClassName = _inputGenerator.TestCaseId.GetAuditValidator();
 
             var servicePrincipal = _inputGenerator.GetServicePrincipal();
 
