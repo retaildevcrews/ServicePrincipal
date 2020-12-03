@@ -48,9 +48,12 @@ export svc_ppl_Location=centralus
 ###  >>>>>>>>>>>>>>>>>>>>>>>>> TODO <<<<<<<<<<<<<<<<<<<<<<<<<<
 ###  change the repo (optional - valid: test-csharp, test-java, test-typescript)
 export svc_ppl_Repo=test-csharp
-Deploy serviceprincipal
+```
+
+## Deploy serviceprincipal
 Make sure you are in the serviceprincipal/infra directory 
 
+```bash
 ### create tfvars file
 ./create-tf-vars.sh
 
