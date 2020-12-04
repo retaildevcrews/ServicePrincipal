@@ -299,7 +299,7 @@ namespace CSE.Automation.Processors
 
                 try
                 {
-                    await auditService.PutChange(context, AuditCode.Change_ServicePrincipalUpdated, command.Id, "Notes", command.Notes.Current, command.Notes.Changed, command.Message).ConfigureAwait(false);
+                    await auditService.PutChange(context, AuditCode.Change_ServicePrincipalUpdated, command.Id, "Notes", command.Notes.Current, command.Notes.Changed, command.Message.Description()).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -333,7 +333,7 @@ namespace CSE.Automation.Processors
             {
                 Id = entity.Id,
                 Notes = (entity.Notes, ownersList),
-                Message = "Update Notes from Owners",
+                Message = UpdateMessage.Update, // "Update Notes from Owners",
             };
             await CommandAADUpdate(context, updateCommand, queueService).ConfigureAwait(true);
 
@@ -365,7 +365,7 @@ namespace CSE.Automation.Processors
                 {
                     Id = entity.Id,
                     Notes = (entity.Notes, lastKnownGood.Notes),
-                    Message = "Revert to Last Known Good",
+                    Message = UpdateMessage.Revert, // "Revert to Last Known Good",
                 };
 
                 await CommandAADUpdate(context, updateCommand, queueService).ConfigureAwait(true);

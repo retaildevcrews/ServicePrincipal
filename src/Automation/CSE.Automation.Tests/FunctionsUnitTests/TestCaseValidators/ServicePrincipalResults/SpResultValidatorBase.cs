@@ -41,7 +41,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
         public abstract bool Validate();
 
 
-        public bool DoesMessageExistInUpdateQueue(List<string> targetQueueMessages)
+        public bool DoesMessageExistInUpdateQueue(List<UpdateMessage> targetQueueMessages)
         {
             var storageAccount = CloudStorageAccount.Parse(_inputGenerator.StorageConnectionString);
             var cmdQueue = storageAccount.CreateCloudQueueClient().GetQueueReference(_inputGenerator.UpdateQueueName);
@@ -70,8 +70,9 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
                             if (!messageFound)/// state.Break(); takes its time and does not break the look immediately 
                             {
                                 messageFound = command.CorrelationId == _activityContext.CorrelationId && command.Id == NewServicePrincipal.Id
-                                              && targetQueueMessages.Any(s => s.Contains(command.Message)); // we need to use Enums instead of "Strings"
-                                                
+                                              //&& targetQueueMessages.Any(s => s.Contains(command.Message)); // we need to use Enums instead of "Strings"
+                                              && targetQueueMessages.Contains(command.Message); // we need to use Enums instead of "Strings"
+
 
                                 if (messageFound)
                                 {
