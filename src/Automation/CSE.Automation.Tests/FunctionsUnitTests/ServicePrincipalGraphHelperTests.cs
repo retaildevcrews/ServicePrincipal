@@ -61,7 +61,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         {
             var contents = @"{
   ""id"": ""02a54ac9 - 441e-43f1 - 88ee - fde420db2559"",
-  ""filterString"": ""filterstring"",
   ""selectFields"": [
     ""appId"",
     ""displayName"",
@@ -73,8 +72,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
   ""runState"": ""seedOnly"",
   ""lastDeltaRun"": """",
   ""lastSeedTime"": """",
-  ""name"": ""ServicePrincipal Processor"",
-  ""description"": ""Descriptive Text"",
+  ""description"": """",
   ""configType"": ""ServicePrincipal""
 }";
             return JsonConvert.DeserializeObject<ProcessorConfiguration>(contents);

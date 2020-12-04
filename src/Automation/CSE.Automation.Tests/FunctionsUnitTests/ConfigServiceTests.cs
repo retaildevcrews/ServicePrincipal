@@ -99,7 +99,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             var repository = serviceScope.ServiceProvider.GetService<ConfigRepository>();
             var item = await repository.DeleteDocumentAsync(config.Id, config.ConfigType.ToString());
 
-            Assert.True(originalDescription == "Descriptive Text");
+            Assert.True(originalDescription == "");
             Assert.True(updatedConfig.Description == "Test Value");
         }
 
