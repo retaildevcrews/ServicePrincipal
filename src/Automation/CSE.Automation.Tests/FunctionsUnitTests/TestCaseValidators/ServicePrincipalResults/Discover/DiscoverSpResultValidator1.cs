@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using AzQueueTestTool.TestCases.ServicePrincipals;
 using CSE.Automation.Model;
 using Microsoft.Graph;
 using Newtonsoft.Json;
@@ -18,16 +19,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
         public override bool Validate()
         {
-            //var newServicePrincipalAsString = JsonConvert.SerializeObject(NewServicePrincipal);
+            List<string> targetQueueMessages = new List<string> () {"Update Notes from Owners", "Revert to Last Known Good"};
 
+            bool messageNotFound = DoesMessageExistInUpdateQueue(targetQueueMessages);
 
-            //List<string> targetQueueMessages = new List<string> () {"Update Notes from Owners", "Revert to Last Known Good"};
-
-            //bool messageNotFound = DoesMessageExistInUpdateQueue(targetQueueMessages);
-
-            //return !messageNotFound && SavedServicePrincipalAsString.Equals(newServicePrincipalAsString, StringComparison.InvariantCultureIgnoreCase);
-            return false;
-
+            return messageNotFound;
         }
     }
 }
