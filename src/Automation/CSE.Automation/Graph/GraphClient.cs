@@ -18,7 +18,7 @@ namespace CSE.Automation.Graph
   internal class GraphClient : GraphServiceClient, IGraphServiceClient
   {
     protected readonly GraphHelperSettings settings;
-    GraphClient(GraphHelperSettings settings)
+    public GraphClient(GraphHelperSettings settings)
       : base(new ClientCredentialProvider(ConfidentialClientApplicationBuilder
         .Create(settings.GraphAppClientId)
         .WithTenantId(settings.GraphAppTenantId)
