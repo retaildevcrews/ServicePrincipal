@@ -28,6 +28,6 @@ namespace CSE.Automation.Model
         public string CorrelationId { get; set; }
         public string Id { get; set; }
         public (string Current, string Changed) Notes { get; set; }
-        public ServicePrincipalUpdateAction Message { get; set; }
+        public ServicePrincipalUpdateAction Action { get; set; }
     }
 }

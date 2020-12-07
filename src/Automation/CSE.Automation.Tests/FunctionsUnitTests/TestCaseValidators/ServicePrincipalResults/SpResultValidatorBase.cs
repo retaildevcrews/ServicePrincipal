@@ -70,7 +70,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
                             if (!messageFound)/// state.Break(); takes its time and does not break the look immediately 
                             {
                                 messageFound = command.CorrelationId == _activityContext.CorrelationId && command.Id == NewServicePrincipal.Id
-                                              && targetQueueMessages.Contains(command.Message); // we need to use Enums instead of "Strings"
+                                              && targetQueueMessages.Contains(command.Action); // we need to use Enums instead of "Strings"
 
 
                                 if (messageFound)
