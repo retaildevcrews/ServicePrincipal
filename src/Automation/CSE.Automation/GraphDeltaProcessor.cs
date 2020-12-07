@@ -57,10 +57,17 @@ namespace CSE.Automation
             {
                 var result = await CommandDiscovery(discoveryMode, "HTTP", log).ConfigureAwait(false);
 
+                UriBuilder uriBuilder = new UriBuilder();
+                uriBuilder.Scheme = req.Scheme;
+                uriBuilder.Host = $"{req.Host}";
+                uriBuilder.Path = "api/Activities";
+                uriBuilder.Query = $"correlationId={result.CorrelationId}";
+
+                Uri uri = uriBuilder.Uri;
+
                 return hasRedirect
 
-                        // TODO: construct this URI properly
-                        ? new RedirectResult($"{req.Scheme}://{req.Host}/api/Activities?correlationId={result.CorrelationId}")
+                        ? new RedirectResult($"{uri}")
                         : (IActionResult)new JsonResult(result);
             }
             catch (Exception ex)
