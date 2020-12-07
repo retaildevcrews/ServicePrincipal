@@ -41,7 +41,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
         public abstract bool Validate();
 
 
-        public bool DoesMessageExistInUpdateQueue(List<UpdateMessage> targetQueueMessages)
+        public bool DoesMessageExistInUpdateQueue(List<ServicePrincipalUpdateAction> targetQueueMessages)
         {
             var storageAccount = CloudStorageAccount.Parse(_inputGenerator.StorageConnectionString);
             var cmdQueue = storageAccount.CreateCloudQueueClient().GetQueueReference(_inputGenerator.UpdateQueueName);

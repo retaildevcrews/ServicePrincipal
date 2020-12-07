@@ -8,7 +8,7 @@ using System.Text;
 
 namespace CSE.Automation.Model
 {
-    public enum UpdateMessage
+    internal enum ServicePrincipalUpdateAction
     {
         /// <summary>
         /// Update Notes
@@ -28,6 +28,6 @@ namespace CSE.Automation.Model
         public string CorrelationId { get; set; }
         public string Id { get; set; }
         public (string Current, string Changed) Notes { get; set; }
-        public UpdateMessage Message { get; set; }
+        public ServicePrincipalUpdateAction Message { get; set; }
     }
 }

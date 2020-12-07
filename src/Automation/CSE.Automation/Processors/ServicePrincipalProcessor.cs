@@ -333,7 +333,7 @@ namespace CSE.Automation.Processors
             {
                 Id = entity.Id,
                 Notes = (entity.Notes, ownersList),
-                Message = UpdateMessage.Update, // "Update Notes from Owners",
+                Message = ServicePrincipalUpdateAction.Update, // "Update Notes from Owners",
             };
             await CommandAADUpdate(context, updateCommand, queueService).ConfigureAwait(true);
 
@@ -365,7 +365,7 @@ namespace CSE.Automation.Processors
                 {
                     Id = entity.Id,
                     Notes = (entity.Notes, lastKnownGood.Notes),
-                    Message = UpdateMessage.Revert, // "Revert to Last Known Good",
+                    Message = ServicePrincipalUpdateAction.Revert, // "Revert to Last Known Good",
                 };
 
                 await CommandAADUpdate(context, updateCommand, queueService).ConfigureAwait(true);

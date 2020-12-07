@@ -23,7 +23,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
             bool servicePrincipalPass = SavedServicePrincipalAsString.Equals(newServicePrincipalAsString, StringComparison.InvariantCultureIgnoreCase);
 
-            List<UpdateMessage> targetQueueMessages = new List<UpdateMessage> () {UpdateMessage.Update};
+            List<ServicePrincipalUpdateAction> targetQueueMessages = new List<ServicePrincipalUpdateAction> () { ServicePrincipalUpdateAction.Update};
 
             bool messageFound = DoesMessageExistInUpdateQueue(targetQueueMessages);
 
