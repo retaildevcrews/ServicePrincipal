@@ -27,13 +27,20 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Configurati
 
         public void SaveState()
         {
-            _savedConfigEntry = GetConfigItem(); 
+            _savedConfigEntry = GetConfigItem(true); 
         }
 
-        private ProcessorConfiguration GetConfigItem()
+        private ProcessorConfiguration GetConfigItem(bool unlock = false)
         {
 
             ProcessorConfiguration configuration = _configRepository.GetByIdAsync(_inputGenerator.ConfigId, ProcessorType.ServicePrincipal.ToString()).GetAwaiter().GetResult();
+
+            if (unlock && configuration.IsProcessorLocked)
+            {
+                configuration.IsProcessorLocked = false;
+
+                configuration = _configRepository.UpsertDocumentAsync(configuration).GetAwaiter().GetResult();
+            }
 
             return configuration;
 

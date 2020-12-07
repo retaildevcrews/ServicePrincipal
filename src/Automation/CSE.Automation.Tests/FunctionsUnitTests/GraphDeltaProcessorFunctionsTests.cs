@@ -116,8 +116,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             var graphHelperSettings = new GraphHelperSettings(_secretClient);
             var graphClient = new GraphClient(graphHelperSettings);
             
-            _graphHelper = new ServicePrincipalGraphHelper(graphHelperSettings, _auditService, graphClient, _spGraphHelperLogger);
-
+            
             Assembly thisAssembly = Assembly.GetExecutingAssembly();
             _versionMetadata = new VersionMetadata(thisAssembly);
 
@@ -138,7 +137,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _configRespository = new ConfigRepository(_configRespositorySettings, _configRepoLogger);
             _configService = new ConfigService(_configRespository);
 
+            _graphHelper = new ServicePrincipalGraphHelper(graphHelperSettings, _auditService, graphClient, _spGraphHelperLogger);
+
             _builder = new ServiceCollection();
+
+
 
 
             _builder
@@ -605,6 +608,90 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(DiscoveryMode.FullSeed, "HTTP"));
+
+
+            ////Create Validators 
+            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext, false);
+
+
+            using var configurationValidationManager = new ConfigurationValidationManager(inputGenerator, _configRespository, activityContext);
+
+            using var activityValidationManager = new ActivityValidationManager(inputGenerator, _activityHistoryRespository, activityContext);
+
+
+
+            Task thisTaks = Task.Run (() => _graphDeltaProcessor.Discover(cloudQueueMessage, _graphLogger));
+            thisTaks.Wait();
+
+
+            bool validServicePrincipal = servicePrincipalValidationManager.Validate();
+
+            Assert.True(validServicePrincipal, "Service Principal Validation");
+
+            bool validConfiguration =  configurationValidationManager.Validate();
+
+            Assert.True(validConfiguration, "Configuration Validation");
+
+            bool validActivity =  activityValidationManager.Validate();
+
+            Assert.True(validActivity, "Activity Validation");
+
+        }
+
+        [Fact]
+        public void FunctionDiscoverTestCase1_2()
+        {
+            using var testCaseCollection = new DiscoverTestCaseCollection();
+
+            TestCase thisTestCase = testCaseCollection.TC1_2;
+
+            using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
+
+            using var inputGenerator = new DiscoverInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
+
+
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(DiscoveryMode.Deltas, "HTTP"));
+
+
+            ////Create Validators 
+            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext, false);
+
+            using var configurationValidationManager = new ConfigurationValidationManager(inputGenerator, _configRespository, activityContext);
+
+            using var activityValidationManager = new ActivityValidationManager(inputGenerator, _activityHistoryRespository, activityContext);
+
+
+            Task thisTaks = Task.Run (() => _graphDeltaProcessor.Discover(cloudQueueMessage, _graphLogger));
+            thisTaks.Wait();
+
+
+            bool validServicePrincipal = servicePrincipalValidationManager.Validate();// Bug related to Discover Deltas
+
+            Assert.True(validServicePrincipal, "Service Principal Validation");
+
+            bool validConfiguration =  configurationValidationManager.Validate();
+
+            Assert.True(validConfiguration, "Configuration Validation");
+
+            bool validActivity =  activityValidationManager.Validate();
+
+            Assert.True(validActivity, "Activity Validation");
+
+        }
+
+        [Fact]
+        public void FunctionDiscoverTestCase2()
+        {
+            using var testCaseCollection = new DiscoverTestCaseCollection();
+
+            TestCase thisTestCase = testCaseCollection.TC2;
+
+            using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
+
+            using var inputGenerator = new DiscoverInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
+
+
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(DiscoveryMode.FullSeed, "TIMER"));
 
 
             ////Create Validators 
