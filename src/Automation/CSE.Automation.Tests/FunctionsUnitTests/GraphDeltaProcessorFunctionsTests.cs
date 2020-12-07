@@ -25,6 +25,8 @@ using CSE.Automation.KeyVault;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.DataAccess;
 using System.Reflection;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ConfigurationResults;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ActivityResults;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests
 {
@@ -37,7 +39,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         private ISecretClient _secretClient;
         private IGraphHelper<ServicePrincipal> _graphHelper;
         private IQueueServiceFactory _queueServiceFactory;
-        //private IConfigService<ProcessorConfiguration> _configService;
+
         private VersionMetadata _versionMetadata;
 
 
@@ -51,7 +53,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         private AuditRepositoryTest _auditRespositoryTest;
 
         private ActivityService _activityService;
-        private ActivityHistoryRepository _auditHistoryRespository;
+        private ActivityHistoryRepository _activityHistoryRespository;
         private ActivityHistoryRepositorySettings _activityRespositorySettings;
 
         private ConfigRepository _configRespository;
@@ -60,18 +62,18 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         private ILogger<ServicePrincipalProcessor> _spProcessorLogger;
         private ILogger<GraphDeltaProcessor> _graphLogger;
+
         private ILogger<AuditService> _auditServiceLogger;
         private ILogger<AuditRepository> _auditRepoLogger;
         private ILogger<ObjectTrackingService> _objectTrackingServiceLogger;
         private ILogger<ObjectTrackingRepository> _objectTrackingRepoLogger;
         private ILogger<ActivityService> _activityServiceLogger;
         private ILogger<ConfigRepository> _configRepoLogger;
-        
+
 
         private ILogger<ServicePrincipalGraphHelper> _spGraphHelperLogger;
         private ILogger<UserGraphHelper> _userGraphLogger;
         private ILogger<AzureQueueService> _queueLogger;
-
 
 
         private IServiceProvider _serviceProvider;
@@ -88,7 +90,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             BuildConfiguration();
 
-            CreateMocks();
+            //CreateMocks();
             CreateLoggers();
             CreateSettings();
             CreateServices();
@@ -103,13 +105,24 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         private void CreateServices()
         {
-            //var graphHelperSettings = new GraphHelperSettings(_secretClient);
-            //_graphHelper = new ServicePrincipalGraphHelper(graphHelperSettings, _auditService, _spGraphHelperLogger);
+
+            var secretServiceSettings = new SecretServiceSettings() { KeyVaultName = _config[Constants.KeyVaultName] };
+            var credServiceSettings = new CredentialServiceSettings() { AuthType = _config[Constants.AuthType].As<AuthenticationType>() };
+
+            ICredentialService credentialService = new CredentialService(credServiceSettings);
+
+            _secretClient = new SecretService(secretServiceSettings, credentialService);
+
+            var graphHelperSettings = new GraphHelperSettings(_secretClient);
+            var graphClient = new GraphClient(graphHelperSettings);
+            
+            _graphHelper = new ServicePrincipalGraphHelper(graphHelperSettings, _auditService, graphClient, _spGraphHelperLogger);
 
             Assembly thisAssembly = Assembly.GetExecutingAssembly();
             _versionMetadata = new VersionMetadata(thisAssembly);
 
             _queueServiceFactory = new AzureQueueServiceFactory(_queueLogger);
+
 
             _auditRespository = new AuditRepository(_auditRespositorySettings, _auditRepoLogger);
             _auditService = new AuditService(_auditRespository, _auditServiceLogger);
@@ -119,19 +132,14 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _objectRespository = new ObjectTrackingRepository(_objectTrackingRepositorySettings, _objectTrackingRepoLogger);
             _objectService = new ObjectTrackingService(_objectRespository, _auditService, _objectTrackingServiceLogger);
 
-            _auditHistoryRespository = new ActivityHistoryRepository(_activityRespositorySettings, _auditRepoLogger);
-            _activityService = new ActivityService(_auditHistoryRespository, _activityServiceLogger);
-
+            _activityHistoryRespository = new ActivityHistoryRepository(_activityRespositorySettings, _auditRepoLogger);
+            _activityService = new ActivityService(_activityHistoryRespository, _activityServiceLogger);
 
             _configRespository = new ConfigRepository(_configRespositorySettings, _configRepoLogger);
             _configService = new ConfigService(_configRespository);
 
             _builder = new ServiceCollection();
 
-            var secretServiceSettings = new SecretServiceSettings() { KeyVaultName = _config[Constants.KeyVaultName] };
-            var credServiceSettings = new CredentialServiceSettings() { AuthType = _config[Constants.AuthType].As<AuthenticationType>() };
-
-            //var test = new GraphClient(new GraphHelperSettings(_secretClient));
 
             _builder
                 .AddSingleton(credServiceSettings)
@@ -146,7 +154,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 .AddScoped<ILogger<UserGraphHelper>>(x => _userGraphLogger)
 
 
-                .AddScoped<IGraphServiceClient, GraphClient>()
+                .AddScoped<IGraphServiceClient, GraphClient>(x => graphClient)
 
                 .AddScoped<IAuditService>(x => _auditService)
 
@@ -160,8 +168,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 .AddSingleton<IModelValidatorFactory, ModelValidatorFactory>();
 
             _serviceProvider = _builder.BuildServiceProvider();
-
-
 
         }
 
@@ -236,9 +242,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         private void CreateMocks()
         {
-            _secretClient = Substitute.For<ISecretClient>();
-            //_graphHelper = Substitute.For<IGraphHelper<ServicePrincipal>>();
-
         }
 
         private ILogger<T> CreateLogger<T>()
@@ -601,44 +604,34 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             using var inputGenerator = new DiscoverInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
 
 
-            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(DiscoveryMode.FullSeed, $"Test Case [{thisTestCase}]"));
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(DiscoveryMode.FullSeed, "HTTP"));
 
 
             ////Create Validators 
             using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext, false);
 
-            /// >>>>>>>>>>>>>>>>>>>>>>>>>> we do not need to validate Object tracking <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-            //using var configurationValidationManager = new ConfigurationValidationManager(inputGenerator, _objectRespository, activityContext);
+            using var configurationValidationManager = new ConfigurationValidationManager(inputGenerator, _configRespository, activityContext);
 
-            //using var activityValidationManager = new ActivityValidationManager(inputGenerator, _auditRespositoryTest, activityContext);
-
-            //using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespositoryTest, activityContext);
+            using var activityValidationManager = new ActivityValidationManager(inputGenerator, _activityHistoryRespository, activityContext);
 
 
 
             Task thisTaks = Task.Run (() => _graphDeltaProcessor.Discover(cloudQueueMessage, _graphLogger));
             thisTaks.Wait();
 
-            ////Validate Outcome and state after execution for Service Principal, Audit and ObjectTracking objects based on TestCase injected thru InputGenerator
 
             bool validServicePrincipal = servicePrincipalValidationManager.Validate();
 
             Assert.True(validServicePrincipal, "Service Principal Validation");
 
-            //bool validActivity =  activityValidationManager.Validate();
+            bool validConfiguration =  configurationValidationManager.Validate();
 
-            //Assert.True(validActivity, "Activity Validation");
+            Assert.True(validConfiguration, "Configuration Validation");
 
-            //bool validConfiguration =  configurationValidationManager.Validate();
+            bool validActivity =  activityValidationManager.Validate();
 
-            //Assert.True(validConfiguration, "Configuration Validation");
-
-            //bool validAudit =  auditValidationManager.Validate();
-
-            //Assert.True(validAudit, "Audit Validation");
-
-            Assert.True(false);
+            Assert.True(validActivity, "Activity Validation");
 
         }
     }

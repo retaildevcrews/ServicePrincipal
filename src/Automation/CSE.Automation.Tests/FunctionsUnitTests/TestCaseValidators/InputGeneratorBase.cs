@@ -38,7 +38,16 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
         public string StorageConnectionString => _config["SPStorageConnectionString"]; 
         public string UpdateQueueName => _config["SPUpdateQueue"];
 
+        public string EvaluateQueueName => _config["SPEvaluateQueue"];
+
+        public string DiscoverQueueName => _config["SPDiscoverQueue"];
+
+        public string DisplayNamePatternFilter => _config["displayNamePatternFilter"];
+
         public string AadUserServicePrincipalPrefix => _config["aadUserServicePrincipalPrefix"];
+
+        public string ConfigId => _config["configId"];
+       
 
         internal InputGeneratorBase(IConfigurationRoot config, ActivityContext activityContext, ITestCaseCollection testCaseCollection, TestCaseCollection.TestCase testCaseId)
         {

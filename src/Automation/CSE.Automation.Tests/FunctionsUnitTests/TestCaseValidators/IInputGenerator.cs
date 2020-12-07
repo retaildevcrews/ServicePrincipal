@@ -16,7 +16,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
         ServicePrincipal GetServicePrincipal(bool requery = false);
         string StorageConnectionString { get; }
         string UpdateQueueName { get; }
+        string EvaluateQueueName { get; }
         string AadUserServicePrincipalPrefix { get; }
+        string DisplayNamePatternFilter { get; }
 
-}
+        string ConfigId { get; }
+    }
 }

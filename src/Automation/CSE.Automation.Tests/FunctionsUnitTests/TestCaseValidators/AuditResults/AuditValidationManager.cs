@@ -51,7 +51,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
 
         public bool Validate()
         {
-            string resultValidatorClassName = _inputGenerator.TestCaseCollection.GetAuditValidator(_inputGenerator.TestCaseId); //_inputGenerator.TestCaseId.GetAuditValidator();
+            string resultValidatorClassName = _inputGenerator.TestCaseCollection.GetAuditValidator(_inputGenerator.TestCaseId); 
 
             var servicePrincipal = _inputGenerator.GetServicePrincipal();
 

@@ -98,5 +98,41 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 
             return attr.ObjectStateDefinitionName;
         }
+
+        public static string GetConfigValidator(this ITestCaseCollection testCaseCollection, Enum value)
+        {
+            var type = testCaseCollection.GetType();
+
+            var typeEnum = value.GetType();
+            string nameEnum = Enum.GetName(typeEnum, value);
+
+            var propInfo = type.GetProperty(nameEnum);
+
+            var attr = Attribute.GetCustomAttribute(propInfo, typeof(ConfigValidatorAttribute)) as ConfigValidatorAttribute;
+            if (attr == null)
+            {
+                return null;
+            }
+
+            return attr.ValidatorName;
+        }
+
+        public static string GetActivityValidator(this ITestCaseCollection testCaseCollection, Enum value)
+        {
+            var type = testCaseCollection.GetType();
+
+            var typeEnum = value.GetType();
+            string nameEnum = Enum.GetName(typeEnum, value);
+
+            var propInfo = type.GetProperty(nameEnum);
+
+            var attr = Attribute.GetCustomAttribute(propInfo, typeof(ActivityValidatorAttribute)) as ActivityValidatorAttribute;
+            if (attr == null)
+            {
+                return null;
+            }
+
+            return attr.ValidatorName;
+        }
     }
 }

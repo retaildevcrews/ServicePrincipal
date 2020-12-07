@@ -26,16 +26,28 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
         private readonly ActivityContext _activityContext;
 
+        protected string DisplayNamePatternFilter 
+        { 
+            get 
+            { 
+                return _inputGenerator.DisplayNamePatternFilter; 
+            } 
+        }
 
-        public SpResultValidatorBase(string savedServicePrincipalAsString, IInputGenerator inputGenerator, ActivityContext activityContext)
+
+        public SpResultValidatorBase(string savedServicePrincipalAsString, IInputGenerator inputGenerator, ActivityContext activityContext, bool getNewServicePrincipal = true)
         {
             SavedServicePrincipalAsString = savedServicePrincipalAsString;
 
             _inputGenerator = inputGenerator;
             _activityContext = activityContext;
 
-            NewServicePrincipal = _inputGenerator.GetServicePrincipal(true);
             TestCaseID = _inputGenerator.TestCaseId;
+
+            if (getNewServicePrincipal)
+            {
+                NewServicePrincipal = _inputGenerator.GetServicePrincipal(true);
+            }
         }
 
         public abstract bool Validate();
@@ -88,6 +100,46 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
             }
 
             return messageFound;
+        }
+
+        public int GetMessageCountInEvaluateQueueFor(string displayNamePatternFilter)
+        {
+            var storageAccount = CloudStorageAccount.Parse(_inputGenerator.StorageConnectionString);
+            var cmdQueue = storageAccount.CreateCloudQueueClient().GetQueueReference(_inputGenerator.EvaluateQueueName);
+
+
+            int result = 0;
+            object foundLock = new object();
+
+            IEnumerable <CloudQueueMessage> cmdMessages = cmdQueue.GetMessages(32);// 32 is the max number of messages that can be retrived 
+
+            while (cmdMessages.Count() > 0)
+            {
+
+                Parallel.ForEach(cmdMessages, (msg, state) =>
+                {
+                    if (msg != null && !string.IsNullOrEmpty(msg.AsString))
+                    {
+                        var command = JsonConvert.DeserializeObject<QueueMessage<EvaluateServicePrincipalCommand>>(msg.AsString).Document;
+
+                        lock (foundLock)// needed for Parallel foreach only
+                        {
+                            bool messageFound = command.CorrelationId == _activityContext.CorrelationId
+                                          && command.Model.DisplayName.StartsWith(displayNamePatternFilter);
+
+                            if (messageFound)
+                            {
+                                result++;
+                            }
+
+                        }
+                    }
+                });
+
+                cmdMessages = cmdQueue.GetMessages(32);
+            }
+
+            return result;
         }
     }
 }
