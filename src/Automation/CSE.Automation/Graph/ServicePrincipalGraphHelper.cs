@@ -69,7 +69,6 @@ namespace CSE.Automation.Graph
             metrics.Considered = servicePrincipalList.Count;
             do
             {
-
                 var pageList = servicePrincipalCollectionPage.CurrentPage;
                 var count = pageList.Count;
 
@@ -111,6 +110,26 @@ namespace CSE.Automation.Graph
             return (metrics, servicePrincipalList);
         }
 
+        public async override Task<ServicePrincipal> GetGraphObjectWithOwners(string id)
+        {
+            var entity = await GraphClient.ServicePrincipals[id]
+                .Request()
+                .Expand("Owners")
+                .GetAsync()
+                .ConfigureAwait(false);
+
+            return entity;
+        }
+
+        public async override Task PatchGraphObject(ServicePrincipal servicePrincipal)
+        {
+            // API call uses a PATCH so only include properties to change
+            await GraphClient.ServicePrincipals[servicePrincipal.Id]
+                    .Request()
+                    .UpdateAsync(servicePrincipal)
+                    .ConfigureAwait(false);
+        }
+
         private string GetFilterString(string displayNamePatternFilter)
         {
             List<ServicePrincipal> servicePrincipalList = new List<ServicePrincipal>();
@@ -122,8 +141,8 @@ namespace CSE.Automation.Graph
 
             servicePrincipalList.AddRange(servicePrincipalsPage.CurrentPage);
 
-            //NOTE: The number of ids you can specify is limited by the maximum URL length  
-            //Successfully tested a request like this Delta().Request().Filter("filter string for up to 200 SPs") with 200 SP IDs so 100 should not be a problem.
+            // NOTE: The number of ids you can specify is limited by the maximum URL length
+            // Successfully tested a request like this Delta().Request().Filter("filter string for up to 200 SPs") with 200 SP IDs so 100 should not be a problem.
             while (servicePrincipalsPage.NextPageRequest != null && servicePrincipalList.Count < 100)
             {
                 servicePrincipalsPage = servicePrincipalsPage.NextPageRequest.GetAsync().Result;
@@ -145,26 +164,6 @@ namespace CSE.Automation.Graph
             }
 
             return filterTemplate;
-        }
-
-        public async override Task<ServicePrincipal> GetGraphObjectWithOwners(string id)
-        {
-            var entity = await GraphClient.ServicePrincipals[id]
-                .Request()
-                .Expand("Owners")
-                .GetAsync()
-                .ConfigureAwait(false);
-
-            return entity;
-        }
-
-        public async override Task PatchGraphObject(ServicePrincipal servicePrincipal)
-        {
-            // API call uses a PATCH so only include properties to change
-            await GraphClient.ServicePrincipals[servicePrincipal.Id]
-                    .Request()
-                    .UpdateAsync(servicePrincipal)
-                    .ConfigureAwait(false);
         }
 
         private static bool IsSeedRun(ProcessorConfiguration config)
