@@ -64,16 +64,11 @@ namespace CSE.Automation.Graph
                 servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
             }
 
-            servicePrincipalList.AddRange(servicePrincipalCollectionPage.CurrentPage);
-
             logger.LogDebug($"\tDiscovered {servicePrincipalCollectionPage.CurrentPage.Count} Service Principals");
 
             metrics.Considered = servicePrincipalList.Count;
-
-            // Tested: Graph server will filter before pagination meaning empty pages with non null next pages are not possible
-            while (servicePrincipalCollectionPage.NextPageRequest != null && servicePrincipalCollectionPage.CurrentPage.Count != 0)
+            do
             {
-                servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
 
                 var pageList = servicePrincipalCollectionPage.CurrentPage;
                 var count = pageList.Count;
@@ -99,7 +94,12 @@ namespace CSE.Automation.Graph
                 }
 
                 servicePrincipalList.AddRange(pageList);
+                if (servicePrincipalCollectionPage.NextPageRequest != null)
+                {
+                    servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
+                }
             }
+            while (servicePrincipalCollectionPage.NextPageRequest != null);
 
             logger.LogInformation($"Discovered {servicePrincipalList.Count} delta objects.");
             metrics.Found = servicePrincipalList.Count;
