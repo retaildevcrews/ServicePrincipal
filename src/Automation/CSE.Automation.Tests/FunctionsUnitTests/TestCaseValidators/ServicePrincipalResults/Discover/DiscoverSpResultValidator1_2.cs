@@ -19,11 +19,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
         public override bool Validate()
         {
-            // The Max number of SPs queried by Delta request for testing purposes is 100. See ServicePrincipalGraphHelper.GetFilterString
-            // So we will only try to get up to 100 SPs for a given Prefix
-
-            //var servicePrincipalList = GraphHelper.GetAllServicePrincipals($"{this.DisplayNamePatternFilter}", 100).Result;
-
             // We check for messages in Evaluate queue for Discover Test cases.
             int messageFoundCount = GetMessageCountInEvaluateQueueFor(this.DisplayNamePatternFilter);
             return messageFoundCount == 0;

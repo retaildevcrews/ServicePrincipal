@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using AzQueueTestTool.TestCases.ServicePrincipals;
 using Microsoft.Graph;
 using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases.TestCaseCollection;
@@ -16,11 +17,27 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
         }
         public override bool Validate()
         {
-            var servicePrincipalList = GraphHelper.GetAllServicePrincipals($"{DisplayNamePatternFilter}").Result;
+            string servicePrincipalToDelete = $"{DisplayNamePatternFilter}-REMOVED";
 
-            //GraphHelper.DeleteServicePrincipalsAsync("");
+            var servicePrincipalList = GraphHelper.GetAllServicePrincipals(servicePrincipalToDelete).Result;
 
-            // TODO : delete one of the SP in servicePrincipalList   
+            if (servicePrincipalList.Count == 0)
+            {
+                GraphHelper.CreateServiceThisPrincipal(servicePrincipalToDelete);
+
+                servicePrincipalList = GraphHelper.GetAllServicePrincipals(servicePrincipalToDelete).Result;
+
+            }
+
+            //TODO: add  @Remove atttribute
+            //  attributeName:"AdditionalData",
+            //existingAttributeValue: "@removed"));
+
+            servicePrincipalList[0].AdditionalData.Add("@removed", "injected removed attribute");
+
+            Task updateTask = Task.Run( () =>  GraphHelper.UpdateGraphObject(servicePrincipalList[0]));
+
+            updateTask.Wait();
 
             return false;
 

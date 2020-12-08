@@ -326,7 +326,32 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                 Task.WaitAll(tasks.ToArray());
             }
         }
-      
+        internal static async Task<ServicePrincipal> GetServicePrincipal(string servicePrincipalName)
+        {
+            try
+            {
+                List<ServicePrincipal> servicePrincipalList = new List<ServicePrincipal>();
+
+
+                var servicePrincipalsPage = await _graphClient.ServicePrincipals
+                            .Request()
+                            .Filter($"displayName eq '{servicePrincipalName}'")
+                            .GetAsync();
+
+                if (servicePrincipalsPage.CurrentPage != null && servicePrincipalsPage.CurrentPage.Count > 0)
+                {
+                    return servicePrincipalsPage.CurrentPage[0];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
         internal static async Task<List<ServicePrincipal>> GetAllServicePrincipals(string spNamePefix, int count = 0)
         {
             try
@@ -408,6 +433,35 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
             }
         }
 
+
+        internal static void CreateServiceThisPrincipal(string spNamePefix)
+        {
+            var serviceTasks = new List<Task<ServicePrincipal>>();
+
+            var application = new Application
+            {
+                DisplayName = spNamePefix
+            };
+
+            Task<Application> appTask = _graphClient.Applications.Request().AddAsync(application);
+            appTask.Wait();
+
+            var servicePrincipal = new ServicePrincipal
+            {
+                AppId = appTask.Result.AppId
+            };
+
+
+            Task<ServicePrincipal> spTask = _graphClient.ServicePrincipals.Request().AddAsync(servicePrincipal);
+            serviceTasks.Add(spTask);
+
+
+
+            Task.WaitAll(serviceTasks.ToArray());
+
+            Console.WriteLine("app registration and service principal creation done, press a key to continue");
+
+        }
 
         internal static void CreateServicePrincipalAsync(string spNamePefix, int count, int lowerLimit = 1)
         {
@@ -539,6 +593,15 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                 Task.WaitAll(tasks.ToArray());
 
             }
+        }
+
+        internal static async Task UpdateGraphObject(ServicePrincipal servicePrincipal)
+        {
+            // API call uses a PATCH so only include properties to change
+            await _graphClient.ServicePrincipals[servicePrincipal.Id]
+                    .Request()
+                    .UpdateAsync(servicePrincipal)
+                    .ConfigureAwait(false);
         }
 
         internal static async Task<IList<ServicePrincipal>> GetAllServicePrincipalsWithNotes(string spNamePefix, int count = 0)

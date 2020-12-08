@@ -19,9 +19,21 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
         public override bool Validate()
         {
-            //Record must exist for the removed SP.
- 
-            return false;
+            // Cleanup delete ServicePrincipal Created from DiscoverSpStateDefinition2.cs
+
+            string servicePrincipalToDelete = $"{DisplayNamePatternFilter}-REMOVED";
+
+            var servicePrincipalList = GraphHelper.GetAllServicePrincipals(servicePrincipalToDelete).Result;
+
+            if (servicePrincipalList.Count > 0)
+            {
+                GraphHelper.DeleteServicePrincipalsAsync(servicePrincipalList); 
+            }
+
+            // Validation 
+            // We check for messages in Evaluate queue for Discover Test cases.
+            int messageFoundCount = GetMessageCountInEvaluateQueueFor(this.DisplayNamePatternFilter);
+            return messageFoundCount == 0;
 
         }
     }
