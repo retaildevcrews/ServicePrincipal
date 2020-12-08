@@ -3,7 +3,7 @@ name: Docker CI
 on:
   push:
     branches:
-      - alfredoch/run-system-tests
+      - main
 
     paths-ignore:
       - 'docs/**'
