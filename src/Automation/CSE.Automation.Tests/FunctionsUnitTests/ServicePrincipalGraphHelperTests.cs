@@ -33,6 +33,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         static IHostBuilder CreateHostBuilder(string[] args)
         {
+            var page = Substitute.For<IServicePrincipalDeltaCollectionPage>();
+            IServicePrincipalDeltaRequest temp = null;
+            page.NextPageRequest.Returns(temp);
+            Task<IServicePrincipalDeltaCollectionPage> results = Task.FromResult(page);
+            var graphClient = Substitute.For<IGraphServiceClient>();
+            graphClient.ServicePrincipals.Delta().Request().Filter(Arg.Any<String>()).GetAsync().Returns(results);
+
             return
                 new HostBuilder()
                 .ConfigureLogging(builder =>
@@ -46,7 +53,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                     services
                         .AddSingleton<ISecretClient>(Substitute.For<ISecretClient>())
                         .AddSingleton<IAuditService>(Substitute.For<IAuditService>())
-                        .AddSingleton<IGraphServiceClient>(Substitute.For<IGraphServiceClient>())
+                        .AddSingleton<IGraphServiceClient>(graphClient)
                         .AddTransient<GraphHelperSettings>()
                         .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>();
                 });
@@ -79,7 +86,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
 
-        [Fact(Skip="Needs Updating")]
+        [Fact]
         public async Task GetDeltaGraphObjects_GetAll()
         {
             using (var serviceScope = host.Services.CreateScope())
