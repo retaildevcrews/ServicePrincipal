@@ -34,6 +34,7 @@ function ClassifyMicrosoft
       else {
         $_.Tags += "Addition"
       }
+      $_.Tags += ""
     }
 }
 
@@ -47,6 +48,7 @@ function ClassifyTenant
     ForEach-Object {
       $_.Tags += "Tenant"
       $_.Tags += $_.ServicePrincipalType
+      $_.Tags += ""
     }
 }
 
@@ -60,6 +62,11 @@ function ClassifyThirdParty
     ForEach-Object {
       $_.Tags += "ThirdParty"
       $_.Tags += $_.ServicePrincipalType
+      $_.Tags += (($_.ServicePrincipalNames.split(", ") |
+                   ForEach-Object {[System.Uri]$_} |
+                   Where-Object {$null -ne $_.Host} |
+                   ForEach-Object {$_.Host} |
+                   Get-Unique ) -join ", ")
     }
 }
 
@@ -111,7 +118,7 @@ $groups |
   }
 
   $results = $spList |
-      Select-Object -Property @{N='Classification';E={$_.Tags[-2]}}, @{N='Category';E={$_.Tags[-1]}}, Id, AppOwnerOrganizationId, AppId, DisplayName, @{N='ServicePrincipalNames';E={$_.ServicePrincipalNames -join ", "}}, ServicePrincipalType
+      Select-Object -Property @{N='Classification';E={$_.Tags[-3]}}, @{N='Category';E={$_.Tags[-2]}}, @{N='OwningDomain';E={$_.Tags[-1]}}, Id, AppOwnerOrganizationId, AppId, DisplayName, @{N='ServicePrincipalNames';E={$_.ServicePrincipalNames -join ", "}}, ServicePrincipalType
 
   Write-Host "Summary of Results:"
       $results | Group-Object -Property Classification, Category | Sort-Object Count -D | Select-Object -Property Count, @{N='Classification';E={$_.Group[0].Classification}}, @{N='Category';E={$_.Group[0].Category}} | Out-String | Write-Host
