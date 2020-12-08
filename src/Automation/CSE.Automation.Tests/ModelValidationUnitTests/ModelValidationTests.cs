@@ -16,6 +16,7 @@ using CSE.Automation.Interfaces;
 using Microsoft.VisualStudio.TestPlatform.Utilities;
 using Newtonsoft.Json;
 using Xunit.Abstractions;
+using Moq;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests
 {
@@ -28,26 +29,17 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             this.output = output;
         }
 
-        // TODO: create real mocked class
-        class MockUserGraphHelper : IGraphHelper<User>
+        // Function to create mock instance of UserGraphHelper, which is needed for ServicePrincipalModelValidator instance
+        internal static Mock<IGraphHelper<User>> CreateMockUserGraphHelper()
         {
-            public Task<(GraphOperationMetrics, IEnumerable<User>)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string displayNamePatternFilter = null, string selectFields = null)
-            {
-                throw new NotImplementedException();
-            }
+            Mock<IGraphHelper<User>> mockUserGraphHelper = new Mock<IGraphHelper<User>>();
+            Task<User> outTask = Task.FromResult(new User());
+            mockUserGraphHelper.Setup(x => x.GetGraphObjectWithOwners(It.IsAny<string>())).Returns(outTask);
 
-            public Task<User> GetGraphObjectWithOwners(string id)
-            {
-                return Task.FromResult(new User());
-            }
-
-            public Task PatchGraphObject(User entity)
-            {
-                throw new NotImplementedException();
-            }
+            return mockUserGraphHelper;
         }
 
-        AbstractValidator<ServicePrincipalModel> servicePrincipalValidator = new ServicePrincipalModelValidator(new MockUserGraphHelper());
+        AbstractValidator<ServicePrincipalModel> servicePrincipalValidator = new ServicePrincipalModelValidator(CreateMockUserGraphHelper().Object);
         AbstractValidator<AuditEntry> auditEntryValidator = new AuditEntryValidator();
 
         [Fact]
