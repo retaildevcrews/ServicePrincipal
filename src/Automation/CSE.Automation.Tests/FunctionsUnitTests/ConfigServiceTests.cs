@@ -79,7 +79,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
-        [Trait("Category","System")]
+        [Trait("Category","Integration")]
         public async Task TestConfigServiceReadWriteAsync()
         {
             using var serviceScope = host.Services.CreateScope();
@@ -105,7 +105,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
-        [Trait("Category","System")]
+        [Trait("Category","Integration")]
         public void TestConfigServiceConfigNotFound_NoCreate_Async()
         {
             using var serviceScope = host.Services.CreateScope();
@@ -119,7 +119,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
-        [Trait("Category","System")]
+        [Trait("Category","Integration")]
         public async Task TestConfigServiceConfigNotFound_Create_Async()
         {
             using var serviceScope = host.Services.CreateScope();

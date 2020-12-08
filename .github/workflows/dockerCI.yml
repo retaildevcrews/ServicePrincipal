@@ -48,9 +48,9 @@ jobs:
         cd src/Automation
         dotnet test --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed" --filter "Category=Unit"
 
-    - name: Run System Tests
+    - name: Run Integration Tests
       run: |
-        dotnet test --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed" --filter "Category=System"
+        dotnet test --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed" --filter "Category=Integration"
 
     - name: Calculate Version
       run: |
