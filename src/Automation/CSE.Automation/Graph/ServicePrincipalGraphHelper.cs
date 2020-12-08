@@ -64,10 +64,7 @@ namespace CSE.Automation.Graph
                 servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
             }
 
-            logger.LogDebug($"\tDiscovered {servicePrincipalCollectionPage.CurrentPage.Count} Service Principals");
-
-            metrics.Considered = servicePrincipalList.Count;
-            do
+            Action processCurrentPage = () =>
             {
                 var pageList = servicePrincipalCollectionPage.CurrentPage;
                 var count = pageList.Count;
@@ -93,13 +90,16 @@ namespace CSE.Automation.Graph
                 }
 
                 servicePrincipalList.AddRange(pageList);
-                if (servicePrincipalCollectionPage.NextPageRequest != null)
-                {
-                    servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
-                }
-            }
-            while (servicePrincipalCollectionPage.NextPageRequest != null);
+            };
 
+            processCurrentPage();
+
+            while (servicePrincipalCollectionPage.NextPageRequest != null)
+            {
+                servicePrincipalCollectionPage = await servicePrincipalCollectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
+
+                processCurrentPage();
+            }
             logger.LogInformation($"Discovered {servicePrincipalList.Count} delta objects.");
             metrics.Found = servicePrincipalList.Count;
 
