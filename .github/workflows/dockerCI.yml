@@ -3,7 +3,7 @@ name: Docker CI
 on:
   push:
     branches:
-      - main
+      - alfredoch/run-system-tests
 
     paths-ignore:
       - 'docs/**'
@@ -50,6 +50,7 @@ jobs:
 
     - name: Run Integration Tests
       run: |
+        cd src/Automation
         dotnet test --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed" --filter "Category=Integration"
 
     - name: Calculate Version
