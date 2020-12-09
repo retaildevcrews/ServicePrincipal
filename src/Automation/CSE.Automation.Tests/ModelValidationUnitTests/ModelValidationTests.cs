@@ -39,7 +39,18 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             return mockUserGraphHelper;
         }
 
+        internal static IGraphHelper<User> CreateMockUserGraphHelper_v2()
+        {
+            Task<User> outTask = Task.FromResult(new User());
+
+            var mockUserGraphHelper = Substitute.For<IGraphHelper<User>>();
+            mockUserGraphHelper.GetGraphObjectWithOwners(It.IsAny<string>()).Returns(outTask);
+
+            return mockUserGraphHelper;
+        }
+
         AbstractValidator<ServicePrincipalModel> servicePrincipalValidator = new ServicePrincipalModelValidator(CreateMockUserGraphHelper().Object);
+        // AbstractValidator<ServicePrincipalModel> servicePrincipalValidator = new ServicePrincipalModelValidator(CreateMockUserGraphHelper_v2());
         AbstractValidator<AuditEntry> auditEntryValidator = new AuditEntryValidator();
 
         [Fact]
