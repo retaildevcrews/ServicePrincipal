@@ -76,7 +76,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
     ""notificationEmailAddresses""
   ],
   ""deltaLink"": """",
-  ""runState"": ""seedOnly"",
+  ""runState"": ""seed"",
   ""lastDeltaRun"": """",
   ""lastSeedTime"": """",
   ""description"": """",

@@ -133,7 +133,7 @@ namespace CSE.Automation.Processors
 
             if (forceReseed)
             {
-                config.RunState = RunState.SeedAndRun;
+                config.RunState = RunState.Seed;
             }
 
             // Create the queue client for when we need to post the evaluate commands
@@ -192,7 +192,7 @@ namespace CSE.Automation.Processors
 
             logger.LogInformation($"{servicePrincipalCount} ServicePrincipals resolved.");
 
-            if (config.RunState == RunState.SeedAndRun || config.RunState == RunState.Seedonly)
+            if (config.RunState == RunState.Seed)
             {
                 config.LastSeedTime = DateTimeOffset.Now;
             }
@@ -215,7 +215,7 @@ namespace CSE.Automation.Processors
 
         /// EVALUATE
         /// <summary>
-        /// Evalute the ServicePrincipal to determine if any changes are required.
+        /// Evaluate the ServicePrincipal to determine if any changes are required.
         /// </summary>
         /// <param name="context">Context of the activity.</param>
         /// <param name="entity">Entity of type <see cref="ServicePrincipalModel"/> to evaluate.</param>
