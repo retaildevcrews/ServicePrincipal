@@ -30,27 +30,17 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         // Function to create mock instance of UserGraphHelper, which is needed for ServicePrincipalModelValidator instance
-        internal static Mock<IGraphHelper<User>> CreateMockUserGraphHelper()
-        {
-            Mock<IGraphHelper<User>> mockUserGraphHelper = new Mock<IGraphHelper<User>>();
-            Task<User> outTask = Task.FromResult(new User());
-            mockUserGraphHelper.Setup(x => x.GetGraphObjectWithOwners(It.IsAny<string>())).Returns(outTask);
-
-            return mockUserGraphHelper;
-        }
-
-        internal static IGraphHelper<User> CreateMockUserGraphHelper_v2()
+        internal static IGraphHelper<User> CreateMockUserGraphHelper()
         {
             Task<User> outTask = Task.FromResult(new User());
 
             var mockUserGraphHelper = Substitute.For<IGraphHelper<User>>();
-            mockUserGraphHelper.GetGraphObjectWithOwners(It.IsAny<string>()).Returns(outTask);
+            mockUserGraphHelper.GetGraphObjectWithOwners(Arg.Any<string>()).Returns(outTask);
 
             return mockUserGraphHelper;
         }
 
-        AbstractValidator<ServicePrincipalModel> servicePrincipalValidator = new ServicePrincipalModelValidator(CreateMockUserGraphHelper().Object);
-        // AbstractValidator<ServicePrincipalModel> servicePrincipalValidator = new ServicePrincipalModelValidator(CreateMockUserGraphHelper_v2());
+        AbstractValidator<ServicePrincipalModel> servicePrincipalValidator = new ServicePrincipalModelValidator(CreateMockUserGraphHelper());
         AbstractValidator<AuditEntry> auditEntryValidator = new AuditEntryValidator();
 
         [Fact]
