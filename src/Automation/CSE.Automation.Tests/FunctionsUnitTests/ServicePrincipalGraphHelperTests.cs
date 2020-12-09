@@ -87,6 +87,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
 
         [Fact]
+        [Trait("Category","Unit")]
         public void GetDeltaGraphObjects_GetAll()
         {
             using var serviceScope = host.Services.CreateScope();
