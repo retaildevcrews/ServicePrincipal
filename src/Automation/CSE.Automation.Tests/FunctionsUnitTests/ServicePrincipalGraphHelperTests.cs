@@ -38,7 +38,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             page.NextPageRequest.Returns(temp);
             Task<IServicePrincipalDeltaCollectionPage> results = Task.FromResult(page);
             var graphClient = Substitute.For<IGraphServiceClient>();
-            graphClient.ServicePrincipals.Delta().Request().Filter(Arg.Any<String>()).GetAsync().Returns(results);
+            graphClient.ServicePrincipals.Delta().Request().GetAsync().Returns(results);
 
             return
                 new HostBuilder()
@@ -101,7 +101,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 return service.GetDeltaGraphObjects(new ActivityContext(null), config);
             });
             
-            if (!task.Wait(TimeSpan.FromSeconds(2)))
+            if (!task.Wait(TimeSpan.FromMilliseconds(100)))
             {
                 throw new TimeoutException("Test Not Mocked Properly May Lead to Infinite Loop");
             }
