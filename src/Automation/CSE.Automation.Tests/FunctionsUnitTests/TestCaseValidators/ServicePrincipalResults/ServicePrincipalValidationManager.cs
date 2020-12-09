@@ -34,8 +34,8 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
         public bool Validate()
         {
-            string resultValidatorClassName = _inputGenerator.TestCaseCollection.GetSpValidator(_inputGenerator.TestCaseId);//   _inputGenerator.TestCaseId.GetSpValidator();
-            string objectToInstantiate = $"CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalResults.Discover.{resultValidatorClassName}, CSE.Automation.Tests";
+            string resultValidatorClassName = _inputGenerator.TestCaseCollection.GetSpValidator(_inputGenerator.TestCaseId);
+            string objectToInstantiate = $"CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalResults.{resultValidatorClassName}, CSE.Automation.Tests";
 
             var objectType = Type.GetType(objectToInstantiate);
 

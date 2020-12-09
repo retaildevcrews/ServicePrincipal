@@ -139,21 +139,9 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _configRespository = new ConfigRepository(_configRespositorySettings, _configRepoLogger);
             _configService = new ConfigService(_configRespository);
 
-            _graphHelper = new ServicePrincipalGraphHelper(graphHelperSettings, _auditService, graphClient, _spGraphHelperLogger);
-
-            var secretServiceSettings = new SecretServiceSettings() { KeyVaultName = _config[Constants.KeyVaultName] };
-            var credServiceSettings = new CredentialServiceSettings() { AuthType = _config[Constants.AuthType].As<AuthenticationType>() };
-
-
             string displayNamePatternFilter = _config["displayNamePatternFilter"];
 
-            var credentialService = new CredentialService(credServiceSettings);
-            var secretClient = new SecretService(secretServiceSettings, credentialService);
-            var graphHelperSettings = new GraphHelperSettings(secretClient);
-
-            var graphClient = new GraphClient(graphHelperSettings);
-
-            var servicePrincipalGraphHelperTest = new ServicePrincipalGraphHelperTest(graphHelperSettings, _auditService, graphClient ,displayNamePatternFilter,_spGraphHelperLogger);
+            _graphHelper = new ServicePrincipalGraphHelperTest(graphHelperSettings, _auditService, graphClient ,displayNamePatternFilter,_spGraphHelperLogger);
 
 
             _builder = new ServiceCollection();
@@ -164,7 +152,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 .AddSingleton<VersionMetadata>(_versionMetadata)
 
                 .AddSingleton<ICredentialService>(x => new CredentialService(x.GetRequiredService<CredentialServiceSettings>()))
-                .AddSingleton<ISecretClient>(secretClient)
+                .AddSingleton<ISecretClient>(_secretClient)
 
                 .AddSingleton<IGraphServiceClient, GraphClient>(x => graphClient)
 
@@ -179,7 +167,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
                 .AddScoped<IConfigService<ProcessorConfiguration>>(x => _configService)
 
-                .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelperTest>(x => servicePrincipalGraphHelperTest)
+                .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelperTest>(x => (ServicePrincipalGraphHelperTest)_graphHelper)
                 .AddScoped<IGraphHelper<User>, UserGraphHelper>()
                 .AddScoped<IModelValidator<GraphModel>, GraphModelValidator>()
                 .AddScoped<IModelValidator<ServicePrincipalModel>, ServicePrincipalModelValidator>()
@@ -281,19 +269,18 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         {
             var configBuilder = new ConfigurationBuilder()
                 .AddJsonFile("appconfig.json", true)
-                .AddAzureKeyVaultConfiguration(Constants.KeyVaultName)
-                .AddJsonFile("appsettings.Development.json", true);
+                .AddAzureKeyVaultConfiguration(Constants.KeyVaultName);
 
-            string devConfigPath = string.Concat(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "\\appconfig.Development.json");
+            string devConfigPath = string.Concat(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "\\appconfig.development.json");
             if (System.IO.File.Exists(devConfigPath))
             {
-                configBuilder.AddJsonFile("appconfig.Development.json", true);
+                configBuilder.AddJsonFile("appconfig.development.json", true);
             }
 
             _config = configBuilder.Build();
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase1()
         {
@@ -335,7 +322,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase2()
         {
@@ -376,7 +363,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase2_2()
         {
@@ -417,7 +404,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase3() 
         {
@@ -458,7 +445,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase3_2()
         {
@@ -499,7 +486,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase4()
         {
@@ -541,7 +528,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase5()
         {
@@ -583,7 +570,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase6()
         {

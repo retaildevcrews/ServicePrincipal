@@ -1,7 +1,4 @@
 {
-  "clientId": "",
-  "clientSecret": "",
-  "tenantId": "",
 
   "displayNamePatternFilter": "sp-AzQueueTesting",
   "aadUserServicePrincipalPrefix": "user-AzQueueTesting",
@@ -19,12 +16,11 @@
 
 
   "KEYVAULT_NAME": "sp-kv-dev",
-  "AUTH_TYPE": "VS",
+  "AUTH_TYPE": "CLI",
 
-  "SPCosmosURL": "https://localhost:8081",
-  "SPCosmosDatabase": "SPAutomate",
-  "SPCosmosKey": "",
-  
+  "SPCosmosURL": "https://sp-cosmosa-dev.documents.azure.com:443/",
+  "SPCosmosDatabase": "sp-cosmos-qa",
+
   "SPConfigurationCollection": "Configuration",
   "SPObjectTrackingCollection": "ObjectTracking",
   "SPAuditCollection": "Audit",
@@ -34,11 +30,5 @@
   "visibilityDelayGapSeconds": "8",
   "queueRecordProcessThreshold": "300",
 
-  "SPDeltaDiscoverySchedule": "0 */30 * * * *",
-
-  "SPStorageConnectionString": "",
-  "SPDiscoverQueue": "discover",
-  "SPEvaluateQueue": "evaluate",
-  "SPUpdateQueue": "update"
-
+  "SPDeltaDiscoverySchedule": "0 */30 * * * *"
 }

@@ -7,7 +7,7 @@ using Microsoft.Graph;
 using Newtonsoft.Json;
 using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases.TestCaseCollection;
 
-namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalResults.Discover
+namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalResults
 {
     internal class DiscoverSpResultValidator1 : SpResultValidatorBase, ISpResultValidator
     {
