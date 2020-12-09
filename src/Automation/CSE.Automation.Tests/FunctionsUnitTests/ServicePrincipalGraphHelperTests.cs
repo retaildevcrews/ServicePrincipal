@@ -87,17 +87,23 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
 
         [Fact]
-        public async Task GetDeltaGraphObjects_GetAll()
+        public void GetDeltaGraphObjects_GetAll()
         {
-            using (var serviceScope = host.Services.CreateScope())
+            using var serviceScope = host.Services.CreateScope();
+
+            var config = GetConfiguration();
+
+            var service = serviceScope.ServiceProvider.GetService<IGraphHelper<ServicePrincipal>>();
+
+            var task = Task.Run(() =>
             {
-                var config = GetConfiguration();
-                var service = serviceScope.ServiceProvider.GetService<IGraphHelper<ServicePrincipal>>();
-
-                var results = await service.GetDeltaGraphObjects(new ActivityContext(null), config);
-
+                return service.GetDeltaGraphObjects(new ActivityContext(null), config);
+            });
+            
+            if (!task.Wait(TimeSpan.FromSeconds(2)))
+            {
+                throw new TimeoutException("Test Not Mocked Properly May Lead to Infinite Loop");
             }
-            Assert.True(true);
         }
     }
 }
