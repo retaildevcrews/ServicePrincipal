@@ -16,7 +16,6 @@ using CSE.Automation.Interfaces;
 using Microsoft.VisualStudio.TestPlatform.Utilities;
 using Newtonsoft.Json;
 using Xunit.Abstractions;
-using Moq;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests
 {
