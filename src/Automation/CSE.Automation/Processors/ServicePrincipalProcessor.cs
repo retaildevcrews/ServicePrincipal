@@ -77,6 +77,7 @@ namespace CSE.Automation.Processors
         /// </summary>
         /// <param name="context">An instance of an <see cref="ActivityContext"/>.</param>
         /// <param name="discoveryMode">Type of discovery to perform.</param>
+        /// <param name="source">The Command source.</param>
         /// <returns>A Task that may be awaited.</returns>
         public override async Task RequestDiscovery(ActivityContext context, DiscoveryMode discoveryMode, string source)
         {
@@ -141,7 +142,7 @@ namespace CSE.Automation.Processors
 
             // Perform the delta query against the Graph
             // var selectFields = new[] { "appId", "displayName", "notes", "additionalData" };
-            var servicePrincipalResult = await graphHelper.GetDeltaGraphObjects(context, config, settings.DisplayNamePatternFilter, /*string.Join(',', selectFields)*/ null).ConfigureAwait(false);
+            var servicePrincipalResult = await graphHelper.GetDeltaGraphObjects(context, config).ConfigureAwait(false);
 
             var metrics = servicePrincipalResult.metrics;
             string updatedDeltaLink = metrics.AdditionalData;

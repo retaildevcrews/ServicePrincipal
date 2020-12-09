@@ -24,6 +24,7 @@ using CSE.Automation.Validators;
 using CSE.Automation.KeyVault;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.DataAccess;
 using System.Reflection;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests
 {
@@ -61,7 +62,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         private ILogger<ObjectTrackingRepository> _objectTrackingRepoLogger;
         private ILogger<ActivityService> _activityServiceLogger;
 
-        private ILogger<ServicePrincipalGraphHelper> _spGraphHelperLogger;
+        private ILogger<ServicePrincipalGraphHelperTest> _spGraphHelperLogger;
         private ILogger<UserGraphHelper> _userGraphLogger;
         private ILogger<AzureQueueService> _queueLogger;
 
@@ -128,12 +129,12 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 .AddSingleton<ISecretClient>(x => new SecretService(x.GetRequiredService<SecretServiceSettings>(), x.GetRequiredService<ICredentialService>()))
 
                 .AddTransient<GraphHelperSettings>(x => new GraphHelperSettings(x.GetRequiredService<ISecretClient>()))
-                .AddScoped<ILogger<ServicePrincipalGraphHelper>>(x => _spGraphHelperLogger)
+                .AddScoped<ILogger<ServicePrincipalGraphHelperTest>>(x => _spGraphHelperLogger)
                 .AddScoped<ILogger<UserGraphHelper>>(x => _userGraphLogger)
 
                 .AddScoped<IAuditService>(x => _auditService)
 
-                .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>()
+                .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelperTest>()
                 .AddScoped<IGraphHelper<User>, UserGraphHelper>()
                 .AddScoped<IModelValidator<GraphModel>, GraphModelValidator>()
                 .AddScoped<IModelValidator<ServicePrincipalModel>, ServicePrincipalModelValidator>()
@@ -198,7 +199,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _graphLogger = CreateLogger<GraphDeltaProcessor>();
             _activityServiceLogger = CreateLogger<ActivityService>();
 
-            _spGraphHelperLogger = CreateLogger<ServicePrincipalGraphHelper>();
+            _spGraphHelperLogger = CreateLogger<ServicePrincipalGraphHelperTest>();
             _userGraphLogger = CreateLogger<UserGraphHelper>();
             _queueLogger = CreateLogger<AzureQueueService>();
         }

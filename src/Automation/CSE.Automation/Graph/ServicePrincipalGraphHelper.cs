@@ -14,62 +14,6 @@ using Microsoft.Graph;
 
 namespace CSE.Automation.Graph
 {
-    internal class TestServicePrincipalGraphHelper : ServicePrincipalGraphHelper
-    {
-        private string displayNamePatternFilter;
-
-        public TestServicePrincipalGraphHelper(GraphHelperSettings settings, IAuditService auditService, IGraphServiceClient graphClient, string displayNamePatternFilter, ILogger<ServicePrincipalGraphHelper> logger)
-            : base(settings, auditService, graphClient, logger)
-        {
-            this.displayNamePatternFilter = displayNamePatternFilter;
-        }
-
-        protected virtual IServicePrincipalDeltaRequest GetGraphSeedRequest()
-        {
-            return GraphClient
-                .ServicePrincipals
-                .Delta()
-                .Request()
-                .Filter(GetFilterString(displayNamePatternFilter));
-        }
-
-        private string GetFilterString(string displayNamePatternFilter)
-        {
-            List<ServicePrincipal> servicePrincipalList = new List<ServicePrincipal>();
-
-            var servicePrincipalsPage = GraphClient.ServicePrincipals
-                .Request()
-                .Filter($"startswith(displayName,'{displayNamePatternFilter}')")
-                .GetAsync().Result;
-
-            servicePrincipalList.AddRange(servicePrincipalsPage.CurrentPage);
-
-            // NOTE: The number of ids you can specify is limited by the maximum URL length
-            // Successfully tested a request like this Delta().Request().Filter("filter string for up to 200 SPs") with 200 SP IDs so 100 should not be a problem.
-            while (servicePrincipalsPage.NextPageRequest != null && servicePrincipalList.Count < 100)
-            {
-                servicePrincipalsPage = servicePrincipalsPage.NextPageRequest.GetAsync().Result;
-                servicePrincipalList.AddRange(servicePrincipalsPage.CurrentPage);
-            }
-
-            string filterTemplate = string.Empty;
-
-            foreach (var spObject in servicePrincipalList)
-            {
-                if (string.IsNullOrEmpty(filterTemplate))
-                {
-                    filterTemplate = $"id eq '{spObject.Id}'";
-                }
-                else
-                {
-                    filterTemplate += $" or id eq '{spObject.Id}'";
-                }
-            }
-
-            return filterTemplate;
-        }
-    }
-
     internal class ServicePrincipalGraphHelper : GraphHelperBase<ServicePrincipal>
     {
         public ServicePrincipalGraphHelper(GraphHelperSettings settings, IAuditService auditService, IGraphServiceClient graphClient, ILogger<ServicePrincipalGraphHelper> logger)
@@ -77,27 +21,20 @@ namespace CSE.Automation.Graph
         {
         }
 
-        protected virtual IServicePrincipalDeltaRequest GetGraphSeedRequest()
-        {
-            return GraphClient
-                .ServicePrincipals
-                .Delta()
-                .Request();
-        }
-
+        /// <summary>
+        /// Get Delta Graph Objects
+        /// </summary>
+        /// <param name="context">The Activity Context</param>
+        /// <param name="config">The Processor Configuration </param>
+        /// <returns>Tasks with Metrics and Service Principal collection</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Console.WriteLine will be changed to logs")]
-        public override async Task<(GraphOperationMetrics metrics, IEnumerable<ServicePrincipal> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string displayNamePatternFilter = null, string selectFields = null)
+        public override async Task<(GraphOperationMetrics metrics, IEnumerable<ServicePrincipal> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config)
         {
             GraphOperationMetrics metrics = new GraphOperationMetrics();
 
             if (config == null)
             {
                 throw new ArgumentNullException(nameof(config));
-            }
-
-            if (string.IsNullOrWhiteSpace(selectFields))
-            {
-                selectFields = string.Join(',', config.SelectFields);
             }
 
             IServicePrincipalDeltaCollectionPage collectionPage;
@@ -143,6 +80,44 @@ namespace CSE.Automation.Graph
             return (metrics, servicePrincipalList);
         }
 
+        /// <summary>
+        /// Gets Service Principal Graph Object With Owners
+        /// </summary>
+        /// <param name="id">The Service Principal Oject Id</param>
+        /// <returns>Tasks with Service Principal </returns>
+        public async override Task<ServicePrincipal> GetGraphObjectWithOwners(string id)
+        {
+            var entity = await GraphClient.ServicePrincipals[id]
+                .Request()
+                .Expand("Owners")
+                .GetAsync()
+                .ConfigureAwait(false);
+
+            return entity;
+        }
+
+        /// <summary>
+        /// Updates Service Principal Object
+        /// </summary>
+        /// <param name="servicePrincipal">The Service Principal</param>
+        /// <returns>awaitable Task</returns>
+        public async override Task PatchGraphObject(ServicePrincipal servicePrincipal)
+        {
+            // API call uses a PATCH so only include properties to change
+            await GraphClient.ServicePrincipals[servicePrincipal.Id]
+                    .Request()
+                    .UpdateAsync(servicePrincipal)
+                    .ConfigureAwait(false);
+        }
+
+        protected virtual IServicePrincipalDeltaRequest GetGraphSeedRequest()
+        {
+            return GraphClient
+                .ServicePrincipals
+                .Delta()
+                .Request();
+        }
+
         private IList<ServicePrincipal> PruneRemovedOnFirstRun(ActivityContext context, IServicePrincipalDeltaCollectionPage collectionPage, GraphOperationMetrics metrics, ProcessorConfiguration config)
         {
             IList<ServicePrincipal> pageList = collectionPage.CurrentPage ?? new List<ServicePrincipal>();
@@ -172,26 +147,6 @@ namespace CSE.Automation.Graph
             }
 
             return pageList;
-        }
-
-        public async override Task<ServicePrincipal> GetGraphObjectWithOwners(string id)
-        {
-            var entity = await GraphClient.ServicePrincipals[id]
-                .Request()
-                .Expand("Owners")
-                .GetAsync()
-                .ConfigureAwait(false);
-
-            return entity;
-        }
-
-        public async override Task PatchGraphObject(ServicePrincipal servicePrincipal)
-        {
-            // API call uses a PATCH so only include properties to change
-            await GraphClient.ServicePrincipals[servicePrincipal.Id]
-                    .Request()
-                    .UpdateAsync(servicePrincipal)
-                    .ConfigureAwait(false);
         }
 
         private static bool IsSeedRun(ProcessorConfiguration config)
