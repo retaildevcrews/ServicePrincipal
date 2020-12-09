@@ -77,6 +77,7 @@ namespace CSE.Automation.Processors
         /// </summary>
         /// <param name="context">An instance of an <see cref="ActivityContext"/>.</param>
         /// <param name="discoveryMode">Type of discovery to perform.</param>
+        /// <param name="source">The Command source.</param>
         /// <returns>A Task that may be awaited.</returns>
         public override async Task RequestDiscovery(ActivityContext context, DiscoveryMode discoveryMode, string source)
         {
@@ -133,7 +134,7 @@ namespace CSE.Automation.Processors
 
             if (forceReseed)
             {
-                config.RunState = RunState.SeedAndRun;
+                config.RunState = RunState.Seed;
             }
 
             // Create the queue client for when we need to post the evaluate commands
@@ -141,7 +142,7 @@ namespace CSE.Automation.Processors
 
             // Perform the delta query against the Graph
             // var selectFields = new[] { "appId", "displayName", "notes", "additionalData" };
-            var servicePrincipalResult = await graphHelper.GetDeltaGraphObjects(context, config, settings.DisplayNamePatternFilter, /*string.Join(',', selectFields)*/ null).ConfigureAwait(false);
+            var servicePrincipalResult = await graphHelper.GetDeltaGraphObjects(context, config).ConfigureAwait(false);
 
             var metrics = servicePrincipalResult.metrics;
             string updatedDeltaLink = metrics.AdditionalData;
@@ -192,7 +193,7 @@ namespace CSE.Automation.Processors
 
             logger.LogInformation($"{servicePrincipalCount} ServicePrincipals resolved.");
 
-            if (config.RunState == RunState.SeedAndRun || config.RunState == RunState.Seedonly)
+            if (config.RunState == RunState.Seed)
             {
                 config.LastSeedTime = DateTimeOffset.Now;
             }
@@ -215,7 +216,7 @@ namespace CSE.Automation.Processors
 
         /// EVALUATE
         /// <summary>
-        /// Evalute the ServicePrincipal to determine if any changes are required.
+        /// Evaluate the ServicePrincipal to determine if any changes are required.
         /// </summary>
         /// <param name="context">Context of the activity.</param>
         /// <param name="entity">Entity of type <see cref="ServicePrincipalModel"/> to evaluate.</param>
@@ -299,7 +300,7 @@ namespace CSE.Automation.Processors
 
                 try
                 {
-                    await auditService.PutChange(context, AuditCode.Change_ServicePrincipalUpdated, command.Id, "Notes", command.Notes.Current, command.Notes.Changed, command.Message).ConfigureAwait(false);
+                    await auditService.PutChange(context, AuditCode.Change_ServicePrincipalUpdated, command.Id, "Notes", command.Notes.Current, command.Notes.Changed, command.Action.Description()).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -333,7 +334,7 @@ namespace CSE.Automation.Processors
             {
                 Id = entity.Id,
                 Notes = (entity.Notes, ownersList),
-                Message = "Update Notes from Owners",
+                Action = ServicePrincipalUpdateAction.Update, // "Update Notes from Owners",
             };
             await CommandAADUpdate(context, updateCommand, queueService).ConfigureAwait(true);
 
@@ -365,7 +366,7 @@ namespace CSE.Automation.Processors
                 {
                     Id = entity.Id,
                     Notes = (entity.Notes, lastKnownGood.Notes),
-                    Message = "Revert to Last Known Good",
+                    Action = ServicePrincipalUpdateAction.Revert, // "Revert to Last Known Good",
                 };
 
                 await CommandAADUpdate(context, updateCommand, queueService).ConfigureAwait(true);

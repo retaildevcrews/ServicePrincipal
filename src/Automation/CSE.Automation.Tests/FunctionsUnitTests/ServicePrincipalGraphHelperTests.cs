@@ -33,6 +33,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         static IHostBuilder CreateHostBuilder(string[] args)
         {
+            var page = Substitute.For<IServicePrincipalDeltaCollectionPage>();
+            IServicePrincipalDeltaRequest temp = null;
+            page.NextPageRequest.Returns(temp);
+            Task<IServicePrincipalDeltaCollectionPage> results = Task.FromResult(page);
+            var graphClient = Substitute.For<IGraphServiceClient>();
+            graphClient.ServicePrincipals.Delta().Request().GetAsync().Returns(results);
+
             return
                 new HostBuilder()
                 .ConfigureLogging(builder =>
@@ -46,7 +53,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                     services
                         .AddSingleton<ISecretClient>(Substitute.For<ISecretClient>())
                         .AddSingleton<IAuditService>(Substitute.For<IAuditService>())
-                        .AddSingleton<IGraphServiceClient>(Substitute.For<IGraphServiceClient>())
+                        .AddSingleton<IGraphServiceClient>(graphClient)
                         .AddTransient<GraphHelperSettings>()
                         .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>();
                 });
@@ -61,7 +68,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         {
             var contents = @"{
   ""id"": ""02a54ac9 - 441e-43f1 - 88ee - fde420db2559"",
-  ""filterString"": ""filterstring"",
   ""selectFields"": [
     ""appId"",
     ""displayName"",
@@ -70,11 +76,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
     ""notificationEmailAddresses""
   ],
   ""deltaLink"": """",
-  ""runState"": ""seedOnly"",
+  ""runState"": ""seed"",
   ""lastDeltaRun"": """",
   ""lastSeedTime"": """",
-  ""name"": ""ServicePrincipal Processor"",
-  ""description"": ""Descriptive Text"",
+  ""description"": """",
   ""configType"": ""ServicePrincipal""
 }";
             return JsonConvert.DeserializeObject<ProcessorConfiguration>(contents);
@@ -82,17 +87,24 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
 
         [Fact]
-        public async Task GetDeltaGraphObjects_GetAll()
+        [Trait("Category","Unit")]
+        public void GetDeltaGraphObjects_GetAll()
         {
-            using (var serviceScope = host.Services.CreateScope())
+            using var serviceScope = host.Services.CreateScope();
+
+            var config = GetConfiguration();
+
+            var service = serviceScope.ServiceProvider.GetService<IGraphHelper<ServicePrincipal>>();
+
+            var task = Task.Run(() =>
             {
-                var config = GetConfiguration();
-                var service = serviceScope.ServiceProvider.GetService<IGraphHelper<ServicePrincipal>>();
-
-                var results = await service.GetDeltaGraphObjects(new ActivityContext(null), config);
-
+                return service.GetDeltaGraphObjects(new ActivityContext(null), config);
+            });
+            
+            if (!task.Wait(TimeSpan.FromMilliseconds(100)))
+            {
+                throw new TimeoutException("Test Not Mocked Properly May Lead to Infinite Loop");
             }
-            Assert.True(true);
         }
     }
 }

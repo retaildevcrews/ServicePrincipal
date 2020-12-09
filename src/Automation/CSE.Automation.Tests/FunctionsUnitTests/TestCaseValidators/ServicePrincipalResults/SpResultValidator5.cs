@@ -20,7 +20,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
         {
             var newServicePrincipalAsString = JsonConvert.SerializeObject(NewServicePrincipal);
 
-            List<string> targetQueueMessages = new List<string> () {"Update Notes from Owners", "Revert to Last Known Good"};
+            List<ServicePrincipalUpdateAction> targetQueueMessages = new List<ServicePrincipalUpdateAction> () { ServicePrincipalUpdateAction.Update, ServicePrincipalUpdateAction.Revert};
 
             bool messageNotFound = DoesMessageExistInUpdateQueue(targetQueueMessages);
 

@@ -19,7 +19,7 @@ namespace CSE.Automation.Graph
         {
         }
 
-        public override Task<(GraphOperationMetrics metrics, IEnumerable<User> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string displayNamePatternFilter = null, string selectFields = null)
+        public override Task<(GraphOperationMetrics metrics, IEnumerable<User> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config)
         {
             throw new NotImplementedException();
         }

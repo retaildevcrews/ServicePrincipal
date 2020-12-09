@@ -20,7 +20,7 @@ namespace CSE.Automation.KeyVault
             // build URI
             if (!KeyVaultHelper.BuildKeyVaultConnectionString(settings.KeyVaultName, out var keyVaultUri))
             {
-                throw new Exception("Key vault name not Valid"); // TODO: place holder code ensure error message is good and contains input value
+                throw new Exception("Key vault name " + settings.KeyVaultName + " not Valid");
             }
 
             Uri = new Uri(keyVaultUri);

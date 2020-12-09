@@ -31,7 +31,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         // TODO: create real mocked class
         class MockUserGraphHelper : IGraphHelper<User>
         {
-            public Task<(GraphOperationMetrics, IEnumerable<User>)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string displayNamePatternFilter = null, string selectFields = null)
+            public Task<(GraphOperationMetrics, IEnumerable<User>)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config)
             {
                 throw new NotImplementedException();
             }
@@ -51,6 +51,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         AbstractValidator<AuditEntry> auditEntryValidator = new AuditEntryValidator();
 
         [Fact]
+        [Trait("Category","Unit")]
         public void ServicePrincipalModelValidate_ReturnsValidationFailuresIfInvalid()
         {
             var servicePrincipal = new ServicePrincipalModel
@@ -68,6 +69,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
+        [Trait("Category","Unit")]
         public void ServicePrincipalModelValidate_ReturnsTrueIfValid()
         {
             var servicePrincipal = new ServicePrincipalModel
@@ -91,6 +93,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
+        [Trait("Category","Unit")]
         public void AuditEntryModelValidate_ReturnsValidationFailuresIfInvalid()
         {
             var auditItem = new AuditEntry();
@@ -105,6 +108,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
+        [Trait("Category","Unit")]
         public void AuditEntryModelValidate_ReturnsTrueIfValid()
         {
             var context = new ActivityContext(null);

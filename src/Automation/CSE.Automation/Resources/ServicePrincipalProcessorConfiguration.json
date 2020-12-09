@@ -1,6 +1,5 @@
 {
   "id": "02a54ac9-441e-43f1-88ee-fde420db2559",
-  "filterString": "filterstring",
   "selectFields": [
     "appId",
     "displayName",
@@ -10,10 +9,9 @@
 
   ],
   "deltaLink": "",
-  "runState": "seedAndRun",
+  "runState": "seed",
   "lastDeltaRun": "",
   "lastSeedTime": "",
-  "name": "ServicePrincipal Processor",
-  "description": "Descriptive Text",
+  "description": "",
   "configType": "ServicePrincipal"
 }
