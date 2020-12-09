@@ -56,8 +56,6 @@ namespace CSE.Automation.Processors
 
         public UpdateMode AADUpdateMode { get; set; }
 
-        public string DisplayNamePatternFilter { get; set; }
-
         public override void Validate()
         {
             base.Validate();
