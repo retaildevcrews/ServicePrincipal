@@ -4,6 +4,7 @@ on:
   push:
     paths:
     - 'docs/image_markdown/**'
+      '.github/workflows/markdownRender.yml'
 
 jobs:
   build:
