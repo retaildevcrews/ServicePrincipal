@@ -14,7 +14,8 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Install Mermaid CLI
-      run: npm install -g @mermaid-js/mermaid-cli
+      run: |
+        npm install @mermaid-js/mermaid-cli
 
     - name: Render Images
       run: |
@@ -23,7 +24,7 @@ jobs:
         for inputPath in $inputPaths
         do
           outputPath=$outputDir/$(basename $inputPath .mmd)_mmd.svg
-          cat $inputPath | mmdc --output $outputPath
+          mmdc -i $inputPath -o $outputPath
           echo "Rendered: $outputPath"
         done
 
@@ -31,7 +32,7 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add .
+        git add docs/images/*
         git commit -m "Automated Image Render"
 
     - name: Push
