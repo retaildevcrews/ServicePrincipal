@@ -715,9 +715,9 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext, false);
 
 
-            //using var configurationValidationManager = new ConfigurationValidationManager(inputGenerator, _configRespository, activityContext);
+            using var configurationValidationManager = new ConfigurationValidationManager(inputGenerator, _configRespository, activityContext);
 
-            //using var activityValidationManager = new ActivityValidationManager(inputGenerator, _activityHistoryRespository, activityContext);
+            using var activityValidationManager = new ActivityValidationManager(inputGenerator, _activityHistoryRespository, activityContext);
 
 
 
@@ -729,13 +729,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             Assert.True(validServicePrincipal, "Service Principal Validation");
 
-            //bool validConfiguration =  configurationValidationManager.Validate();
+            bool validConfiguration =  configurationValidationManager.Validate();
 
-            //Assert.True(validConfiguration, "Configuration Validation");
+            Assert.True(validConfiguration, "Configuration Validation");
 
-            //bool validActivity =  activityValidationManager.Validate();
+            bool validActivity =  activityValidationManager.Validate();
 
-            //Assert.True(validActivity, "Activity Validation");
+            Assert.True(validActivity, "Activity Validation");
 
         }
     }

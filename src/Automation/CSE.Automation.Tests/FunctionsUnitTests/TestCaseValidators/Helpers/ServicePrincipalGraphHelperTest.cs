@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using AzQueueTestTool.TestCases.ServicePrincipals;
 using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -10,12 +13,12 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers
 {
     internal class ServicePrincipalGraphHelperTest : ServicePrincipalGraphHelper
     {
-        private string displayNamePatternFilter;
+        private string _displayNamePatternFilter;
 
         public ServicePrincipalGraphHelperTest(GraphHelperSettings settings, IAuditService auditService, IGraphServiceClient graphClient, 
             string displayNamePatternFilter, ILogger<ServicePrincipalGraphHelper> logger) : base(settings, auditService, graphClient, logger)
         {
-            this.displayNamePatternFilter = displayNamePatternFilter;
+            _displayNamePatternFilter = displayNamePatternFilter;
         }
 
         protected override IServicePrincipalDeltaRequest GetGraphSeedRequest()
@@ -24,7 +27,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers
                 .ServicePrincipals
                 .Delta()
                 .Request()
-                .Filter(GetFilterString(displayNamePatternFilter));
+                .Filter(GetFilterString(_displayNamePatternFilter));
         }
 
         private string GetFilterString(string displayNamePatternFilter)
@@ -60,7 +63,29 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers
                 }
             }
 
+            DeleteServicePrincial();
+
             return filterTemplate;
+        }
+
+        private void DeleteServicePrincial()
+        {
+            string servicePrincipalToDelete = $"{_displayNamePatternFilter}-TEST_REMOVED_ATTRIBUTE";
+
+            var servicePrincipalList = GraphHelper.GetAllServicePrincipals(servicePrincipalToDelete).Result;
+
+            if (servicePrincipalList.Count == 1)
+            {
+                GraphHelper.DeleteServicePrincipalsAsync(servicePrincipalList);
+                int waitingCount = 0;
+                while (servicePrincipalList.Count > 0)
+                {
+                    Thread.Sleep(1000);
+                    waitingCount++;
+                    servicePrincipalList = GraphHelper.GetAllServicePrincipals(servicePrincipalToDelete).Result;
+
+                }
+            }
         }
     }
 }

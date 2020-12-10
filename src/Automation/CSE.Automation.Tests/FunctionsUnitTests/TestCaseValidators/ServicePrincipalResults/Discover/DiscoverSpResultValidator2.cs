@@ -21,20 +21,23 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
         {
             // Cleanup delete ServicePrincipal Created from DiscoverSpStateDefinition2.cs
 
-            string servicePrincipalToDelete = $"{DisplayNamePatternFilter}-REMOVED";
+            string servicePrincipalToDelete = $"{DisplayNamePatternFilter}-TEST_REMOVED_ATTRIBUTE";
 
             var servicePrincipalList = GraphHelper.GetAllServicePrincipals(servicePrincipalToDelete).Result;
 
-            if (servicePrincipalList.Count > 0)
+            if (servicePrincipalList.Count > 0)// Just to make sure the SP objet gets deleted
             {
                 GraphHelper.DeleteServicePrincipalsAsync(servicePrincipalList); 
             }
 
-            // Validation 
+            // The Max number of SPs queried by Delta request for testing purposes is 100. See ServicePrincipalGraphHelperTest.GetFilterString
+            // So we will only try to get up to 100 SPs for a given Prefix
+            servicePrincipalList = GraphHelper.GetAllServicePrincipals($"{this.DisplayNamePatternFilter}", 100).Result;
+
             // We check for messages in Evaluate queue for Discover Test cases.
             int messageFoundCount = GetMessageCountInEvaluateQueueFor(this.DisplayNamePatternFilter);
-            return messageFoundCount == 0;
 
+            return servicePrincipalList.Count == messageFoundCount;// Messages must exist because it was executed as FullSeed run
         }
     }
 }

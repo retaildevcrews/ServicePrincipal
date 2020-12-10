@@ -18,7 +18,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Configurati
         public override bool Validate()
         {
 
-            bool isLastTimeSeedPass = NewConfigEntry.LastDeltaRun > SavedConfigEntry.LastDeltaRun;
+            bool isLastTimeSeedPass = NewConfigEntry.LastSeedTime > SavedConfigEntry.LastSeedTime;
 
             bool dataLinkPass = string.IsNullOrEmpty(NewConfigEntry.DeltaLink) != true;
 

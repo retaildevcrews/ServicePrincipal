@@ -453,11 +453,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
 
 
             Task<ServicePrincipal> spTask = _graphClient.ServicePrincipals.Request().AddAsync(servicePrincipal);
-            serviceTasks.Add(spTask);
-
-
-
-            Task.WaitAll(serviceTasks.ToArray());
+            spTask.Wait();
 
             Console.WriteLine("app registration and service principal creation done, press a key to continue");
 

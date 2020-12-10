@@ -18,7 +18,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ActivityRes
         }
         public override bool Validate()
         {
-            ActivityHistory newActivityItem = ActivityHistoryList.FirstOrDefault(x => x.Name == "Delta Discovery");
+            ActivityHistory newActivityItem = ActivityHistoryList.FirstOrDefault(x => x.Name == "Full Discovery");
 
             if (newActivityItem != null)
             {

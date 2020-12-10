@@ -17,30 +17,27 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
         }
         public override bool Validate()
         {
-            string servicePrincipalToDelete = $"{DisplayNamePatternFilter}-REMOVED";
-
-            var servicePrincipalList = GraphHelper.GetAllServicePrincipals(servicePrincipalToDelete).Result;
-
-            if (servicePrincipalList.Count == 0)
+            try
             {
-                GraphHelper.CreateServiceThisPrincipal(servicePrincipalToDelete);
+                string servicePrincipalToDelete = $"{DisplayNamePatternFilter}-TEST_REMOVED_ATTRIBUTE";
 
-                servicePrincipalList = GraphHelper.GetAllServicePrincipals(servicePrincipalToDelete).Result;
+                var servicePrincipalList = GraphHelper.GetAllServicePrincipals(servicePrincipalToDelete).Result;
 
+                if (servicePrincipalList.Count == 0)
+                {
+                    GraphHelper.CreateServiceThisPrincipal(servicePrincipalToDelete);
+
+                    servicePrincipalList = GraphHelper.GetAllServicePrincipals(servicePrincipalToDelete).Result;
+
+                }
+
+                return servicePrincipalList.Count == 1;
             }
-
-            //TODO: add  @Remove atttribute
-            //  attributeName:"AdditionalData",
-            //existingAttributeValue: "@removed"));
-
-            servicePrincipalList[0].AdditionalData.Add("@removed", "injected removed attribute");
-
-            Task updateTask = Task.Run( () =>  GraphHelper.UpdateGraphObject(servicePrincipalList[0]));
-
-            updateTask.Wait();
-
-            return false;
-
+            catch (Exception ex)
+            {
+                throw new Exception($"Unable to validate precondition for Discover - Test Case [{TestCaseID}]", ex);
+            }
+            
         }
     }
 }
