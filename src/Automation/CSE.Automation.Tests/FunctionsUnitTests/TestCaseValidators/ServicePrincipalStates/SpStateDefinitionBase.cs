@@ -24,7 +24,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
             TestCaseID = testCase;
         }
 
-
         public abstract ServicePrincipalWrapper Validate();
 
         public ServicePrincipalWrapper GetNewServicePrincipalWrapper()

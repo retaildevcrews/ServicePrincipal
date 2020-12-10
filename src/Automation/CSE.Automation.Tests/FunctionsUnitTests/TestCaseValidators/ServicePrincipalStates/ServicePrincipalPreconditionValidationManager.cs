@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalStates.Discover;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Graph;
 using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases.TestCaseCollection;
 
@@ -11,10 +13,12 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
     internal class ServicePrincipalPreconditionValidationManager : IDisposable
     {
         private ITestCaseCollection _testCaseCollection;
+        private GraphDeltaProcessorHelper _graphDeltaProcessorHelper;
 
-        public ServicePrincipalPreconditionValidationManager(ITestCaseCollection testCaseCollection)
+        public ServicePrincipalPreconditionValidationManager(ITestCaseCollection testCaseCollection, GraphDeltaProcessorHelper graphDeltaProcessorHelper = null)
         {
             _testCaseCollection = testCaseCollection;
+            _graphDeltaProcessorHelper = graphDeltaProcessorHelper;
         }
 
         public ServicePrincipalWrapper ValidatePrecondition(ServicePrincipal servicePrincipal, TestCaseCollection.TestCase testCase)
@@ -43,7 +47,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
             return instantiatedObject.GetNewServicePrincipalWrapper();
         }
 
-        public bool DiscoverValidatePrecondition(string displayNamePatternFilter, TestCaseCollection.TestCase testCase)
+        public bool DiscoverValidatePrecondition(IConfigurationRoot config, TestCaseCollection.TestCase testCase)
         {
             string stateDefinitionClassName= _testCaseCollection.GetSpStateDefinition(testCase);
 
@@ -51,7 +55,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
             var objectType = Type.GetType(objectToInstantiate);
 
-            object[] args = { displayNamePatternFilter, testCase};
+            object[] args = { config, testCase, _graphDeltaProcessorHelper};
 
             var instantiatedObject = Activator.CreateInstance(objectType, args) as IDiscoverSpStateDefinition;
 

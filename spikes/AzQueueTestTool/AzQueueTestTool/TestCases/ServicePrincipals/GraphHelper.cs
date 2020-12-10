@@ -347,7 +347,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                     return null;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }
@@ -434,13 +434,13 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
         }
 
 
-        internal static void CreateServiceThisPrincipal(string spNamePefix)
+        internal static void CreateServicePrincipal(string servicePrincipalName)
         {
             var serviceTasks = new List<Task<ServicePrincipal>>();
 
             var application = new Application
             {
-                DisplayName = spNamePefix
+                DisplayName = servicePrincipalName
             };
 
             Task<Application> appTask = _graphClient.Applications.Request().AddAsync(application);
@@ -530,7 +530,6 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
 
         internal static void DeleteServicePrincipalsAsync(IList<ServicePrincipal> servicePrincipalList)
         {
-
             if (servicePrincipalList != null && servicePrincipalList.Count() > 0)
             {
                 var tasks = new List<Task>();

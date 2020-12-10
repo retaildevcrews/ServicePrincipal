@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AzQueueTestTool.TestCases.ServicePrincipals;
 using CSE.Automation.Model;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Queue;
 using Microsoft.Graph;
@@ -62,7 +63,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
             bool messageFound = false;
             while (!messageFound)
             {
-                //TODO Can I turn this into Parallel loop to proceess multiple  batches of 32  Parallel.ForEach
 
                 IEnumerable <CloudQueueMessage> cmdMessages = cmdQueue.GetMessages(32);// 32 is the max number of messages that can be retrived 
 
@@ -79,7 +79,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
                       
                         lock (foundLock)// needed for Parallel foreach only
                         {
-                            if (!messageFound)/// state.Break(); takes its time and does not break the look immediately 
+                            if (!messageFound)/// state.Break(); takes its time and does not break the loop immediately 
                             {
                                 messageFound = command.CorrelationId == _activityContext.CorrelationId && command.Id == NewServicePrincipal.Id
                                               && targetQueueMessages.Contains(command.Action); // we need to use Enums instead of "Strings"
@@ -101,6 +101,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
             return messageFound;
         }
+
 
         public int GetMessageCountInEvaluateQueueFor(string displayNamePatternFilter)
         {
@@ -140,6 +141,60 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
             }
 
             return result;
+        }
+
+        public bool DoesMessageExistInEvaluateQueue(string servicePrincipalId)
+        {
+            var storageAccount = CloudStorageAccount.Parse(_inputGenerator.StorageConnectionString);
+            var cmdQueue = storageAccount.CreateCloudQueueClient().GetQueueReference(_inputGenerator.EvaluateQueueName);
+
+            object foundLock = new object();
+            bool messageFound = false;
+            while (!messageFound)
+            {
+
+                IEnumerable <CloudQueueMessage> cmdMessages = cmdQueue.GetMessages(32);// 32 is the max number of messages that can be retrived 
+
+                if (cmdMessages.Count() == 0)
+                {
+                    break;
+                }
+
+                Parallel.ForEach(cmdMessages, (msg, state) =>
+                {
+                    if (msg != null && !string.IsNullOrEmpty(msg.AsString))
+                    {
+                        var command = JsonConvert.DeserializeObject<QueueMessage<EvaluateServicePrincipalCommand>>(msg.AsString).Document;
+
+                        lock (foundLock)// needed for Parallel foreach only
+                        {
+                            if (!messageFound)/// state.Break(); takes its time and does not break the loop immediately 
+                            {
+                                messageFound = command.CorrelationId == _activityContext.CorrelationId 
+                                              && servicePrincipalId == command.Model.Id; 
+
+
+                                if (messageFound)
+                                {
+                                    state.Break();
+                                }
+                            }
+                        }
+
+                    }
+                });
+
+                if (messageFound)
+                    break; // break While loop
+            }
+
+            return messageFound;
+        }
+
+        internal void DeleteServicePrincipal(string servicePrincipalToDelete)
+        {
+            using ServicePrincipalHelper servicePrincipalHelper = new ServicePrincipalHelper();
+            servicePrincipalHelper.DeleteServicePrincipal(servicePrincipalToDelete);
         }
     }
 }

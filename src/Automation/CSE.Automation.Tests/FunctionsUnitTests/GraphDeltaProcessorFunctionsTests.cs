@@ -85,9 +85,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         public GraphDeltaProcessorFunctionsTests()
         {
-            // TODO: Need to add an interfaces for these so we can mock them or come up with another way to instantiate 
-            // for testing. As it is right now the substitution won't work because the
-            // constructors will actually get called and GraphHelperBase will try to create a graph client.
 
 
             BuildConfiguration();
@@ -290,10 +287,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new EvaluateInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
+            using var inputGenerator = new EvaluateInputGenerator(_config, testCaseCollection, thisTestCase);
 
 
-            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(activityContext));
 
             //Create Validators 
             using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext);
@@ -332,9 +329,9 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new EvaluateInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
+            using var inputGenerator = new EvaluateInputGenerator(_config, testCaseCollection, thisTestCase);
 
-            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(activityContext));
 
             //Create Validators 
             using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext);
@@ -373,10 +370,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new EvaluateInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
+            using var inputGenerator = new EvaluateInputGenerator(_config,  testCaseCollection, thisTestCase);
 
 
-            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(activityContext));
 
             //Create Validators 
             using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext);
@@ -414,9 +411,9 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new EvaluateInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
+            using var inputGenerator = new EvaluateInputGenerator(_config, testCaseCollection, thisTestCase);
 
-            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(activityContext));
 
             //Create Validators 
             using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext);
@@ -455,9 +452,9 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new EvaluateInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
+            using var inputGenerator = new EvaluateInputGenerator(_config, testCaseCollection, thisTestCase);
 
-            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(activityContext));
 
             //Create Validators 
             using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext);
@@ -496,9 +493,9 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new EvaluateInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
+            using var inputGenerator = new EvaluateInputGenerator(_config, testCaseCollection, thisTestCase);
 
-            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(activityContext));
 
             //Create Validators 
             using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext);
@@ -538,10 +535,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new EvaluateInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
+            using var inputGenerator = new EvaluateInputGenerator(_config, testCaseCollection, thisTestCase);
 
 
-            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(activityContext));
 
             //Create Validators 
             using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext);
@@ -580,10 +577,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new EvaluateInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
+            using var inputGenerator = new EvaluateInputGenerator(_config, testCaseCollection, thisTestCase);
 
            
-            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent());
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(activityContext));
 
             //Create Validators 
             using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext);
@@ -613,6 +610,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
+        [Trait("Category", "Integration")]
         public void FunctionDiscoverTestCase1()
         {
             using var testCaseCollection = new DiscoverTestCaseCollection();
@@ -621,10 +619,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new DiscoverInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
+            using var inputGenerator = new DiscoverInputGenerator(_config, testCaseCollection, thisTestCase);
 
 
-            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(DiscoveryMode.FullSeed, "HTTP"));
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(DiscoveryMode.FullSeed, "HTTP", activityContext));
 
 
             ////Create Validators 
@@ -656,6 +654,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
+        [Trait("Category", "Integration")]
         public void FunctionDiscoverTestCase1_2()
         {
             using var testCaseCollection = new DiscoverTestCaseCollection();
@@ -664,10 +663,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new DiscoverInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
+            using var graphDeltaProcessorHelper = new GraphDeltaProcessorHelper(_graphDeltaProcessor, _activityService, _graphLogger, _config);
 
+            using var inputGenerator = new DiscoverInputGenerator(_config, testCaseCollection, thisTestCase, graphDeltaProcessorHelper);
 
-            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(DiscoveryMode.Deltas, "HTTP"));
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(DiscoveryMode.Deltas, "HTTP", activityContext));
 
 
             ////Create Validators 
@@ -697,6 +697,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
+        [Trait("Category", "Integration")]
         public void FunctionDiscoverTestCase2()
         {
             using var testCaseCollection = new DiscoverTestCaseCollection();
@@ -705,15 +706,58 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new DiscoverInputGenerator(_config, activityContext, testCaseCollection, thisTestCase);
+            using var inputGenerator = new DiscoverInputGenerator(_config, testCaseCollection, thisTestCase);
 
 
-            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(DiscoveryMode.FullSeed, "HTTP"));
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(DiscoveryMode.FullSeed, "HTTP", activityContext));
 
 
             ////Create Validators 
             using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext, false);
 
+
+            using var configurationValidationManager = new ConfigurationValidationManager(inputGenerator, _configRespository, activityContext);
+
+            using var activityValidationManager = new ActivityValidationManager(inputGenerator, _activityHistoryRespository, activityContext);
+
+
+
+            Task thisTaks = Task.Run (() => _graphDeltaProcessor.Discover(cloudQueueMessage, _graphLogger));
+            thisTaks.Wait();
+
+
+            bool validServicePrincipal = servicePrincipalValidationManager.Validate();
+
+            Assert.True(validServicePrincipal, "Service Principal Validation");
+
+            bool validConfiguration =  configurationValidationManager.Validate();
+
+            Assert.True(validConfiguration, "Configuration Validation");
+
+            bool validActivity =  activityValidationManager.Validate();
+
+            Assert.True(validActivity, "Activity Validation");
+
+        }
+
+        [Fact]
+        [Trait("Category", "Integration")]
+        public void FunctionDiscoverTestCase3()
+        {
+            using var testCaseCollection = new DiscoverTestCaseCollection();
+
+            TestCase thisTestCase = testCaseCollection.TC3;
+
+            using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
+
+            using var graphDeltaProcessorHelper = new GraphDeltaProcessorHelper(_graphDeltaProcessor, _activityService, _graphLogger, _config);
+
+            using var inputGenerator = new DiscoverInputGenerator(_config, testCaseCollection, thisTestCase, graphDeltaProcessorHelper);
+
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(DiscoveryMode.Deltas, "HTTP", activityContext));
+
+            ////Create Validators 
+            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext, false);
 
             using var configurationValidationManager = new ConfigurationValidationManager(inputGenerator, _configRespository, activityContext);
 

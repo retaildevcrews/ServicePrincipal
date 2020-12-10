@@ -6,6 +6,12 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases
 {
     abstract internal class TestCaseCollection : ITestCaseCollection
     {
+        public const string TestNewUserSuffix = "-TEST_NEW_OWNER";
+
+        public const string TestRemovedAttributeSuffix = "-TEST_REMOVED_ATTRIBUTE";
+
+        static internal string ServicePrincipalIdForTestNewUser { get; set; }
+
         //Full list of Test Cases 
         internal enum TestCase
         {

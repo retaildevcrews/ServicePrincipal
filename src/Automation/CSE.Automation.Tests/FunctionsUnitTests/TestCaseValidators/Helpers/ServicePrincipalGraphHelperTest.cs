@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AzQueueTestTool.TestCases.ServicePrincipals;
 using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 
@@ -70,22 +71,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers
 
         private void DeleteServicePrincial()
         {
-            string servicePrincipalToDelete = $"{_displayNamePatternFilter}-TEST_REMOVED_ATTRIBUTE";
+            string servicePrincipalToDelete = $"{_displayNamePatternFilter}{TestCaseCollection.TestRemovedAttributeSuffix}";
 
-            var servicePrincipalList = GraphHelper.GetAllServicePrincipals(servicePrincipalToDelete).Result;
-
-            if (servicePrincipalList.Count == 1)
-            {
-                GraphHelper.DeleteServicePrincipalsAsync(servicePrincipalList);
-                int waitingCount = 0;
-                while (servicePrincipalList.Count > 0)
-                {
-                    Thread.Sleep(1000);
-                    waitingCount++;
-                    servicePrincipalList = GraphHelper.GetAllServicePrincipals(servicePrincipalToDelete).Result;
-
-                }
-            }
+            using ServicePrincipalHelper servicePrincipalHelper = new ServicePrincipalHelper();
+            servicePrincipalHelper.DeleteServicePrincipal(servicePrincipalToDelete);
         }
     }
 }

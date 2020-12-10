@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AzQueueTestTool.TestCases.ServicePrincipals;
 using CSE.Automation.Model;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalStates;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.System.ComponentModel;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases;
@@ -28,7 +29,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
         private bool _initialized = false;
 
         protected readonly IConfigurationRoot _config;
-        protected readonly ActivityContext _activityContext;
+        
         private ServicePrincipalWrapper _servicePrincipalWrapper;
 
         public ITestCaseCollection TestCaseCollection { get; }
@@ -49,10 +50,9 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
         public string ConfigId => _config["configId"];
        
 
-        internal InputGeneratorBase(IConfigurationRoot config, ActivityContext activityContext, ITestCaseCollection testCaseCollection, TestCaseCollection.TestCase testCaseId)
+        internal InputGeneratorBase(IConfigurationRoot config,  ITestCaseCollection testCaseCollection, TestCaseCollection.TestCase testCaseId)
         {
             _config = config;
-            _activityContext = activityContext;
             TestCaseId = testCaseId;
             TestCaseCollection = testCaseCollection;
             InitGraphHelper();
@@ -115,11 +115,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 
         }
 
-        protected bool ValidateDiscoverServicePrincipalPrecondition(TestCaseCollection.TestCase testCase)
+        protected bool ValidateDiscoverServicePrincipalPrecondition(TestCaseCollection.TestCase testCase, GraphDeltaProcessorHelper graphDeltaProcessorHelper)
         {
-            using var stateValidationManager = new ServicePrincipalPreconditionValidationManager(TestCaseCollection);
+            using var stateValidationManager = new ServicePrincipalPreconditionValidationManager(TestCaseCollection, graphDeltaProcessorHelper);
 
-            return stateValidationManager.DiscoverValidatePrecondition(_config["displayNamePatternFilter"],  testCase);
+            return stateValidationManager.DiscoverValidatePrecondition(_config,  testCase);
 
         }
         private void InitGraphHelper()

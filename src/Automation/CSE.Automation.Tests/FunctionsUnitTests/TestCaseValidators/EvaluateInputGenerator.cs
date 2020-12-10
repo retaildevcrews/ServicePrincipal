@@ -13,19 +13,19 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
         public string TC4AssignTheseOwnersWhenCreatingAMissingObjectTracking => base._config["TC4_AssignTheseOwnersWhenCreatingAMissingObjectTracking"];
 
 
-        internal EvaluateInputGenerator(IConfigurationRoot config, ActivityContext activityContext, ITestCaseCollection testCaseCollection, TestCase testCaseId): base(config,  activityContext, testCaseCollection, testCaseId)
+        internal EvaluateInputGenerator(IConfigurationRoot config, ITestCaseCollection testCaseCollection, TestCase testCaseId): base(config,  testCaseCollection, testCaseId)
         {
             
         }
         
-        public byte[] GetTestMessageContent()
+        public byte[] GetTestMessageContent(ActivityContext activityContext)
         {
             var myMessage = new QueueMessage<EvaluateServicePrincipalCommand>()
             {
                 QueueMessageType = QueueMessageType.Data,
                 Document = new EvaluateServicePrincipalCommand
                 {
-                    CorrelationId = _activityContext.CorrelationId, 
+                    CorrelationId = activityContext.CorrelationId, 
                     Model = GetServicePrincipalWrapper().SPModel,
                 },
                 Attempt = 0

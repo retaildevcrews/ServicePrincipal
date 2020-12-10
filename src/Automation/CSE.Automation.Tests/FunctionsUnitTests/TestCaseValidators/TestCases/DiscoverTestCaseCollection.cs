@@ -26,6 +26,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases
         [AuditValidator("DiscoverAuditResultValidator2")]
         public override TestCase TC2 => TestCase.TC2;
 
+        [SpStateDefinition("DiscoverSpStateDefinition3")]
+        [SpValidator("DiscoverSpResultValidator3")]
+        [ConfigValidator("ConfigResultValidator3")]
+        [ActivityValidator("ActivityResultValidator3")]
+        [AuditValidator("DiscoverAuditResultValidator3")]
         public override TestCase TC3 => TestCase.TC3;
 
         public void Dispose()

@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AzQueueTestTool.TestCases.ServicePrincipals;
 using CSE.Automation.Model;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalStates;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.System.ComponentModel;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases;
@@ -24,20 +25,22 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 {
     internal class DiscoverInputGenerator : InputGeneratorBase, IInputGenerator
     {
-      
-        internal DiscoverInputGenerator(IConfigurationRoot config, ActivityContext activityContext, ITestCaseCollection testCaseCollection, TestCase testCaseId) : base(config, activityContext, testCaseCollection, testCaseId)
+
+
+        internal DiscoverInputGenerator(IConfigurationRoot config, ITestCaseCollection testCaseCollection, TestCase testCaseId, GraphDeltaProcessorHelper graphDeltaProcessorHelper = null) 
+                                            : base(config,  testCaseCollection, testCaseId)
         {
-            ValidateDiscoverServicePrincipalPrecondition(testCaseId);// the underline logic will throw an exception if fails to validate precondition for the given test case.
+            ValidateDiscoverServicePrincipalPrecondition(testCaseId, graphDeltaProcessorHelper);// the underline logic will throw an exception if fails to validate precondition for the given test case.
         }
 
-        public byte[] GetTestMessageContent(DiscoveryMode discoveryMode, string source)
+        public byte[] GetTestMessageContent(DiscoveryMode discoveryMode, string source, ActivityContext activityContext)
         {
              var myMessage = new QueueMessage<RequestDiscoveryCommand>()
             {
                 QueueMessageType = QueueMessageType.Data,
                 Document = new RequestDiscoveryCommand
                 {
-                    CorrelationId = _activityContext.CorrelationId,
+                    CorrelationId = activityContext.CorrelationId,
                     DiscoveryMode = discoveryMode,
                     Source = source,
                 },
