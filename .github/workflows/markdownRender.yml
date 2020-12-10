@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    steps:
     - name: Checkout Code
       uses: actions/checkout@v2
 
@@ -26,13 +26,14 @@ jobs:
           echo "Rendered: $outputPath"
         done
 
-    - name: Commit and Push Images
+    - name: Commit
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add .
         git commit -m "Automated Image Render"
-    - name: Push changes
+
+    - name: Push
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
