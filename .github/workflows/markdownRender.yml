@@ -24,7 +24,7 @@ jobs:
         for inputPath in $inputPaths
         do
           outputPath=$outputDir/$(basename $inputPath .mmd)_mmd.svg
-          mmdc -i $inputPath -o $outputPath
+          ./node_modules/.bin/mmdc -i $inputPath -o $outputPath
           echo "Rendered: $outputPath"
         done
 
