@@ -1,0 +1,39 @@
+name: Render Markdown Images
+
+on:
+  push:
+    paths:
+    - 'docs/image_markdown/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Install Mermaid CLI
+      run: npm install -g @mermaid-js/mermaid-cli
+
+    - name: Render Images
+      run: |
+        outputDir=docs/images
+        inputPaths=$(ls docs/image_markdown/*.mmd)
+        for inputPath in $inputPaths
+        do
+          outputPath=$outputDir/$(basename $inputPath .mmd)_mmd.svg
+          cat $inputPath | mmdc --output $outputPath
+          echo "Rendered: $outputPath"
+        done
+
+    - name: Commit and Push Images
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        git commit -m "Automated Image Render"
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.ref }}
