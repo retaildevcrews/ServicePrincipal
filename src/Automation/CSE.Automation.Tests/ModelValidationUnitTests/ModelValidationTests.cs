@@ -43,6 +43,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         AbstractValidator<AuditEntry> auditEntryValidator = new AuditEntryValidator();
 
         [Fact]
+        [Trait("Category","Unit")]
         public void ServicePrincipalModelValidate_ReturnsValidationFailuresIfInvalid()
         {
             var servicePrincipal = new ServicePrincipalModel
@@ -60,6 +61,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
+        [Trait("Category","Unit")]
         public void ServicePrincipalModelValidate_ReturnsTrueIfValid()
         {
             var servicePrincipal = new ServicePrincipalModel
@@ -83,6 +85,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
+        [Trait("Category","Unit")]
         public void AuditEntryModelValidate_ReturnsValidationFailuresIfInvalid()
         {
             var auditItem = new AuditEntry();
@@ -97,6 +100,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
+        [Trait("Category","Unit")]
         public void AuditEntryModelValidate_ReturnsTrueIfValid()
         {
             var context = new ActivityContext(null);

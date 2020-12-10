@@ -41,7 +41,6 @@ namespace CSE.Automation
         /// Request an AAD Discovery Activity
         /// </summary>
         /// <param name="req">An instance of an <see cref="HttpRequest"/>.</param>
-        /// <param name="full">Flag to request a full scan.  Default is false.</param>
         /// <param name="log">An instance of an <see cref="ILogger"/>.</param>
         /// <returns>A JSON object containing information about the requested activity.</returns>
         [FunctionName("RequestDiscovery")]
@@ -123,7 +122,7 @@ namespace CSE.Automation
                 context.Activity.CommandSource = command.Source;
                 context.WithProcessorLock(processor);
 
-                var metrics = await processor.DiscoverDeltas(context, true).ConfigureAwait(false);
+                var metrics = await processor.DiscoverDeltas(context, command.DiscoveryMode == DiscoveryMode.FullSeed).ConfigureAwait(false);
                 context.End();
             }
             catch (Exception ex)
