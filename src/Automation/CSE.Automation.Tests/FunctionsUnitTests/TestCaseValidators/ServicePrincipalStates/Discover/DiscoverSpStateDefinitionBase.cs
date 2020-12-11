@@ -60,23 +60,39 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
         protected bool RunFullSeedDiscovery()
         {
+            //NullOutConfigDataLink();
+
             using var testCaseCollection = new DiscoverTestCaseCollection();
 
             TestCase thisTestCase = testCaseCollection.TC1;
 
-            using var activityContext = GraphDeltaProcessorHelper.ActivityServiceInstance.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = GraphDeltaProcessorHelper.ActivityServiceInstance.CreateContext($"Nested execution Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
 
             GraphDeltaProcessorHelper.DeleteDynamicCreatedServicePrincipals = false;
+
 
             using var inputGenerator = new DiscoverInputGenerator(GraphDeltaProcessorHelper.ConfigInstance, testCaseCollection, thisTestCase, GraphDeltaProcessorHelper);
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(DiscoveryMode.FullSeed, "HTTP", activityContext));
 
-            Task thisTaks = Task.Run (() => GraphDeltaProcessorHelper.GraphDeltaProcessorInstance.Discover(cloudQueueMessage, GraphDeltaProcessorHelper.GraphLoggerInstance));
-            thisTaks.Wait();
+            Task thisTask = Task.Run (() => GraphDeltaProcessorHelper.GraphDeltaProcessorInstance.Discover(cloudQueueMessage, GraphDeltaProcessorHelper.GraphLoggerInstance));
+            thisTask.Wait();
 
             return true;
 
+        }
+        private bool NullOutConfigDataLink()
+        {
+            ProcessorConfiguration configuration = GraphDeltaProcessorHelper.ConfigRepositoryInstance.GetByIdAsync(GraphDeltaProcessorHelper.ConfigInstance["configId"], ProcessorType.ServicePrincipal.ToString()).GetAwaiter().GetResult();
+
+            if (!string.IsNullOrEmpty(configuration.DeltaLink))
+            {
+                configuration.DeltaLink = string.Empty;
+
+                configuration = GraphDeltaProcessorHelper.ConfigRepositoryInstance.UpsertDocumentAsync(configuration).GetAwaiter().GetResult();
+            }
+
+            return configuration != null;
         }
         abstract public bool Validate();
     }

@@ -39,21 +39,29 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
                 var servicePrincipalList = GraphHelper.GetAllServicePrincipals(servicePrincipalAssignedAsNewOwner).Result;
 
-                if (servicePrincipalList.Count == 0)
+                if (servicePrincipalList.Count != 1 )
                 {
-                    throw new InvalidDataException($"Unable to validate precondition for Discover - Test Case [{TestCaseID}]");
+                    throw new InvalidDataException($"Unable Create Sp object as precondition for Discover - Test Case [{TestCaseID}]");
+                }
+               
+                Thread.Sleep(5000);// when running all Test Cases we need to introduce some latency before to run nested FullSeed 
+                if (RunFullSeedDiscovery())
+                {
+                    // we need to add Ownwer to a SP that is part of datalink (current state)
+                    servicePrincipalList = AddOwner(servicePrincipalList);
+
+                   // need to introduce some latency before to run the main TestCase #3, after have modified a AAD Test user 
+                    Thread.Sleep(5000);
+
+                    TestCaseCollection.ServicePrincipalIdForTestNewUser = servicePrincipalList[0].Id;
+
+                    return servicePrincipalList.Count == 1;
+                }
+                else
+                {
+                    throw new InvalidDataException($"Unable to execute RunFullSeedDiscovery as  precondition for Discover - Test Case [{TestCaseID}]");
                 }
 
-                RunFullSeedDiscovery();
-
-                // Need to Update/Run config.DataLink
-
-                // we need to add Ownwer to a SP that is part of datalink (current state)
-                servicePrincipalList = AddOwner(servicePrincipalList, servicePrincipalAssignedAsNewOwner);
-
-                TestCaseCollection.ServicePrincipalIdForTestNewUser =  servicePrincipalList[0].Id;
-
-                return servicePrincipalList.Count == 1;
             }
             catch (Exception ex)
             {
@@ -62,25 +70,24 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
             
         }
 
-       
+      
 
-        private List<ServicePrincipal>AddOwner(List<ServicePrincipal> servicePrincipalList, string servicePrincipalAssignedAsNewOwner)
+        private List<ServicePrincipal>AddOwner(List<ServicePrincipal> servicePrincipalList)
         {
             Task<List<User>>  users = GraphHelper.GetAllUsers(Config["aadUserServicePrincipalPrefix"]);
 
             users.Wait();
 
-
             List<User> owners = users.Result.Take(1).ToList();
 
             if (owners.Count == 0)
             {
-                new Exception("Unable to get Owners");
+                new Exception("No AAD users found");
             }
 
             if (GraphHelper.SetOwners(servicePrincipalList, owners))
             {
-                List<ServicePrincipal> result = GraphHelper.GetAllServicePrincipals(servicePrincipalAssignedAsNewOwner).Result;
+                List<ServicePrincipal> result = GraphHelper.GetAllServicePrincipals(servicePrincipalList[0].DisplayName).Result;
 
                 Dictionary<string, string> ownerslist = GraphHelper.GetOwnersDisplayNameAndUserPrincipalNameKeyValuePair(servicePrincipalList[0]);
 
@@ -90,7 +97,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
                 }
                 else
                 {
-                    new Exception("Unable to set Owner");
+                    new Exception("Failed to set Owner");
                 }
             }
             else

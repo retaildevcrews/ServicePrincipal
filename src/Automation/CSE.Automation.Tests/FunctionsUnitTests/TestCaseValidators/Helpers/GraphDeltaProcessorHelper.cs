@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using CSE.Automation.DataAccess;
 using CSE.Automation.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -19,12 +20,15 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers
 
         public bool DeleteDynamicCreatedServicePrincipals { get; set; }
 
-        public GraphDeltaProcessorHelper(GraphDeltaProcessor graphDeltaProcessor, ActivityService activityService, ILogger<GraphDeltaProcessor> graphLogger, IConfigurationRoot config)
+        public ConfigRepository ConfigRepositoryInstance { get; }
+
+        public GraphDeltaProcessorHelper(GraphDeltaProcessor graphDeltaProcessor, ActivityService activityService, ILogger<GraphDeltaProcessor> graphLogger, IConfigurationRoot config, ConfigRepository configRepository)
         {
             GraphDeltaProcessorInstance = graphDeltaProcessor;
             ActivityServiceInstance = activityService;
             GraphLoggerInstance = graphLogger;
             ConfigInstance = config;
+            ConfigRepositoryInstance = configRepository;
         }
         public void Dispose()
         {

@@ -285,7 +285,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC1;
 
-            using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
 
             using var inputGenerator = new EvaluateInputGenerator(_config, testCaseCollection, thisTestCase);
 
@@ -327,7 +327,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC2;
 
-            using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
 
             using var inputGenerator = new EvaluateInputGenerator(_config, testCaseCollection, thisTestCase);
 
@@ -368,7 +368,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC2_2;
 
-            using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
 
             using var inputGenerator = new EvaluateInputGenerator(_config,  testCaseCollection, thisTestCase);
 
@@ -409,7 +409,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC3;
 
-            using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
 
             using var inputGenerator = new EvaluateInputGenerator(_config, testCaseCollection, thisTestCase);
 
@@ -450,7 +450,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC3_2;
 
-            using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
 
             using var inputGenerator = new EvaluateInputGenerator(_config, testCaseCollection, thisTestCase);
 
@@ -491,7 +491,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC4;
 
-            using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
 
             using var inputGenerator = new EvaluateInputGenerator(_config, testCaseCollection, thisTestCase);
 
@@ -533,7 +533,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC5;
 
-            using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
 
             using var inputGenerator = new EvaluateInputGenerator(_config, testCaseCollection, thisTestCase);
 
@@ -575,7 +575,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC6;
 
-            using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
 
             using var inputGenerator = new EvaluateInputGenerator(_config, testCaseCollection, thisTestCase);
 
@@ -617,7 +617,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC1;
 
-            using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
 
             using var inputGenerator = new DiscoverInputGenerator(_config, testCaseCollection, thisTestCase);
 
@@ -661,9 +661,9 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC1_2;
 
-            using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var graphDeltaProcessorHelper = new GraphDeltaProcessorHelper(_graphDeltaProcessor, _activityService, _graphLogger, _config);
+            using var graphDeltaProcessorHelper = new GraphDeltaProcessorHelper(_graphDeltaProcessor, _activityService, _graphLogger, _config, _configRespository);
 
             using var inputGenerator = new DiscoverInputGenerator(_config, testCaseCollection, thisTestCase, graphDeltaProcessorHelper);
 
@@ -704,7 +704,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC2;
 
-            using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
 
             using var inputGenerator = new DiscoverInputGenerator(_config, testCaseCollection, thisTestCase);
 
@@ -748,11 +748,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC3;
 
-            using var activityContext = _activityService.CreateContext($"Unit Test - Test Case [{thisTestCase}] ", withTracking: true);
-
-            using var graphDeltaProcessorHelper = new GraphDeltaProcessorHelper(_graphDeltaProcessor, _activityService, _graphLogger, _config);
+            using var graphDeltaProcessorHelper = new GraphDeltaProcessorHelper(_graphDeltaProcessor, _activityService, _graphLogger, _config, _configRespository);
 
             using var inputGenerator = new DiscoverInputGenerator(_config, testCaseCollection, thisTestCase, graphDeltaProcessorHelper);
+
+            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(DiscoveryMode.Deltas, "HTTP", activityContext));
 

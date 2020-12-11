@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using AzQueueTestTool.TestCases.ServicePrincipals;
 using CSE.Automation.Model;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases;
@@ -27,11 +28,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
             DeleteServicePrincipal(servicePrincipalToDelete);
 
             string servicePrincipalId = TestCaseCollection.ServicePrincipalIdForTestNewUser;
-            // We are checking for the SPECIFIC message for the SP exists in the Queue 
-            
-            bool messageFound = DoesMessageExistInEvaluateQueue(servicePrincipalId);
-
             TestCaseCollection.ServicePrincipalIdForTestNewUser = string.Empty;
+
+            // We are checking for the SPECIFIC message for the SP exists in the Queue 
+            bool messageFound = DoesMessageExistInEvaluateQueue(servicePrincipalId);
 
             return messageFound;
         }

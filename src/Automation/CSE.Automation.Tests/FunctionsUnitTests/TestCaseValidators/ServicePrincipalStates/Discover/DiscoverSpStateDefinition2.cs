@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using AzQueueTestTool.TestCases.ServicePrincipals;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers;
@@ -22,6 +23,8 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
         {
             try
             {
+                Thread.Sleep(5000);// when running all Test Cases we need to introduce some latency before it
+
                 string servicePrincipalToDelete = $"{DisplayNamePatternFilter}{TestCaseCollection.TestRemovedAttributeSuffix}";
 
                 var servicePrincipalList = GraphHelper.GetAllServicePrincipals(servicePrincipalToDelete).Result;
@@ -34,7 +37,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
                 }
 
-                //NOTE: this SP will be deleted from ServicePrincipalGraphHelperTest after filter string is generated
+                //NOTE: this SP object will be deleted downstream from ServicePrincipalGraphHelperTest after filter string is generated
                 
                 return servicePrincipalList.Count == 1; // Test Service Principal must exists
             }
