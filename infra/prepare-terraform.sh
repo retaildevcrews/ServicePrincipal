@@ -238,7 +238,13 @@ function create_new_deployment()
 
   # create storage account for state file
   export TFSUB_ID=$(az account show -o tsv --query id)
-  export TFSA_NAME=$svc_ppl_Name"st"$svc_ppl_Environment
+
+  tmp_name=$svc_ppl_Name"st"$svc_ppl_Environment
+  export TFSA_NAME=${tmp_name,,}
+
+  tmp_name=$svc_ppl_Name"citfstate"$svc_ppl_Environment
+  export TFCI_NAME=${tmp_name,,}
+
   echo "Creating File Storage Account and Container"
 
 
@@ -260,7 +266,8 @@ function create_new_deployment()
       echo "TF Storage Account Access Key = $ARM_ACCESS_KEY"
   fi
 
-  export TFCI_NAME=$svc_ppl_Name"citfstate"$svc_ppl_Environment
+
+
 
   if echo ${TF_RG_NAME} > /dev/null 2>&1; then
       if ! az storage container create --name $TFCI_NAME --account-name $TFSA_NAME --account-key $ARM_ACCESS_KEY -o table; then
