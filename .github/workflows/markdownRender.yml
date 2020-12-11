@@ -2,9 +2,8 @@ name: Render Markdown Images
 
 on:
   push:
-    branches:
-      - *
-      - '!main'
+    branches-ignore:
+      - main
     paths:
       - 'docs/image_markdown/**'
       - '.github/workflows/markdownRender.yml'
