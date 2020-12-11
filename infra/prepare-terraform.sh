@@ -134,7 +134,6 @@ function create_from_keyvault()
 # TODO: the secrets should be pushed into KeyVault by this script *not* by terraform.
 function create_new_deployment()
 {
-  exit 1
   # ============== CREATE TFVARS =================
   # store az info into variables
   export svc_ppl_TENANT_ID=$(echo $ACCOUNT | jq -r ".tenantId")
