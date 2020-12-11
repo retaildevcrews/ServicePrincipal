@@ -2,6 +2,8 @@ name: Render Markdown Images
 
 on:
   push:
+    branches:
+    - '!main'
     paths:
     - 'docs/image_markdown/**'
     - '.github/workflows/markdownRender.yml'
@@ -23,8 +25,8 @@ jobs:
         inputPaths=$(ls docs/image_markdown/*.mmd)
         for inputPath in $inputPaths
         do
-          outputPath=$outputDir/$(basename $inputPath .mmd)_mmd.svg
-          ./node_modules/.bin/mmdc -i $inputPath -o $outputPath
+          outputPath=$outputDir/$(basename $inputPath .mmd)_mmd.png
+          ./node_modules/.bin/mmdc -i $inputPath -o $outputPath -t neutral
           echo "Rendered: $outputPath"
         done
 
