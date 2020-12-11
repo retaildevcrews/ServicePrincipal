@@ -50,8 +50,8 @@ function parse_args()
             echo "               force initialization of terraform. By default if .terraform directory exists it will not be overwritten." >&2
             echo "          -l|--location <azure location>" >&2
             echo "          -r|--repo <repository name>" >&2
-            echo "          -v|--validate-only" >&2
-            echo "               do not try to apply terraform changes" >&2
+            # echo "          -v|--validate-only" >&2
+            # echo "               do not try to apply terraform changes" >&2
             echo "             --what-if${reset}" >&2
             goodbye 1
             ;;
