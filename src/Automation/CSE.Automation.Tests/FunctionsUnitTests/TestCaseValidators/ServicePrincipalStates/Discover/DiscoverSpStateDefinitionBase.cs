@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AzQueueTestTool.TestCases.ServicePrincipals;
 using CSE.Automation.Model;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ConfigurationResults;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases;
 using Microsoft.Azure.Storage.Queue;
@@ -60,8 +61,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
 
         protected bool RunFullSeedDiscovery()
         {
-            //NullOutConfigDataLink();
-
             using var testCaseCollection = new DiscoverTestCaseCollection();
 
             TestCase thisTestCase = testCaseCollection.TC1;
@@ -69,11 +68,14 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
             using var activityContext = GraphDeltaProcessorHelper.ActivityServiceInstance.CreateContext($"Nested execution Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
 
             GraphDeltaProcessorHelper.DeleteDynamicCreatedServicePrincipals = false;
+            string mainTestCaseConfigId  = GraphDeltaProcessorHelper.MainTestCaseConfigId;
 
-
-            using var inputGenerator = new DiscoverInputGenerator(GraphDeltaProcessorHelper.ConfigInstance, testCaseCollection, thisTestCase, GraphDeltaProcessorHelper);
+            using var inputGenerator = new DiscoverInputGenerator(GraphDeltaProcessorHelper.ConfigInstance, testCaseCollection, thisTestCase, mainTestCaseConfigId, GraphDeltaProcessorHelper);
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(DiscoveryMode.FullSeed, "HTTP", activityContext));
+
+            // Creating a ConfigurationValidationManager instance will clear out the Config.lock 
+            using var configurationValidationManager = new ConfigurationValidationManager(inputGenerator, GraphDeltaProcessorHelper.ConfigRepositoryInstance, activityContext);
 
             Task thisTask = Task.Run (() => GraphDeltaProcessorHelper.GraphDeltaProcessorInstance.Discover(cloudQueueMessage, GraphDeltaProcessorHelper.GraphLoggerInstance));
             thisTask.Wait();
@@ -81,19 +83,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
             return true;
 
         }
-        private bool NullOutConfigDataLink()
-        {
-            ProcessorConfiguration configuration = GraphDeltaProcessorHelper.ConfigRepositoryInstance.GetByIdAsync(GraphDeltaProcessorHelper.ConfigInstance["configId"], ProcessorType.ServicePrincipal.ToString()).GetAwaiter().GetResult();
-
-            if (!string.IsNullOrEmpty(configuration.DeltaLink))
-            {
-                configuration.DeltaLink = string.Empty;
-
-                configuration = GraphDeltaProcessorHelper.ConfigRepositoryInstance.UpsertDocumentAsync(configuration).GetAwaiter().GetResult();
-            }
-
-            return configuration != null;
-        }
+       
         abstract public bool Validate();
     }
 }

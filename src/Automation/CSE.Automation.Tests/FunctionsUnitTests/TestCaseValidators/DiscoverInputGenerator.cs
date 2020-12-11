@@ -27,9 +27,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
     {
 
 
-        internal DiscoverInputGenerator(IConfigurationRoot config, ITestCaseCollection testCaseCollection, TestCase testCaseId, GraphDeltaProcessorHelper graphDeltaProcessorHelper = null) 
+        internal DiscoverInputGenerator(IConfigurationRoot config, ITestCaseCollection testCaseCollection, TestCase testCaseId, string overwriteConfigID = null, GraphDeltaProcessorHelper graphDeltaProcessorHelper = null) 
                                             : base(config,  testCaseCollection, testCaseId)
         {
+            SetConfigId(overwriteConfigID);
             ValidateDiscoverServicePrincipalPrecondition(testCaseId, graphDeltaProcessorHelper);// the underline logic will throw an exception if fails to validate precondition for the given test case.
         }
 

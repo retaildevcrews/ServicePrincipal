@@ -27,7 +27,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Configurati
 
         public void SaveState()
         {
-            _savedConfigEntry = GetConfigItem(true); 
+            _savedConfigEntry = GetConfigItem(true);
         }
 
         private ProcessorConfiguration GetConfigItem(bool unlock = false)

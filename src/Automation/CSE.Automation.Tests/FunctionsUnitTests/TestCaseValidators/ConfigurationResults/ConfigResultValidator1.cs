@@ -18,14 +18,14 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Configurati
         public override bool Validate()
         {
 
-            bool isLastTimeSeedPass = NewConfigEntry.LastSeedTime > SavedConfigEntry.LastSeedTime;
+            //NOTE: SavedConfigEntry.LastSeedTime will be null if a new config item was created for this test case 
+            bool isLastTimeSeedPass =  SavedConfigEntry.LastSeedTime != null ? NewConfigEntry.LastSeedTime > SavedConfigEntry.LastSeedTime :  true;
 
             bool dataLinkPass = string.IsNullOrEmpty(NewConfigEntry.DeltaLink) != true;
 
             bool runStatePass = NewConfigEntry.RunState == RunState.DeltaRun;
 
             return (isLastTimeSeedPass && dataLinkPass && runStatePass);
-
         }
     }
 }

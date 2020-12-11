@@ -27,6 +27,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
     {
 
         private bool _initialized = false;
+        private string _configId;
 
         protected readonly IConfigurationRoot _config;
         
@@ -47,7 +48,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 
         public string AadUserServicePrincipalPrefix => _config["aadUserServicePrincipalPrefix"];
 
-        public string ConfigId => _config["configId"];
+        public string ConfigId
+        {
+            get
+            {
+                return string.IsNullOrEmpty(_configId) ? _config["configId"] : _configId;
+            }
+        }
        
 
         internal InputGeneratorBase(IConfigurationRoot config,  ITestCaseCollection testCaseCollection, TestCaseCollection.TestCase testCaseId)
@@ -58,6 +65,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
             InitGraphHelper();
         }
 
+        protected void SetConfigId(string configId)
+        {
+            _configId = configId;
+        }
 
         public ServicePrincipalModel GetServicePrincipalModel()
         {

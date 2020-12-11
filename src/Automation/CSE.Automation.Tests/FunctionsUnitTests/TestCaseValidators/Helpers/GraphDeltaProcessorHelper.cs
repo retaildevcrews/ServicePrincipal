@@ -22,13 +22,17 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers
 
         public ConfigRepository ConfigRepositoryInstance { get; }
 
-        public GraphDeltaProcessorHelper(GraphDeltaProcessor graphDeltaProcessor, ActivityService activityService, ILogger<GraphDeltaProcessor> graphLogger, IConfigurationRoot config, ConfigRepository configRepository)
+        public string MainTestCaseConfigId { get; }
+
+        public GraphDeltaProcessorHelper(GraphDeltaProcessor graphDeltaProcessor, ActivityService activityService, ILogger<GraphDeltaProcessor> graphLogger, 
+                                        IConfigurationRoot config, ConfigRepository configRepository, string mainTestCaseConfigId)
         {
             GraphDeltaProcessorInstance = graphDeltaProcessor;
             ActivityServiceInstance = activityService;
             GraphLoggerInstance = graphLogger;
             ConfigInstance = config;
             ConfigRepositoryInstance = configRepository;
+            MainTestCaseConfigId = mainTestCaseConfigId;
         }
         public void Dispose()
         {

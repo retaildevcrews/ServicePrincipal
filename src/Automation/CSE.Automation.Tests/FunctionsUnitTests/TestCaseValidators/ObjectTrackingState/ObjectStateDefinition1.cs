@@ -24,7 +24,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
             if (ObjectTrackingItemExists())
             {
 
-                Task<TrackingModel> deleteTask = Task.Run(() => Repository.DeleteDocumentAsync(ServicePrincipalObject.Id, "ServicePrincipal"));
+                Task<TrackingModel> deleteTask = Task.Run(() => Repository.DeleteDocumentAsync(ServicePrincipalObject.Id, ProcessorType.ServicePrincipal.ToString()));
                 deleteTask.Wait();
 
                 return deleteTask.Result == null;
