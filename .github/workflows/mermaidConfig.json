@@ -1,0 +1,13 @@
+{
+  "theme": "base",
+  "themeVariables": {
+    "background": "#FFFFFF",
+    "primaryColor": "#46A3E9",
+    "secondaryColor": "#8CB738",
+    "tertiaryColor": "#E05B35",
+    "noteBkgColor": "#F5BB41",
+    "lineColor": "#565352",
+    "textColor": "#565352",
+    "darkMode": false
+  }
+}
