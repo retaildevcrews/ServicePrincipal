@@ -3,10 +3,11 @@ name: Render Markdown Images
 on:
   push:
     branches:
-    - '!main'
+      - *
+      - '!main'
     paths:
-    - 'docs/image_markdown/**'
-    - '.github/workflows/markdownRender.yml'
+      - 'docs/image_markdown/**'
+      - '.github/workflows/markdownRender.yml'
 
 jobs:
   build:
