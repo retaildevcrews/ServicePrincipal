@@ -178,7 +178,7 @@ function create_new_deployment()
   echo "Service MSGraph AppID: " $graphId
 
 
-  # Get MSGraph Permission valiables
+  # Get MSGraph Permission variables
   export appReadWriteAll=$(az ad sp show --id $graphId --query "oauth2Permissions[?value=='Application.ReadWrite.All'].id | [0]") 
   appReadWriteAll=$(eval echo $appReadWriteAll)
   echo "Application.ReadWrite.All ID: " $appReadWriteAll
@@ -199,9 +199,9 @@ function create_new_deployment()
 
   # Get graph service principal App ID--------------------------------------------------------------------------------------------
 
-  export graphServicePricipalId=$svc_ppl_GRAPH_SP_ID
-  servicePricipalId=$(eval echo $graphServicePricipalId)
-  echo "Graph Service Principal AppID: " $graphServicePricipalId
+  export graphServicePrincipalId=$svc_ppl_GRAPH_SP_ID
+  servicePricipalId=$(eval echo $graphServicePrincipalId)
+  echo "Graph Service Principal AppID: " $graphServicePrincipalId
 
   export appRoleAppReadWriteAll=$(az ad sp show --id $graphId --query "appRoles[?value=='Application.ReadWrite.All'].id | [0]") 
   appRoleAppReadWriteAll=$(eval echo $appRoleAppReadWriteAll)
@@ -213,14 +213,14 @@ function create_new_deployment()
   echo "Application- Directory.Read.All ID:" $appRoleDirReadAll
 
 
-  # Add App persmission 
-  az ad app permission add --id $graphServicePricipalId --api $graphId --api-permissions $appRoleDirReadAll=Role $appRoleAppReadWriteAll=Role
+  # Add App permission 
+  az ad app permission add --id $graphServicePrincipalId --api $graphId --api-permissions $appRoleDirReadAll=Role $appRoleAppReadWriteAll=Role
 
   # Make permissions effective
-  az ad app permission grant --id $graphServicePricipalId --api $graphId
+  az ad app permission grant --id $graphServicePrincipalId --api $graphId
 
   # Admin consent
-  az ad app permission admin-consent --id $graphServicePricipalId
+  az ad app permission admin-consent --id $graphServicePrincipalId
 
 
 
