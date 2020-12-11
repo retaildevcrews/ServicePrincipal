@@ -137,7 +137,6 @@ function parse_args()
     echo "ENV: $ENV"
     echo "FIRST_RUN: $FIRST_RUN"
     echo "LOCATION: $LOCATION"
-    echo "VALIDATE_ONLY: $VALIDATE_ONLY"
     echo "REPO: $REPO"
     echo ""
 }
