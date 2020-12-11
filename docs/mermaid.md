@@ -1,5 +1,5 @@
 # Mermaid MarkDown Converter
 
-![Sample Flowchart](images/flowchart_mmd.png)
+![Sample Flowchart](images/flowchart_mmd.svg)
 
-![Sample Sequence](images/sequence_mmd.png)
+![Sample Sequence](images/sequence_mmd.svg)
