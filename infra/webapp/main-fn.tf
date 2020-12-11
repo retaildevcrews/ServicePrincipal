@@ -38,7 +38,7 @@ resource "azurerm_function_app" "fn-default" {
     azurerm_application_insights.svc-ppl-appi
   ]
 
-  name                       = "${var.NAME}-funcn-${var.ENV}"
+  name                       = "${var.PROJECT_NAME}-funcn-${var.ENV}"
   location                   = var.LOCATION
   resource_group_name        = var.APP_RG_NAME
   app_service_plan_id        = azurerm_app_service_plan.app-plan.id

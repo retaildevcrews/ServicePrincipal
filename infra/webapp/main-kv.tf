@@ -22,7 +22,7 @@ locals {
 resource "azurerm_key_vault" "kv" {
   depends_on = [ data.azurerm_storage_account.svc-ppl-storage-acc ]
 
-  name                            = "${var.NAME}-kv-${var.ENV}"
+  name                            = "${var.PROJECT_NAME}-kv-${var.ENV}"
   location                        = var.LOCATION
   resource_group_name             = var.APP_RG_NAME
   sku_name                        = "standard"

@@ -53,12 +53,12 @@ module "asq" {
 # Create Cosmos Database
 module "db" {
   source           = "./db"
-  NAME             = var.SHORTNAME
+  NAME             = var.NAME
   LOCATION         = var.LOCATION
   ENV              = var.ENV
   APP_RG_NAME      = local.rg_name
   COSMOS_RU        = var.COSMOS_RU
-  COSMOS_DB        = var.SHORTNAME
+  COSMOS_DB        = var.NAME
   COSMOS_AUDIT_COL = var.COSMOS_AUDIT_COL
   COSMOS_CONFIG_COL = var.COSMOS_CONFIG_COL
   COSMOS_OBJ_TRACKING_COL = var.COSMOS_OBJ_TRACKING_COL
@@ -81,8 +81,8 @@ module "web" {
   DEV_DATABASE_NAME   = module.db.DEV_DATABASE_NAME
   QA_DATABASE_NAME    = module.db.QA_DATABASE_NAME
   ENV                 = var.ENV
-  COSMOS_DB           = var.SHORTNAME
-  COSMOS_URL          = "https://${var.SHORTNAME}-cosmosa-${var.ENV}.documents.azure.com:443/"
+  COSMOS_DB           = var.NAME
+  COSMOS_URL          = "https://${var.NAME}-cosmosa-${var.ENV}.documents.azure.com:443/"
   COSMOS_AUDIT_COL    = var.COSMOS_AUDIT_COL
   COSMOS_CONFIG_COL   = var.COSMOS_CONFIG_COL
   COSMOS_OBJ_TRACKING_COL = var.COSMOS_OBJ_TRACKING_COL
