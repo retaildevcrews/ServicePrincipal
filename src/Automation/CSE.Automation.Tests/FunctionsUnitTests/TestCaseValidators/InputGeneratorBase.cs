@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AzQueueTestTool.TestCases.ServicePrincipals;
+using CSE.Automation.Graph;
 using CSE.Automation.Model;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalStates;
@@ -30,7 +31,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
         private string _configId;
 
         protected readonly IConfigurationRoot _config;
-        
+
         private ServicePrincipalWrapper _servicePrincipalWrapper;
 
         public ITestCaseCollection TestCaseCollection { get; }
@@ -55,14 +56,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
                 return string.IsNullOrEmpty(_configId) ? _config["configId"] : _configId;
             }
         }
-       
 
-        internal InputGeneratorBase(IConfigurationRoot config,  ITestCaseCollection testCaseCollection, TestCaseCollection.TestCase testCaseId)
+        internal InputGeneratorBase(IConfigurationRoot config, GraphHelperSettings graphHelperSettings, ITestCaseCollection testCaseCollection, TestCaseCollection.TestCase testCaseId)
         {
             _config = config;
             TestCaseId = testCaseId;
             TestCaseCollection = testCaseCollection;
-            InitGraphHelper();
+            InitGraphHelper(graphHelperSettings);
         }
 
         protected void SetConfigId(string configId)
@@ -133,19 +133,16 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
             return stateValidationManager.DiscoverValidatePrecondition(_config,  testCase);
 
         }
-        private void InitGraphHelper()
+        private void InitGraphHelper(GraphHelperSettings graphHelperSettings)
         {
             if (_initialized)
                 return;
 
-            string clientID = _config["clientId"];
-            string clientSecret = _config["clientSecret"];
-            string tenantId = _config["tenantId"];
 
             IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
-            .Create(clientID)
-            .WithTenantId(tenantId)
-            .WithClientSecret(clientSecret)
+            .Create(graphHelperSettings.GraphAppClientId)
+            .WithTenantId(graphHelperSettings.GraphAppTenantId)
+            .WithClientSecret(graphHelperSettings.GraphAppClientSecret)
             .Build();
 
             ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);

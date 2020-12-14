@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using CSE.Automation.Graph;
 using CSE.Automation.Model;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases;
 using Microsoft.Extensions.Configuration;
@@ -13,7 +14,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
         public string TC4AssignTheseOwnersWhenCreatingAMissingObjectTracking => base._config["TC4_AssignTheseOwnersWhenCreatingAMissingObjectTracking"];
 
 
-        internal EvaluateInputGenerator(IConfigurationRoot config, ITestCaseCollection testCaseCollection, TestCase testCaseId): base(config,  testCaseCollection, testCaseId)
+        internal EvaluateInputGenerator(IConfigurationRoot config, GraphHelperSettings graphHelperSettings, ITestCaseCollection testCaseCollection, TestCase testCaseId): base(config, graphHelperSettings,  testCaseCollection, testCaseId)
         {
             
         }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using CSE.Automation.DataAccess;
+using CSE.Automation.Graph;
 using CSE.Automation.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -24,8 +25,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers
 
         public string MainTestCaseConfigId { get; }
 
+        public GraphHelperSettings GraphHelperSettingsInstance {get;}
+
         public GraphDeltaProcessorHelper(GraphDeltaProcessor graphDeltaProcessor, ActivityService activityService, ILogger<GraphDeltaProcessor> graphLogger, 
-                                        IConfigurationRoot config, ConfigRepository configRepository, string mainTestCaseConfigId)
+                                        IConfigurationRoot config, ConfigRepository configRepository, string mainTestCaseConfigId, GraphHelperSettings graphHelperSettings)
         {
             GraphDeltaProcessorInstance = graphDeltaProcessor;
             ActivityServiceInstance = activityService;
@@ -33,6 +36,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers
             ConfigInstance = config;
             ConfigRepositoryInstance = configRepository;
             MainTestCaseConfigId = mainTestCaseConfigId;
+            GraphHelperSettingsInstance = graphHelperSettings;
         }
         public void Dispose()
         {

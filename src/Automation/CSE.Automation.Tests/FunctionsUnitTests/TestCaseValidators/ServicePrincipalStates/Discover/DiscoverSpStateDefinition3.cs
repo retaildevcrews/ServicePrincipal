@@ -51,7 +51,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
                     servicePrincipalList = AddOwner(servicePrincipalList);
 
                    // need to introduce some latency before to run the main TestCase #3, after have modified a AAD Test user 
-                    Thread.Sleep(5000);
+                    Thread.Sleep(20000);
 
                     TestCaseCollection.ServicePrincipalIdForTestNewUser = servicePrincipalList[0].Id;
 

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AzQueueTestTool.TestCases.ServicePrincipals;
+using CSE.Automation.Graph;
 using CSE.Automation.Model;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalStates;
@@ -27,8 +28,8 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
     {
 
 
-        internal DiscoverInputGenerator(IConfigurationRoot config, ITestCaseCollection testCaseCollection, TestCase testCaseId, string overwriteConfigID = null, GraphDeltaProcessorHelper graphDeltaProcessorHelper = null) 
-                                            : base(config,  testCaseCollection, testCaseId)
+        internal DiscoverInputGenerator(IConfigurationRoot config, GraphHelperSettings graphHelperSettings, ITestCaseCollection testCaseCollection, TestCase testCaseId, string overwriteConfigID = null, GraphDeltaProcessorHelper graphDeltaProcessorHelper = null) 
+                                            : base(config, graphHelperSettings, testCaseCollection, testCaseId)
         {
             SetConfigId(overwriteConfigID);
             ValidateDiscoverServicePrincipalPrecondition(testCaseId, graphDeltaProcessorHelper);// the underline logic will throw an exception if fails to validate precondition for the given test case.

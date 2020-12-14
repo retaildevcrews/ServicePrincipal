@@ -81,6 +81,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         private IServiceProvider _serviceProvider;
         private ServiceCollection _builder;
         private IConfigurationRoot _config;
+        private GraphHelperSettings _graphHelperSettings;
 
         private GraphDeltaProcessorWrapperFactory _graphDeltaProcessorWrapperFactory;
 
@@ -117,8 +118,9 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             _secretClient = new SecretService(secretServiceSettings, credentialService);
 
-            var graphHelperSettings = new GraphHelperSettings(_secretClient);
-            var graphClient = new GraphClient(graphHelperSettings);
+            _graphHelperSettings = new GraphHelperSettings(_secretClient);
+
+            var graphClient = new GraphClient(_graphHelperSettings);
             
             
             Assembly thisAssembly = Assembly.GetExecutingAssembly();
@@ -143,7 +145,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             string displayNamePatternFilter = _config["displayNamePatternFilter"];
 
-            _graphHelper = new ServicePrincipalGraphHelperTest(graphHelperSettings, _auditService, graphClient ,displayNamePatternFilter,_spGraphHelperLogger);
+            _graphHelper = new ServicePrincipalGraphHelperTest(_graphHelperSettings, _auditService, graphClient ,displayNamePatternFilter,_spGraphHelperLogger);
 
 
             _builder = new ServiceCollection();
@@ -158,7 +160,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
                 .AddSingleton<IGraphServiceClient, GraphClient>(x => graphClient)
 
-                .AddTransient<GraphHelperSettings>(x => graphHelperSettings)
+                .AddTransient<GraphHelperSettings>(x => _graphHelperSettings)
                 .AddScoped<ILogger<ServicePrincipalGraphHelperTest>>(x => _spGraphHelperLogger)
                 .AddScoped<ILogger<UserGraphHelper>>(x => _userGraphLogger)
 
@@ -280,7 +282,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _config = configBuilder.Build();
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase1()
         {
@@ -290,7 +292,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new EvaluateInputGenerator(_config, testCaseCollection, thisTestCase);
+            using var inputGenerator = new EvaluateInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase);
 
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(activityContext));
@@ -322,7 +324,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase2()
         {
@@ -332,7 +334,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new EvaluateInputGenerator(_config, testCaseCollection, thisTestCase);
+            using var inputGenerator = new EvaluateInputGenerator(_config, _graphHelperSettings,testCaseCollection, thisTestCase);
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(activityContext));
 
@@ -363,7 +365,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase2_2()
         {
@@ -373,7 +375,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new EvaluateInputGenerator(_config,  testCaseCollection, thisTestCase);
+            using var inputGenerator = new EvaluateInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase);
 
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(activityContext));
@@ -404,7 +406,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase3() 
         {
@@ -414,7 +416,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new EvaluateInputGenerator(_config, testCaseCollection, thisTestCase);
+            using var inputGenerator = new EvaluateInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase);
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(activityContext));
 
@@ -445,7 +447,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase3_2()
         {
@@ -455,7 +457,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new EvaluateInputGenerator(_config, testCaseCollection, thisTestCase);
+            using var inputGenerator = new EvaluateInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase);
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(activityContext));
 
@@ -486,7 +488,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase4()
         {
@@ -496,7 +498,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new EvaluateInputGenerator(_config, testCaseCollection, thisTestCase);
+            using var inputGenerator = new EvaluateInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase);
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(activityContext));
 
@@ -528,7 +530,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase5()
         {
@@ -538,7 +540,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new EvaluateInputGenerator(_config, testCaseCollection, thisTestCase);
+            using var inputGenerator = new EvaluateInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase);
 
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(activityContext));
@@ -570,7 +572,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase6()
         {
@@ -580,7 +582,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
 
-            using var inputGenerator = new EvaluateInputGenerator(_config, testCaseCollection, thisTestCase);
+            using var inputGenerator = new EvaluateInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase);
 
            
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(activityContext));
@@ -612,7 +614,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category", "Integration")]
         public void FunctionDiscoverTestCase1()
         {
@@ -626,7 +628,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             try
             {
-                using var inputGenerator = new DiscoverInputGenerator(_config, testCaseCollection, thisTestCase, graphDeltaProcessorWrapper.ConfigId);
+                using var inputGenerator = new DiscoverInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase, graphDeltaProcessorWrapper.ConfigId);
 
                 CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(DiscoveryMode.FullSeed, "HTTP", activityContext));
 
@@ -661,7 +663,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category", "Integration")]
         public void FunctionDiscoverTestCase1_2()
         {
@@ -673,11 +675,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             GraphDeltaProcessorWrapper graphDeltaProcessorWrapper  = _graphDeltaProcessorWrapperFactory.GetNewGraphDeltaProcessorWrapper();
 
-            using var graphDeltaProcessorHelper = new GraphDeltaProcessorHelper(graphDeltaProcessorWrapper.GraphDeltaProcessorInstance, _activityService, _graphLogger, _config, _configRespository, graphDeltaProcessorWrapper.ConfigId);
+            using var graphDeltaProcessorHelper = new GraphDeltaProcessorHelper(graphDeltaProcessorWrapper.GraphDeltaProcessorInstance, _activityService, _graphLogger, _config, _configRespository, graphDeltaProcessorWrapper.ConfigId, _graphHelperSettings);
 
             try
             {
-                using var inputGenerator = new DiscoverInputGenerator(_config, testCaseCollection, thisTestCase, graphDeltaProcessorWrapper.ConfigId, graphDeltaProcessorHelper);
+                using var inputGenerator = new DiscoverInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase, graphDeltaProcessorWrapper.ConfigId, graphDeltaProcessorHelper);
 
 
                 CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(DiscoveryMode.Deltas, "HTTP", activityContext));
@@ -714,7 +716,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             }
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category", "Integration")]
         public void FunctionDiscoverTestCase2()
         {
@@ -728,7 +730,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             try
             {
-                using var inputGenerator = new DiscoverInputGenerator(_config, testCaseCollection, thisTestCase, graphDeltaProcessorWrapper.ConfigId);
+                using var inputGenerator = new DiscoverInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase, graphDeltaProcessorWrapper.ConfigId);
 
                 CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(DiscoveryMode.FullSeed, "HTTP", activityContext));
                 ////Create Validators 
@@ -763,7 +765,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             }
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category", "Integration")]
         public void FunctionDiscoverTestCase3()
         {
@@ -773,11 +775,11 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             GraphDeltaProcessorWrapper graphDeltaProcessorWrapper  = _graphDeltaProcessorWrapperFactory.GetNewGraphDeltaProcessorWrapper();
 
-            using var graphDeltaProcessorHelper = new GraphDeltaProcessorHelper(graphDeltaProcessorWrapper.GraphDeltaProcessorInstance, _activityService, _graphLogger, _config, _configRespository, graphDeltaProcessorWrapper.ConfigId);
+            using var graphDeltaProcessorHelper = new GraphDeltaProcessorHelper(graphDeltaProcessorWrapper.GraphDeltaProcessorInstance, _activityService, _graphLogger, _config, _configRespository, graphDeltaProcessorWrapper.ConfigId, _graphHelperSettings);
 
             try
             {
-                using var inputGenerator = new DiscoverInputGenerator(_config, testCaseCollection, thisTestCase, graphDeltaProcessorWrapper.ConfigId, graphDeltaProcessorHelper);
+                using var inputGenerator = new DiscoverInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase, graphDeltaProcessorWrapper.ConfigId, graphDeltaProcessorHelper);
 
 
                 using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);

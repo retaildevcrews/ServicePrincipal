@@ -70,7 +70,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
             GraphDeltaProcessorHelper.DeleteDynamicCreatedServicePrincipals = false;
             string mainTestCaseConfigId  = GraphDeltaProcessorHelper.MainTestCaseConfigId;
 
-            using var inputGenerator = new DiscoverInputGenerator(GraphDeltaProcessorHelper.ConfigInstance, testCaseCollection, thisTestCase, mainTestCaseConfigId, GraphDeltaProcessorHelper);
+            using var inputGenerator = new DiscoverInputGenerator(GraphDeltaProcessorHelper.ConfigInstance, GraphDeltaProcessorHelper.GraphHelperSettingsInstance, testCaseCollection, thisTestCase, mainTestCaseConfigId, GraphDeltaProcessorHelper);
 
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(DiscoveryMode.FullSeed, "HTTP", activityContext));
 
