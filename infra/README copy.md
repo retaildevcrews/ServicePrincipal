@@ -127,6 +127,7 @@ az acr list --query "[?name=='${svc_ppl_Name}']" -o tsv | wc -l
 
 ## Deploy ServicePrincipal
 >Make sure you are in the serviceprincipal/infra directory.  
+
 The script will **not** perform a terraform apply.  This step must be performed manually to prevent any premature infrastructure changes.  
 
 ### First Run

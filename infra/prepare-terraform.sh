@@ -96,7 +96,7 @@ function validate_environment_vars()
 function create_from_keyvault()
 {
   # ============== CREATE TFVARS =================
-  KEYVAULT_NAME="${svc_ppl_Name}-kv-${svc_ppl_Environment}"
+  KEYVAULT_NAME="${svc_ppl_ShortName}-kv-${svc_ppl_Environment}"
   # store az info into variables
   export svc_ppl_TENANT_ID=$(echo $ACCOUNT | jq -r ".tenantId")
   export svc_ppl_SUB_ID=$(echo $ACCOUNT | jq -r ".id")
@@ -134,6 +134,7 @@ function create_from_keyvault()
 # TODO: the secrets should be pushed into KeyVault by this script *not* by terraform.
 function create_new_deployment()
 {
+  exit 1
   # ============== CREATE TFVARS =================
   # store az info into variables
   export svc_ppl_TENANT_ID=$(echo $ACCOUNT | jq -r ".tenantId")
