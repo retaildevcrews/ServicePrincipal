@@ -12,7 +12,7 @@
   - [Removing the deployment](#removing-the-deployment)
   
 # Introduction
-The infrastructure is provision using Terraform, by Hashicorp.  The provisioning process in comprised of an variable file creation and initial resource creation (ResourceGroup, StorageAccount, ServicePrincipals). 
+The infrastructure is provisioned using Terraform, by Hashicorp.  The provisioning process is comprised of a Terraform variable file and initial resources (ResourceGroup, StorageAccount, ServicePrincipals) created via CLI.
 
 The ResourceGroup is used to contain resources specific to this application.  
 
