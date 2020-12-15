@@ -23,8 +23,7 @@ There are three ServicePrincipals created as part of the provisioning process:
 ServicePrincipal | Purpose | Permissions
 -----------------|---------|---------
  \<appName>-tf-sp-\<env> | Application Identity | Application.ReadWrite.All  Directory.Read.All
- ID2 | ? | ?
- ID3 | ? | ?
+
 
  
 # PREREQUISITES

@@ -35,6 +35,7 @@ function parse_args()
     PARAMS=""
     VALIDATE_ONLY=0
     INIT=0
+    TENANT_NAME="cse"
 
     while (( "$#" )); do
       case "$1" in
@@ -49,6 +50,7 @@ function parse_args()
             echo "          -i|--init" >&2
             echo "               force initialization of terraform. By default if .terraform directory exists it will not be overwritten." >&2
             echo "          -l|--location <azure location>" >&2
+            echo "          -t|--tenant-name <tenant name abbreviation>" >&2
             echo "          -r|--repo <repository name>" >&2
             # echo "          -v|--validate-only" >&2
             # echo "               do not try to apply terraform changes" >&2
@@ -91,10 +93,18 @@ function parse_args()
             die "Error: Argument for $1 is missing"
           fi
           ;;      
-        -v|--validate-only)
-          VALIDATE_ONLY=1
-          shift 1
+        -t|--tenant-name)
+          if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+            TENANT_NAME=$2
+            shift 2
+          else
+            die "Error: Argument for $1 is missing"
+          fi
           ;;      
+        # -v|--validate-only)
+        #   VALIDATE_ONLY=1
+        #   shift 1
+        #   ;;      
         -r|--repo)
           if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
             REPO=$2
@@ -125,6 +135,15 @@ function parse_args()
     die
     fi
 
+    Name_Size=${#TENANT_NAME}
+    if [[ $Name_Size -lt 2 || $Name_Size -gt 4 ]]
+    then
+    echo "${red}Please appName must be between 2 and 4 characters in length with no special characters."
+    echo "appName: '$TENANT_NAME'"
+    echo "appName length = $Name_Size${reset}"
+    die
+    fi
+
     if [ -z $REPO ]
     then
     echo "${yellow}Repository not specified, defaulting to '$APP_NAME'.${reset}"
@@ -137,7 +156,8 @@ function parse_args()
     echo "ENV: $ENV"
     echo "FIRST_RUN: $FIRST_RUN"
     echo "LOCATION: $LOCATION"
-    echo "REPO: $REPO"
+    echo "REPO: $REPO"    
+    echo "TENANT_NAME: $TENANT_NAME"
     echo ""
 }
 
@@ -179,6 +199,7 @@ function Setup_Environment_Variables()
     export svc_ppl_Location=$LOCATION
     export svc_ppl_Environment=$ENV
     export svc_ppl_Repo=$REPO
+    export svc_ppl_TenantName=$TENANT_NAME
 }
 
 function Setup_Terraform_Variables()
@@ -205,7 +226,7 @@ function Setup_Terraform_Variables()
         ARGS+=("-f")
     fi
 
-    source ./prepare-terraform.sh "${ARGS[@]}"
+    source ./_prepare-terraform.sh "${ARGS[@]}"
 }
 
 function Prepare_Environment()
@@ -218,7 +239,7 @@ function Initialize_Terraform()
 {
     if [ ! -d ./.terraform ] || [ $INIT -eq 1 ]
     then
-        terraform init -backend-config="resource_group_name=${svc_ppl_Name}-rg-${svc_ppl_Environment}" -backend-config="storage_account_name=${svc_ppl_Name}st${svc_ppl_Environment}" -backend-config="container_name=${svc_ppl_Name}citfstate${svc_ppl_Environment}" -backend-config="key=${svc_ppl_Name}.${svc_ppl_Environment}.terraform.tfstate"
+        terraform init -backend-config="resource_group_name=rg-${svc_ppl_Name}-${svc_ppl_Environment}-tf" -backend-config="storage_account_name=${svc_ppl_Name}${svc_ppl_Environment}tf" -backend-config="container_name=citfstate${svc_ppl_Environment}" -backend-config="key=${svc_ppl_Name}.terraform.tfstate"
     fi
 }
 

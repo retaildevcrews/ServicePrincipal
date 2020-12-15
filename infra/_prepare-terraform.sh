@@ -41,7 +41,7 @@ function parse_args()
         WHAT_IF=1
         ;;
       ? ) 
-        echo "Usage: prepare-terraform [-h] [-f] [-w]"
+        echo "Usage: prepare-terraform [-h] [-f] [-w] [-n]"
         exit 1
         ;;
     esac
@@ -91,12 +91,17 @@ function validate_environment_vars()
     export svc_ppl_Repo=serviceprincipal
   fi
 
+  if [ -z $svc_ppl_TenantName ]
+  then
+    export svc_ppl_TenantName=cse
+  fi
+
 }
 
 function create_from_keyvault()
 {
   # ============== CREATE TFVARS =================
-  KEYVAULT_NAME="${svc_ppl_ShortName}-kv-${svc_ppl_Environment}"
+  KEYVAULT_NAME="kv-${svc_ppl_Name}-${svc_ppl_Environment}"
   # store az info into variables
   export svc_ppl_TENANT_ID=$(echo $ACCOUNT | jq -r ".tenantId")
   export svc_ppl_SUB_ID=$(echo $ACCOUNT | jq -r ".id")
@@ -105,8 +110,8 @@ function create_from_keyvault()
   export svc_ppl_CLIENT_ID=$(az keyvault secret show --vault-name $KEYVAULT_NAME --name SPTfClientId | jq -r ".value") #$(az ad sp show --id http://${svc_ppl_Name}-tf-sp-${svc_ppl_Environment} --query appId -o tsv)
   export svc_ppl_ACR_SP_SECRET=$(az keyvault secret show --vault-name $KEYVAULT_NAME --name SPAcrClientSecret | jq -r ".value") #$(az ad sp create-for-rbac --skip-assignment -n http://${svc_ppl_Name}-acr-sp-${svc_ppl_Environment} --query password -o tsv)
   export svc_ppl_ACR_SP_ID=$(az keyvault secret show --vault-name $KEYVAULT_NAME --name SPAcrClientId | jq -r ".value") #$(az ad sp show --id http://${svc_ppl_Name}-acr-sp-${svc_ppl_Environment} --query appId -o tsv)
-  export svc_ppl_GRAPH_SP_SECRET=$(az keyvault secret show --vault-name $KEYVAULT_NAME --name graphAppClientSecret | jq -r ".value") #$(az ad sp create-for-rbac --skip-assignment -n http://${svc_ppl_Name}-graph-${svc_ppl_Environment} --query password -o tsv)
-  export svc_ppl_GRAPH_SP_ID=$(az keyvault secret show --vault-name $KEYVAULT_NAME --name graphAppClientId | jq -r ".value") #$(az ad sp show --id http://${svc_ppl_Name}-graph-${svc_ppl_Environment} --query appId -o tsv)
+  # export svc_ppl_GRAPH_SP_SECRET=$(az keyvault secret show --vault-name $KEYVAULT_NAME --name graphAppClientSecret | jq -r ".value") #$(az ad sp create-for-rbac --skip-assignment -n http://${svc_ppl_Name}-graph-${svc_ppl_Environment} --query password -o tsv)
+  # export svc_ppl_GRAPH_SP_ID=$(az keyvault secret show --vault-name $KEYVAULT_NAME --name graphAppClientId | jq -r ".value") #$(az ad sp show --id http://${svc_ppl_Name}-graph-${svc_ppl_Environment} --query appId -o tsv)
 
   if [ $NO_CLOBBER -eq 0 ] 
   then
@@ -116,15 +121,16 @@ function create_from_keyvault()
       sed "s|<<svc_ppl_ShortName>>|$svc_ppl_ShortName|" | \
       sed "s|<<svc_ppl_Location>>|$svc_ppl_Location|" | \
       sed "s|<<svc_ppl_Environment>>|$svc_ppl_Environment|" | \
+      sed "s|<<svc_ppl_TenantName>>|$svc_ppl_TenantName|" | \
       sed "s|<<svc_ppl_Repo>>|$svc_ppl_Repo|" | \
       sed "s|<<svc_ppl_TENANT_ID>>|$svc_ppl_TENANT_ID|" | \
       sed "s|<<svc_ppl_SUB_ID>>|$svc_ppl_SUB_ID|" | \
       sed "s|<<svc_ppl_CLIENT_SECRET>>|$svc_ppl_CLIENT_SECRET|" | \
       sed "s|<<svc_ppl_CLIENT_ID>>|$svc_ppl_CLIENT_ID|" | \
       sed "s|<<svc_ppl_ACR_SP_SECRET>>|$svc_ppl_ACR_SP_SECRET|" | \
-      sed "s|<<svc_ppl_ACR_SP_ID>>|$svc_ppl_ACR_SP_ID|" | \
-      sed "s|<<svc_ppl_GRAPH_SP_ID>>|$svc_ppl_GRAPH_SP_ID|" | \
-      sed "s|<<svc_ppl_GRAPH_SP_SECRET>>|$svc_ppl_GRAPH_SP_SECRET|" > terraform.tfvars
+      sed "s|<<svc_ppl_ACR_SP_ID>>|$svc_ppl_ACR_SP_ID|" > terraform.tfvars
+      # sed "s|<<svc_ppl_GRAPH_SP_ID>>|$svc_ppl_GRAPH_SP_ID|" | \
+      # sed "s|<<svc_ppl_GRAPH_SP_SECRET>>|$svc_ppl_GRAPH_SP_SECRET|" \
 
     echo -e "${green}\tterraform.tfvars created${reset}"
 
@@ -134,17 +140,16 @@ function create_from_keyvault()
 # TODO: the secrets should be pushed into KeyVault by this script *not* by terraform.
 function create_new_deployment()
 {
-  exit 1
   # ============== CREATE TFVARS =================
   # store az info into variables
   export svc_ppl_TENANT_ID=$(echo $ACCOUNT | jq -r ".tenantId")
   export svc_ppl_SUB_ID=$(echo $ACCOUNT | jq -r ".id")
-  export svc_ppl_CLIENT_SECRET=$(az ad sp create-for-rbac -n http://${svc_ppl_Name}-tf-sp-${svc_ppl_Environment} --query password -o tsv)
-  export svc_ppl_CLIENT_ID=$(az ad sp show --id http://${svc_ppl_Name}-tf-sp-${svc_ppl_Environment} --query appId -o tsv)
+  export svc_ppl_CLIENT_SECRET=$(az ad sp create-for-rbac -n http://${svc_ppl_Name}-sp-${svc_ppl_Environment} --query password -o tsv)
+  export svc_ppl_CLIENT_ID=$(az ad sp show --id http://${svc_ppl_Name}-sp-${svc_ppl_Environment} --query appId -o tsv)
   export svc_ppl_ACR_SP_SECRET=$(az ad sp create-for-rbac --skip-assignment -n http://${svc_ppl_Name}-acr-sp-${svc_ppl_Environment} --query password -o tsv)
   export svc_ppl_ACR_SP_ID=$(az ad sp show --id http://${svc_ppl_Name}-acr-sp-${svc_ppl_Environment} --query appId -o tsv)
-  export svc_ppl_GRAPH_SP_SECRET=$(az ad sp create-for-rbac --skip-assignment -n http://${svc_ppl_Name}-graph-${svc_ppl_Environment} --query password -o tsv)
-  export svc_ppl_GRAPH_SP_ID=$(az ad sp show --id http://${svc_ppl_Name}-graph-${svc_ppl_Environment} --query appId -o tsv)
+  # export svc_ppl_GRAPH_SP_SECRET=$(az ad sp create-for-rbac --skip-assignment -n http://${svc_ppl_Name}-graph-${svc_ppl_Environment} --query password -o tsv)
+  # export svc_ppl_GRAPH_SP_ID=$(az ad sp show --id http://${svc_ppl_Name}-graph-${svc_ppl_Environment} --query appId -o tsv)
 
   # create terraform.tfvars and replace template values
   cat example.tfvars | \
@@ -152,16 +157,17 @@ function create_new_deployment()
     sed "s|<<svc_ppl_ShortName>>|$svc_ppl_ShortName|" | \
     sed "s|<<svc_ppl_Location>>|$svc_ppl_Location|" | \
     sed "s|<<svc_ppl_Environment>>|$svc_ppl_Environment|" | \
+    sed "s|<<svc_ppl_TenantName>>|$svc_ppl_TenantName|" | \
     sed "s|<<svc_ppl_Repo>>|$svc_ppl_Repo|" | \
-    # sed "s|<<svc_ppl_Email>>|$svc_ppl_Email|" | \
     sed "s|<<svc_ppl_TENANT_ID>>|$svc_ppl_TENANT_ID|" | \
     sed "s|<<svc_ppl_SUB_ID>>|$svc_ppl_SUB_ID|" | \
     sed "s|<<svc_ppl_CLIENT_SECRET>>|$svc_ppl_CLIENT_SECRET|" | \
     sed "s|<<svc_ppl_CLIENT_ID>>|$svc_ppl_CLIENT_ID|" | \
     sed "s|<<svc_ppl_ACR_SP_SECRET>>|$svc_ppl_ACR_SP_SECRET|" | \
-    sed "s|<<svc_ppl_ACR_SP_ID>>|$svc_ppl_ACR_SP_ID|" | \
-    sed "s|<<svc_ppl_GRAPH_SP_ID>>|$svc_ppl_GRAPH_SP_ID|" | \
-    sed "s|<<svc_ppl_GRAPH_SP_SECRET>>|$svc_ppl_GRAPH_SP_SECRET|" > terraform.tfvars
+    sed "s|<<svc_ppl_ACR_SP_ID>>|$svc_ppl_ACR_SP_ID|" > terraform.tfvars
+    
+    # sed "s|<<svc_ppl_GRAPH_SP_ID>>|$svc_ppl_GRAPH_SP_ID|" | \
+    # sed "s|<<svc_ppl_GRAPH_SP_SECRET>>|$svc_ppl_GRAPH_SP_SECRET|" \
 
   echo -e "${green}\tterraform.tfvars created${reset}"
 
@@ -197,37 +203,37 @@ function create_new_deployment()
   # Admin consent
   az ad app permission admin-consent --id $servicePricipalId
 
-  # Get graph service principal App ID--------------------------------------------------------------------------------------------
+  ## Get graph service principal App ID--------------------------------------------------------------------------------------------
 
-  export graphServicePrincipalId=$svc_ppl_GRAPH_SP_ID
-  servicePricipalId=$(eval echo $graphServicePrincipalId)
-  echo "Graph Service Principal AppID: " $graphServicePrincipalId
+  # export graphServicePrincipalId=$svc_ppl_GRAPH_SP_ID
+  # servicePricipalId=$(eval echo $graphServicePrincipalId)
+  # echo "Graph Service Principal AppID: " $graphServicePrincipalId
 
-  export appRoleAppReadWriteAll=$(az ad sp show --id $graphId --query "appRoles[?value=='Application.ReadWrite.All'].id | [0]") 
-  appRoleAppReadWriteAll=$(eval echo $appRoleAppReadWriteAll)
-  echo "Application- Application.ReadWrite.All ID: " $appRoleAppReadWriteAll
-
-
-  export appRoleDirReadAll=$(az ad sp show --id $graphId --query "appRoles[?value=='Directory.Read.All'].id | [0]") 
-  appRoleDirReadAll=$(eval echo $appRoleDirReadAll)
-  echo "Application- Directory.Read.All ID:" $appRoleDirReadAll
+  # export appRoleAppReadWriteAll=$(az ad sp show --id $graphId --query "appRoles[?value=='Application.ReadWrite.All'].id | [0]") 
+  # appRoleAppReadWriteAll=$(eval echo $appRoleAppReadWriteAll)
+  # echo "Application- Application.ReadWrite.All ID: " $appRoleAppReadWriteAll
 
 
-  # Add App permission 
-  az ad app permission add --id $graphServicePrincipalId --api $graphId --api-permissions $appRoleDirReadAll=Role $appRoleAppReadWriteAll=Role
+  # export appRoleDirReadAll=$(az ad sp show --id $graphId --query "appRoles[?value=='Directory.Read.All'].id | [0]") 
+  # appRoleDirReadAll=$(eval echo $appRoleDirReadAll)
+  # echo "Application- Directory.Read.All ID:" $appRoleDirReadAll
 
-  # Make permissions effective
-  az ad app permission grant --id $graphServicePrincipalId --api $graphId
 
-  # Admin consent
-  az ad app permission admin-consent --id $graphServicePrincipalId
+  # # Add App permission 
+  # az ad app permission add --id $graphServicePrincipalId --api $graphId --api-permissions $appRoleDirReadAll=Role $appRoleAppReadWriteAll=Role
+
+  # # Make permissions effective
+  # az ad app permission grant --id $graphServicePrincipalId --api $graphId
+
+  # # Admin consent
+  # az ad app permission admin-consent --id $graphServicePrincipalId
 
 
 
 
   # create tf_state resource group
-  export TF_RG_NAME=$svc_ppl_Name-rg-$svc_ppl_Environment
-  echo "Creating the TF Resource Group"
+  export TF_RG_NAME=rg-${svc_ppl_Name}-${svc_ppl_Environment}-tf
+  echo "Creating the Deployment Resource Group"
   if echo ${TF_RG_NAME} > /dev/null 2>&1 && echo ${svc_ppl_Location} > /dev/null 2>&1; then
       if ! az group create --name ${TF_RG_NAME} --location ${svc_ppl_Location} -o table; then
           echo "ERROR: failed to create the resource group"
@@ -239,13 +245,13 @@ function create_new_deployment()
   # create storage account for state file
   export TFSUB_ID=$(az account show -o tsv --query id)
 
-  tmp_name=$svc_ppl_Name"st"$svc_ppl_Environment
+  tmp_name="${svc_ppl_Name}${svc_ppl_Environment}tf"
   export TFSA_NAME=${tmp_name,,}
 
-  tmp_name=$svc_ppl_Name"citfstate"$svc_ppl_Environment
+  tmp_name="citfstate"$svc_ppl_Environment
   export TFCI_NAME=${tmp_name,,}
 
-  echo "Creating File Storage Account and Container"
+  echo "Creating Deployment Storage Account and State Container"
 
 
   if echo ${TFSUB_ID} > /dev/null 2>&1; then
@@ -253,7 +259,7 @@ function create_new_deployment()
           echo "ERROR: Failed to create Storage Account"
           exit 1
       fi
-      echo "TF Storage Account Created."
+      echo "Storage Account Created."
       sleep 20s
   fi
 
@@ -263,7 +269,7 @@ function create_new_deployment()
           echo "ERROR: Failed to Retrieve Storage Account Access Key"
           exit 1
       fi
-      echo "TF Storage Account Access Key = $ARM_ACCESS_KEY"
+      echo "Storage Account Access Key = $ARM_ACCESS_KEY"
   fi
 
 
@@ -286,11 +292,13 @@ parse_args "$@"
 
 validate_environment_vars
 
-if [ $FIRST_RUN -eq 0 ]
+if [ $NO_CLOBBER -eq 0 ]
 then
-  create_from_keyvault
-else
-  confirm_action "This will create new infrastructure.  Are you sure?"
-  create_new_deployment
+  if [ $FIRST_RUN -eq 0 ]
+  then
+    create_from_keyvault
+  else
+    confirm_action "This will create new infrastructure.  Are you sure?"
+    create_new_deployment
+  fi
 fi
-
