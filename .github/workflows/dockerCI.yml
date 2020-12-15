@@ -117,8 +117,8 @@ jobs:
           
           echo "Setting STAGING docker image to ${IMAGE_NAME}"
 
-          az functionapp config container set -g serviceprincipal-rg-dev -n sp-funcn-dev --slot staging --docker-custom-image-name $IMAGE_NAME
-          az functionapp config appsettings set -g serviceprincipal-rg-dev -n sp-funcn-dev --slot staging --settings "DOCKER_CUSTOM_IMAGE_NAME=${IMAGE_NAME}"  
+          az functionapp config container set -g serviceprincipal-rg-dev -n fa-serviceprincipal-dev --slot staging --docker-custom-image-name $IMAGE_NAME
+          az functionapp config appsettings set -g serviceprincipal-rg-dev -n fa-serviceprincipal-dev --slot staging --settings "DOCKER_CUSTOM_IMAGE_NAME=${IMAGE_NAME}"  
 
           .github/workflows/appConfigSettings.sh qa
         fi
