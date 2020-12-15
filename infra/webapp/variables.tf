@@ -10,6 +10,11 @@ variable "PROJECT_NAME" {
 
 }
 
+variable "TENANT_NAME" {
+  type        = string
+  description = "The short name of the tenant. Used for resource naming"
+}
+
 variable "APP_RG_NAME" {
   type        = string
   description = "The Azure Resource Group the resource should be added to"
@@ -55,21 +60,6 @@ variable "QA_DATABASE_NAME" {
   description = "Name of the qa cosmos database"
 }
 
-variable "COSMOS_AUDIT_COL" {
-  type        = string
-  description = "The CosmosDB Collection name used to hold Audit records"
-}
-
-variable "COSMOS_CONFIG_COL" {
-  type        = string
-  description = "The CosmosDB Collection for hold the system's configuration document"
-}
-
-variable "COSMOS_OBJ_TRACKING_COL" {
-  type        = string
-  description = "The Collection used to hold ServicePrincipal and other AAD object items being tracked"
-}
-
 variable "DB_CREATION_DONE" {
   description = "Cosmos DB creation done"
   type        = bool
@@ -107,16 +97,6 @@ variable "ACR_SP_SECRET" {
 variable "STORAGE_NAME" {
   type        = string
   description = "The Azure Storage Account Name"
-}
-
-variable "GRAPH_SP_ID" {
-  type        = string
-  description = "The Graph client Service Principal"
-}
-
-variable "GRAPH_SP_SECRET" {
-  type        = string
-  description = "The Graph client Service Principal Secret"
 }
 
 variable "ACR_URI" {
