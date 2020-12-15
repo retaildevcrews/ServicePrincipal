@@ -134,7 +134,7 @@ az acr list --query "[?name=='${svc_ppl_Name}']" -o tsv | wc -l
 The script will **not** perform a terraform apply.  This step must be performed manually to prevent any premature infrastructure changes.  
 
 ### First Run
-In the example below, appname=myserviceprincipal.  You should substitue your own unique value determined above in the DNS search.
+In the example below, appname=mysp.  You should substitue your own unique value determined above in the DNS search.
 
 ```bash
 ### (Optional) You may need to make the scripts executable
