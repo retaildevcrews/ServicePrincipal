@@ -44,7 +44,7 @@ namespace CSE.Automation.Graph
             if (IsSeedRun(config))
             {
                 logger.LogInformation("Seeding Service Principal objects from Graph...");
-                metrics.Name = "Full Seed";
+                metrics.Name = GraphOperation.FullSeed;
 
                 collectionPage = await GetGraphSeedRequest()
                 .GetAsync()
@@ -52,7 +52,7 @@ namespace CSE.Automation.Graph
             }
             else
             {
-                metrics.Name = "Delta Discovery";
+                metrics.Name = GraphOperation.DeltaDiscovery;
 
                 logger.LogInformation("Fetching Service Principal Delta objects from Graph...");
 
