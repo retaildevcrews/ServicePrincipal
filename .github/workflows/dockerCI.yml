@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ACR_REG_REPO_URL : serviceprincipalacrdev.azurecr.io/serviceprincipal
+      ACR_REG_REPO_URL : svcprincipalcsedev.azurecr.io/serviceprincipal
 
     steps:
     - name: Azure Login
