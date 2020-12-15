@@ -128,8 +128,6 @@ az acr list --query "[?name=='${svc_ppl_Name}']" -o tsv | wc -l
 
 ### if 0 is returned, pick another name or remove subscription resources to be recreated
 ```
-<div style="visibility:hidden">asdfasdfasdf  </div>
-
 ## Deploy ServicePrincipal
 >Make sure you are in the serviceprincipal/infra directory.  
 
