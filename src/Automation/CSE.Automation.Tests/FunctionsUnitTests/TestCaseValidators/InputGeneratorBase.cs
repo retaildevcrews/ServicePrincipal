@@ -95,6 +95,28 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
            
         }
 
+
+        protected ServicePrincipal GetServicePrincipalForUpdateQueue()
+        {
+   
+            string servicePrincipalPrefix = _config["displayNamePatternFilter"];
+
+            var servicePrincipalList = GraphHelper.GetAllServicePrincipals($"{servicePrincipalPrefix}").Result;
+
+            string spDisplayName = _config[$"U_{TestCaseId}"];
+
+            ServicePrincipal spObject = servicePrincipalList.FirstOrDefault(x => x.DisplayName == spDisplayName);
+
+            if (spObject != null)
+            {
+                return spObject;
+            }
+            else
+            {
+                throw new Exception($"Unable to find ServicePrincipal '{spDisplayName}' for Test Case Id: {TestCaseId}");
+            }
+        }
+
         private ServicePrincipalWrapper GetAADServicePrincipal(string spDisplayName, TestCaseCollection.TestCase testCase, bool getWrapperWithoutPreconditionValidation = false)
         {
 
