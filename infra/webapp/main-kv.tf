@@ -67,11 +67,11 @@ resource azurerm_key_vault_access_policy instance-pol {
 }
 
 resource azurerm_key_vault_access_policy fn-staging-slot-policy {
-  depends_on = [ azurerm_app_service_slot.service-slot-staging ]
+  depends_on = [ azurerm_app_service_slot.staging ]
 
   key_vault_id = azurerm_key_vault.instance.id
   tenant_id    = var.TENANT_ID 
-  object_id    = azurerm_app_service_slot.service-slot-staging.identity[0].principal_id 
+  object_id    = azurerm_app_service_slot.staging.identity[0].principal_id 
 
   secret_permissions = [
     "Get",

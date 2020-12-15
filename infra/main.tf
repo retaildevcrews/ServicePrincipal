@@ -78,6 +78,7 @@ module "acr" {
   source        = "./acr"
   NAME          = var.NAME # we are passing the full project name to reduce the chances that the name is already taken 
   LOCATION      = var.LOCATION
+  TENANT_NAME   = var.TENANT_NAME
   REPO          = var.REPO
   ENV           = var.ENV
   ACR_RG_NAME   = azurerm_resource_group.appResourceGroup.name

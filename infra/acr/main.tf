@@ -18,8 +18,8 @@ resource null_resource acr-access {
   }
 }
 
-resource "azurerm_container_registry_webhook" "webhook" {
-  name                = "${var.NAME}wh${var.ENV}"
+resource azurerm_container_registry_webhook instance {
+  name                = "webhook"
   location            = var.LOCATION
   resource_group_name = var.ACR_RG_NAME
   registry_name       = azurerm_container_registry.instance.name

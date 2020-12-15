@@ -115,7 +115,7 @@ resource azurerm_function_app instance {
 # }
 
 
-resource azurerm_app_service_slot service-slot-staging {
+resource azurerm_app_service_slot staging {
   name                = "staging"
   app_service_name    = azurerm_function_app.instance.name
   location            = var.LOCATION

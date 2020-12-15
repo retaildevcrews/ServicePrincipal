@@ -32,3 +32,8 @@ variable "REPO" {
   type        = string
   description = "The Service Principal repo"
 }
+
+variable "TENANT_NAME" {
+  type        = string
+  description = "The short name of the tenant. Used for resource naming"
+}
