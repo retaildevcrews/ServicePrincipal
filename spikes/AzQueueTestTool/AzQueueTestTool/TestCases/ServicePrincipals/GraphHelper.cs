@@ -67,7 +67,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
 
                     if (ownerIdList != null && ownerIdList.Count > 0)
                     {
-                        foreach(var ownerId in ownerIdList)
+                        foreach (var ownerId in ownerIdList)
                         {
                             Task thisTask = _graphClient.ServicePrincipals[$"{sp.Id}"].Owners[$"{ownerId}"].Reference
                                                             .Request()
@@ -82,7 +82,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
             return true;
         }
 
-        internal static Dictionary<string,string> GetOwnersDisplayNameAndUserPrincipalNameKeyValuePair(ServicePrincipal spObject)
+        internal static Dictionary<string, string> GetOwnersDisplayNameAndUserPrincipalNameKeyValuePair(ServicePrincipal spObject)
         {
             Dictionary<string, string> result = new Dictionary<string, string>();
             if (spObject != null)
@@ -97,7 +97,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
             return result;
         }
 
-        internal static void CreateAADUsersAsync(string userNamePattern, int count, int lowerLimit = 1)
+      internal static void CreateAADUsersAsync(string userNamePattern, int count, int lowerLimit = 1)
         {
             var usersTasks = new List<Task>();
 
@@ -193,7 +193,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                 {
                     var usersPage =  _graphClient.Users
                     .Request()
-                    //.Filter($"startswith(userPrincipalName,'{userEmail}')")
+                    
                     .Filter($"userPrincipalName eq '{userEmail}'")
                     .GetAsync();
 
@@ -326,7 +326,32 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                 Task.WaitAll(tasks.ToArray());
             }
         }
-      
+        internal static async Task<ServicePrincipal> GetServicePrincipal(string servicePrincipalName)
+        {
+            try
+            {
+                List<ServicePrincipal> servicePrincipalList = new List<ServicePrincipal>();
+
+
+                var servicePrincipalsPage = await _graphClient.ServicePrincipals
+                            .Request()
+                            .Filter($"displayName eq '{servicePrincipalName}'")
+                            .GetAsync();
+
+                if (servicePrincipalsPage.CurrentPage != null && servicePrincipalsPage.CurrentPage.Count > 0)
+                {
+                    return servicePrincipalsPage.CurrentPage[0];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
         internal static async Task<List<ServicePrincipal>> GetAllServicePrincipals(string spNamePefix, int count = 0)
         {
             try
@@ -409,6 +434,46 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
         }
 
 
+        internal static void CreateServicePrincipal(string servicePrincipalName)
+        {
+            var application = new Application
+            {
+                DisplayName = servicePrincipalName
+            };
+
+            Task<Application> appTask = _graphClient.Applications.Request().AddAsync(application);
+            appTask.Wait();
+
+            var servicePrincipal = new ServicePrincipal
+            {
+                AppId = appTask.Result.AppId
+            };
+
+
+            Task<ServicePrincipal> spTask = _graphClient.ServicePrincipals.Request().AddAsync(servicePrincipal);
+            spTask.Wait();
+
+            bool spFound = false;
+            int elapsed = 0;
+            int timeout = 10000;
+        
+            while (!spFound && (elapsed <= timeout))
+            {
+                Thread.Sleep(1000);
+                elapsed += 1000;
+
+                var servicePrincipalsPage = _graphClient.ServicePrincipals
+                       .Request()
+                       .Filter($"displayName eq '{servicePrincipalName}'")
+                       .GetAsync();
+
+                spFound = (servicePrincipalsPage.Result.CurrentPage != null && servicePrincipalsPage.Result.CurrentPage.Count == 1);
+            }
+
+            Console.WriteLine("app registration and service principal creation done, press a key to continue");
+
+        }
+
         internal static void CreateServicePrincipalAsync(string spNamePefix, int count, int lowerLimit = 1)
         {
 
@@ -480,7 +545,6 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
 
         internal static void DeleteServicePrincipalsAsync(IList<ServicePrincipal> servicePrincipalList)
         {
-
             if (servicePrincipalList != null && servicePrincipalList.Count() > 0)
             {
                 var tasks = new List<Task>();
@@ -539,6 +603,15 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
                 Task.WaitAll(tasks.ToArray());
 
             }
+        }
+
+        internal static async Task UpdateGraphObject(ServicePrincipal servicePrincipal)
+        {
+            // API call uses a PATCH so only include properties to change
+            await _graphClient.ServicePrincipals[servicePrincipal.Id]
+                    .Request()
+                    .UpdateAsync(servicePrincipal)
+                    .ConfigureAwait(false);
         }
 
         internal static async Task<IList<ServicePrincipal>> GetAllServicePrincipalsWithNotes(string spNamePefix, int count = 0)

@@ -4,14 +4,14 @@ using System.Text;
 using CSE.Automation.Model;
 using Microsoft.Graph;
 using Newtonsoft.Json;
-using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGenerator;
+using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases.TestCaseCollection;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalResults
 {
     internal class SpResultValidator5 : SpResultValidatorBase, ISpResultValidator
     {
 
-        public SpResultValidator5(string savedServicePrincipalAsString, InputGenerator inputGenerator, ActivityContext activityContext) 
+        public SpResultValidator5(string savedServicePrincipalAsString, IInputGenerator inputGenerator, ActivityContext activityContext) 
                                     : base(savedServicePrincipalAsString, inputGenerator, activityContext)
         {
         }

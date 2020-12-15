@@ -1,4 +1,5 @@
 {
+
   "displayNamePatternFilter": "sp-AzQueueTesting",
   "aadUserServicePrincipalPrefix": "user-AzQueueTesting",
 
@@ -29,6 +30,10 @@
   "visibilityDelayGapSeconds": "8",
   "queueRecordProcessThreshold": "300",
 
-  "SPDeltaDiscoverySchedule": "0 */30 * * * *"
+  "SPDeltaDiscoverySchedule": "0 */30 * * * *",
 
+
+  "SPDiscoverQueue": "discover",
+  "SPEvaluateQueue": "evaluate",
+  "SPUpdateQueue": "update"
 }
