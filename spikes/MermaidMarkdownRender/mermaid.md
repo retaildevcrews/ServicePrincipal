@@ -6,6 +6,8 @@
 
 cp spikes/MermaidMarkdownRender/hook.sh .git/hooks/pre-commit
 
+chmod +x .git/hooks/pre-commit
+
 ```
 
 <div class="mermaid" id="sequence_mmd">
@@ -24,7 +26,7 @@ cp spikes/MermaidMarkdownRender/hook.sh .git/hooks/pre-commit
     Note right of John: Rational thoughts!
     John-->>Alice: Great!
     John->>Bob: How about you?
-    Bob-->>John: Jolly good good!
+    Bob-->>John: Jolly good!
     ```
   </details>
 </div>
