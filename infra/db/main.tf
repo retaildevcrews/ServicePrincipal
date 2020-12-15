@@ -1,8 +1,9 @@
 locals {
-  db_names = toset([ "${var.COSMOS_DB}-${var.ENV}", "${var.COSMOS_DB}-qa" ])
+  # note this list is positional, required by output variables below
+  db_names = [ "${var.COSMOS_DB}-${var.ENV}", "${var.COSMOS_DB}-qa" ]
 
   # create a flattened list that is the cartesian product of db_names and collections
-  collections_in_dbs = { for p in setproduct(local.db_names, var.COLLECTIONS) : "${p[0]}.${p[1].name}" => {
+  collections_in_dbs = { for p in setproduct(toset(local.db_names), var.COLLECTIONS) : "${p[0]}.${p[1].name}" => {
       db = p[0]
       collection = p[1]
     }
@@ -31,7 +32,7 @@ resource azurerm_cosmosdb_account instance {
 
 # ---->>>>  Create a Database
 resource azurerm_cosmosdb_sql_database instance {  
-  for_each = local.db_names
+  for_each = toset(local.db_names)
 
   name                = each.key
   resource_group_name = var.APP_RG_NAME
@@ -73,9 +74,9 @@ output COSMOS_ACCOUNT_URI {
   description = "URI of CosmosDB Account"
 }
 output "DEV_DATABASE_NAME" {
-  value = "${var.COSMOS_DB}-cosmos-${var.ENV}"
+  value = local.db_names[0]
 }
 
 output "QA_DATABASE_NAME" {
-  value = "${var.COSMOS_DB}-cosmos-qa"
+  value = local.db_names[1]
 }
