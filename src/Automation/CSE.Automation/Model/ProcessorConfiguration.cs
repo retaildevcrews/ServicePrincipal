@@ -37,9 +37,8 @@ namespace CSE.Automation.Model
     [JsonConverter(typeof(StringEnumConverter))]
     public enum RunState
     {
-        Seedonly,
-        SeedAndRun,
-        DeltaRun,
         Disabled,
+        Seed,
+        DeltaRun,
     }
 }

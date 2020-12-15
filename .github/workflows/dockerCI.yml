@@ -46,7 +46,12 @@ jobs:
     - name: Run Unit Tests
       run: |
         cd src/Automation
-        dotnet test --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed"        
+        dotnet test --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed" --filter "Category=Unit"
+
+    - name: Run Integration Tests
+      run: |
+        cd src/Automation
+        dotnet test --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed" --filter "Category=Integration"
 
     - name: Calculate Version
       run: |
@@ -121,13 +126,6 @@ jobs:
           az functionapp config appsettings set -g serviceprincipal-rg-dev -n fa-serviceprincipal-dev --slot staging --settings "DOCKER_CUSTOM_IMAGE_NAME=${IMAGE_NAME}"  
 
           .github/workflows/appConfigSettings.sh qa
-        fi
-
-    - name: Run System Tests
-      run: |
-        if [[ "${{ github.event_name }}" == "pull_request" ]]
-        then
-          echo "RUN SYSTEM TESTS HERE"
         fi
 
     - name: Tag Release

@@ -28,29 +28,22 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             this.output = output;
         }
 
-        // TODO: create real mocked class
-        class MockUserGraphHelper : IGraphHelper<User>
+        // Function to create mock instance of UserGraphHelper, which is needed for ServicePrincipalModelValidator instance
+        internal static IGraphHelper<User> CreateMockUserGraphHelper()
         {
-            public Task<(GraphOperationMetrics, IEnumerable<User>)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config, string displayNamePatternFilter = null, string selectFields = null)
-            {
-                throw new NotImplementedException();
-            }
+            Task<User> outTask = Task.FromResult(new User());
 
-            public Task<User> GetGraphObjectWithOwners(string id)
-            {
-                return Task.FromResult(new User());
-            }
+            var mockUserGraphHelper = Substitute.For<IGraphHelper<User>>();
+            mockUserGraphHelper.GetGraphObjectWithOwners(Arg.Any<string>()).Returns(outTask);
 
-            public Task PatchGraphObject(User entity)
-            {
-                throw new NotImplementedException();
-            }
+            return mockUserGraphHelper;
         }
 
-        AbstractValidator<ServicePrincipalModel> servicePrincipalValidator = new ServicePrincipalModelValidator(new MockUserGraphHelper());
+        AbstractValidator<ServicePrincipalModel> servicePrincipalValidator = new ServicePrincipalModelValidator(CreateMockUserGraphHelper());
         AbstractValidator<AuditEntry> auditEntryValidator = new AuditEntryValidator();
 
         [Fact]
+        [Trait("Category","Unit")]
         public void ServicePrincipalModelValidate_ReturnsValidationFailuresIfInvalid()
         {
             var servicePrincipal = new ServicePrincipalModel
@@ -68,6 +61,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
+        [Trait("Category","Unit")]
         public void ServicePrincipalModelValidate_ReturnsTrueIfValid()
         {
             var servicePrincipal = new ServicePrincipalModel
@@ -91,6 +85,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
+        [Trait("Category","Unit")]
         public void AuditEntryModelValidate_ReturnsValidationFailuresIfInvalid()
         {
             var auditItem = new AuditEntry();
@@ -105,6 +100,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
+        [Trait("Category","Unit")]
         public void AuditEntryModelValidate_ReturnsTrueIfValid()
         {
             var context = new ActivityContext(null);

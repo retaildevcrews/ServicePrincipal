@@ -1,11 +1,12 @@
 #!/bin/bash
 
-# ACCOUNT=$(az account show)
-# if [ $? -eq 1 ]
-# then
-#   echo "Please login to Azure first"
-#   exit 1
-# fi
+ACCOUNT=$(az account show)
+if [ $? -eq 1 ]
+then
+  echo "Please login to Azure first"
+  exit 1
+fi
+
 function parse_args()
 {
   red=`tput setaf 1`
