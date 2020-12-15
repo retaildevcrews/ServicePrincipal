@@ -3,7 +3,7 @@
 data "azurerm_client_config" "current" {}
 
 locals {
-  kv_name = "kv-${var.NAME}-${var.TENANT_NAME}-${var.ENV}"
+  kv_name = "kv-${var.PROJECT_NAME}-${var.TENANT_NAME}-${var.ENV}"
   secrets = {
     "SPCosmosKey" = var.COSMOS_RW_KEY,
     "AppInsightsKey" = azurerm_application_insights.instance.instrumentation_key,

@@ -129,7 +129,7 @@ function validate_environment()
 function create_from_keyvault()
 {
   # ============== CREATE TFVARS =================
-  KEYVAULT_NAME="kv-${svc_ppl_Name}-${svc_ppl_Environment}"
+  KEYVAULT_NAME="kv-${svc_ppl_Name}-${svc_ppl_TenantName}-${svc_ppl_Environment}"
   # store az info into variables
   export svc_ppl_TENANT_ID=$(echo $ACCOUNT | jq -r ".tenantId")
   export svc_ppl_SUB_ID=$(echo $ACCOUNT | jq -r ".id")
