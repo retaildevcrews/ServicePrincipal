@@ -837,7 +837,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespositoryTest, activityContext);
 
 
-            Task thisTaks = Task.Run (() => _graphDeltaProcessor.Evaluate(cloudQueueMessage, _graphLogger));
+            Task thisTaks = Task.Run (() => _graphDeltaProcessor.UpdateAAD(cloudQueueMessage, _graphLogger));
             thisTaks.Wait();
 
 
@@ -854,42 +854,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         [Fact]
         [Trait("Category", "Integration")]
-        public void FunctionUpdateTestCase1_2()
-        {
-            using var testCaseCollection = new UpdateTestCaseCollection();
-
-            TestCase thisTestCase = testCaseCollection.TC1_2;
-
-            using var activityContext = _activityService.CreateContext($"Integration Test - UPDATE Test Case [{thisTestCase}] ", withTracking: true);
-
-            using var inputGenerator = new UpdateInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase);
-
-            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(activityContext));
-
-            //Create Validators 
-            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext);
-
-            using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespositoryTest, activityContext);
-
-
-            Task thisTaks = Task.Run (() => _graphDeltaProcessor.Evaluate(cloudQueueMessage, _graphLogger));
-            thisTaks.Wait();
-
-             bool validServicePrincipal = servicePrincipalValidationManager.Validate();
-
-            Assert.True(validServicePrincipal, "Service Principal Validation");
-
-            bool validAudit =  auditValidationManager.Validate();
-
-            Assert.True(validAudit, "Audit Validation");
-
-
-        }
-
-        [Fact]
-        [Trait("Category", "Integration")]
         public void FunctionUpdateTestCase2()
         {
+            // TODO we are going to use the SPs define in config file e.g _cofig[TC4_AssignTheseOwnersWhenCreatingAMissingObjectTracking]
+
             using var testCaseCollection = new UpdateTestCaseCollection();
 
             TestCase thisTestCase = testCaseCollection.TC2;
@@ -906,7 +874,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespositoryTest, activityContext);
 
 
-            Task thisTaks = Task.Run (() => _graphDeltaProcessor.Evaluate(cloudQueueMessage, _graphLogger));
+            Task thisTaks = Task.Run (() => _graphDeltaProcessor.UpdateAAD(cloudQueueMessage, _graphLogger));
             thisTaks.Wait();
 
   
@@ -943,7 +911,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespositoryTest, activityContext);
 
 
-            Task thisTaks = Task.Run (() => _graphDeltaProcessor.Evaluate(cloudQueueMessage, _graphLogger));
+            Task thisTaks = Task.Run (() => _graphDeltaProcessor.UpdateAAD(cloudQueueMessage, _graphLogger));
             thisTaks.Wait();
 
             bool validServicePrincipal = servicePrincipalValidationManager.Validate();

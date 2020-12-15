@@ -19,6 +19,7 @@
     <Compile Include="..\..\..\spikes\AzQueueTestTool\AzQueueTestTool\TestCases\Queues\StringExtensions.cs" Link="LinkedDependencies\StringExtensions.cs" />
     <Compile Include="..\..\..\spikes\AzQueueTestTool\AzQueueTestTool\TestCases\ServicePrincipals\EmailSettings.cs" Link="LinkedDependencies\EmailSettings.cs" />
     <Compile Include="..\..\..\spikes\AzQueueTestTool\AzQueueTestTool\TestCases\ServicePrincipals\GraphHelper.cs" Link="LinkedDependencies\GraphHelper.cs" />
+    <Compile Include="..\..\..\spikes\AzQueueTestTool\AzQueueTestTool\TestCases\ServicePrincipals\IEmailSettings.cs" Link="LinkedDependencies\IEmailSettings.cs" />
   </ItemGroup>
 
   <ItemGroup>

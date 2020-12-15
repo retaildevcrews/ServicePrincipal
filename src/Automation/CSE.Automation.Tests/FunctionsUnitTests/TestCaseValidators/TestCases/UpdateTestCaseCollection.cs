@@ -13,11 +13,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases
         public override TestCase TC1 => TestCase.TC1;
 
 
-        [SpStateDefinition("UpdateSpStateDefinition1_2")]
-        [SpValidator("UpdateSpResultValidator")]  // Unique Result Validator class
-        [AuditValidator("UpdateAuditResultValidator")]// Unique Audit Validator class
-        public TestCase TC1_2 => TestCase.TC1_2; //<<<<<<<<<<<<<<<<<<<No override,  this Test Case is only applicable for Update
-
         [SpStateDefinition("UpdateSpStateDefinition2")]
         [SpValidator("UpdateSpResultValidator")]  // Unique Result Validator class
         [AuditValidator("UpdateAuditResultValidator")]// Unique Audit Validator class

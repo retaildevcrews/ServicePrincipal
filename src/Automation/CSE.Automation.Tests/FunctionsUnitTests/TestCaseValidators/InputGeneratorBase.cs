@@ -65,58 +65,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
             InitGraphHelper(graphHelperSettings);
         }
 
-        protected void SetConfigId(string configId)
-        {
-            _configId = configId;
-        }
-
-        public ServicePrincipalModel GetServicePrincipalModel()
-        {
-            return _servicePrincipalWrapper.SPModel;
-        }
-
-        public ServicePrincipal GetServicePrincipal(bool requery = false)
-        {
-            return GetServicePrincipalWrapper(requery).AADServicePrincipal;
-        }
-
-        protected ServicePrincipalWrapper GetServicePrincipalWrapper(bool requery = false)
-        {
-            if (_servicePrincipalWrapper == null || requery)
-            {
-                _servicePrincipalWrapper = GetAADServicePrincipal(_config[TestCaseId.ToString()], TestCaseId, requery);
-
-                if (_servicePrincipalWrapper == null)
-                {
-                    throw new Exception($"Unable to create ServicePrincipalWrapper for Test Case Id: {TestCaseId}");
-                }
-            }
-            return _servicePrincipalWrapper;
-           
-        }
-
-
-        protected ServicePrincipal GetServicePrincipalForUpdateQueue()
-        {
-   
-            string servicePrincipalPrefix = _config["displayNamePatternFilter"];
-
-            var servicePrincipalList = GraphHelper.GetAllServicePrincipals($"{servicePrincipalPrefix}").Result;
-
-            string spDisplayName = _config[$"U_{TestCaseId}"];
-
-            ServicePrincipal spObject = servicePrincipalList.FirstOrDefault(x => x.DisplayName == spDisplayName);
-
-            if (spObject != null)
-            {
-                return spObject;
-            }
-            else
-            {
-                throw new Exception($"Unable to find ServicePrincipal '{spDisplayName}' for Test Case Id: {TestCaseId}");
-            }
-        }
-
         private ServicePrincipalWrapper GetAADServicePrincipal(string spDisplayName, TestCaseCollection.TestCase testCase, bool getWrapperWithoutPreconditionValidation = false)
         {
 
@@ -148,13 +96,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 
         }
 
-        protected bool ValidateDiscoverServicePrincipalPrecondition(TestCaseCollection.TestCase testCase, GraphDeltaProcessorHelper graphDeltaProcessorHelper)
-        {
-            using var stateValidationManager = new ServicePrincipalPreconditionValidationManager(TestCaseCollection, graphDeltaProcessorHelper);
-
-            return stateValidationManager.DiscoverValidatePrecondition(_config,  testCase);
-
-        }
         private void InitGraphHelper(GraphHelperSettings graphHelperSettings)
         {
             if (_initialized)
@@ -169,11 +110,59 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 
             ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
 
+            TestEmailSettings emailSettings = new TestEmailSettings(_config);
+
             // Initialize Graph client
-            GraphHelper.Initialize(authProvider);
+            GraphHelper.Initialize(authProvider, emailSettings);
             _initialized = true;
         }
 
+        protected bool ValidateDiscoverServicePrincipalPrecondition(TestCaseCollection.TestCase testCase, GraphDeltaProcessorHelper graphDeltaProcessorHelper)
+        {
+            using var stateValidationManager = new ServicePrincipalPreconditionValidationManager(TestCaseCollection, graphDeltaProcessorHelper);
+
+            return stateValidationManager.DiscoverValidatePrecondition(_config,  testCase);
+
+        }
+
+        protected ServicePrincipalWrapper ValidateUpdateServicePrincipalPrecondition(TestCaseCollection.TestCase testCase)
+        {
+            using var stateValidationManager = new ServicePrincipalPreconditionValidationManager(TestCaseCollection);
+
+            return stateValidationManager.UpdateValidatePrecondition( _config, testCase);
+
+        }
+
+        protected void SetConfigId(string configId)
+        {
+            _configId = configId;
+        }
+
+        protected ServicePrincipalWrapper GetServicePrincipalWrapper(bool requery = false)
+        {
+
+            if (_servicePrincipalWrapper == null || requery)
+            {
+                _servicePrincipalWrapper = GetAADServicePrincipal(_config[TestCaseId.ToString()], TestCaseId, requery);
+
+                if (_servicePrincipalWrapper == null)
+                {
+                    throw new Exception($"Unable to create ServicePrincipalWrapper for Test Case Id: {TestCaseId}");
+                }
+            }
+            return _servicePrincipalWrapper;
+
+        }
+
+        public virtual ServicePrincipalModel GetServicePrincipalModel()
+        {
+            return _servicePrincipalWrapper.SPModel;
+        }
+
+        public virtual ServicePrincipal GetServicePrincipal(bool requery = false)
+        {
+            return GetServicePrincipalWrapper(requery).AADServicePrincipal;
+        }
         public void Dispose()
         {
             //throw new NotImplementedException();

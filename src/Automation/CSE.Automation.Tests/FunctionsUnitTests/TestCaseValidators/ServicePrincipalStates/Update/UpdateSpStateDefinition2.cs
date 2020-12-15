@@ -4,46 +4,42 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using AzQueueTestTool.TestCases.ServicePrincipals;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Graph;
 using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases.TestCaseCollection;
 
-namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalStates
+namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipalStates.Update
 {
-    internal class UpdateSpStateDefinition2 : SpStateDefinitionBase, ISpStateDefinition
+    internal class UpdateSpStateDefinition2 : UpdateSpStateDefinitionBase, IUpdateSpStateDefinition
     {
-        public UpdateSpStateDefinition2(ServicePrincipal servicePrincipal, TestCase testCase) : base(servicePrincipal, testCase)
+        public UpdateSpStateDefinition2(IConfigurationRoot config, TestCase testCase) : base( config, testCase)
         {
         }
+
         public override ServicePrincipalWrapper Validate()
         {
-            >>>>>>>>>> todo // check and fix/set precondition status
-            ServicePrincipalWrapper result = null;
-            Dictionary<string,string> ownersList = GraphHelper.GetOwnersDisplayNameAndUserPrincipalNameKeyValuePair(ServicePrincipalObject);
 
-            if (ownersList.Count == 0 && !string.IsNullOrEmpty(ServicePrincipalObject.Notes))
+            try
             {
-                // Emails in Notes must be Invalid
-                List<string> invalidEmails = ServicePrincipalObject.Notes.Split(";").ToList();
+                ServicePrincipal servicePrincipalObject = GraphHelper.GetServicePrincipal(ServicePrincipalName).Result;
 
-                string tenantDomainName = GraphHelper.GetDomainName();
-                foreach (var invalidEmail in invalidEmails)
+                Dictionary<string,string> ownersList = GraphHelper.GetOwnersDisplayNameAndUserPrincipalNameKeyValuePair(servicePrincipalObject);
+                if (ownersList.Count > 0)
                 {
-                    if (invalidEmail.EndsWith(tenantDomainName))
-                    {
-                        throw new InvalidDataException($"Service Principal: [{ServicePrincipalObject.DisplayName}] does not match Test Case [{TestCaseID}] rules.");
-                    }
+                    GraphHelper.ClearOwners(new List<ServicePrincipal>() { servicePrincipalObject });
+
                 }
 
-                result = new ServicePrincipalWrapper(ServicePrincipalObject, ownersList.Values.ToList(), true);
-            }
+                GraphHelper.UpdateNotesFieldWithValidEmail(new List<ServicePrincipal>() { servicePrincipalObject });
 
-            if (result == null)
+               
+                return new ServicePrincipalWrapper(servicePrincipalObject, ownersList.Values.ToList(), true);
+            }
+            catch (Exception ex)
             {
-                throw new InvalidDataException($"Service Principal: [{ServicePrincipalObject.DisplayName}] does not match Test Case [{TestCaseID}] rules.");
+                throw new Exception($"Unable to validate Service Principal [{ServicePrincipalName}] does not match Test Case [{TestCaseID}] rules.", ex);
             }
-  
-            return result;
-
+           
         }
     }
 }

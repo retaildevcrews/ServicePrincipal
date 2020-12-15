@@ -13,11 +13,14 @@
   "TC6": "sp-AzQueueTesting-16",
 
   "UTC1": "sp-AzQueueTesting-19",
-  "UTC1_2": "sp-AzQueueTesting-20",
   "UTC2": "sp-AzQueueTesting-22",
   "UTC3": "sp-AzQueueTesting-25",
 
   "TC4_AssignTheseOwnersWhenCreatingAMissingObjectTracking": "user-AzQueueTesting-10; user-AzQueueTesting-11; user-AzQueueTesting-12",
+
+  "testEmailBase" : "TestEmail",
+  "testEmailDomainNames" : "microsoft.com, outlook.com, gmail.com, amazon.com, yahoo.com",
+  "testEmailCount" :  "5",
 
 
   "KEYVAULT_NAME": "sp-kv-dev",

@@ -12,13 +12,56 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
     {
         private static GraphServiceClient _graphClient;
 
-        private static EmailSettings _emailSettings;
+        private static IEmailSettings _emailSettings;
 
-        public static void Initialize(IAuthenticationProvider authProvider)
+        public static void Initialize(IAuthenticationProvider authProvider, IEmailSettings emailSettings = null)
         {
             _graphClient = new GraphServiceClient(authProvider);
-            _emailSettings = new EmailSettings();
+
+            if (emailSettings == null)
+            {
+                _emailSettings = new EmailSettings();
+            }
+            else
+            {
+                _emailSettings = emailSettings;
+            }
         }
+
+
+        internal static bool AddOwner(ServicePrincipal servicePrincipalTarget, string aadUserServicePrincipalPrefix, int ownersCount = 1)
+        {
+            Task<List<User>> users = GetAllUsers(aadUserServicePrincipalPrefix);
+            users.Wait();
+
+            List<User> owners = users.Result.Take(ownersCount).ToList();
+
+            if (owners.Count == 0)
+            {
+                new Exception("No AAD users found");
+            }
+
+            if (SetOwners(new List<ServicePrincipal>() { servicePrincipalTarget }, owners))
+            {
+                Dictionary<string, string> ownerslist = GetOwnersDisplayNameAndUserPrincipalNameKeyValuePair(servicePrincipalTarget);
+
+                foreach (var owner in owners)
+                {
+                    if (!ownerslist.ContainsKey(owner.DisplayName))
+                    {
+                        new Exception($"Failed to set Owner '{owner.DisplayName}' for Service Principal '{servicePrincipalTarget.DisplayName}'");
+                    }
+                }
+                return true;
+            }
+            else
+            {
+                new Exception("Unable to set Owner(s)");
+            }
+
+            return false;
+        }
+
 
         internal static bool SetOwners(List<ServicePrincipal> targetServicePrincipals, List<User> targetUsers)
         {
