@@ -8,9 +8,9 @@ locals {
     "SPCosmosKey" = var.COSMOS_RW_KEY,
     "AppInsightsKey" = azurerm_application_insights.instance.instrumentation_key,
     "SPStorageAccountPrimaryKey" = data.azurerm_storage_account.instance.primary_access_key,
-    # "graphAppClientId" = var.GRAPH_SP_ID, #azuread_application.graphclient.application_id
-    # "graphAppClientSecret" = var.GRAPH_SP_SECRET, #random_password.graphspsecret.result
-    # "graphAppTenantId" = var.TENANT_ID,
+    "graphAppClientId" = var.TF_CLIENT_SP_ID, # var.GRAPH_SP_ID, #azuread_application.graphclient.application_id
+    "graphAppClientSecret" = var.TF_CLIENT_SP_SECRET, # var.GRAPH_SP_SECRET, #random_password.graphspsecret.result
+    "graphAppTenantId" = var.TENANT_ID,
     "SPStorageConnectionString" = data.azurerm_storage_account.instance.primary_connection_string,
     "SPTfClientId" = var.TF_CLIENT_SP_ID,
     "SPTfClientSecret" = var.TF_CLIENT_SP_SECRET,
