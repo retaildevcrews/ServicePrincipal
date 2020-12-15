@@ -98,6 +98,16 @@ function validate_environment()
     export svc_ppl_TenantName=cse
   fi
 
+  # Check length of environment name
+  Name_Size=${#svc_ppl_Environment}
+  if [[ $Name_Size -gt 4 ]]
+  then
+    echo "Please make sure 'environment' is < 5 characters in length with no special characters."
+    echo $svc_ppl_Environment
+    echo $Name_Size
+    exit 1
+  fi
+
   # Build the resource names to see if we will have a name length issue
   tmp_name="${svc_ppl_Name}${svc_ppl_TenantName}${svc_ppl_Environment}tf"
   export TFSA_NAME=${tmp_name,,}  
