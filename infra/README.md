@@ -20,9 +20,10 @@ The StorageAccount is used by Terraform to store its state file.  This state fil
 
 There are three ServicePrincipals created as part of the provisioning process:
 
-ServicePrincipal | Purpose | Permissions
------------------|---------|---------
- \<appName>-tf-sp-\<env> | Application Identity | Application.ReadWrite.All  Directory.Read.All
+ServicePrincipal | Purpose | Graph Permissions | Resource Permissions
+-----------------|---------|-------------------|-----------
+ \<appName>-sp-\<env> | Application Identity | Application.ReadWrite.All  Directory.Read.All | 
+ \<appName>-acr-sp-\<env> | Container Registry Identity | | Container Registry - pull
 
 
  
