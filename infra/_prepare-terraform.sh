@@ -53,7 +53,7 @@ function parse_args()
   # echo ""
 }
 
-function validate_environment_vars()
+function validate_environment()
 {
   # check if svc_ppl_Name is valid
   Name_Size=${#svc_ppl_Name}
@@ -91,11 +91,38 @@ function validate_environment_vars()
     export svc_ppl_Repo=serviceprincipal
   fi
 
+
   if [ -z $svc_ppl_TenantName ]
   then
     export svc_ppl_TenantName=cse
   fi
 
+  # Build the resource names to see if we will have a name length issue
+  tmp_name="${svc_ppl_Name}${svc_ppl_TenantName}${svc_ppl_Environment}tf"
+  export TFSA_NAME=${tmp_name,,}  
+
+  Name_Size=${#TFSA_NAME}
+  if [[ $Name_Size -gt 24 ]]
+  then
+    echo "The name of the Terraform storage account is too long (>24).  Please reduce the length of the application + the tenant to 19 characters with no special characters."
+    echo $TFSA_NAME
+    echo $Name_Size
+    exit 1
+  else
+    echo "${TFSA_NAME} passes length validation"  
+  fi
+
+  tmp_name="${svc_ppl_Name}${svc_ppl_TenantName}${svc_ppl_Environment}app"
+  Name_Size=${#tmp_name}
+  if [[ $Name_Size -gt 24 ]]
+  then
+    echo "The name of the Application storage account is too long (>24).  Please reduce the length of the application + the tenant to 19 characters with no special characters."
+    echo $tmp_name
+    echo $Name_Size
+    exit 1  
+  else
+    echo "${tmp_name} passes length validation"     
+  fi
 }
 
 function create_from_keyvault()
@@ -232,7 +259,7 @@ function create_new_deployment()
 
 
   # create tf_state resource group
-  export TF_RG_NAME=rg-${svc_ppl_Name}-${svc_ppl_Environment}-tf
+  export TF_RG_NAME=rg-${svc_ppl_Name}-${svc_ppl_TenantName}-${svc_ppl_Environment}-tf
   echo "Creating the Deployment Resource Group"
   if echo ${TF_RG_NAME} > /dev/null 2>&1 && echo ${svc_ppl_Location} > /dev/null 2>&1; then
       if ! az group create --name ${TF_RG_NAME} --location ${svc_ppl_Location} -o table; then
@@ -245,10 +272,8 @@ function create_new_deployment()
   # create storage account for state file
   export TFSUB_ID=$(az account show -o tsv --query id)
 
-  tmp_name="${svc_ppl_Name}${svc_ppl_Environment}tf"
-  export TFSA_NAME=${tmp_name,,}
-
-  tmp_name="citfstate"$svc_ppl_Environment
+  # STORAGE ACCOUNT NAME IS BUILT IN validate_environment
+  tmp_name="citfstate"
   export TFCI_NAME=${tmp_name,,}
 
   echo "Creating Deployment Storage Account and State Container"
@@ -290,7 +315,7 @@ function create_new_deployment()
 ############################### MAIN ###################################
 parse_args "$@"
 
-validate_environment_vars
+validate_environment
 
 if [ $NO_CLOBBER -eq 0 ]
 then

@@ -82,6 +82,7 @@ usage: ./provision-environment.sh
           -i|--init
                force initialization of terraform. By default if .terraform directory exists it will not be overwritten.
           -l|--location <azure location>
+          -t|--tenant-name <tenant name abbreviation>          
           -r|--repo <repository name>
              --what-if
 
@@ -95,6 +96,8 @@ Argument | Description | Default
  init | Force the initialize of terraform.  This should only be done on first run or in a new workspace | False (not present)
  location | The Azure region for resource creation (```az account list-locations -o table```)| centralus
  repo | Name of the respository in the Azure Container Registry for the application container | Value of appName
+
+>The values of appname, env, tenant-name are combined to name the resources in the infrastructure.  For Storage Accounts in particular there is a max length contraint of 24 characters.  The script will check if there is a name length constraint violation for storage accounts.
 
 The Terraform script needs a number of variables to be set in order to properly provision the infrastructure.  The script is structured so that all the variables are initialized in a file called `terraform.tfvars`.
 

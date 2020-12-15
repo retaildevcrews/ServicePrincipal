@@ -200,6 +200,8 @@ function Setup_Environment_Variables()
     export svc_ppl_Environment=$ENV
     export svc_ppl_Repo=$REPO
     export svc_ppl_TenantName=$TENANT_NAME
+
+    export TF_SA_NAME=
 }
 
 function Setup_Terraform_Variables()
@@ -239,7 +241,8 @@ function Initialize_Terraform()
 {
     if [ ! -d ./.terraform ] || [ $INIT -eq 1 ]
     then
-        terraform init -backend-config="resource_group_name=rg-${svc_ppl_Name}-${svc_ppl_Environment}-tf" -backend-config="storage_account_name=${svc_ppl_Name}${svc_ppl_Environment}tf" -backend-config="container_name=citfstate${svc_ppl_Environment}" -backend-config="key=${svc_ppl_Name}.terraform.tfstate"
+      # The TF variables are initialized in _prepare-terraform
+        terraform init -reconfigure -backend-config="resource_group_name=${TF_RG_NAME}" -backend-config="storage_account_name=${TFSA_NAME}" -backend-config="container_name=${TFCI_NAME}" -backend-config="key=${svc_ppl_Name}.terraform.tfstate"
     fi
 }
 

@@ -13,15 +13,15 @@ provider "azurerm" {
   version = "~>2.24"
   features {}
 
+  tenant_id       = var.TF_TENANT_ID
   subscription_id = var.TF_SUB_ID
   # client_id       = var.TF_CLIENT_ID
   # client_secret   = var.TF_CLIENT_SECRET
-  tenant_id       = var.TF_TENANT_ID
 }
 
 locals {
-  rg_name = "rg-${var.NAME}-${var.ENV}-app"
-  storage_acc_name = "${var.NAME}${var.ENV}app"
+  rg_name = "rg-${var.NAME}-${var.TENANT_NAME}-${var.ENV}-app"
+  storage_acc_name = "${var.NAME}${var.TENANT_NAME}${var.ENV}app"
   queue_names = [ "discover", "evaluate", "update", "discoverqa", "evaluateqa", "updateqa" ]
   collections = [ 
     { 

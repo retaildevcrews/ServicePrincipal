@@ -3,6 +3,7 @@
 data "azurerm_client_config" "current" {}
 
 locals {
+  kv_name = "kv-${var.NAME}-${var.TENANT_NAME}-${var.ENV}"
   secrets = {
     "SPCosmosKey" = var.COSMOS_RW_KEY,
     "AppInsightsKey" = azurerm_application_insights.instance.instrumentation_key,
@@ -22,7 +23,7 @@ locals {
 resource azurerm_key_vault instance {
   depends_on = [ data.azurerm_storage_account.instance ]
 
-  name                            = "kv-${var.NAME}-${var.TENANT_NAME}-${var.ENV}"
+  name                            = local.kv_name
   location                        = var.LOCATION
   resource_group_name             = var.APP_RG_NAME
   sku_name                        = "standard"
@@ -49,7 +50,6 @@ resource "azurerm_key_vault_access_policy" "terraform-sp" {
     "Set",
     "Delete"
   ]
-
 }
 
 resource azurerm_key_vault_access_policy instance-pol {

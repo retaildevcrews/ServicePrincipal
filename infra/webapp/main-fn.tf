@@ -37,7 +37,7 @@ resource azurerm_function_app instance {
     azurerm_application_insights.instance
   ]
 
-  name                       = "fa-${var.PROJECT_NAME}-${var.ENV}"
+  name                       = "fa-${var.PROJECT_NAME}-${var.TENANT_NAME}-${var.ENV}"
   location                   = var.LOCATION
   resource_group_name        = var.APP_RG_NAME
   app_service_plan_id        = azurerm_app_service_plan.instance.id
