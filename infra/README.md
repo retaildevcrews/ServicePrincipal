@@ -143,12 +143,12 @@ In the example below, appname=myserviceprincipal.  You should substitue your own
 chmod u+x ./*.sh
 
 ### provision the environment
-./provision-environment.sh --init --first-run --location centralus --appname myserviceprincipal 
+./provision-environment.sh --init --first-run --location centralus --appname mysp --repo serviceprincipal 
 ```
 A shortened version of the command line is below.
 ```bash
 ### provision the environment
-./provision-environment.sh -i -f -l centralus -a myserviceprincipal 
+./provision-environment.sh -i -f -l centralus -a mysp -r serviceprincipal 
 ```
 
 You should see the message  
@@ -170,18 +170,18 @@ terraform apply
 ```
 
 ### Second Run
-This is a very similar process to the First Run except for the arguments you call ```./provision-environment.sh```.  This will not try to create the initial StorageAccount, KeyVault or ServicePrincipal(s).  You may get prompted to overwrite terraform.tfvars.  Usually select **no** unless you know you want to generate a new variables file.  Otherwise the variables file will be recreated from the values in KeyVault.
+This is a very similar process to the First Run except for the arguments you call ```./provision-environment.sh```.  This will not try to create the Terraform ResourceGroup, StorageAccount, or ServicePrincipal(s).  You may get prompted to overwrite terraform.tfvars.  Usually select **no** unless you know you want to generate a new variables file.  Otherwise the variables file will be recreated from the values in KeyVault.
 
 >**terraform.tfvars** contains secrets and should never be checked into source code control. After infrastructure provisioning, this file should be removed.
 
 ```bash
 ### provision the environment
-./provision-environment.sh --location centralus --appname myserviceprincipal 
+./provision-environment.sh --location centralus --appname mysp --repo serviceprincipal  
 ```
 A shortened version of the command line is below.
 ```bash
 ### provision the environment
-./provision-environment.sh -l centralus -a myserviceprincipal 
+./provision-environment.sh -l centralus -a mysp -r serviceprincipal 
 ```
 ## Verify the deployment
 
@@ -222,8 +222,10 @@ az monitor log-analytics query -w $(eval $svc_ppl_LogAnalytics_Id) --analytics-q
 terraform destroy
 
 # remove resource group and nested resources , this will delete Storage Account, Container and remote tfstate file 
-az group delete --name ${svc_ppl_Name}-rg-${svc_ppl_Enviroment}
+az group delete --name rg-${svc_ppl_Name}-${svc_ppl_TenantName}-${svc_ppl_Enviroment}-app
+az group delete --name rg-${svc_ppl_Name}-${svc_ppl_TenantName}-${svc_ppl_Enviroment}-tf
 
 # delete the service principals
-az ad sp delete --id http://${svc_ppl_Name}-tf-sp-${svc_ppl_Enviroment}
+az ad sp delete --id http://${svc_ppl_Name}-sp-${svc_ppl_Environment}
+az ad sp delete --id http://${svc_ppl_Name}-acr-sp-${svc_ppl_Environment}
 ```
