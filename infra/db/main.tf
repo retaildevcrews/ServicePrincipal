@@ -1,4 +1,5 @@
 locals {
+  # note this list is positional, required by output variables below
   db_names = [ "${var.COSMOS_DB}-${var.ENV}", "${var.COSMOS_DB}-qa" ]
 
   # create a flattened list that is the cartesian product of db_names and collections
