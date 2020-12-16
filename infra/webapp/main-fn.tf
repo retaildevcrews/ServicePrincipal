@@ -1,6 +1,6 @@
 # NOTE: Storage account name can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long
 
-data "azurerm_storage_account" "svc-ppl-storage-acc" {
+data azurerm_storage_account instance {
   name                = var.STORAGE_NAME
   resource_group_name = var.APP_RG_NAME
 }
@@ -11,15 +11,14 @@ data "azurerm_storage_account" "svc-ppl-storage-acc" {
 
 
 
-output "STORAGE_ACCOUNT_DONE" {
-  depends_on = [data.azurerm_storage_account.svc-ppl-storage-acc
-  ]
-  value       = true
-  description = "Storage Account setup is complete"
-}
+# output "STORAGE_ACCOUNT_DONE" {
+#   depends_on = [ data.azurerm_storage_account.instance ]
+#   value       = true
+#   description = "Storage Account setup is complete"
+# }
 
-resource "azurerm_app_service_plan" "app-plan" {
-  name                = "${var.NAME}-plan-${var.ENV}"
+resource azurerm_app_service_plan instance {
+  name                = "asp-${var.NAME}-${var.ENV}"
   location            = var.LOCATION
   resource_group_name = var.APP_RG_NAME
   reserved            = true
@@ -31,19 +30,19 @@ resource "azurerm_app_service_plan" "app-plan" {
   }
 }
 
-resource "azurerm_function_app" "fn-default" {
+resource azurerm_function_app instance {
 
   depends_on = [
-    data.azurerm_storage_account.svc-ppl-storage-acc,
-    azurerm_application_insights.svc-ppl-appi
+    data.azurerm_storage_account.instance,
+    azurerm_application_insights.instance
   ]
 
-  name                       = "${var.NAME}-funcn-${var.ENV}"
+  name                       = "fa-${var.PROJECT_NAME}-${var.TENANT_NAME}-${var.ENV}"
   location                   = var.LOCATION
   resource_group_name        = var.APP_RG_NAME
-  app_service_plan_id        = azurerm_app_service_plan.app-plan.id
-  storage_account_name       = data.azurerm_storage_account.svc-ppl-storage-acc.name
-  storage_account_access_key = data.azurerm_storage_account.svc-ppl-storage-acc.primary_access_key
+  app_service_plan_id        = azurerm_app_service_plan.instance.id
+  storage_account_name       = data.azurerm_storage_account.instance.name
+  storage_account_access_key = data.azurerm_storage_account.instance.primary_access_key
   version                    = "~3"
   os_type                    = "linux"
   https_only                 = true
@@ -72,14 +71,14 @@ resource "azurerm_function_app" "fn-default" {
   # }
 
   app_settings = {
-    APPINSIGHTS_INSTRUMENTATIONKEY = azurerm_application_insights.svc-ppl-appi.instrumentation_key
+    APPINSIGHTS_INSTRUMENTATIONKEY = azurerm_application_insights.instance.instrumentation_key
     FUNCTIONS_WORKER_RUNTIME       = "dotnet"
     FUNCTIONS_EXTENSION_VERSION    = "~3"
     FUNCTION_APP_EDIT_MODE              = "readonly"
 
-    AzureWebJobsStorage = data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
-    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING =  data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
-    WEBSITE_CONTENTSHARE                =  "sp-funcn-dev-content"
+    AzureWebJobsStorage = data.azurerm_storage_account.instance.primary_connection_string
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING =  data.azurerm_storage_account.instance.primary_connection_string
+    WEBSITE_CONTENTSHARE                =  "website-content"
     WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
 
 
@@ -89,10 +88,10 @@ resource "azurerm_function_app" "fn-default" {
     DOCKER_REGISTRY_SERVER_PASSWORD     = var.ACR_SP_SECRET
     DOCKER_CUSTOM_IMAGE_NAME            = "${var.REPO}:latest"
     AUTH_TYPE     = "MI"
-    KEYVAULT_NAME = azurerm_key_vault.kv.name
+    KEYVAULT_NAME = azurerm_key_vault.instance.name
 
     # SLOT SPECIFIC SETTINGS - THESE SHOULD BE OVERWRITTED WITH CD PIPELINE
-    SPStorageConnectionString = data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
+    SPStorageConnectionString = data.azurerm_storage_account.instance.primary_connection_string
     SPCosmosURL = var.COSMOS_URL
     SPCosmosDatabase = var.DEV_DATABASE_NAME
     SPDiscoverQueue = "discover"
@@ -111,17 +110,17 @@ resource "azurerm_function_app" "fn-default" {
 
 
 # data "azuread_service_principal" "funcn-system-id" {
-#   depends_on   = [azurerm_function_app.fn-default]
-#   display_name = azurerm_function_app.fn-default.name
+#   depends_on   = [azurerm_function_app.instance]
+#   display_name = azurerm_function_app.instance.name
 # }
 
 
-resource "azurerm_app_service_slot" "service-slot-staging" {
+resource azurerm_app_service_slot staging {
   name                = "staging"
-  app_service_name    = azurerm_function_app.fn-default.name
+  app_service_name    = azurerm_function_app.instance.name
   location            = var.LOCATION
   resource_group_name = var.APP_RG_NAME
-  app_service_plan_id = azurerm_app_service_plan.app-plan.id
+  app_service_plan_id = azurerm_app_service_plan.instance.id
   https_only          = true
 
   identity {
@@ -148,15 +147,15 @@ resource "azurerm_app_service_slot" "service-slot-staging" {
   }
 
   app_settings = {
-    APPINSIGHTS_INSTRUMENTATIONKEY = azurerm_application_insights.svc-ppl-appi.instrumentation_key
+    APPINSIGHTS_INSTRUMENTATIONKEY = azurerm_application_insights.instance.instrumentation_key
     FUNCTIONS_WORKER_RUNTIME       = "dotnet"
     FUNCTIONS_EXTENSION_VERSION    = "~3"
     FUNCTION_APP_EDIT_MODE              = "readonly"
 
-    AzureWebJobsStorage = data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
-    #AzureWebJobsDashboard = data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
-    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING = data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
-    WEBSITE_CONTENTSHARE                =  "sp-funcn-dev-content"
+    AzureWebJobsStorage = data.azurerm_storage_account.instance.primary_connection_string
+    #AzureWebJobsDashboard = data.azurerm_storage_account.instance.primary_connection_string
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING = data.azurerm_storage_account.instance.primary_connection_string
+    WEBSITE_CONTENTSHARE                =  "website-content"
     WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
 
     DOCKER_REGISTRY_SERVER_URL          = "https://${var.ACR_URI}"
@@ -164,11 +163,11 @@ resource "azurerm_app_service_slot" "service-slot-staging" {
     DOCKER_REGISTRY_SERVER_PASSWORD     = var.ACR_SP_SECRET
     DOCKER_CUSTOM_IMAGE_NAME            = "${var.REPO}:latest" # will be overwritten by CICD pipeline
     AUTH_TYPE     = "MI"
-    KEYVAULT_NAME = azurerm_key_vault.kv.name
+    KEYVAULT_NAME = azurerm_key_vault.instance.name
 
 
     # SLOT SPECIFIC SETTINGS - THESE SHOULD BE OVERWRITTED WITH CICD PIPELINE
-    SPStorageConnectionString = data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string
+    SPStorageConnectionString = data.azurerm_storage_account.instance.primary_connection_string
     SPCosmosURL = var.COSMOS_URL
     SPCosmosDatabase = var.QA_DATABASE_NAME
     SPDiscoverQueue = "discoverqa"
@@ -191,11 +190,11 @@ resource "azurerm_app_service_slot" "service-slot-staging" {
 
 
 output "function_defaut_name" {
-  value = azurerm_function_app.fn-default.name
+  value = azurerm_function_app.instance.name
 }
 
 output "APP_FUNCTION_SERVICE_DONE" {
-  depends_on  = [azurerm_function_app.fn-default]
+  depends_on  = [azurerm_function_app.instance]
   value       = true
   description = "App Function Service setup is complete"
 }

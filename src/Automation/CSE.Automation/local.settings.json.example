@@ -1,11 +1,30 @@
 {
   "IsEncrypted": false,
   "Values": {
+    "ASPNETCORE_ENVIRONMENT": "Development",
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "SPStorageConnectionString": "UseDevelopmentStorage=true",
+
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
     "AUTH_TYPE": "VS",
-    "KEYVAULT_NAME": "",
-    "visibilityDelayGapSeconds": "8",
-    "queueRecordProcessThreshold": "300"
+    "KEYVAULT_NAME": "sp-kv-dev",
+
+    "aadUpdateMode": "ReportOnly",
+
+    "SPDeltaDiscoverySchedule": "0 */30 * * * *",
+
+    "SPConfigurationCollection": "Configuration",
+    "SPObjectTrackingCollection": "ObjectTracking",
+    "SPAuditCollection": "Audit",
+    "SPActivityHistoryCollection": "ActivityHistory",
+
+    "SPDiscoverQueue": "discover",
+    "SPEvaluateQueue": "evaluate",
+    "SPUpdateQueue": "update",
+
+    "AzureWebJobs.Discover.Disabled": "False",
+    "AzureWebJobs.DiscoverDeltas.Disabled": "True",
+    "AzureWebJobs.Evaluate.Disabled": "False",
+    "AzureWebJobs.UpdateAAD.Disabled": "True"
   }
 }
