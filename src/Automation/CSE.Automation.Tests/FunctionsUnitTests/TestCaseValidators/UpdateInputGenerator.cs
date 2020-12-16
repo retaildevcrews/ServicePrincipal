@@ -1,4 +1,8 @@
-﻿using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 using AzQueueTestTool.TestCases.ServicePrincipals;
 using CSE.Automation.Graph;
 using CSE.Automation.Model;
@@ -12,6 +16,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 {
     internal class UpdateInputGenerator : InputGeneratorBase, IInputGenerator
     {
+        public string UTC2AssignTheseOwnersWhenCreatingUpdateQueueMessage => base._config["U_TC2_AssignTheseOwnersWhenCreatingUpdateQueueMessage"];
 
         private ServicePrincipalWrapper _validatedServicePrincipalWraper;
 
@@ -39,21 +44,25 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 
         public byte[] GetTestMessageContent(ActivityContext activityContext)
         {
+            // NOTE: 'ownersListAsString'  variable represents the correct list of Owners either restored from LKG object or  from ServicePrincipal Owners
+            string ownersListAsString = string.Empty;
 
-            if (TestCaseId == TestCase.TC2)
+            // this is the case where Owners are restored from LKG 
+            if (TestCaseId == TestCase.TC2 && _validatedServicePrincipalWraper.AADUsers.Count == 0)
             {
-                //TODO
-                string assignedOwners = _config["UTC4_AssignTheseOwnersWhen....."];
+                ownersListAsString = string.Join(';', GetAssignedOwnersTestCase2());
             }
-
-            var ownersList = string.Join(';', _validatedServicePrincipalWraper.AADUsers);
+            else
+            {
+                ownersListAsString = string.Join(';', _validatedServicePrincipalWraper.AADUsers);
+            }
 
             // command the AAD Update
             var updateCommand = new ServicePrincipalUpdateCommand()
             {
                 CorrelationId = activityContext.CorrelationId,
                 Id = _validatedServicePrincipalWraper.AADServicePrincipal.Id,
-                Notes = (_validatedServicePrincipalWraper.AADServicePrincipal.Notes, ownersList),
+                Notes = (_validatedServicePrincipalWraper.AADServicePrincipal.Notes, ownersListAsString),
                 Action = ServicePrincipalUpdateAction.Update, // "Update Notes from Owners",
             };
 
@@ -70,6 +79,36 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
             var plainTextBytes = Encoding.UTF8.GetBytes(payload);
             return plainTextBytes;
             
+        }
+
+        public List<string> GetAssignedOwnersTestCase2()
+        {
+            if (TestCaseId != TestCase.TC2)
+            {
+                throw new InvalidOperationException($"This method should only get called for Test case '{TestCase.TC2}].");
+            }
+            string usersPrefix = AadUserServicePrincipalPrefix;
+
+            var userslList = GraphHelper.GetAllUsers($"{usersPrefix}").Result;
+
+            var toBeAssigned = UTC2AssignTheseOwnersWhenCreatingUpdateQueueMessage.Split(';').ToList();
+
+            List<string> spUsers = new List<string>();
+            foreach (var userName in toBeAssigned)
+            {
+                string userPrincipalName = userslList.FirstOrDefault(x => x.DisplayName == userName.Trim())?.UserPrincipalName;
+
+                if (string.IsNullOrEmpty(userPrincipalName))
+                {
+                    throw new InvalidDataException($"Unable to get AAD User for assigned Owner user [{userName}].");
+                }
+                else
+                {
+                    spUsers.Add(userPrincipalName);
+                }
+            }
+
+            return spUsers;
         }
 
     }

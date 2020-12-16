@@ -26,7 +26,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
                 {
                     if (!NewServicePrincipal.Notes.Contains(ownerName))
                     {
-                        //($"Service Principal: [{NewServicePrincipal.DisplayName}] does not match Test Case [{TestCaseID}] rules."
                         return false;
                     }
                 }

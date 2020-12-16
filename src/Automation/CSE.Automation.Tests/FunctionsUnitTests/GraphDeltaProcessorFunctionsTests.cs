@@ -816,7 +816,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Needs Updating")]
         [Trait("Category", "Integration")]
         public void FunctionUpdateTestCase1()
         {
@@ -852,11 +852,10 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         }
 
-        [Fact]
+        [Fact(Skip = "Needs Updating")]
         [Trait("Category", "Integration")]
         public void FunctionUpdateTestCase2()
         {
-            // TODO we are going to use the SPs define in config file e.g _cofig[TC4_AssignTheseOwnersWhenCreatingAMissingObjectTracking]
 
             using var testCaseCollection = new UpdateTestCaseCollection();
 
@@ -890,7 +889,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
 
-        [Fact]
+        [Fact(Skip = "Needs Updating")]
         [Trait("Category", "Integration")]
         public void FunctionUpdateTestCase3()
         {

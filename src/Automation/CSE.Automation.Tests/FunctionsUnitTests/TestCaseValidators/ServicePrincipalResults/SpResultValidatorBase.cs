@@ -36,6 +36,14 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
         }
 
 
+        protected IInputGenerator InputGeneratorInstance
+        {
+            get
+            {
+                return _inputGenerator;
+            }
+        }
+
         public SpResultValidatorBase(string savedServicePrincipalAsString, IInputGenerator inputGenerator, ActivityContext activityContext, bool getNewServicePrincipal = true)
         {
             SavedServicePrincipalAsString = savedServicePrincipalAsString;
