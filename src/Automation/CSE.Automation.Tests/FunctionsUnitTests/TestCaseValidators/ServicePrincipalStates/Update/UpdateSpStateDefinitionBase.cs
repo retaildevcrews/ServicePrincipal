@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,7 +31,17 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
             TestCaseID = testCase;
             Config = config;
             ServicePrincipalName = Config[$"U_{TestCaseID}"];
+            if (string.IsNullOrEmpty(ServicePrincipalName))
+            {
+                throw new InvalidDataException($"Configuration setting 'U_{TestCaseID}' is null or empty");
+            }
+
             DisplayNamePatternFilter = Config["displayNamePatternFilter"];
+
+            if (string.IsNullOrEmpty(DisplayNamePatternFilter))
+            {
+                throw new InvalidDataException("Configuration setting 'displayNamePatternFilter' is null or empty");
+            }
         }
 
        
