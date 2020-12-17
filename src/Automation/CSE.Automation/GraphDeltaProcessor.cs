@@ -56,17 +56,24 @@ namespace CSE.Automation
             {
                 var result = await CommandDiscovery(discoveryMode, "HTTP", log).ConfigureAwait(false);
 
-                UriBuilder uriBuilder = new UriBuilder();
-                uriBuilder.Scheme = req.Scheme;
-                uriBuilder.Host = $"{req.Host}";
-                uriBuilder.Path = "api/Activities";
-                uriBuilder.Query = $"correlationId={result.CorrelationId}";
+                // if we are running in azure, there will be a function code.  Preserve that code in the redirect
+                var query = $"correlationId={result.CorrelationId}";
+                if (req.Query.ContainsKey("code"))
+                {
+                    string code = req.Query["code"];
+                    query += $"&code={code}";
+                }
 
-                Uri uri = uriBuilder.Uri;
+                var uriBuilder = new UriBuilder
+                                        {
+                                            Scheme = req.Scheme,
+                                            Host = $"{req.Host}",
+                                            Path = "api/Activities",
+                                            Query = query,
+                                        };
 
                 return hasRedirect
-
-                        ? new RedirectResult($"{uri}")
+                        ? new RedirectResult($"{uriBuilder.Uri}")
                         : (IActionResult)new JsonResult(result);
             }
             catch (Exception ex)
@@ -114,20 +121,43 @@ namespace CSE.Automation
             }
 
             var operation = command.DiscoveryMode.Description();
-            using var context = activityService.CreateContext(operation, withTracking: true, correlationId: command.CorrelationId);
+            ActivityContext context = null;
             try
             {
-                log.LogDebug("Executing Discover QueueTrigger Function");
+                try
+                {
+                    log.LogDebug("Executing Discover QueueTrigger Function");
+                    context = activityService.CreateContext(operation, correlationId: command.CorrelationId, withTracking: true);
 
-                context.Activity.CommandSource = command.Source;
-                context.WithProcessorLock(processor);
+                    context.Activity.CommandSource = command.Source;
+                    context.WithProcessorLock(processor);
 
-                var metrics = await processor.DiscoverDeltas(context, command.DiscoveryMode == DiscoveryMode.FullSeed).ConfigureAwait(false);
-                context.End();
+                    await processor
+                            .DiscoverDeltas(context, command.DiscoveryMode == DiscoveryMode.FullSeed)
+                            .ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    if (context != null)
+                    {
+                        context.Activity.Status = ActivityHistoryStatus.Failed;
+                    }
+
+                    ex.Data["activityContext"] = context;
+                    log.LogError(ex, Resources.ServicePrincipalDiscoverException);
+                }
+                finally
+                {
+                    context?.End();
+                    context?.Dispose();
+                }
             }
             catch (Exception ex)
             {
-                context.Activity.Status = ActivityHistoryStatus.Failed;
+                if (context != null)
+                {
+                    context.Activity.Status = ActivityHistoryStatus.Failed;
+                }
 
                 ex.Data["activityContext"] = context;
                 log.LogError(ex, Resources.LockConflictMessage);
@@ -267,33 +297,49 @@ namespace CSE.Automation
             return Task.FromResult((IActionResult)new JsonResult(this.versionMetadata));
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Ensure graceful return under all trappable error conditions.")]
         private async Task<dynamic> CommandDiscovery(DiscoveryMode discoveryMode, string source, ILogger log)
         {
-            using var context = activityService.CreateContext($"{discoveryMode.Description()} Request", withTracking: true);
+            ActivityContext context = null;
             try
             {
-                context.Activity.CommandSource = source;
-                await processor.RequestDiscovery(context, discoveryMode, source).ConfigureAwait(false);
-                var result = new
+                context = activityService.CreateContext($"{discoveryMode.Description()} Request", withTracking: true);
+                try
                 {
-                    Timestamp = DateTimeOffset.Now,
-                    Operation = discoveryMode.ToString(),
-                    DiscoveryMode = discoveryMode,
-                    ActivityId = context.Activity.Id,
-                    CorrelationId = context.CorrelationId,
-                };
+                    context.Activity.CommandSource = source;
+                    await processor.RequestDiscovery(context, discoveryMode, source).ConfigureAwait(false);
+                    var result = new
+                    {
+                        Timestamp = DateTimeOffset.Now,
+                        Operation = discoveryMode.ToString(),
+                        DiscoveryMode = discoveryMode,
+                        ActivityId = context.Activity.Id,
+                        CorrelationId = context.CorrelationId,
+                    };
 
-                return result;
+                    return result;
+                }
+                catch (Exception ex)
+                {
+                    context.Activity.Status = ActivityHistoryStatus.Failed;
+
+                    ex.Data["activityContext"] = context;
+
+                    var message = $"Failed to request Discovery {discoveryMode}";
+                    log.LogError(ex, message);
+
+                    throw;
+                }
             }
             catch (Exception ex)
             {
-                context.Activity.Status = ActivityHistoryStatus.Failed;
+                if (context != null)
+                {
+                    context.Activity.Status = ActivityHistoryStatus.Failed;
+                }
 
                 ex.Data["activityContext"] = context;
-
-                var message = $"Failed to request Discovery {discoveryMode}";
-                log.LogError(ex, message);
-
+                log.LogError(ex, Resources.LockConflictMessage);
                 throw;
             }
         }
