@@ -63,6 +63,9 @@ jobs:
       run: |
         exit 1
         cd src/Automation
+        export SPDiscoverQueue="${QUEUE_PREFIX}-discover"
+        export SPEvaluateQueue="${QUEUE_PREFIX}-evaluate"
+        export SPUpdateQueue="${QUEUE_PREFIX}-update"
         dotnet test --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed" --filter "Category=Integration"
 
     - name: Cleanup Testing Resources
