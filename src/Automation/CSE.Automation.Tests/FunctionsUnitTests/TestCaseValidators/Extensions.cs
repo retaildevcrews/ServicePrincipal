@@ -143,10 +143,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
             {
                 result = notes.Split(';').ToList().Select(x => x.Trim()).ToList();
             }
-
             else if (notes.Where(x => x == ',').Count() > 0)
             {
                 result = notes.Split(',').ToList().Select(x => x.Trim()).ToList();
+            }
+            else if (!string.IsNullOrEmpty(notes))
+            {
+                result.Add(notes);
             }
 
             return result;
