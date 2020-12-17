@@ -49,7 +49,7 @@ jobs:
         cd src/Automation
         dotnet test --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed" --filter "Category=Unit"
 
-    - name: Create Temp Testing Resources
+    - name: Create Testing Resources
       run: |
         export GIT_HASH=$( echo ${{ github.sha }} | cut -c1-7 )
         echo "GIT_HASH=${GIT_HASH}" >> $GITHUB_ENV
@@ -58,6 +58,7 @@ jobs:
         az storage queue create --fail-on-exist --account-name ${STORAGE_NAME} --name "${QUEUE_PREFIX}-discover"
         az storage queue create --fail-on-exist --account-name ${STORAGE_NAME} --name "${QUEUE_PREFIX}-evaluate"
         az storage queue create --fail-on-exist --account-name ${STORAGE_NAME} --name "${QUEUE_PREFIX}-update"
+        exit 1
 
     - name: Run Integration Tests
       id: sit
@@ -65,7 +66,7 @@ jobs:
         cd src/Automation
         dotnet test --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed" --filter "Category=Integration"
 
-    - name: Cleanup Temp Testing Resources
+    - name: Cleanup Testing Resources
       if: steps.sit.skipped != 'true'
       run: |
         export temp_queues=$(az storage queue list --account-name ${STORAGE_NAME} --prefix ${QUEUE_PREFIX} -o tsv --query '[].name')
