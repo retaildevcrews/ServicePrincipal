@@ -108,38 +108,12 @@ function validate_environment()
     exit 1
   fi
 
-  # Build the resource names to see if we will have a name length issue
-  tmp_name="${svc_ppl_Name}${svc_ppl_TenantName}${svc_ppl_Environment}tf"
-  export TFSA_NAME=${tmp_name,,}  
-
-  Name_Size=${#TFSA_NAME}
-  if [[ $Name_Size -gt 24 ]]
-  then
-    echo "The name of the Terraform storage account is too long (>24).  Please reduce the length of the application + the tenant to 19 characters with no special characters."
-    echo $TFSA_NAME
-    echo $Name_Size
-    exit 1
-  else
-    echo "${TFSA_NAME} passes length validation"  
-  fi
-
-  tmp_name="${svc_ppl_Name}${svc_ppl_TenantName}${svc_ppl_Environment}app"
-  Name_Size=${#tmp_name}
-  if [[ $Name_Size -gt 24 ]]
-  then
-    echo "The name of the Application storage account is too long (>24).  Please reduce the length of the application + the tenant to 19 characters with no special characters."
-    echo $tmp_name
-    echo $Name_Size
-    exit 1  
-  else
-    echo "${tmp_name} passes length validation"     
-  fi
 }
 
 function create_from_keyvault()
 {
   # ============== CREATE TFVARS =================
-  KEYVAULT_NAME="kv-${svc_ppl_Name}-${svc_ppl_TenantName}-${svc_ppl_Environment}"
+  
   # store az info into variables
   export svc_ppl_TENANT_ID=$(echo $ACCOUNT | jq -r ".tenantId")
   export svc_ppl_SUB_ID=$(echo $ACCOUNT | jq -r ".id")
@@ -227,13 +201,20 @@ function create_new_deployment()
   appReadWriteAll=$(eval echo $appReadWriteAll)
   echo "Application.ReadWrite.All ID: " $appReadWriteAll
 
-
   export dirReadAll=$(az ad sp show --id $graphId --query "oauth2Permissions[?value=='Directory.Read.All'].id | [0]") 
   dirReadAll=$(eval echo $dirReadAll)
   echo "Directory.Read.All ID:" $dirReadAll
 
+  export appRoleAppReadWriteAll=$(az ad sp show --id $graphId --query "appRoles[?value=='Application.ReadWrite.All'].id | [0]") 
+  appRoleAppReadWriteAll=$(eval echo $appRoleAppReadWriteAll)
+  echo "Application- Application.ReadWrite.All ID: " $appRoleAppReadWriteAll
+
+  export appRoleDirReadAll=$(az ad sp show --id $graphId --query "appRoles[?value=='Directory.Read.All'].id | [0]") 
+  appRoleDirReadAll=$(eval echo $appRoleDirReadAll)
+  echo "application- Directory.Read.All id:" $appRoleDirReadAll
+
   # Add App persmission 
-  az ad app permission add --id $servicePricipalId --api $graphId --api-permissions $dirReadAll=Scope $appReadWriteAll=Scope
+  az ad app permission add --id $servicePricipalId --api $graphId --api-permissions $dirReadAll=Scope $appReadWriteAll=Scope $appRoleDirReadAll=Role $appRoleAppReadWriteAll=Role
 
   # Make permissions effective
   az ad app permission grant --id $servicePricipalId --api $graphId
@@ -270,15 +251,13 @@ function create_new_deployment()
 
 
   # create tf_state resource group
-  export TF_RG_NAME=rg-${svc_ppl_Name}-${svc_ppl_TenantName}-${svc_ppl_Environment}-tf
   echo "Creating the Deployment Resource Group"
-  if echo ${TF_RG_NAME} > /dev/null 2>&1 && echo ${svc_ppl_Location} > /dev/null 2>&1; then
-      if ! az group create --name ${TF_RG_NAME} --location ${svc_ppl_Location} -o table; then
-          echo "ERROR: failed to create the resource group"
-          exit 1
-      fi
-      echo "Created Resource Group: ${TF_RG_NAME} in ${svc_ppl_Location}"
+  if ! (az group list --output tsv | grep $TFRG_NAME > /dev/null || az group create --name ${TFRG_NAME} --location ${svc_ppl_Location} -o table)
+  then
+      echo "ERROR: failed to create the resource group"
+      exit 1
   fi
+  echo "Created Resource Group: ${TFRG_NAME} in ${svc_ppl_Location}"
 
   # create storage account for state file
   export TFSUB_ID=$(az account show -o tsv --query id)
@@ -290,36 +269,33 @@ function create_new_deployment()
   echo "Creating Deployment Storage Account and State Container"
 
 
-  if echo ${TFSUB_ID} > /dev/null 2>&1; then
-      if ! az storage account create --resource-group $TF_RG_NAME --name $TFSA_NAME --sku Standard_LRS --encryption-services blob -o table; then
-          echo "ERROR: Failed to create Storage Account"
-          exit 1
-      fi
-      echo "Storage Account Created."
-      sleep 20s
+  if ! (az storage account list --output tsv | grep $TFSA_NAME > /dev/null || az storage account create --resource-group $TFRG_NAME --name $TFSA_NAME --sku Standard_LRS --encryption-services blob -o table)
+  then
+      echo "ERROR: Failed to create Storage Account"
+      exit 1
   fi
+  echo "Storage Account Created."
+  sleep 20s
 
   # retrieve storage account access key
-  if echo ${TF_RG_NAME} > /dev/null 2>&1; then
-      if ! ARM_ACCESS_KEY=$(az storage account keys list --resource-group $TF_RG_NAME --account-name $TFSA_NAME --query [0].value -o tsv); then
-          echo "ERROR: Failed to Retrieve Storage Account Access Key"
-          exit 1
-      fi
-      echo "Storage Account Access Key = $ARM_ACCESS_KEY"
+  if ! ARM_ACCESS_KEY=$(az storage account keys list --resource-group $TFRG_NAME --account-name $TFSA_NAME --query [0].value -o tsv)
+  then
+      echo "ERROR: Failed to Retrieve Storage Account Access Key"
+      exit 1
   fi
+  echo "Storage Account Access Key = $ARM_ACCESS_KEY"
 
 
 
 
-  if echo ${TF_RG_NAME} > /dev/null 2>&1; then
-      if ! az storage container create --name $TFCI_NAME --account-name $TFSA_NAME --account-key $ARM_ACCESS_KEY -o table; then
-          echo "ERROR: Failed to Retrieve Storage Container"
-          exit 1
-      fi
-      echo "TF State Storage Account Container Created"
-      export TFSA_CONTAINER=$(az storage container show --name ${TFCI_NAME} --account-name ${TFSA_NAME} --account-key ${ARM_ACCESS_KEY} --query name -o tsv)
-      echo "TF Storage Container name = ${TFSA_CONTAINER}"
+  if ! (az storage container list --account-name $TFSA_NAME | grep $TFCI_NAME > /dev/null || az storage container create --name $TFCI_NAME --account-name $TFSA_NAME --account-key $ARM_ACCESS_KEY -o table)
+  then
+      echo "ERROR: Failed to Retrieve Storage Container"
+      exit 1
   fi
+  echo "TF State Storage Account Container Created"
+  export TFSA_CONTAINER=$(az storage container show --name ${TFCI_NAME} --account-name ${TFSA_NAME} --account-key ${ARM_ACCESS_KEY} --query name -o tsv)
+  echo "TF Storage Container name = ${TFSA_CONTAINER}"
 
 }
 

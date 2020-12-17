@@ -21,6 +21,9 @@ green=`tput setaf 2`
 yellow=`tput setaf 3`
 reset=`tput sgr0`
 die() { echo -e "${red}$*${reset}" >&2; exit 2; }  # complain to STDERR and exit with error
+ok() { echo -e "\t${green}$*${reset}";  }  # emit success message
+fail() { echo -e "\t${red}$*${reset}";  }  # emit fail message
+
 goodbye() { [ ! -z "${1##*[!0-9]*}" ] && exit $1 || exit 2; }  # complain to STDERR and exit with error
 #needs_arg() { if [ -z "$OPTARG" ]; then die "No arg for --$OPT option"; fi; }
 
@@ -61,7 +64,7 @@ function parse_args()
           WHAT_IF=1
           shift
           ;;
-        -a|--appName)
+        -a|--appname)
           if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
             APP_NAME=$2
             shift 2
@@ -101,10 +104,6 @@ function parse_args()
             die "Error: Argument for $1 is missing"
           fi
           ;;      
-        # -v|--validate-only)
-        #   VALIDATE_ONLY=1
-        #   shift 1
-        #   ;;      
         -r|--repo)
           if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
             REPO=$2
@@ -138,7 +137,7 @@ function parse_args()
     Name_Size=${#TENANT_NAME}
     if [[ $Name_Size -lt 2 || $Name_Size -gt 4 ]]
     then
-    echo "${red}Please appName must be between 2 and 4 characters in length with no special characters."
+    echo "${red}Tenant name must be between 2 and 4 characters in length with no special characters."
     echo "appName: '$TENANT_NAME'"
     echo "appName length = $Name_Size${reset}"
     die
@@ -184,6 +183,86 @@ function confirm_action()
   done
 }
 
+check_errors=()
+function check_exists()
+{
+    if (eval "$2 --output tsv | grep $3") > /dev/null 2>&1
+    then 
+      msg="$1 '$3' already exists."
+      check_errors+=("$msg")
+    else 
+      ok "$1 '$3' does not exist."
+    fi  
+}
+
+function check_length()
+{
+    Name_Size=${#1}
+    if [[ $Name_Size -gt $2 ]]
+    then
+      msg="The name is too long (>$2).\n${$1}: ${Name_Size}"
+      check_errors+=("$msg")
+    else
+      ok "${1} passes length validation: ${Name_Size} < $2"  
+    fi
+}
+
+
+function Build_Resource_Names()
+{
+  # the following two are needed by prepare, check them for existance and length
+  export TFRG_NAME=$(./build-resource-name.sh -r resourcegroup -n $APP_NAME -e $ENV -t $TENANT_NAME)-tf
+  export TFSA_NAME=$(./build-resource-name.sh -r storageaccount -n $APP_NAME -e $ENV -t $TENANT_NAME)tf
+  export KEYVAULT_NAME=$(./build-resource-name.sh -r keyvault -n $APP_NAME -e $ENV -t $TENANT_NAME)    
+
+  # the following are created by terraform, check them for existance and length
+  export APPSA_NAME=$(./build-resource-name.sh -r storageaccount -n $APP_NAME -e $ENV -t $TENANT_NAME)app
+  export ACR_NAME=$(./build-resource-name.sh -r containerregistry -n $APP_NAME -e $ENV -t $TENANT_NAME)
+  export FA_NAME=$(./build-resource-name.sh -r functionapp -n $APP_NAME -e $ENV -t $TENANT_NAME)
+  export CDB_NAME=$(./build-resource-name.sh -r cosmosaccount -n $APP_NAME -e $ENV -t $TENANT_NAME)
+}
+
+# Check to see if the StorageAccount, ContainerRegistry, FunctionApp, CosmosDB and KeyVault are already present on first-run
+function Check_Resource_Names()
+{
+  check_errors=()
+  if [ $FIRST_RUN -eq 1 ]
+  then
+
+    # Check Length of TF Storage Account Name
+    check_length $TFSA_NAME 24
+
+    # Check Length of TF Storage Account Name
+    check_length $APPSA_NAME 24
+
+    ## Check for existence of "public" Application resources
+    # STORAGE ACCOUNT
+    check_exists "Storage Account" "az storage account list" $APPSA_NAME
+
+    # CONTAINER REGISTRY
+    check_exists "Container Registry" "az acr list" $ACR_NAME
+
+    # FUNCTION APP
+    check_exists "Function App" "az functionapp list" $FA_NAME
+
+    # COSMOSDB
+    check_exists "ComsmosDB" "az cosmosdb list" $CDB_NAME
+
+    # KEYVAULT
+    check_exists "KeyVault" "az keyvault list" $KEYVAULT_NAME   
+
+    if [ ${#check_errors[@]} -gt 0 ] 
+    then
+      for i in "${check_errors[@]}"
+      do
+        fail $i
+      done
+
+      die "Cannot continue."
+    fi
+  fi
+}
+
 function Ensure_Azure_Login()
 {
     ACCOUNT=$(az account show)
@@ -193,7 +272,7 @@ function Ensure_Azure_Login()
     fi
 }
 
-function Setup_Environment_Variables()
+function Setup_Global_Environment()
 {
     export svc_ppl_Name=$APP_NAME
     export svc_ppl_Location=$LOCATION
@@ -201,10 +280,12 @@ function Setup_Environment_Variables()
     export svc_ppl_Repo=$REPO
     export svc_ppl_TenantName=$TENANT_NAME
 
-    export TF_SA_NAME=
+    Build_Resource_Names
+    Check_Resource_Names
 }
 
-function Setup_Terraform_Variables()
+
+function Prepare_Terraform()
 {
     ARGS=()
     if [ -f "terraform.tfvars" ]
@@ -233,8 +314,9 @@ function Setup_Terraform_Variables()
 
 function Prepare_Environment()
 {
-    Setup_Environment_Variables
-    Setup_Terraform_Variables
+    Ensure_Azure_Login
+    Setup_Global_Environment
+    Prepare_Terraform
 }
 
 function Initialize_Terraform()
@@ -251,23 +333,12 @@ function Validate_Terraform()
     terraform validate
 }
 
-# function Apply_Terraform()
-# {
-#     terraform apply --auto-approve
-# }
-
 ############################### MAIN ###################################
 
 parse_args "$@"
-
-Ensure_Azure_Login
 
 Prepare_Environment
 
 Initialize_Terraform
 Validate_Terraform
 
-# if [ $VALIDATE_ONLY -eq 0 ]
-# then
-#     Apply_Terraform
-# fi
