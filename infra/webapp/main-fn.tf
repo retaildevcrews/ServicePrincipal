@@ -47,20 +47,6 @@ resource azurerm_function_app instance {
   os_type                    = "linux"
   https_only                 = true
 
-  logs {
-      application_logs {
-          file_system_level = "On"
-      }
-
-      http_logs {
-
-          file_system {
-              retention_in_days = 5
-              retention_in_mb   = 35
-          }
-      }
-  }
-
   identity {
     type = "SystemAssigned"
   }
@@ -94,6 +80,7 @@ resource azurerm_function_app instance {
     WEBSITE_CONTENTAZUREFILECONNECTIONSTRING =  data.azurerm_storage_account.instance.primary_connection_string
     WEBSITE_CONTENTSHARE                =  "website-content"
     WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
+    WEBSITE_HTTPLOGGING_RETENTION_DAYS  = 5
 
 
 
@@ -116,7 +103,7 @@ resource azurerm_function_app instance {
     SPObjectTrackingCollection = "ObjectTracking"
     SPAuditCollection = "Audit"
     SPActivityHistoryCollection = "ActivityHistory"
-
+    aadUpdateMode = "ReportOnly"
   }
 
 
@@ -148,7 +135,7 @@ resource azurerm_app_service_slot staging {
 
   logs {
       application_logs {
-          file_system_level = "On"
+          file_system_level = "Verbose"
       }
 
       http_logs {
@@ -171,7 +158,7 @@ resource azurerm_app_service_slot staging {
     WEBSITE_CONTENTAZUREFILECONNECTIONSTRING = data.azurerm_storage_account.instance.primary_connection_string
     WEBSITE_CONTENTSHARE                =  "website-content"
     WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
-
+    
     DOCKER_REGISTRY_SERVER_URL          = "https://${var.ACR_URI}"
     DOCKER_REGISTRY_SERVER_USERNAME     = var.ACR_SP_ID
     DOCKER_REGISTRY_SERVER_PASSWORD     = var.ACR_SP_SECRET
