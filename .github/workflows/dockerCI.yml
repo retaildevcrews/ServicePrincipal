@@ -3,7 +3,7 @@ name: Docker CI
 on:
   push:
     branches:
-      - main
+      - alfredo/temp-queues-for-integration-testing
 
     paths-ignore:
       - 'docs/**'
@@ -72,6 +72,7 @@ jobs:
         for queue in $temp_queues; do
           az storage queue delete --account-name ${STORAGE_NAME} --name $queue
         done
+        exit 1
 
     - name: Calculate Version
       run: |
