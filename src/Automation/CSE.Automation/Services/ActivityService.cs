@@ -69,6 +69,7 @@ namespace CSE.Automation.Services
                 CorrelationId = correlationId,
                 Created = now,
                 Name = name,
+                Status = ActivityHistoryStatus.Running,
             };
 
             // we need the id of the run when we initiate

@@ -36,11 +36,11 @@ namespace CSE.Automation.Services
                 }
 
                 byte[] defaultConfig = (byte[])Resources.ResourceManager.GetObject(defaultConfigResourceName, Resources.Culture);
-                var initalDocumentAsString = System.Text.Encoding.Default.GetString(defaultConfig);
+                var initialDocumentAsString = System.Text.Encoding.Default.GetString(defaultConfig);
 
                 try
                 {
-                    ProcessorConfiguration defaultConfiguration = JsonConvert.DeserializeObject<ProcessorConfiguration>(initalDocumentAsString);
+                    ProcessorConfiguration defaultConfiguration = JsonConvert.DeserializeObject<ProcessorConfiguration>(initialDocumentAsString);
                     defaultConfiguration.Id = id;
                     return configRepository.CreateDocumentAsync(defaultConfiguration).Result;
                 }
