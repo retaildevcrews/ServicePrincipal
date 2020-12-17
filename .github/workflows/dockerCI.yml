@@ -58,11 +58,11 @@ jobs:
         az storage queue create --fail-on-exist --account-name ${STORAGE_NAME} --name "${QUEUE_PREFIX}-discover"
         az storage queue create --fail-on-exist --account-name ${STORAGE_NAME} --name "${QUEUE_PREFIX}-evaluate"
         az storage queue create --fail-on-exist --account-name ${STORAGE_NAME} --name "${QUEUE_PREFIX}-update"
-        exit 1
 
     - name: Run Integration Tests
       id: sit
       run: |
+        exit 1
         cd src/Automation
         dotnet test --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed" --filter "Category=Integration"
 
