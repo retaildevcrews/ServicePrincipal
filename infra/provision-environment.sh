@@ -38,7 +38,7 @@ function parse_args()
     PARAMS=""
     VALIDATE_ONLY=0
     INIT=0
-    TENANT_NAME="cse"
+    TENANT_NAME=""
 
     while (( "$#" )); do
       case "$1" in
@@ -128,35 +128,32 @@ function parse_args()
     Name_Size=${#APP_NAME}
     if [[ $Name_Size -lt 5 || $Name_Size -gt 18 ]]
     then
-    echo "${red}Please appName must be between 5 and 18 characters in length with no special characters."
-    echo "appName: '$APP_NAME'"
-    echo "appName length = $Name_Size${reset}"
-    die
+      echo "${red}Please appName must be between 5 and 18 characters in length with no special characters."
+      echo "'$APP_NAME': $Name_Size${reset}"
+      die
     fi
 
     Name_Size=${#TENANT_NAME}
-    if [[ $Name_Size -lt 2 || $Name_Size -gt 4 ]]
+    if [[ $Name_Size -lt 1 || $Name_Size -gt 5 ]]
     then
-    echo "${red}Tenant name must be between 2 and 4 characters in length with no special characters."
-    echo "appName: '$TENANT_NAME'"
-    echo "appName length = $Name_Size${reset}"
-    die
+      echo "${red}Tenant name must be between 1 and 5 characters in length with no special characters."
+      echo "'$TENANT_NAME': $Name_Size${reset}"
+      die
     fi
 
     if [ -z $REPO ]
     then
-    echo "${yellow}Repository not specified, defaulting to '$APP_NAME'.${reset}"
-    REPO=$APP_NAME
+      die "Repository not specified."
     fi
 
     echo ""
-    echo "${yellow}WHAT_IF: $WHAT_IF${reset}"
-    echo "APP_NAME: $APP_NAME"
-    echo "ENV: $ENV"
-    echo "FIRST_RUN: $FIRST_RUN"
-    echo "LOCATION: $LOCATION"
-    echo "REPO: $REPO"    
-    echo "TENANT_NAME: $TENANT_NAME"
+    echo -e "${yellow}WHAT_IF: \t$WHAT_IF${reset}"
+    echo -e "FIRST_RUN: \t$FIRST_RUN"
+    echo -e "APP_NAME: \t$APP_NAME"
+    echo -e "TENANT_NAME: \t$TENANT_NAME"
+    echo -e "ENV: \t\t$ENV"
+    echo -e "LOCATION: \t$LOCATION"
+    echo -e "REPO: \t\t$REPO"    
     echo ""
 }
 
