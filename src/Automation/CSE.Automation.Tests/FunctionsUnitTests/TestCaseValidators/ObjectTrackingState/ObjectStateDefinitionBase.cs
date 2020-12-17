@@ -94,7 +94,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
 
             var userslList = GraphHelper.GetAllUsers($"{usersPrefix}").Result;
 
-            var toBeAssigned = ((EvaluateInputGenerator)_inputGenerator).TC4AssignTheseOwnersWhenCreatingAMissingObjectTracking.Split(';').ToList();
+            var toBeAssigned = ((EvaluateInputGenerator)_inputGenerator).TC4AssignTheseOwnersWhenCreatingAMissingObjectTracking.GetAsList();
 
             List<string> spUsers = new List<string>();
             foreach(var userName in toBeAssigned)

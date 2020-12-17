@@ -91,7 +91,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 
             var userslList = GraphHelper.GetAllUsers($"{usersPrefix}").Result;
 
-            var toBeAssigned = UTC2AssignTheseOwnersWhenCreatingUpdateQueueMessage.Split(';').ToList();
+            var toBeAssigned = UTC2AssignTheseOwnersWhenCreatingUpdateQueueMessage.GetAsList();
 
             List<string> spUsers = new List<string>();
             foreach (var userName in toBeAssigned)

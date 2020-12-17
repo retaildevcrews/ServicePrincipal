@@ -22,7 +22,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
         {
             List<string> assignedUsersAsList = (InputGeneratorInstance as UpdateInputGenerator).GetAssignedOwnersTestCase2();
 
-            List<string> newNotesAsList = NewServicePrincipal.Notes.Split(';').ToList();
+            List<string> newNotesAsList = NewServicePrincipal.Notes.GetAsList();
 
             return newNotesAsList.Except(assignedUsersAsList).Count() == 0;
 

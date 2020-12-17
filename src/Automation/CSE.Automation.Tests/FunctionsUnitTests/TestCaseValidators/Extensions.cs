@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.System.ComponentModel;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases;
@@ -133,6 +134,22 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
             }
 
             return attr.ValidatorName;
+        }
+
+        public static List<string> GetAsList(this string notes)
+        {
+            List<string> result = new List<string>();
+            if (notes.Where(x => x == ';').Count() > 0)
+            {
+                result = notes.Split(';').ToList().Select(x => x.Trim()).ToList();
+            }
+
+            else if (notes.Where(x => x == ',').Count() > 0)
+            {
+                result = notes.Split(',').ToList().Select(x => x.Trim()).ToList();
+            }
+
+            return result;
         }
     }
 }

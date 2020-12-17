@@ -1,4 +1,5 @@
 ﻿using AzQueueTestTool.TestCases.Queues;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators;
 using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
@@ -226,7 +227,7 @@ namespace AzQueueTestTool.TestCases.ServicePrincipals
         internal static bool AreValidAADUsers(string spNotes)
         {
 
-            List<string> spNotesAsList = spNotes.Split(';').ToList();
+            List<string> spNotesAsList = spNotes.GetAsList();
 
             try
             {
