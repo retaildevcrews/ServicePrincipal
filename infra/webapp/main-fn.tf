@@ -47,6 +47,20 @@ resource azurerm_function_app instance {
   os_type                    = "linux"
   https_only                 = true
 
+  logs {
+      application_logs {
+          file_system_level = "On"
+      }
+
+      http_logs {
+
+          file_system {
+              retention_in_days = 5
+              retention_in_mb   = 35
+          }
+      }
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -122,7 +136,7 @@ resource azurerm_app_service_slot staging {
   resource_group_name = var.APP_RG_NAME
   app_service_plan_id = azurerm_app_service_plan.instance.id
   https_only          = true
-
+  enabled             = false
   identity {
     type = "SystemAssigned"
   }
@@ -134,7 +148,7 @@ resource azurerm_app_service_slot staging {
 
   logs {
       application_logs {
-          file_system_level = "Off"
+          file_system_level = "On"
       }
 
       http_logs {
