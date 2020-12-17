@@ -15,11 +15,11 @@
   "TC4_AssignTheseOwnersWhenCreatingAMissingObjectTracking": "user-AzQueueTesting-10; user-AzQueueTesting-11; user-AzQueueTesting-12",
 
 
-  "KEYVAULT_NAME": "kv-svcprincipal-cse-dev",
+  "KEYVAULT_NAME": "sp-kv-dev",
   "AUTH_TYPE": "CLI",
 
-  "SPCosmosURL": "https://cdb-svcprincipal-cse-dev.documents.azure.com:443/",
-  "SPCosmosDatabase": "svcprincipal-dev",
+  "SPCosmosURL": "https://sp-cosmosa-dev.documents.azure.com:443/",
+  "SPCosmosDatabase": "sp-cosmos-qa",
 
   "SPConfigurationCollection": "Configuration",
   "SPObjectTrackingCollection": "ObjectTracking",

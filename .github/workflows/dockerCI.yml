@@ -31,7 +31,7 @@ jobs:
 
     env:
       ACR_REG_REPO_URL : svcprincipalcsedev.azurecr.io/serviceprincipal
-      STORAGE_NAME: svcprincipalcsedevapp
+      STORAGE_NAME: serviceprincipalstdev
 
     steps:
     - name: Azure Login
