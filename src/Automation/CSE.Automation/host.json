@@ -10,10 +10,11 @@
       "newBatchThreshold": 8
     }
   },
-  "tracing": {
-    "consoleLevel": "verbose",
-    "fileLoggingMode": "debugOnly"
-  },
+  "retry": {
+    "strategy": "fixedDelay",
+    "maxRetryCount": 2,
+    "delayInterval": "00:00:05"
+  }, 
   "logging": {
     "fileLoggingMode": "always",
     "logLevel": {
