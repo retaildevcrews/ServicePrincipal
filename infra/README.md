@@ -141,12 +141,12 @@ In the example below, appname=mysp.  You should substitue your own unique value 
 chmod u+x ./*.sh
 
 ### provision the environment
-./provision-environment.sh --init --first-run --location centralus --appname mysp --repo serviceprincipal 
+./provision-environment.sh --init --first-run --location centralus --appname mysp --repo serviceprincipal --tenant-name lab
 ```
 A shortened version of the command line is below.
 ```bash
 ### provision the environment
-./provision-environment.sh -i -f -l centralus -a mysp -r serviceprincipal 
+./provision-environment.sh -i -f -l centralus -a mysp -r serviceprincipal -t lab
 ```
 
 You should see the message  
@@ -220,8 +220,7 @@ az monitor log-analytics query -w $(eval $svc_ppl_LogAnalytics_Id) --analytics-q
 terraform destroy
 
 # remove resource group and nested resources , this will delete Storage Account, Container and remote tfstate file 
-az group delete --name rg-${svc_ppl_Name}-${svc_ppl_TenantName}-${svc_ppl_Enviroment}-app
-az group delete --name rg-${svc_ppl_Name}-${svc_ppl_TenantName}-${svc_ppl_Enviroment}-tf
+az group delete --name rg-${svc_ppl_Name}-${svc_ppl_TenantName}-${svc_ppl_Environment}-tf
 
 # delete the service principals
 az ad sp delete --id http://${svc_ppl_Name}-sp-${svc_ppl_Environment}
