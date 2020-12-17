@@ -1,15 +1,14 @@
 - [Introduction](#introduction)
-- [PREREQUISITES](#prerequisites)
+- [Prerequisites](#prerequisites)
   - [Login to Azure](#login-to-azure)
 - [The Provisioning Script](#the-provisioning-script)
   - [Resource Naming](#resource-naming)
-    - [First Run](#first-run)
   - [Deploy ServicePrincipal](#deploy-serviceprincipal)
-    - [First Run](#first-run-1)
+    - [First Run](#first-run)
       - [Plan Validation](#plan-validation)
     - [Second Run](#second-run)
-  - [Verify the deployment](#verify-the-deployment)
-  - [Removing the deployment](#removing-the-deployment)
+- [Verify the deployment](#verify-the-deployment)
+- [Removing the deployment](#removing-the-deployment)
   
 # Introduction
 The infrastructure is provisioned using Terraform, by Hashicorp.  The provisioning process is comprised of a Terraform variable file and initial resources (ResourceGroup, StorageAccount, ServicePrincipals) created via CLI.
@@ -27,7 +26,7 @@ ServicePrincipal | Purpose | Graph Permissions | Resource Permissions
 
 
  
-# PREREQUISITES
+# Prerequisites
 * An Azure subscription in which you have administrator access
 * Administrator access to the Azure subscription directory (AAD)
 * A local install of Terraform (<= v0.13.5) (https://learn.hashicorp.com/tutorials/terraform/install-cli)  
@@ -116,10 +115,6 @@ the KeyVault will be named ```kv-myproject-xyz-dev```.
 
 > Some resources must be all lower case.  The script will take care of case sensitivity as well.
 
-### First Run
-On first run, a ResourceGroup and StorageAccount will be created for the application and Terraform state management.  Additionally, the terraform.tfvars file will be created as input into the Terraform infrastructure code.  The Terraform code will push information about the created identies and resources into the KeyVault for the application.
-
-The provision-environment script will check the names for 1) length and 2) public uniqueness.  If there is any constraint violation, the script will report an error.  If this happens trying changing the application name and/or the tenant.  Remember the tenant should be a short abbreviation to help scope the resource names.  There are only a limited number of characters available.
 
 ## Deploy ServicePrincipal
 >Make sure you are in the serviceprincipal/infra directory.  
@@ -127,6 +122,10 @@ The provision-environment script will check the names for 1) length and 2) publi
 The script will **not** perform a terraform apply.  This step must be performed manually to prevent any premature infrastructure changes.  
 
 ### First Run
+On first run, a ResourceGroup and StorageAccount will be created for the application and Terraform state management.  Additionally, the terraform.tfvars file will be created as input into the Terraform infrastructure code.  The Terraform code will push information about the created identies and resources into the KeyVault for the application.
+
+The provision-environment script will check the names for 1) length and 2) public uniqueness.  If there is any constraint violation, the script will report an error.  If this happens trying changing the application name and/or the tenant.  Remember the tenant should be a short abbreviation to help scope the resource names.  There are only a limited number of characters available.
+
 In the example below, appname=**mysp**.  You should substitue your own unique value determined above in the DNS search.
 
 ```bash
@@ -174,7 +173,7 @@ A shortened version of the command line is below.
 ### provision the environment
 ./provision-environment.sh -l centralus -a mysp -r serviceprincipal -t lab
 ```
-## Verify the deployment
+# Verify the deployment
 
 Log into the Azure portal and browse the new resources
 
@@ -183,7 +182,7 @@ Log into the Azure portal and browse the new resources
 > Be sure not to remove the ignore *tfplan* in the .gitignore file
 >
 
-## Removing the deployment
+# Removing the deployment
 
 >
 > WARNING - this will delete everything with only one prompt
