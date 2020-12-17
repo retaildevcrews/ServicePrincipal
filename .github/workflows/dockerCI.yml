@@ -61,7 +61,6 @@ jobs:
 
     - name: Run Integration Tests
       run: |
-        exit 1
         cd src/Automation
         export SPDiscoverQueue="${QUEUE_PREFIX}-discover"
         export SPEvaluateQueue="${QUEUE_PREFIX}-evaluate"
