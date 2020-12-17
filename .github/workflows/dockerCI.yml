@@ -31,6 +31,7 @@ jobs:
 
     env:
       ACR_REG_REPO_URL : svcprincipalcsedev.azurecr.io/serviceprincipal
+      STORAGE_NAME: serviceprincipalstdev
 
     steps:
     - name: Azure Login
@@ -48,10 +49,31 @@ jobs:
         cd src/Automation
         dotnet test --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed" --filter "Category=Unit"
 
+    - name: Create Testing Resources
+      run: |
+        export GIT_HASH=$( echo ${{ github.sha }} | cut -c1-7 )
+        echo "GIT_HASH=${GIT_HASH}" >> $GITHUB_ENV
+        export QUEUE_PREFIX="sit-$(date '+%Y%m%d')-${GIT_HASH}"
+        echo "QUEUE_PREFIX=${QUEUE_PREFIX}" >> $GITHUB_ENV
+        az storage queue create --fail-on-exist --account-name ${STORAGE_NAME} --name "${QUEUE_PREFIX}-discover"
+        az storage queue create --fail-on-exist --account-name ${STORAGE_NAME} --name "${QUEUE_PREFIX}-evaluate"
+        az storage queue create --fail-on-exist --account-name ${STORAGE_NAME} --name "${QUEUE_PREFIX}-update"
+
     - name: Run Integration Tests
       run: |
         cd src/Automation
+        export SPDiscoverQueue="${QUEUE_PREFIX}-discover"
+        export SPEvaluateQueue="${QUEUE_PREFIX}-evaluate"
+        export SPUpdateQueue="${QUEUE_PREFIX}-update"
         dotnet test --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed" --filter "Category=Integration"
+
+    - name: Cleanup Testing Resources
+      if: ${{ always() }}
+      run: |
+        export temp_queues=$(az storage queue list --account-name ${STORAGE_NAME} --prefix ${QUEUE_PREFIX} -o tsv --query '[].name')
+        for queue in $temp_queues; do
+          az storage queue delete --account-name ${STORAGE_NAME} --name $queue
+        done
 
     - name: Calculate Version
       run: |
@@ -68,7 +90,6 @@ jobs:
     # Version Prefix must be of following format: ^\d+(\.\d+){1,3}$
     # Version Suffix must be of following format: ^[0-9A-Za-z-]*$
       run: |
-        GIT_HASH=$( echo ${{ github.sha }} | cut -c1-7 )
         if [[ "${{ github.event_name }}" == "push" ]]
         then
           VERSION_SUFFIX="${GIT_HASH}"
@@ -94,7 +115,6 @@ jobs:
 
     - name: Publish Container
       run: |
-        export GIT_HASH=$( echo ${{ github.sha }} | cut -c1-7 )
         if [[ "${{ github.event_name }}" == "push" ]]
         then
           VERSION_SUFFIX="${GIT_HASH}"
