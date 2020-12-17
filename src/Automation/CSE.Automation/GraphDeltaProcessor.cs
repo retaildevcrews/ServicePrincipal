@@ -300,46 +300,42 @@ namespace CSE.Automation
         private async Task<dynamic> CommandDiscovery(DiscoveryMode discoveryMode, string source, ILogger log)
         {
             ActivityContext context = null;
+
             try
             {
                 context = activityService.CreateContext($"{discoveryMode.Description()} Request", withTracking: true);
-                try
+
+                context.Activity.CommandSource = source;
+                await processor.RequestDiscovery(context, discoveryMode, source).ConfigureAwait(false);
+                var result = new
                 {
-                    context.Activity.CommandSource = source;
-                    await processor.RequestDiscovery(context, discoveryMode, source).ConfigureAwait(false);
-                    var result = new
-                    {
-                        Timestamp = DateTimeOffset.Now,
-                        Operation = discoveryMode.ToString(),
-                        DiscoveryMode = discoveryMode,
-                        ActivityId = context.Activity.Id,
-                        CorrelationId = context.CorrelationId,
-                    };
+                    Timestamp = DateTimeOffset.Now,
+                    Operation = discoveryMode.ToString(),
+                    DiscoveryMode = discoveryMode,
+                    ActivityId = context.Activity.Id,
+                    CorrelationId = context.CorrelationId,
+                };
+                context.End();
 
-                    return result;
-                }
-                catch (Exception ex)
-                {
-                    context.Activity.Status = ActivityHistoryStatus.Failed;
-
-                    ex.Data["activityContext"] = context;
-
-                    var message = $"Failed to request Discovery {discoveryMode}";
-                    log.LogError(ex, message);
-
-                    throw;
-                }
+                return result;
             }
             catch (Exception ex)
             {
                 if (context != null)
                 {
                     context.Activity.Status = ActivityHistoryStatus.Failed;
+
+                    ex.Data["activityContext"] = context;
                 }
 
-                ex.Data["activityContext"] = context;
-                log.LogError(ex, Resources.LockConflictMessage);
+                var message = $"Failed to request Discovery {discoveryMode}";
+                log.LogError(ex, message);
+
                 throw;
+            }
+            finally
+            {
+                context?.Dispose();
             }
         }
 
