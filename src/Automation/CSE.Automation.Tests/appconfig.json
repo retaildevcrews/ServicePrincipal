@@ -19,7 +19,7 @@
   "AUTH_TYPE": "CLI",
 
   "SPCosmosURL": "https://cdb-svcprincipal-cse-dev.documents.azure.com:443/",
-  "SPCosmosDatabase": "svcprincipal-qa",
+  "SPCosmosDatabase": "svcprincipal-dev",
 
   "SPConfigurationCollection": "Configuration",
   "SPObjectTrackingCollection": "ObjectTracking",
