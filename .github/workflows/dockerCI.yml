@@ -60,14 +60,13 @@ jobs:
         az storage queue create --fail-on-exist --account-name ${STORAGE_NAME} --name "${QUEUE_PREFIX}-update"
 
     - name: Run Integration Tests
-      id: sit
       run: |
         exit 1
         cd src/Automation
         dotnet test --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed" --filter "Category=Integration"
 
     - name: Cleanup Testing Resources
-      if: steps.sit.skipped != 'true'
+      if: ${{ always() }}
       run: |
         export temp_queues=$(az storage queue list --account-name ${STORAGE_NAME} --prefix ${QUEUE_PREFIX} -o tsv --query '[].name')
         for queue in $temp_queues; do
