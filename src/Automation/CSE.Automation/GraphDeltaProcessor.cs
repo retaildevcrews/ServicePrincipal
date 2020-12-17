@@ -16,6 +16,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Graph;
 using Newtonsoft.Json;
 
 namespace CSE.Automation
@@ -65,12 +66,16 @@ namespace CSE.Automation
                 }
 
                 var uriBuilder = new UriBuilder
-                                        {
-                                            Scheme = req.Scheme,
-                                            Host = $"{req.Host}",
-                                            Path = "api/Activities",
-                                            Query = query,
-                                        };
+                {
+                    Scheme = req.Scheme,
+                    Host = req.Host.Host,
+                    Path = "api/Activities",
+                    Query = query,
+                };
+                if (req.Host.Port.HasValue)
+                {
+                    uriBuilder.Port = req.Host.Port.Value;
+                }
 
                 return hasRedirect
                         ? new RedirectResult($"{uriBuilder.Uri}")
@@ -121,36 +126,14 @@ namespace CSE.Automation
             }
 
             var operation = command.DiscoveryMode.Description();
-            ActivityContext context = null;
+            using var context = activityService.CreateContext(operation, correlationId: command.CorrelationId, withTracking: true);
+
             try
             {
-                try
-                {
-                    log.LogDebug("Executing Discover QueueTrigger Function");
-                    context = activityService.CreateContext(operation, correlationId: command.CorrelationId, withTracking: true);
+                log.LogDebug("Executing Discover QueueTrigger Function");
 
-                    context.Activity.CommandSource = command.Source;
-                    context.WithProcessorLock(processor);
-
-                    await processor
-                            .DiscoverDeltas(context, command.DiscoveryMode == DiscoveryMode.FullSeed)
-                            .ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    if (context != null)
-                    {
-                        context.Activity.Status = ActivityHistoryStatus.Failed;
-                    }
-
-                    ex.Data["activityContext"] = context;
-                    log.LogError(ex, Resources.ServicePrincipalDiscoverException);
-                }
-                finally
-                {
-                    context?.End();
-                    context?.Dispose();
-                }
+                context.Activity.CommandSource = command.Source;
+                context.WithProcessorLock(processor);
             }
             catch (Exception ex)
             {
@@ -161,7 +144,23 @@ namespace CSE.Automation
 
                 ex.Data["activityContext"] = context;
                 log.LogError(ex, Resources.LockConflictMessage);
+                return;
             }
+
+            try
+            {
+                await processor
+                            .DiscoverDeltas(context, command.DiscoveryMode == DiscoveryMode.FullSeed)
+                            .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                context.Activity.Status = ActivityHistoryStatus.Failed;
+
+                ex.Data["activityContext"] = context;
+                log.LogError(ex, Resources.ServicePrincipalDiscoverException);
+            }
+
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Ensure graceful return under all trappable error conditions.")]
