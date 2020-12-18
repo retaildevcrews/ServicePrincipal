@@ -106,6 +106,7 @@ module "db" {
   ]  
   source           = "./db"
   NAME             = var.NAME
+  TENANT_NAME      = var.TENANT_NAME
   LOCATION         = var.LOCATION
   ENV              = var.ENV
   APP_RG_NAME      = azurerm_resource_group.appResourceGroup.name
