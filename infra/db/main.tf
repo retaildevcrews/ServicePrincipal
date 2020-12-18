@@ -12,7 +12,7 @@ locals {
 #  --------------CosmosDB instance-----------
 
 resource azurerm_cosmosdb_account instance {
-  name                = "cdba-${var.NAME}-${var.ENV}"
+  name                = "cdb-${var.NAME}-${var.TENANT_NAME}-${var.ENV}"
   location            = var.LOCATION
   resource_group_name = var.APP_RG_NAME
   kind                = "GlobalDocumentDB"

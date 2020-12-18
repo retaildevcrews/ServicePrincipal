@@ -1,7 +1,4 @@
 {
-    "RESOURCE_GROUP_NAME": "rg-svcprincipal-cse-dev-app",
-    "FUNCTION_APP_NAME": "fa-svcprincipal-cse-dev",
-    "KEYVAULT_NAME": "kv-svcprincipal-cse-dev",
     "SPAuditCollection": "Audit",
     "SPConfigurationCollection": "Configuration",
     "SPObjectTrackingCollection": "ObjectTracking",

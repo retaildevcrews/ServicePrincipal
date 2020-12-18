@@ -1,15 +1,14 @@
 - [Introduction](#introduction)
-- [PREREQUISITES](#prerequisites)
+- [Prerequisites](#prerequisites)
   - [Login to Azure](#login-to-azure)
 - [The Provisioning Script](#the-provisioning-script)
-    - [First Run](#first-run)
-    - [Choose a Unique Application Name](#choose-a-unique-application-name)
+  - [Resource Naming](#resource-naming)
   - [Deploy ServicePrincipal](#deploy-serviceprincipal)
-    - [First Run](#first-run-1)
+    - [First Run](#first-run)
       - [Plan Validation](#plan-validation)
     - [Second Run](#second-run)
-  - [Verify the deployment](#verify-the-deployment)
-  - [Removing the deployment](#removing-the-deployment)
+- [Verify the deployment](#verify-the-deployment)
+- [Removing the deployment](#removing-the-deployment)
   
 # Introduction
 The infrastructure is provisioned using Terraform, by Hashicorp.  The provisioning process is comprised of a Terraform variable file and initial resources (ResourceGroup, StorageAccount, ServicePrincipals) created via CLI.
@@ -27,7 +26,7 @@ ServicePrincipal | Purpose | Graph Permissions | Resource Permissions
 
 
  
-# PREREQUISITES
+# Prerequisites
 * An Azure subscription in which you have administrator access
 * Administrator access to the Azure subscription directory (AAD)
 * A local install of Terraform (<= v0.13.5) (https://learn.hashicorp.com/tutorials/terraform/install-cli)  
@@ -74,16 +73,16 @@ You will see the output:
 ```
 usage: ./provision-environment.sh
           -h|--help
-          -a|--appname <applicationname>
-          -e|--env qa|dev
+          -a|--appname <applicationname> (required)
+          -e|--env qa|dev (default: dev)
                environment for deployment
           -f|--first-run
                create a new tfvars. If this is not set, attempt to recreate tfvars from keyvault
           -i|--init
                force initialization of terraform. By default if .terraform directory exists it will not be overwritten.
-          -l|--location <azure location>
-          -t|--tenant-name <tenant name abbreviation>          
-          -r|--repo <repository name>
+          -l|--location <azure location> (default: centralus)
+          -t|--tenant-name <tenant name abbreviation> (required)
+          -r|--repo <repository name> (required)
              --what-if
 
 ```
@@ -101,52 +100,45 @@ Argument | Description | Default
 
 The Terraform script needs a number of variables to be set in order to properly provision the infrastructure.  The script is structured so that all the variables are initialized in a file called `terraform.tfvars`.
 
-### First Run
-On first run, a ResourceGroup and StorageAccount will be created for the application and Terraform state management.  Additionally, the terraform.tfvars file will be created as input into the Terraform infrastructure code.  The Terraform code will push information about the created identies and resources into the KeyVault for the application.
+## Resource Naming
+Some of the resources that are created must have a globally unique name whether or not those resources are within a private network or not.  Those resources include StorageAccount, KeyVault, Function App, and CosmosDB Account.  In order to make them unique, you must choose values that, when composed into the resource name, will result in a globally unique name.  All the resources use this naming technique.  
 
-Some of the resources that are created must have a globally unique name whether or not those resources are within a private network or not.  Those resources include StorageAccount, KeyVault, Function App, and CosmosDB Account.  In order to make them unique, you must choose a value that, when composed into the resource name, will result in a globally unique name.  All the resources use this naming technique.  For example, the KeyVault will be named using the following format ```<appName>-kv-<environment>```.  If the substituion values are ```appName = 'MyProject'``` and ```environment = 'dev'```, the KeyVault will be named ```MyProject-kv-dev```.
+For example, the KeyVault will be named using the following format ```kv-<appName>-<tenantName>-<environment>```.  If the substituion values are:
 
-### Choose a Unique Application Name
+token | value 
+---------|------- 
+ appName | MyProject 
+ tenantName | xyz 
+ environment | dev 
 
-```bash
-# this will be the prefix for all resources
-#  only use a-z and 0-9 - do not include punctuation or uppercase characters
-#  must be at least 5 characters long
-#  must start with a-z (only lowercase)
-export svc_ppl_Name=[your unique name]
+the KeyVault will be named ```kv-myproject-xyz-dev```.
 
-### check if accounts exists globally
-az storage account check-name -n ${svc_ppl_Name}
-az cosmosdb check-name-exists -n ${svc_ppl_Name}
-az acr check-name -n ${svc_ppl_Name}
+> Some resources must be all lower case.  The script will take care of case sensitivity as well.
 
-### if accounts exists globally check if accounts exist in current subscription
-### returns 1 if exists
-az storage account list --query "[?name=='${svc_ppl_Name}']" -o tsv | wc -l
-az cosmosdb list --query "[?name=='${svc_ppl_Name}']" -o tsv | wc -l
-az acr list --query "[?name=='${svc_ppl_Name}']" -o tsv | wc -l
 
-### if 0 is returned, pick another name or remove subscription resources to be recreated
-```
 ## Deploy ServicePrincipal
 >Make sure you are in the serviceprincipal/infra directory.  
 
 The script will **not** perform a terraform apply.  This step must be performed manually to prevent any premature infrastructure changes.  
 
 ### First Run
-In the example below, appname=mysp.  You should substitue your own unique value determined above in the DNS search.
+On first run, a ResourceGroup and StorageAccount will be created for the application and Terraform state management.  Additionally, the terraform.tfvars file will be created as input into the Terraform infrastructure code.  The Terraform code will push information about the created identies and resources into the KeyVault for the application.
+
+The provision-environment script will check the names for 1) length and 2) public uniqueness.  If there is any constraint violation, the script will report an error.  If this happens trying changing the application name and/or the tenant.  Remember the tenant should be a short abbreviation to help scope the resource names.  There are only a limited number of characters available.
+
+In the example below, appname=**mysp**.  You should substitue your own unique value determined above in the DNS search.
 
 ```bash
 ### (Optional) You may need to make the scripts executable
 chmod u+x ./*.sh
 
 ### provision the environment
-./provision-environment.sh --init --first-run --location centralus --appname mysp --repo serviceprincipal 
+./provision-environment.sh --init --first-run --location centralus --appname mysp --repo serviceprincipal --tenant-name lab
 ```
 A shortened version of the command line is below.
 ```bash
 ### provision the environment
-./provision-environment.sh -i -f -l centralus -a mysp -r serviceprincipal 
+./provision-environment.sh -i -f -l centralus -a mysp -r serviceprincipal -t lab
 ```
 
 You should see the message  
@@ -174,14 +166,14 @@ This is a very similar process to the First Run except for the arguments you cal
 
 ```bash
 ### provision the environment
-./provision-environment.sh --location centralus --appname mysp --repo serviceprincipal  
+./provision-environment.sh --location centralus --appname mysp --repo serviceprincipal --tenant-name lab
 ```
 A shortened version of the command line is below.
 ```bash
 ### provision the environment
-./provision-environment.sh -l centralus -a mysp -r serviceprincipal 
+./provision-environment.sh -l centralus -a mysp -r serviceprincipal -t lab
 ```
-## Verify the deployment
+# Verify the deployment
 
 Log into the Azure portal and browse the new resources
 
@@ -190,26 +182,7 @@ Log into the Azure portal and browse the new resources
 > Be sure not to remove the ignore *tfplan* in the .gitignore file
 >
 
-<div style="display:none">
-
-```bash
-
-# check the App Service
-curl https://${svc_ppl_Name}.azurewebsites.net/version
-curl https://${svc_ppl_Name}.azurewebsites.net/api/genres
-
-# check the docker logs from the webv tests
-az container logs -g ${svc_ppl_Name}-rg-webv -n ${svc_ppl_Name}-webv-${svc_ppl_Location}
-
-# check Log Analytics
-export svc_ppl_LogAnalytics_Id='az monitor log-analytics workspace show -g ${svc_ppl_Name}-rg-webv -n ${svc_ppl_Name}-webv-logs --query customerId -o tsv'
-
-az monitor log-analytics query -w $(eval $svc_ppl_LogAnalytics_Id) --analytics-query "ContainerInstanceLog_CL | sort by TimeGenerated"
-
-```
-</div>
-
-## Removing the deployment
+# Removing the deployment
 
 >
 > WARNING - this will delete everything with only one prompt
@@ -219,11 +192,12 @@ az monitor log-analytics query -w $(eval $svc_ppl_LogAnalytics_Id) --analytics-q
 # this takes several minutes to run
 terraform destroy
 
+# *** You need the values of appname, tenantname and environment for the commands below ***
+
 # remove resource group and nested resources , this will delete Storage Account, Container and remote tfstate file 
-az group delete --name rg-${svc_ppl_Name}-${svc_ppl_TenantName}-${svc_ppl_Enviroment}-app
-az group delete --name rg-${svc_ppl_Name}-${svc_ppl_TenantName}-${svc_ppl_Enviroment}-tf
+az group delete --name rg-<appname>-<tenantname>-<environment>-tf
 
 # delete the service principals
-az ad sp delete --id http://${svc_ppl_Name}-sp-${svc_ppl_Environment}
-az ad sp delete --id http://${svc_ppl_Name}-acr-sp-${svc_ppl_Environment}
+az ad sp delete --id http://<appname>-sp-<environment>
+az ad sp delete --id http://<appname>-acr-sp-<environment>
 ```

@@ -154,7 +154,16 @@ namespace CSE.Automation.Processors
             // foreach (var sp in servicePrincipalList.Where(sp => string.IsNullOrWhiteSpace(sp.AppId) == false && string.IsNullOrWhiteSpace(sp.DisplayName) == false))
             foreach (var sp in servicePrincipalList)
             {
-                var fullSP = await graphHelper.GetGraphObjectWithOwners(sp.Id).ConfigureAwait(false);
+                ServicePrincipal fullSP = null;
+                try
+                {
+                    fullSP = await graphHelper.GetGraphObjectWithOwners(sp.Id).ConfigureAwait(false);
+                }
+                catch (Microsoft.Graph.ServiceException svcEx)
+                {
+                    logger.LogWarning(svcEx, $"Failed to get Owners on {sp.Id}");
+                }
+
                 var owners = fullSP?.Owners.Select(x => (x as User)?.UserPrincipalName).ToList();
 
                 servicePrincipalCount++;

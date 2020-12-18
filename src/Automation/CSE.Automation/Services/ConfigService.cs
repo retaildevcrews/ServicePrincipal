@@ -36,11 +36,11 @@ namespace CSE.Automation.Services
                 }
 
                 byte[] defaultConfig = (byte[])Resources.ResourceManager.GetObject(defaultConfigResourceName, Resources.Culture);
-                var initalDocumentAsString = System.Text.Encoding.Default.GetString(defaultConfig);
+                var initialDocumentAsString = System.Text.Encoding.Default.GetString(defaultConfig);
 
                 try
                 {
-                    ProcessorConfiguration defaultConfiguration = JsonConvert.DeserializeObject<ProcessorConfiguration>(initalDocumentAsString);
+                    ProcessorConfiguration defaultConfiguration = JsonConvert.DeserializeObject<ProcessorConfiguration>(initialDocumentAsString);
                     defaultConfiguration.Id = id;
                     return configRepository.CreateDocumentAsync(defaultConfiguration).Result;
                 }
@@ -77,9 +77,9 @@ namespace CSE.Automation.Services
                     Console.WriteLine("Lock Successfull Acquired For: " + id);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw new AccessViolationException("Processor Already Locked By Another Process");
+                throw new Exception("Lock Unsuccessful", ex);
             }
         }
 
