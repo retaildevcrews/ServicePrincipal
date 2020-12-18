@@ -3,7 +3,7 @@ name: Docker CI
 on:
   push:
     branches:
-      - alfredo/cicd-fixes-for-handoff
+      - main
 
     paths-ignore:
       - 'docs/**'
@@ -163,7 +163,6 @@ jobs:
 
           .github/workflows/appConfigSettings.sh qa
         fi
-        exit 1
 
     - name: Tag Release
       if: github.event_name == 'push'
