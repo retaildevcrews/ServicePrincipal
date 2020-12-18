@@ -77,9 +77,9 @@ namespace CSE.Automation.Services
                     Console.WriteLine("Lock Successfull Acquired For: " + id);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw new AccessViolationException("Processor Already Locked By Another Process");
+                throw new Exception("Lock Unsuccessful", ex);
             }
         }
 

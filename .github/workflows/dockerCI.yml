@@ -30,14 +30,26 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ACR_REG_REPO_URL : svcprincipalcsedev.azurecr.io/serviceprincipal
-      STORAGE_NAME: serviceprincipalstdev
+      RESOURCE_GROUP: rg-svcprincipal-cse-dev-app
 
     steps:
     - name: Azure Login
       run: |
         # login to Azure
-        az login --service-principal -u ${{ secrets.SERVICE_PRINCIPAL_ID }} --tenant ${{ secrets.TENANT_ID }} -p ${{ secrets.SERVICE_PRINCIPAL_SECRET }}    
+        az login --service-principal -u ${{ secrets.SERVICE_PRINCIPAL_ID }} --tenant ${{ secrets.TENANT_ID }} -p ${{ secrets.SERVICE_PRINCIPAL_SECRET }}
+
+    - name: Get Resources
+      run: |
+        export FN_NAME=$(az resource list -g ${RESOURCE_GROUP} --resource-type Microsoft.Web/sites --query '[].name' -o tsv)
+        export KV_NAME=$(az resource list -g ${RESOURCE_GROUP} --resource-type Microsoft.KeyVault/vaults --query '[].name' -o tsv)
+        export DB_NAME=$(az resource list -g ${RESOURCE_GROUP} --resource-type Microsoft.DocumentDB/databaseAccounts --query '[].name' -o tsv)
+        export ACR_NAME=$(az resource list -g ${RESOURCE_GROUP} --resource-type Microsoft.ContainerRegistry/registries --query '[].name' -o tsv)
+        export STORAGE_NAME=$(az resource list -g ${RESOURCE_GROUP} --resource-type Microsoft.Storage/storageAccounts --query '[].name' -o tsv)
+        echo "FN_NAME=${FN_NAME}" >> $GITHUB_ENV
+        echo "KV_NAME=${KV_NAME}" >> $GITHUB_ENV
+        echo "DB_NAME=${DB_NAME}" >> $GITHUB_ENV
+        echo "ACR_REG_REPO_URL=${ACR_NAME}.azurecr.io/serviceprincipal" >> $GITHUB_ENV
+        echo "STORAGE_NAME=${STORAGE_NAME}" >> $GITHUB_ENV
 
     - name: Checkout Code
       uses: actions/checkout@v2
@@ -60,11 +72,15 @@ jobs:
         az storage queue create --fail-on-exist --account-name ${STORAGE_NAME} --name "${QUEUE_PREFIX}-update"
 
     - name: Run Integration Tests
+      continue-on-error: true
       run: |
         cd src/Automation
         export SPDiscoverQueue="${QUEUE_PREFIX}-discover"
         export SPEvaluateQueue="${QUEUE_PREFIX}-evaluate"
         export SPUpdateQueue="${QUEUE_PREFIX}-update"
+        export KEYVAULT_NAME="${KV_NAME}"
+        export SPCosmosURL="https://${DB_NAME}.documents.azure.com:443/"
+        export SPCosmosDatabase=$(az cosmosdb sql database list -g $RESOURCE_GROUP -a $DB_NAME --query '[].name' -o tsv | grep qa)
         dotnet test --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed" --filter "Category=Integration"
 
     - name: Cleanup Testing Resources
@@ -142,8 +158,8 @@ jobs:
           
           echo "Setting STAGING docker image to ${IMAGE_NAME}"
 
-          az functionapp config container set -g rg-svcprincipal-cse-dev-app -n fa-svcprincipal-cse-dev --slot staging --docker-custom-image-name $IMAGE_NAME
-          az functionapp config appsettings set -g rg-svcprincipal-cse-dev-app -n fa-svcprincipal-cse-dev --slot staging --settings "DOCKER_CUSTOM_IMAGE_NAME=${IMAGE_NAME}"  
+          az functionapp config container set -g ${RESOURCE_GROUP} -n ${FN_NAME} --slot staging --docker-custom-image-name $IMAGE_NAME > /dev/null 2>&1
+          az functionapp config appsettings set -g ${RESOURCE_GROUP} -n ${FN_NAME} --slot staging --settings "DOCKER_CUSTOM_IMAGE_NAME=${IMAGE_NAME}" > /dev/null 2>&1
 
           .github/workflows/appConfigSettings.sh qa
         fi
