@@ -160,7 +160,6 @@ namespace CSE.Automation
                 ex.Data["activityContext"] = context;
                 log.LogError(ex, Resources.ServicePrincipalDiscoverException);
             }
-
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Ensure graceful return under all trappable error conditions.")]
