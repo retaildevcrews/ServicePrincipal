@@ -14,7 +14,7 @@ namespace CSE.Automation.Interfaces
     {
         Task<TConfig> Put(TConfig newDocument);
         TConfig Get(string id, ProcessorType processorType, string defaultConfigResourceName, bool createIfNotFound = false);
-        Task Lock(string id, string lockingActivityID, string defaultConfigResourceName);
+        Task Lock(string configId, string lockingActivityID, string defaultConfigResourceName);
         Task Unlock();
     }
 }

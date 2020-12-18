@@ -6,6 +6,7 @@ using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
 using CSE.Automation.Properties;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -20,9 +21,11 @@ namespace CSE.Automation.Services
     internal class ConfigService : IConfigService<ProcessorConfiguration>
     {
         private readonly IConfigRepository configRepository;
-        public ConfigService(IConfigRepository configRepository)
+        private readonly ILogger configLogger;
+        public ConfigService(IConfigRepository configRepository, ILogger<ConfigService> configLogger)
         {
             this.configRepository = configRepository;
+            this.configLogger = configLogger;
         }
 
         public ProcessorConfiguration Get(string id, ProcessorType processorType, string defaultConfigResourceName, bool createIfNotFound = true)
@@ -58,12 +61,12 @@ namespace CSE.Automation.Services
             return await configRepository.ReplaceDocumentAsync(newDocument.Id, newDocument).ConfigureAwait(false);
         }
 
-        public async Task Lock(string id, string lockingActivityID, string defaultConfigResourceName)
+        public async Task Lock(string configId, string lockingActivityID, string defaultConfigResourceName)
         {
             try
             {
-                Get(id, ProcessorType.ServicePrincipal, defaultConfigResourceName);
-                var configWithMeta = await configRepository.GetByIdWithMetaAsync(id, "ServicePrincipal").ConfigureAwait(false);
+                Get(configId, ProcessorType.ServicePrincipal, defaultConfigResourceName);
+                var configWithMeta = await configRepository.GetByIdWithMetaAsync(configId, "ServicePrincipal").ConfigureAwait(false);
                 ItemRequestOptions requestOptions = new ItemRequestOptions { IfMatchEtag = configWithMeta.ETag };
                 ProcessorConfiguration config = configWithMeta.Resource;
                 if (config.IsProcessorLocked)
@@ -74,8 +77,7 @@ namespace CSE.Automation.Services
                 {
                     config.IsProcessorLocked = true;
                     config.LockingActivityId = lockingActivityID;
-                    id = configRepository.ReplaceDocumentAsync(config.Id, config, requestOptions).Result.Id;
-                    Console.WriteLine("Lock Successfull Acquired For: " + id);
+                    configLogger.LogInformation($"Lock Successfully Acquired For:  {configRepository.ReplaceDocumentAsync(config.Id, config, requestOptions).Result.Id}");
                 }
             }
             catch (Exception)
