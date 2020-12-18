@@ -17,19 +17,12 @@ FUNCTION_APP_NAME=${FN_NAME}
 echo $RESOURCE_GROUP_NAME 
 echo $FUNCTION_APP_NAME 
 
-
-
 cat $configSettingsFile | \
   jq -r 'to_entries | map(.key + "=" + .value) | @tsv' | \
   tr "\t" "\n" | \
   (cat && echo "KEYVAULT_NAME=${KV_NAME}") | \
   while read line 
 do
-  if [[ $line == "RESOURCE_GROUP_NAME"* ]]; then
-    continue
-  elif [[ $line == "FUNCTION_APP_NAME"* ]]; then
-    continue
-  fi 
   echo "$line"
   if [ $environment = 'prod' ];
   then
