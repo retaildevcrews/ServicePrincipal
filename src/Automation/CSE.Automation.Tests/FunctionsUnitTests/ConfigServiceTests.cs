@@ -13,6 +13,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
+using CSE.Automation.Extensions;
 using CSE.Automation.Processors;
 using Xunit;
 
@@ -21,6 +22,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
     public class ConfigServiceTests
     {
         private IHost host;
+        private IConfigurationRoot _config;
 
         public ConfigServiceTests()
         {
@@ -33,10 +35,12 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             host = builder.Build();
         }
 
-        static IHostBuilder CreateHostBuilder(string[] args)
+        IHostBuilder CreateHostBuilder(string[] args)
         {
+            BuildConfiguration();
+
             // SERVICES SETTINGS
-            var secretServiceSettings = new SecretServiceSettings() { KeyVaultName = "sp-kv-dev" };
+            var secretServiceSettings = new SecretServiceSettings() { KeyVaultName = _config[Constants.KeyVaultName] };
             var credServiceSettings = new CredentialServiceSettings() { AuthType = AuthenticationType.CLI };
 
             var credService = new CredentialService(credServiceSettings);
@@ -63,14 +67,24 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                         .AddSingleton<IConfigRepository, ConfigRepository>(provider => provider.GetRequiredService<ConfigRepository>())
                         .AddSingleton<ConfigRespositorySettings>(x => new ConfigRespositorySettings(x.GetRequiredService<ISecretClient>())
                             {
-                                Uri = "https://sp-cosmosa-dev.documents.azure.com:443/",
-                                Key = secretService.GetSecretValue(Constants.CosmosDBKeyName),
-                                DatabaseName = "sp-cosmos-qa",
-                                CollectionName = "Configuration"
+                                Uri = _config[Constants.CosmosDBURLName],
+                                Key = _config[Constants.CosmosDBKeyName],
+                                DatabaseName = _config[Constants.CosmosDBDatabaseName],
+                                CollectionName = _config[Constants.CosmosDBConfigCollectionName]
                             })
                         .AddScoped<ConfigService>();
                 });
 
+        }
+
+        private void BuildConfiguration()
+        {
+            var configBuilder = new ConfigurationBuilder()
+                .AddJsonFile("appconfig.json", true)
+                .AddEnvironmentVariables()
+                .AddAzureKeyVaultConfiguration(Constants.KeyVaultName);
+
+            _config = configBuilder.Build();
         }
 
         ILogger<ConfigService> GetLogger(IServiceScope scope)
