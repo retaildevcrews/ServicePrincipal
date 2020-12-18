@@ -64,7 +64,7 @@ namespace CSE.Automation.Model
                 throw new ArgumentNullException(nameof(deltaProcessor));
             }
 
-            deltaProcessor.Lock().Wait();
+            deltaProcessor.Lock(this.Activity.Id).Wait();
 
             isLocked = true;
             processor = deltaProcessor;

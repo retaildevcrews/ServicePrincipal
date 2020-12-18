@@ -58,7 +58,7 @@ namespace CSE.Automation.Services
             return await configRepository.ReplaceDocumentAsync(newDocument.Id, newDocument).ConfigureAwait(false);
         }
 
-        public async Task Lock(string id, string defaultConfigResourceName)
+        public async Task Lock(string id, string lockingActivityID, string defaultConfigResourceName)
         {
             try
             {
@@ -73,6 +73,7 @@ namespace CSE.Automation.Services
                 else
                 {
                     config.IsProcessorLocked = true;
+                    config.LockingActivityId = lockingActivityID;
                     id = configRepository.ReplaceDocumentAsync(config.Id, config, requestOptions).Result.Id;
                     Console.WriteLine("Lock Successfull Acquired For: " + id);
                 }
@@ -87,6 +88,7 @@ namespace CSE.Automation.Services
         {
             var config = configRepository.GetByIdAsync("02a54ac9-441e-43f1-88ee-fde420db2559", "ServicePrincipal").Result;
             config.IsProcessorLocked = false;
+            config.LockingActivityId = null;
             await configRepository.ReplaceDocumentAsync(config.Id, config).ConfigureAwait(false);
         }
     }
