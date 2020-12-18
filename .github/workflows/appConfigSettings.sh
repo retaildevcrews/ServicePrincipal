@@ -39,3 +39,4 @@ do
     az functionapp config appsettings set --name ${FUNCTION_APP_NAME} --resource-group ${RESOURCE_GROUP_NAME} --slot staging --settings "$line" > /dev/null 2>&1
   fi
 done
+exit 0
