@@ -271,14 +271,8 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         {
             var configBuilder = new ConfigurationBuilder()
                 .AddJsonFile("appconfig.json", true)
-                .AddAzureKeyVaultConfiguration(Constants.KeyVaultName)
-                .AddEnvironmentVariables();
-
-            string devConfigPath = string.Concat(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "\\appconfig.development.json");
-            if (System.IO.File.Exists(devConfigPath))
-            {
-                configBuilder.AddJsonFile("appconfig.development.json", true);
-            }
+                .AddEnvironmentVariables()
+                .AddAzureKeyVaultConfiguration(Constants.KeyVaultName);
 
             _config = configBuilder.Build();
         }
