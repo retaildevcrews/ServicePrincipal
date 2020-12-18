@@ -78,6 +78,9 @@ jobs:
         export SPDiscoverQueue="${QUEUE_PREFIX}-discover"
         export SPEvaluateQueue="${QUEUE_PREFIX}-evaluate"
         export SPUpdateQueue="${QUEUE_PREFIX}-update"
+        export KEYVAULT_NAME="${KV_NAME}"
+        export SPCosmosURL="https://${DB_NAME}.documents.azure.com:443/"
+        export SPCosmosDatabase=$(az cosmosdb sql database list -g $RESOURCE_GROUP -a $DB_NAME --query '[].name' -o tsv | grep qa)
         dotnet test --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed" --filter "Category=Integration"
 
     - name: Cleanup Testing Resources
