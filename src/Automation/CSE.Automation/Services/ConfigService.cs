@@ -39,11 +39,11 @@ namespace CSE.Automation.Services
                 }
 
                 byte[] defaultConfig = (byte[])Resources.ResourceManager.GetObject(defaultConfigResourceName, Resources.Culture);
-                var initalDocumentAsString = System.Text.Encoding.Default.GetString(defaultConfig);
+                var initialDocumentAsString = System.Text.Encoding.Default.GetString(defaultConfig);
 
                 try
                 {
-                    ProcessorConfiguration defaultConfiguration = JsonConvert.DeserializeObject<ProcessorConfiguration>(initalDocumentAsString);
+                    ProcessorConfiguration defaultConfiguration = JsonConvert.DeserializeObject<ProcessorConfiguration>(initialDocumentAsString);
                     defaultConfiguration.Id = id;
                     return configRepository.CreateDocumentAsync(defaultConfiguration).Result;
                 }
@@ -61,7 +61,7 @@ namespace CSE.Automation.Services
             return await configRepository.ReplaceDocumentAsync(newDocument.Id, newDocument).ConfigureAwait(false);
         }
 
-        public async Task Lock(string configId, string lockingActivityID, string defaultConfigResourceName)
+        public async Task Lock(string configId, string lockingActivityId, string defaultConfigResourceName)
         {
             try
             {
@@ -76,8 +76,9 @@ namespace CSE.Automation.Services
                 else
                 {
                     config.IsProcessorLocked = true;
-                    config.LockingActivityId = lockingActivityID;
-                    configLogger.LogInformation($"Lock Successfully Acquired For:  {configRepository.ReplaceDocumentAsync(config.Id, config, requestOptions).Result.Id}");
+                    config.LockingActivityId = lockingActivityId;
+                    var id = configRepository.ReplaceDocumentAsync(config.Id, config, requestOptions).Result.Id;
+                    configLogger.LogInformation($"Acquired lock for activity: {id}");
                 }
             }
             catch (Exception)
