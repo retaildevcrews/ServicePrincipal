@@ -38,3 +38,9 @@ variable "COLLECTIONS" {
   }))
   description = "List of the collections to create"
 }
+
+variable "TENANT_NAME" {
+  type        = string
+  description = "The short name of the tenant. Used for resource naming"
+}
+

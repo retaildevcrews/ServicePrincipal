@@ -107,6 +107,13 @@ namespace CSE.Automation
             }
         }
 
+        /// <summary>
+        /// Perform ServicePrincipal Discovery
+        /// </summary>
+        /// <param name="msg">Discovery request message</param>
+        /// <param name="log">An instance of an <see cref="ILogger"/></param>
+        /// <returns>An awaitable Task</returns>
+        /// <remarks>This function must throw on error in order for the message to be abandoned for retry.</remarks>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Ensure graceful return under all trappable error conditions.")]
         [FunctionName("Discover")]
         [StorageAccount(Constants.SPStorageConnectionString)]
@@ -121,8 +128,8 @@ namespace CSE.Automation
             }
             catch (Exception ex)
             {
-                log.LogError(ex, $"Failed to deserialize queue message into RequestDicoveryCommand.");
-                return;
+                log.LogError(ex, $"Failed to deserialize queue message into RequestDiscoveryCommand.");
+                throw;
             }
 
             var operation = command.DiscoveryMode.Description();
@@ -144,7 +151,7 @@ namespace CSE.Automation
 
                 ex.Data["activityContext"] = context;
                 log.LogError(ex, Resources.LockConflictMessage);
-                return;
+                throw;
             }
 
             try
@@ -159,10 +166,17 @@ namespace CSE.Automation
 
                 ex.Data["activityContext"] = context;
                 log.LogError(ex, Resources.ServicePrincipalDiscoverException);
+                throw;
             }
-
         }
 
+        /// <summary>
+        /// Evaluate a ServicePrincipal
+        /// </summary>
+        /// <param name="msg">The message containing metadata for the ServicePrincipal</param>
+        /// <param name="log">An instance of an <see cref="ILogger"/></param>
+        /// <returns>An awaitable Task</returns>
+        /// <remarks>This function must throw on error in order for the message to be abandoned for retry.</remarks>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Ensure graceful return under all trappable error conditions.")]
         [FunctionName("Evaluate")]
         [StorageAccount(Constants.SPStorageConnectionString)]
@@ -178,12 +192,13 @@ namespace CSE.Automation
             catch (Exception ex)
             {
                 log.LogError(ex, $"Failed to deserialize queue message into EvaluateServicePrincipalCommand.");
-                return;
+                throw;
             }
 
-            using var context = activityService.CreateContext("Evaluate Service Principal", correlationId: command.CorrelationId);
+            ActivityContext context = null;
             try
             {
+                context = activityService.CreateContext("Evaluate Service Principal", command.CorrelationId);
                 context.Activity.CommandSource = "QUEUE";
 
                 await processor.Evaluate(context, command.Model).ConfigureAwait(false);
@@ -193,35 +208,52 @@ namespace CSE.Automation
             }
             catch (Exception ex)
             {
-                context.Activity.Status = ActivityHistoryStatus.Failed;
+                if (context != null)
+                {
+                    context.Activity.Status = ActivityHistoryStatus.Failed;
+                }
 
                 ex.Data["activityContext"] = context;
                 log.LogError(ex, $"Message {msg.Id} aborting: {ex.Message}");
                 throw;
             }
+            finally
+            {
+                context?.Dispose();
+            }
         }
 
+        /// <summary>
+        /// Update a ServicePrincipal
+        /// </summary>
+        /// <param name="msg">The message containing metadata for the ServicePrincipal</param>
+        /// <param name="log">An instance of an <see cref="ILogger"/></param>
+        /// <returns>An awaitable Task</returns>
+        /// <remarks>This function must throw on error in order for the message to be abandoned for retry.</remarks>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Ensure graceful return under all trappable error conditions.")]
         [FunctionName("UpdateAAD")]
         [StorageAccount(Constants.SPStorageConnectionString)]
-        public async Task UpdateAAD([QueueTrigger(Constants.UpdateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
+        public async Task UpdateAAD([QueueTrigger(Constants.UpdateQueueAppSetting)]CloudQueueMessage msg, ILogger log)
         {
             ServicePrincipalUpdateCommand command;
 
             log.LogTrace("Incoming message from Update queue");
             try
             {
-                command = JsonConvert.DeserializeObject<QueueMessage<ServicePrincipalUpdateCommand>>(msg.AsString).Document;
+                command = JsonConvert
+                            .DeserializeObject<QueueMessage<ServicePrincipalUpdateCommand>>(msg.AsString)
+                            .Document;
             }
             catch (Exception ex)
             {
                 log.LogError(ex, $"Failed to deserialize queue message into ServicePrincipalUpdateCommand.");
-                return;
+                throw;
             }
 
-            using var context = activityService.CreateContext("Update Service Principal", correlationId: command.CorrelationId);
+            ActivityContext context = null;
             try
             {
+                context = activityService.CreateContext("Update Service Principal", command.CorrelationId);
                 context.Activity.CommandSource = "QUEUE";
 
                 var message = JsonConvert.DeserializeObject<QueueMessage<ServicePrincipalUpdateCommand>>(msg.AsString);
@@ -233,11 +265,18 @@ namespace CSE.Automation
             }
             catch (Exception ex)
             {
-                context.Activity.Status = ActivityHistoryStatus.Failed;
+                if (context != null)
+                {
+                    context.Activity.Status = ActivityHistoryStatus.Failed;
+                }
 
                 ex.Data["activityContext"] = context;
                 log.LogError(ex, $"Message {msg.Id} aborting: {ex.Message}");
                 throw;
+            }
+            finally
+            {
+                context?.Dispose();
             }
         }
 
@@ -288,6 +327,12 @@ namespace CSE.Automation
             }
         }
 
+        /// <summary>
+        /// Return the version metadata for the application
+        /// </summary>
+        /// <param name="req">The HTTP request message</param>
+        /// <param name="log">An instance of an <see cref="ILogger"/></param>
+        /// <returns>Json payload with the application version metadata.</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1801:Review unused parameters", Justification = "Necessary for Attribute Binding")]
         [FunctionName("Version")]
         public Task<IActionResult> Version([HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
@@ -300,46 +345,42 @@ namespace CSE.Automation
         private async Task<dynamic> CommandDiscovery(DiscoveryMode discoveryMode, string source, ILogger log)
         {
             ActivityContext context = null;
+
             try
             {
                 context = activityService.CreateContext($"{discoveryMode.Description()} Request", withTracking: true);
-                try
+
+                context.Activity.CommandSource = source;
+                await processor.RequestDiscovery(context, discoveryMode, source).ConfigureAwait(false);
+                var result = new
                 {
-                    context.Activity.CommandSource = source;
-                    await processor.RequestDiscovery(context, discoveryMode, source).ConfigureAwait(false);
-                    var result = new
-                    {
-                        Timestamp = DateTimeOffset.Now,
-                        Operation = discoveryMode.ToString(),
-                        DiscoveryMode = discoveryMode,
-                        ActivityId = context.Activity.Id,
-                        CorrelationId = context.CorrelationId,
-                    };
+                    Timestamp = DateTimeOffset.Now,
+                    Operation = discoveryMode.ToString(),
+                    DiscoveryMode = discoveryMode,
+                    ActivityId = context.Activity.Id,
+                    CorrelationId = context.CorrelationId,
+                };
+                context.End();
 
-                    return result;
-                }
-                catch (Exception ex)
-                {
-                    context.Activity.Status = ActivityHistoryStatus.Failed;
-
-                    ex.Data["activityContext"] = context;
-
-                    var message = $"Failed to request Discovery {discoveryMode}";
-                    log.LogError(ex, message);
-
-                    throw;
-                }
+                return result;
             }
             catch (Exception ex)
             {
                 if (context != null)
                 {
                     context.Activity.Status = ActivityHistoryStatus.Failed;
+
+                    ex.Data["activityContext"] = context;
                 }
 
-                ex.Data["activityContext"] = context;
-                log.LogError(ex, Resources.LockConflictMessage);
+                var message = $"Failed to request Discovery {discoveryMode}";
+                log.LogError(ex, message);
+
                 throw;
+            }
+            finally
+            {
+                context?.Dispose();
             }
         }
 

@@ -81,9 +81,9 @@ namespace CSE.Automation.Services
                     configLogger.LogInformation($"Acquired lock for activity: {id}");
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw new AccessViolationException("Processor Already Locked By Another Process");
+                throw new Exception("Lock Unsuccessful", ex);
             }
         }
 

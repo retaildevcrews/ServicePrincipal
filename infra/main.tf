@@ -70,6 +70,28 @@ resource azurerm_storage_account appStorageAccount {
   }
 }
 
+resource "azurerm_dashboard" "appDashboard" {
+  name                = "dashboard-${var.NAME}-${var.TENANT_NAME}-${var.ENV}"
+  resource_group_name = azurerm_resource_group.appResourceGroup.name
+  location            = azurerm_resource_group.appResourceGroup.location
+  tags = {
+    source = "terraform"
+  }
+  dashboard_properties = templatefile("dashboard_template.tpl",
+    {
+      resource_group_name = azurerm_resource_group.appResourceGroup.name,
+      app_insights_name = "ai-${var.NAME}-${var.ENV}",
+      fn_app_name = "fa-${var.NAME}-${var.TENANT_NAME}-${var.ENV}",
+      cosmos_account_name = "cdb-${var.NAME}-${var.TENANT_NAME}-${var.ENV}",
+      dashboardName = "ai-${var.NAME}-${var.ENV}",
+      subscription_id = "${var.TF_SUB_ID}"
+  })
+  
+  depends_on = [ 
+    azurerm_resource_group.appResourceGroup 
+  ]  
+}
+
 # Create Container Registry
 module "acr" {
   depends_on = [ 
@@ -106,6 +128,7 @@ module "db" {
   ]  
   source           = "./db"
   NAME             = var.NAME
+  TENANT_NAME      = var.TENANT_NAME
   LOCATION         = var.LOCATION
   ENV              = var.ENV
   APP_RG_NAME      = azurerm_resource_group.appResourceGroup.name

@@ -273,18 +273,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         {
             var configBuilder = new ConfigurationBuilder()
                 .AddJsonFile("appconfig.json", true)
+                .AddEnvironmentVariables()
                 .AddAzureKeyVaultConfiguration(Constants.KeyVaultName);
-
-            string devConfigPath = string.Concat(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "\\appconfig.development.json");
-            if (System.IO.File.Exists(devConfigPath))
-            {
-                configBuilder.AddJsonFile("appconfig.development.json", true);
-            }
 
             _config = configBuilder.Build();
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase1()
         {
@@ -326,7 +321,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase2()
         {
@@ -367,7 +362,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase2_2()
         {
@@ -408,7 +403,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase3() 
         {
@@ -449,7 +444,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase3_2()
         {
@@ -490,7 +485,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase4()
         {
@@ -532,7 +527,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase5()
         {
@@ -574,7 +569,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category","Integration")]
         public void FunctionEvaluateTestCase6()
         {
@@ -616,7 +611,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category", "Integration")]
         public void FunctionDiscoverTestCase1()
         {
@@ -665,7 +660,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category", "Integration")]
         public void FunctionDiscoverTestCase1_2()
         {
@@ -718,7 +713,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             }
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category", "Integration")]
         public void FunctionDiscoverTestCase2()
         {
@@ -767,7 +762,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             }
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category", "Integration")]
         public void FunctionDiscoverTestCase3()
         {
