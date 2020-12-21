@@ -34,9 +34,9 @@ namespace CSE.Automation.Processors
         public abstract Task<IEnumerable<ActivityHistory>> GetActivityStatus(ActivityContext context, string activityId, string correlationId);
         public abstract Task<GraphOperationMetrics> DiscoverDeltas(ActivityContext context, bool forceReseed = false);
 
-        public async Task Lock()
+        public async Task Lock(string lockingActivityID)
         {
-            await configService.Lock(this.ConfigurationId.ToString(), this.DefaultConfigurationResourceName).ConfigureAwait(false);
+            await configService.Lock(this.ConfigurationId.ToString(), lockingActivityID, this.DefaultConfigurationResourceName).ConfigureAwait(false);
         }
 
         public async Task Unlock()

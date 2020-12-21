@@ -18,7 +18,7 @@ namespace CSE.Automation.Interfaces
         Task RequestDiscovery(ActivityContext context, DiscoveryMode discoveryMode, string source);
 
         Task<GraphOperationMetrics> DiscoverDeltas(ActivityContext context, bool forceReseed = false);
-        Task Lock();
+        Task Lock(string lockingActivityID);
         Task Unlock();
     }
 }

@@ -71,6 +71,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         private ILogger<ObjectTrackingRepository> _objectTrackingRepoLogger;
         private ILogger<ActivityService> _activityServiceLogger;
         private ILogger<ConfigRepository> _configRepoLogger;
+        private ILogger<ConfigService> _configLogger;
 
 
         private ILogger<ServicePrincipalGraphHelperTest> _spGraphHelperLogger;
@@ -141,7 +142,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _activityService = new ActivityService(_activityHistoryRespository, _activityServiceLogger);
 
             _configRespository = new ConfigRepository(_configRespositorySettings, _configRepoLogger);
-            _configService = new ConfigService(_configRespository);
+            _configService = new ConfigService(_configRespository, _configLogger);
 
             string displayNamePatternFilter = _config["displayNamePatternFilter"];
 
@@ -247,6 +248,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _queueLogger = CreateLogger<AzureQueueService>();
 
             _configRepoLogger = CreateLogger<ConfigRepository>();
+            _configLogger = CreateLogger<ConfigService>();
         }
 
         private void CreateMocks()
