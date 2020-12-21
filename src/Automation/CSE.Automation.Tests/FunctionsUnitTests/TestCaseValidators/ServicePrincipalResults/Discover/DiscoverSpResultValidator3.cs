@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
-using AzQueueTestTool.TestCases.ServicePrincipals;
 using CSE.Automation.Model;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases;
 using Microsoft.Graph;

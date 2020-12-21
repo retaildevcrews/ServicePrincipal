@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AzQueueTestTool.TestCases.ServicePrincipals;
 using CSE.Automation.Graph;
 using CSE.Automation.Model;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers;

@@ -1,0 +1,16 @@
+{
+  "KEYVAULT_NAME": "sp-kv-dev",
+  "AUTH_TYPE": "CLI",
+
+  "servicePrincipalPrefix": "sp-AzQueueTesting",
+  "numberOfServicePrincipalObjectsToCreatePerTestCase": "3",
+
+  "aadUserServicePrincipalPrefix": "user-AzQueueTesting",
+  "numberOfUsersToCreatePerTestCase": "3",
+
+  "testEmailBase": "TestEmail",
+  "testEmailDomainNames": "microsoft.com, outlook.com, gmail.com, amazon.com, yahoo.com",
+  "testEmailCount": "5",
+
+  "TargetTestCase": "RuleSet1, RuleSet2, RuleSet3, RuleSet4, RuleSet5, RuleSet6, RuleSet7, RuleSet8, RuleSet9, RuleSet10, RuleSet11"
+}

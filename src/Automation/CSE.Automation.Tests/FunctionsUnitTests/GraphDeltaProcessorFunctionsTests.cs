@@ -71,6 +71,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         private ILogger<ObjectTrackingRepository> _objectTrackingRepoLogger;
         private ILogger<ActivityService> _activityServiceLogger;
         private ILogger<ConfigRepository> _configRepoLogger;
+        private ILogger<ConfigService> _configLogger;
 
 
         private ILogger<ServicePrincipalGraphHelperTest> _spGraphHelperLogger;
@@ -141,7 +142,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _activityService = new ActivityService(_activityHistoryRespository, _activityServiceLogger);
 
             _configRespository = new ConfigRepository(_configRespositorySettings, _configRepoLogger);
-            _configService = new ConfigService(_configRespository);
+            _configService = new ConfigService(_configRespository, _configLogger);
 
             string displayNamePatternFilter = _config["displayNamePatternFilter"];
 
@@ -247,6 +248,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             _queueLogger = CreateLogger<AzureQueueService>();
 
             _configRepoLogger = CreateLogger<ConfigRepository>();
+            _configLogger = CreateLogger<ConfigService>();
         }
 
         private void CreateMocks()
@@ -285,7 +287,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC1;
 
-            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = _activityService.CreateContext($"Integration Test - EVALUATE Test Case [{thisTestCase}] ", withTracking: true);
 
             using var inputGenerator = new EvaluateInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase);
 
@@ -327,7 +329,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC2;
 
-            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = _activityService.CreateContext($"Integration Test - EVALUATE Test Case [{thisTestCase}] ", withTracking: true);
 
             using var inputGenerator = new EvaluateInputGenerator(_config, _graphHelperSettings,testCaseCollection, thisTestCase);
 
@@ -368,7 +370,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC2_2;
 
-            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = _activityService.CreateContext($"Integration Test - EVALUATE Test Case [{thisTestCase}] ", withTracking: true);
 
             using var inputGenerator = new EvaluateInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase);
 
@@ -409,7 +411,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC3;
 
-            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = _activityService.CreateContext($"Integration Test - EVALUATE Test Case [{thisTestCase}] ", withTracking: true);
 
             using var inputGenerator = new EvaluateInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase);
 
@@ -450,7 +452,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC3_2;
 
-            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = _activityService.CreateContext($"Integration Test - EVALUATE Test Case [{thisTestCase}] ", withTracking: true);
 
             using var inputGenerator = new EvaluateInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase);
 
@@ -491,7 +493,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC4;
 
-            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = _activityService.CreateContext($"Integration Test - EVALUATE Test Case [{thisTestCase}] ", withTracking: true);
 
             using var inputGenerator = new EvaluateInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase);
 
@@ -533,7 +535,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC5;
 
-            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = _activityService.CreateContext($"Integration Test - EVALUATE Test Case [{thisTestCase}] ", withTracking: true);
 
             using var inputGenerator = new EvaluateInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase);
 
@@ -575,7 +577,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC6;
 
-            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = _activityService.CreateContext($"Integration Test - EVALUATE Test Case [{thisTestCase}] ", withTracking: true);
 
             using var inputGenerator = new EvaluateInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase);
 
@@ -617,7 +619,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC1;
 
-            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = _activityService.CreateContext($"Integration Test - DISCOVER Test Case [{thisTestCase}] ", withTracking: true);
 
             GraphDeltaProcessorWrapper graphDeltaProcessorWrapper  = _graphDeltaProcessorWrapperFactory.GetNewGraphDeltaProcessorWrapper();
 
@@ -666,7 +668,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC1_2;
 
-            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = _activityService.CreateContext($"Integration Test - DISCOVER Test Case [{thisTestCase}] ", withTracking: true);
 
             GraphDeltaProcessorWrapper graphDeltaProcessorWrapper  = _graphDeltaProcessorWrapperFactory.GetNewGraphDeltaProcessorWrapper();
 
@@ -719,7 +721,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             TestCase thisTestCase = testCaseCollection.TC2;
 
-            using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = _activityService.CreateContext($"Integration Test - DISCOVER Test Case [{thisTestCase}] ", withTracking: true);
 
             GraphDeltaProcessorWrapper graphDeltaProcessorWrapper  = _graphDeltaProcessorWrapperFactory.GetNewGraphDeltaProcessorWrapper();
 
@@ -777,7 +779,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
                 using var inputGenerator = new DiscoverInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase, graphDeltaProcessorWrapper.ConfigId, graphDeltaProcessorHelper);
 
 
-                using var activityContext = _activityService.CreateContext($"Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
+                using var activityContext = _activityService.CreateContext($"Integration Test - DISCOVER Test Case [{thisTestCase}] ", withTracking: true);
 
                 CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(DiscoveryMode.Deltas, "HTTP", activityContext));
 
@@ -809,6 +811,114 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             {
                 _graphDeltaProcessorWrapperFactory.DeleteConfigItem(graphDeltaProcessorWrapper);
             }
+        }
+
+        [Fact]
+        [Trait("Category", "Integration")]
+        public void FunctionUpdateTestCase1()
+        {
+            using var testCaseCollection = new UpdateTestCaseCollection();
+
+            TestCase thisTestCase = testCaseCollection.TC1;
+
+            using var activityContext = _activityService.CreateContext($"Integration Test - UPDATE Test Case [{thisTestCase}] ", withTracking: true);
+
+            using var inputGenerator = new UpdateInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase);
+
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(activityContext));
+
+            //Create Validators 
+            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext);
+
+
+            using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespositoryTest, activityContext);
+
+
+            Task thisTaks = Task.Run (() => _graphDeltaProcessor.UpdateAAD(cloudQueueMessage, _graphLogger));
+            thisTaks.Wait();
+
+
+            bool validServicePrincipal = servicePrincipalValidationManager.Validate();
+
+            Assert.True(validServicePrincipal, "Service Principal Validation");
+
+            bool validAudit =  auditValidationManager.Validate();
+
+            Assert.True(validAudit, "Audit Validation");
+
+
+        }
+
+        [Fact]
+        [Trait("Category", "Integration")]
+        public void FunctionUpdateTestCase2()
+        {
+
+            using var testCaseCollection = new UpdateTestCaseCollection();
+
+            TestCase thisTestCase = testCaseCollection.TC2;
+
+            using var activityContext = _activityService.CreateContext($"Integration Test - UPDATE Test Case [{thisTestCase}] ", withTracking: true);
+
+            using var inputGenerator = new UpdateInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase);
+
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(activityContext));
+
+            //Create Validators 
+            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext);
+
+            using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespositoryTest, activityContext);
+
+
+            Task thisTaks = Task.Run (() => _graphDeltaProcessor.UpdateAAD(cloudQueueMessage, _graphLogger));
+            thisTaks.Wait();
+
+  
+            bool validServicePrincipal = servicePrincipalValidationManager.Validate();
+
+            Assert.True(validServicePrincipal, "Service Principal Validation");
+
+            bool validAudit =  auditValidationManager.Validate();
+
+            Assert.True(validAudit, "Audit Validation");
+
+
+        }
+
+
+        [Fact]
+        [Trait("Category", "Integration")]
+        public void FunctionUpdateTestCase3()
+        {
+            using var testCaseCollection = new UpdateTestCaseCollection();
+
+            TestCase thisTestCase = testCaseCollection.TC3;
+
+            using var activityContext = _activityService.CreateContext($"Integration Test - UPDATE Test Case [{thisTestCase}] ", withTracking: true);
+
+            using var inputGenerator = new UpdateInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase);
+
+
+            CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(activityContext));
+
+            //Create Validators 
+            using var servicePrincipalValidationManager = new ServicePrincipalValidationManager(inputGenerator, activityContext);
+
+            using var auditValidationManager = new AuditValidationManager(inputGenerator, _auditRespositoryTest, activityContext);
+
+
+            Task thisTaks = Task.Run (() => _graphDeltaProcessor.UpdateAAD(cloudQueueMessage, _graphLogger));
+            thisTaks.Wait();
+
+            bool validServicePrincipal = servicePrincipalValidationManager.Validate();
+
+            Assert.True(validServicePrincipal, "Service Principal Validation");
+
+            bool validAudit =  auditValidationManager.Validate();
+
+            Assert.True(validAudit, "Audit Validation");
+
+
         }
     }
 }

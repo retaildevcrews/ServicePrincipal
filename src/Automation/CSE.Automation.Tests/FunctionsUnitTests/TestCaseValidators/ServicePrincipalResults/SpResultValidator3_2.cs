@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using AzQueueTestTool.TestCases.ServicePrincipals;
 using CSE.Automation.Model;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Queue;

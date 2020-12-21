@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AzQueueTestTool.TestCases.ServicePrincipals;
 using CSE.Automation.DataAccess;
 using CSE.Automation.Model;
+using CSE.Automation.TestsPrep.TestCases.ServicePrincipals;
 using Microsoft.Graph;
 using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases.TestCaseCollection;
 
@@ -94,7 +94,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
 
             var userslList = GraphHelper.GetAllUsers($"{usersPrefix}").Result;
 
-            var toBeAssigned = ((EvaluateInputGenerator)_inputGenerator).TC4AssignTheseOwnersWhenCreatingAMissingObjectTracking.Split(';').ToList();
+            var toBeAssigned = ((EvaluateInputGenerator)_inputGenerator).TC4AssignTheseOwnersWhenCreatingAMissingObjectTracking.GetAsList();
 
             List<string> spUsers = new List<string>();
             foreach(var userName in toBeAssigned)
