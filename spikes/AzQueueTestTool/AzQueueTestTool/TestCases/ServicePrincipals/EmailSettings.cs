@@ -6,7 +6,7 @@ using System.Text;
 
 namespace AzQueueTestTool.TestCases.ServicePrincipals
 {
-    public class EmailSettings : IDisposable
+    public class EmailSettings : IEmailSettings, IDisposable
     {
 
         public string TestEmailBase

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using AzQueueTestTool.TestCases.ServicePrincipals;
 using CSE.Automation.Model;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ConfigurationResults;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers;

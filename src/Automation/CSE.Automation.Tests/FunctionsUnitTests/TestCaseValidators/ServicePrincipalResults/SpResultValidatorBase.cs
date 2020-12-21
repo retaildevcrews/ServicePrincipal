@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AzQueueTestTool.TestCases.ServicePrincipals;
 using CSE.Automation.Model;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers;
 using Microsoft.Azure.Storage;
@@ -35,6 +34,14 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
             } 
         }
 
+
+        protected IInputGenerator InputGeneratorInstance
+        {
+            get
+            {
+                return _inputGenerator;
+            }
+        }
 
         public SpResultValidatorBase(string savedServicePrincipalAsString, IInputGenerator inputGenerator, ActivityContext activityContext, bool getNewServicePrincipal = true)
         {

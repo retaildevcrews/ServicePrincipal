@@ -12,7 +12,16 @@
   "TC5": "sp-AzQueueTesting-13",
   "TC6": "sp-AzQueueTesting-16",
 
+  "U_TC1": "sp-AzQueueTesting-19",
+  "U_TC2": "sp-AzQueueTesting-22",
+  "U_TC3": "sp-AzQueueTesting-25",
+
   "TC4_AssignTheseOwnersWhenCreatingAMissingObjectTracking": "user-AzQueueTesting-10; user-AzQueueTesting-11; user-AzQueueTesting-12",
+  "U_TC2_AssignTheseOwnersWhenCreatingUpdateQueueMessage": "user-AzQueueTesting-10; user-AzQueueTesting-11; user-AzQueueTesting-12",
+
+  "testEmailBase": "TestEmail",
+  "testEmailDomainNames": "microsoft.com, outlook.com, gmail.com, amazon.com, yahoo.com",
+  "testEmailCount": "5",
 
 
   "KEYVAULT_NAME": "kv-svcprincipal-cse-dev",

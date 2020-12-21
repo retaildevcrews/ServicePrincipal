@@ -15,6 +15,8 @@ namespace CSE.Automation.Validators
 {
     internal class ServicePrincipalModelValidator : AbstractValidator<ServicePrincipalModel>, IModelValidator<ServicePrincipalModel>
     {
+        public static char[] NotesSeparators = { ',', ';' };
+
         public ServicePrincipalModelValidator(IGraphHelper<User> graphHelper)
         {
             Include(new GraphModelValidator());
@@ -24,7 +26,7 @@ namespace CSE.Automation.Validators
                 .HasOnlyEmailAddresses()
                 .Custom((field, context) =>
                 {
-                    field?.Split(',', ';').ToList().ForEach(token =>
+                    field?.Split(NotesSeparators).Select(x => x.Trim()).ToList().ForEach(token =>
                     {
                         if (graphHelper.GetGraphObjectWithOwners(token).Result is null)
                         {

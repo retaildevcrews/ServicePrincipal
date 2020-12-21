@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionScripts", "Solution
 		SolutionScripts\SolutionCommands.ps1 = SolutionScripts\SolutionCommands.ps1
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSE.Automation.TestsPrep", "CSE.Automation.TestsPrep\CSE.Automation.TestsPrep.csproj", "{7B58FC36-F080-4542-AF4B-CA17A8F499D8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{5C515ED7-6CFE-462E-827F-68EADE6DB6B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5C515ED7-6CFE-462E-827F-68EADE6DB6B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5C515ED7-6CFE-462E-827F-68EADE6DB6B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B58FC36-F080-4542-AF4B-CA17A8F499D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B58FC36-F080-4542-AF4B-CA17A8F499D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B58FC36-F080-4542-AF4B-CA17A8F499D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B58FC36-F080-4542-AF4B-CA17A8F499D8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
