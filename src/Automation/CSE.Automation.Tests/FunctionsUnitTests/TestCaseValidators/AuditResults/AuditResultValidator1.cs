@@ -25,7 +25,8 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
             
             bool validReasonPass = (NewAuditEntry.Reason == AuditCode.Pass_ServicePrincipal.Description());
 
-            bool isNewAuditEntryPass = NewAuditEntry.Timestamp > SavedAuditEntry.Timestamp;
+            //SavedAuditEntry will be null when Audit Colection is empty
+            bool isNewAuditEntryPass = SavedAuditEntry != null ? NewAuditEntry.Timestamp > SavedAuditEntry.Timestamp : true;
             
             bool validCorrelationIdPass = Guid.TryParse(NewAuditEntry.CorrelationId, out Guid dummyGuid) &&
                                         NewAuditEntry.CorrelationId.Equals(Context.CorrelationId);

@@ -40,8 +40,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
 
                 bool validAttributeNamePass = (auditEntry.AttributeName == "Notes");
 
-                bool isNewAuditEntryPass = auditEntry.Timestamp > SavedAuditEntry.Timestamp;
-
+                bool isNewAuditEntryPass = SavedAuditEntry != null ? auditEntry.Timestamp > SavedAuditEntry.Timestamp : true;
 
                 if (!typePass || !validReasonPass || !validAttributeNamePass || !isNewAuditEntryPass)
                 {
