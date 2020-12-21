@@ -14,6 +14,6 @@
   "lastSeedTime": "",
   "description": "",
   "configType": "ServicePrincipal",
-  "isProcessorLocked":  false, 
-  "lockingActivityId":  ""
+  "isProcessorLocked": false,
+  "lockingActivityId": ""
 }
