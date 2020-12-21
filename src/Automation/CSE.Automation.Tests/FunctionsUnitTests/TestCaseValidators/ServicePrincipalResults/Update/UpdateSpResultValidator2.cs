@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using AzQueueTestTool.TestCases.ServicePrincipals;
 using CSE.Automation.Model;
 using Microsoft.Graph;
 using Newtonsoft.Json;

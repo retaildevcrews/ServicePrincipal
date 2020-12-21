@@ -817,7 +817,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             }
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category", "Integration")]
         public void FunctionUpdateTestCase1()
         {
@@ -853,7 +853,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
         }
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category", "Integration")]
         public void FunctionUpdateTestCase2()
         {
@@ -890,7 +890,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
 
-        [Fact(Skip = "Needs Updating")]
+        [Fact]
         [Trait("Category", "Integration")]
         public void FunctionUpdateTestCase3()
         {

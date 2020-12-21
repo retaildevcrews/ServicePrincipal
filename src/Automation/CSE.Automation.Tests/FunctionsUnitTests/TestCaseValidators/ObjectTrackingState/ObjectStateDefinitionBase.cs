@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AzQueueTestTool.TestCases.ServicePrincipals;
 using CSE.Automation.DataAccess;
 using CSE.Automation.Model;
+using CSE.Automation.TestsPrep.TestCases.ServicePrincipals;
 using Microsoft.Graph;
 using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases.TestCaseCollection;
 

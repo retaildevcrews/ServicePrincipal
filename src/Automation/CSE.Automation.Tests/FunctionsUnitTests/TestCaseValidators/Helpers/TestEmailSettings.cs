@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using AzQueueTestTool.TestCases.ServicePrincipals;
+using CSE.Automation.TestsPrep.TestCases.ServicePrincipals;
 using Microsoft.Extensions.Configuration;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers

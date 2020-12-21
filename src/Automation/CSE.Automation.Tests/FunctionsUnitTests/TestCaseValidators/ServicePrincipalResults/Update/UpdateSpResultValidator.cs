@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using AzQueueTestTool.TestCases.ServicePrincipals;
 using CSE.Automation.Model;
+using CSE.Automation.TestsPrep.TestCases.ServicePrincipals;
 using Microsoft.Graph;
 using Newtonsoft.Json;
 using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases.TestCaseCollection;
