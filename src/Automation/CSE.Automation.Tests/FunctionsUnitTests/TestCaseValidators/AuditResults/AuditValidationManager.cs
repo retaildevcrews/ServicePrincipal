@@ -41,10 +41,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
             {
                 result = dataResult[0];
             }
-            else
-            {
-                throw new Exception($"Unable to Get the most recent Audit item  for Test Case Id: {_inputGenerator.TestCaseId}");
-            }
 
             return result;
         }
