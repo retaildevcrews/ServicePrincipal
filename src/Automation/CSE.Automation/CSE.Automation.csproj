@@ -7,8 +7,9 @@
     <VersionPrefix>0.2</VersionPrefix>
     <VersionSuffix>local</VersionSuffix>
     <!-- TODO: set to true -->
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <BuildUTC>$([System.DateTime]::UtcNow.ToString("o"))</BuildUTC>
+    <NeutralLanguage>en-US</NeutralLanguage>
   </PropertyGroup>
 
   <ItemGroup>
