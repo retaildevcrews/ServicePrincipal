@@ -4,7 +4,7 @@
 
 # Run these commands from root of project
 
-cp spikes/MermaidMarkdownRender/hook.sh .git/hooks/pre-commit
+cp spikes/MermaidMarkdownRender/hook.ps1 .git/hooks/pre-commit
 
 chmod +x .git/hooks/pre-commit
 
