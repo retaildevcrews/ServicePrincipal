@@ -1,5 +1,4 @@
-#!/usr/bin/env pwsh
-
+Write-Host $(Get-Location)
 $mdPaths = git diff --name-only --cached |
   Select-String -Pattern ".md"
 if ($mdPaths.Count -eq 0)
@@ -18,8 +17,7 @@ $mdPaths |
       ForEach-Object {
         if ($_.'#text' -match '\((.+)\)') {
           $_.details.'#text' |
-            ForEach-Object {$_ -replace '```mermaid', ''} |
-            ForEach-Object {$_ -replace '```', ''} |
+            ForEach-Object {$_ -replace '```mermaid|```', ''} |
             docker run -i -v "$(Get-Location):/mnt/mmd" minlag/mermaid-cli:latest -o "/mnt/mmd/$mdDir/$($matches[1])" -c /mnt/mmd/spikes/MermaidMarkdownRender/mermaidConfig.json
           $svgPath = Join-Path -Path $mdDir -ChildPath $matches[1]
           Get-Content $svgPath |
