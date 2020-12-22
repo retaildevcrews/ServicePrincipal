@@ -87,9 +87,10 @@ namespace CSE.Automation.Services
             }
         }
 
-        public async Task Unlock()
+        public async Task Unlock(string configId)
         {
-            var config = configRepository.GetByIdAsync("02a54ac9-441e-43f1-88ee-fde420db2559", "ServicePrincipal").Result;
+            configId = string.IsNullOrEmpty(configId) ? "02a54ac9-441e-43f1-88ee-fde420db2559" : configId;
+            var config = configRepository.GetByIdAsync(configId, "ServicePrincipal").Result;
             config.IsProcessorLocked = false;
             config.LockingActivityId = null;
             await configRepository.ReplaceDocumentAsync(config.Id, config).ConfigureAwait(false);
