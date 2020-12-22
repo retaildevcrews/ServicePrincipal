@@ -43,7 +43,7 @@ namespace CSE.Automation.Processors
         {
             // Note: Integration test run before the system is up and running.
             // Discover queue integration tests create, utilize and dispose their own ProcessorConfiguration.
-            // so Unlock method was also fixed to be able to unlock any configuration not just the default one that is harcoded.
+            // so Unlock method was also fixed to be able to unlock any configuration not just the default one that is hardcoded.
             await configService.Unlock(this.config.Id).ConfigureAwait(false);
         }
 
