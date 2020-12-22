@@ -1,4 +1,3 @@
-Write-Host $(Get-Location)
 $mdPaths = git diff --name-only --cached |
   Select-String -Pattern ".md"
 if ($mdPaths.Count -eq 0)
