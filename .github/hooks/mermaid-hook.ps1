@@ -15,7 +15,9 @@ if ($mdPaths.Count -gt 0)
     ForEach-Object {
       $mdDir = Split-Path $_
 
+      $mdDir = $mdDir -Replace "\\","/"
       Write-Verbose "Checking $mdDir"
+      
       $wrappedMd = "<div>`n"
       $wrappedMd += (Get-Content $mdPaths[0]) -join "`n"
       $wrappedMd += "`n</div>"
