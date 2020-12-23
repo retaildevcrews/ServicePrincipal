@@ -6,5 +6,5 @@ Write-Host $PSVersionTable.OS
 if ($($PSVersionTable.OS) -eq $null) {
     c:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -ExecutionPolicy Unrestricted -Command .github/hooks/mermaid-hook.ps1 -verbose
 } else {
-  pwsh .github/hooks/mermaid-hook.ps1
+  pwsh .github/hooks/mermaid-hook.ps1 -verbose
 }
