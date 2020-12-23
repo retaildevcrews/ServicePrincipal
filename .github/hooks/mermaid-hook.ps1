@@ -34,9 +34,9 @@ if ($mdPaths.Count -gt 0)
             $tmpFile = New-TemporaryFile
             Write-Verbose "Writing temporary file $tmpFile"
             Get-Content $svgPath | ForEach-Object {$_ -replace 'mermaid-\d+', 'mermaid'} | Set-Content -Path $tmpFile
-            Get-Content $tmpFile | Set-Content -Force $svgFile
+            Get-Content $tmpFile | Set-Content -Force $svgPath
             Remove-Item $tmpFile
-            
+
             git add $svgPath
           }
         }
