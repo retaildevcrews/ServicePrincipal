@@ -28,7 +28,7 @@ chmod +x .git/hooks/pre-commit
 
     ```mermaid
     sequenceDiagram
-    Alice->>John: Hello John, how are you?
+    Alice->>John: Hello John, how are you buddy?
     loop Healthcheck
         John->>John: Fight against hypochondria
     end
