@@ -34,7 +34,6 @@ if ($mdPaths.Count -gt 0)
 
             Write-Verbose "Writing new content for $svgPath"
             (Get-Content $svgPath) | ForEach-Object {$_ -replace 'mermaid-\d+', 'mermaid'} | Set-Content -Path $svgPath
-            (gci $svgPath).LastWriteTime = Get-Date
             
             git add $svgPath
           }
