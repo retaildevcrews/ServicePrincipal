@@ -25,14 +25,18 @@ if ($mdPaths.Count -gt 0)
       $xml.div.div |
         Where-Object { $_.class -eq "mermaid" } |
         ForEach-Object {
-          if ($_.'#text' -match '\((.+)\)') {
-            $_.details.'#text' |
-              ForEach-Object {$_ -replace '```mermaid|```', ''} |
-              docker run -i -v "$(Get-Location):/mnt/mmd" minlag/mermaid-cli:latest -o "/mnt/mmd/$mdDir/$($matches[1])" -c /mnt/mmd/.github/hooks/mermaidConfig.json
+          if ($_.'#text' -match '\((.+)\)') 
+          {
+            $_.details.'#text' | ForEach-Object {$_ -replace '```mermaid|```', ''} |
+                    docker run -i -v "$(Get-Location):/mnt/mmd" minlag/mermaid-cli:latest -o "/mnt/mmd/$mdDir/$($matches[1])" -c /mnt/mmd/.github/hooks/mermaidConfig.json
+
             $svgPath = Join-Path -Path $mdDir -ChildPath $matches[1]
-            Get-Content $svgPath |
-              ForEach-Object {$_ -replace 'mermaid-\d+', 'mermaid'} |
-              Set-Content -Path $svgPath
+            $tmpFile = New-TemporaryFile
+            Write-Verbose "Writing temporary file $tmpFile"
+            Get-Content $svgPath | ForEach-Object {$_ -replace 'mermaid-\d+', 'mermaid'} | Set-Content -Path $tmpFile
+            Get-Content $tmpFile | Set-Content -Force $svgFile
+            Remove-Item $tmpFile
+            
             git add $svgPath
           }
         }
