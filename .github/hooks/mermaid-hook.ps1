@@ -30,10 +30,12 @@ if ($mdPaths.Count -gt 0)
             $_.details.'#text' | ForEach-Object {$_ -replace '```mermaid|```', ''} |
                     docker run -i -v "$(Get-Location):/mnt/mmd" minlag/mermaid-cli:latest -o "/mnt/mmd/$mdDir/$($matches[1])" -c /mnt/mmd/.github/hooks/mermaidConfig.json
 
-            Write-Verbose "Writing new content for $svgPath"
             $svgPath = Join-Path -Path $mdDir -ChildPath $matches[1]
-            (Get-Content $svgPath) | ForEach-Object {$_ -replace 'mermaid-\d+', 'mermaid'} | Set-Content -Path $svgPath
 
+            Write-Verbose "Writing new content for $svgPath"
+            (Get-Content $svgPath) | ForEach-Object {$_ -replace 'mermaid-\d+', 'mermaid'} | Set-Content -Path $svgPath
+            (gci $svgPath).LastWriteTime = Get-Date
+            
             git add $svgPath
           }
         }
