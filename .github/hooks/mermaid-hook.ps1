@@ -4,6 +4,7 @@ Param ()
 
 Write-Host "Mermaid Diagram Generation Hook"
 
+
 $mdPaths = git diff --name-only --cached | Select-String -Pattern ".md"
 Write-Verbose "$($mdPaths.Count) paths found containing an .md file"
 
