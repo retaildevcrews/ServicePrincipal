@@ -3,7 +3,7 @@
 Write-Host $PSVersionTable.OS
 # Check version table for the OS.  Null is Windows, Otherwise Linux/Mac
 if ($($PSVersionTable.OS) -eq $null) {
-    c:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -ExecutionPolicy Unrestricted -Command $PSScriptRoot/.github/hooks/mermaid-hook.ps1 -verbose
+    c:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -ExecutionPolicy Unrestricted -Command .github/hooks/mermaid-hook.ps1 -verbose
 } else {
-  pwsh $PSScriptRoot/.github/hooks/mermaid-hook.ps1
+  pwsh .github/hooks/mermaid-hook.ps1
 }
