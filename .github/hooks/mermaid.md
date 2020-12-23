@@ -1,6 +1,5 @@
 # Mermaid MarkDown Spike
 
-
 ```sh
 
 # Run these commands from root of project
