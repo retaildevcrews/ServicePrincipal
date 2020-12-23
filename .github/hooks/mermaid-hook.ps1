@@ -26,7 +26,7 @@ if ($mdPaths.Count -gt 0)
           if ($_.'#text' -match '\((.+)\)') {
             $_.details.'#text' |
               ForEach-Object {$_ -replace '```mermaid|```', ''} |
-              docker run -i -v "$(Get-Location):/mnt/mmd" minlag/mermaid-cli:latest -o "/mnt/mmd/$mdDir/$($matches[1])" -c /mnt/mmd/spikes/MermaidMarkdownRender/mermaidConfig.json
+              docker run -i -v "$(Get-Location):/mnt/mmd" minlag/mermaid-cli:latest -o "/mnt/mmd/$mdDir/$($matches[1])" -c /mnt/mmd/.github/hooks/mermaidConfig.json
             $svgPath = Join-Path -Path $mdDir -ChildPath $matches[1]
             Get-Content $svgPath |
               ForEach-Object {$_ -replace 'mermaid-\d+', 'mermaid'} |
