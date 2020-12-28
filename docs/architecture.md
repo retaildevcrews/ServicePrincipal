@@ -106,15 +106,16 @@
             participant DQ as DiscoveryQueue
             participant F as Discovery Function
             participant P as ServicePrincipal Processor
+            participant AS as Activity Service
+            participant AC as Activity Context
+            participant AR as Activity Repository
             participant GH as Graph Helper
             participant GS as Graph Service
             participant QS as Queue Service
             participant EQ as Evaluate Queue
             participant CS as Config Service
             participant CR as Config Repository
-            participant AS as Activity Service
-            participant AC as Activity Context
-            participant AR as Activity Repository
+
 
             DQ -->>F: request command
 
