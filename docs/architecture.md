@@ -127,7 +127,7 @@
                 GS -->> GH: Page (200 records)
                 GH ->> GH: Prune Removed / Add to List
                 end
-                GH -->>-P: (metrics, IEnumerable<ServicePrincipal>)
+                GH -->>-P: (metrics, IEnumerable::ServicePrincipal)
 
 
                 loop each ServicePrincipal in list
