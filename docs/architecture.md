@@ -7,10 +7,10 @@
 # RequestDiscovery Function (HTTP)
 <div class="mermaid" id="seq_requestdiscoveryhttp">
 
-    ![Sample Sequence](images/seq_requestdiscoveryhttp.svg)
+![SEQ 1](images/seq_requestdiscoveryhttp.svg)
 
-    <details>
-        <summary>Show source code</summary>
+<details>
+    <summary>Show source code</summary>
         ```mermaid
         sequenceDiagram
             participant C as client
@@ -45,12 +45,15 @@
 
             F -->>-C: 200
         ```
-    </details>
+</details>
 </div>
 
 # DiscoverDeltas Function (Timer)
 <div class="mermaid" id="seq_requestdiscoverytimer">
-    <details>
+
+![SEQ 2](images/seq_requestdiscoverytimer.svg)
+    
+<details>
         <summary>Show source code</summary>
         ```mermaid
         sequenceDiagram
@@ -93,6 +96,8 @@
 
 # Discovery Function
 <div class="mermaid" id="seq_discoveryfunction">
+
+![SEQ 3](images/seq_discoveryfunction.svg)
 
 <details>
     <summary>Show source code</summary>
