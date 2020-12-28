@@ -27,8 +27,10 @@ if ($mdPaths.Count -gt 0)
       $xml.div.div |
         Where-Object { $_.class -eq "mermaid" } |
         ForEach-Object {
-          if ($_.details.'#text' -match '\((.+)\)') 
+          # Check if there is an existing link to an image in the text of the mermaid div
+          if ($_.'#text' -match '\((.+)\)') 
           {
+            # mermaid text is in the details section of the div
             $_.details.'#text' | ForEach-Object {$_ -replace '```mermaid|```', ''} |
                     docker run -i -v "$(Get-Location):/mnt/mmd" minlag/mermaid-cli:latest -o "/mnt/mmd/$mdDir/$($matches[1])" -c /mnt/mmd/.github/hooks/mermaidConfig.json
 
