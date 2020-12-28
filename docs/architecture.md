@@ -19,7 +19,6 @@
             participant DQ as DiscoveryQueue
 
             C ->>+F: HTTP GET?full=true&redirect
-
             % Create Activity %
             F ->>+AS: CreateContext(tracked)
             AS ->> AC: ctor()
