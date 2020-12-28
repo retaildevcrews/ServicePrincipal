@@ -18,6 +18,7 @@ if ($mdPaths.Count -gt 0)
 
       $mdDir = $mdDir -Replace "\\","/"
       Write-Verbose "Checking $mdDir"
+      Write-Verbose "`tGetting content of $($mdPaths[0])"
       
       $wrappedMd = "<div>`n"
       $wrappedMd += (Get-Content $mdPaths[0]) -join "`n"
