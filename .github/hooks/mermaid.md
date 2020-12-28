@@ -3,18 +3,8 @@
 ```sh
 
 # Run these commands from root of project
-
-
-# Windows
-echo "#!/bin/sh"> .git/hooks/pre-commit
-echo "c:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -ExecutionPolicy RemoteSigned -Command 'spikes/MermaidMarkdownRender/hook.ps1'">> .git/hooks/pre-commit
-
-# Linux / OSX / WSL2
-
-echo \#\!/bin/sh> .git/hooks/pre-commit
-echo "pwsh spikes/MermaidMarkdownRender/hook.ps1">> .git/hooks/pre-commit
-
-chmod +x .git/hooks/pre-commit
+git config --local core.hooksPath .github/hooks
+chmod +x .github/hooks/pre-commit
 
 ```
 
@@ -27,7 +17,7 @@ chmod +x .git/hooks/pre-commit
 
     ```mermaid
     sequenceDiagram
-    Alice->>John: Hello John, how are you?
+    Alice->>John: Hello John, how are you buddy?
     loop Healthcheck
         John->>John: Fight against hypochondria
     end
