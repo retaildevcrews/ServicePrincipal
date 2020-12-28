@@ -6,6 +6,9 @@
 
 # RequestDiscovery Function (HTTP)
 <div class="mermaid" id="seq_requestdiscoveryhttp">
+
+    ![Sample Sequence](../../docs/images/seq_requestdiscoveryhttp.svg)
+
     <details>
         <summary>Show source code</summary>
         ```mermaid
