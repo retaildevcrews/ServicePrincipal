@@ -18,7 +18,7 @@
             participant QS as Queueu Service
             participant DQ as DiscoveryQueue
 
-            C ->>+F: HTTP GET?full=true&redirect
+            C ->>+F: HTTP GET full=true redirect=true
             % Create Activity %
             F ->>+AS: CreateContext(tracked)
             AS ->> AC: ctor()
