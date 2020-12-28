@@ -7,10 +7,10 @@ Write-Host "Mermaid Diagram Generation Hook"
 
 $mdPaths = git diff --name-only --cached | Select-String -Pattern ".md"
 Write-Verbose "$($mdPaths.Count) paths found containing an .md file"
-Write-Verbose $($mdPaths -join ', ')
 
 if ($mdPaths.Count -gt 0)
 {
+  Write-Verbose $($mdPaths -join ', ')
   
   $mdPaths |
     ForEach-Object {
