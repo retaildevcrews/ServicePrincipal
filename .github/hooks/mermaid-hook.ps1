@@ -31,10 +31,12 @@ if ($mdPaths.Count -gt 0)
           $filename = ""
           if ($_.'#text' -match '\((.+)\)') 
           {
+            Write-Verbose "Using existing file reference"
             $filename = $matches[1]
           }
           else 
           {
+            Write-Verbose "No file reference found, naming file from div.id"
             $filename = "$($_.id).svg"
           }
 
