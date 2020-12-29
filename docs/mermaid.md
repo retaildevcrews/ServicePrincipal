@@ -33,7 +33,7 @@ The hook expects a ``div`` wrapping the mermaid content.  The template is as fol
 ```md
 <div class="mermaid" id="name of the diagram">
 
-![Diagram Name](path to the svg in the images directory)
+![Diagram Name](relative path to the svg in the images directory)
 
 <details>
   <summary>Show source code</summary>
@@ -48,7 +48,7 @@ The hook expects a ``div`` wrapping the mermaid content.  The template is as fol
 ## Examples
 <div class="mermaid" id="sequence_mmd">
 
-  ![Sample Sequence](../../docs/images/sequence_mmd.svg)
+  ![Sample Sequence](images/sequence_mmd.svg)
 
   <details>
     <summary>Show source code</summary>
@@ -69,7 +69,7 @@ The hook expects a ``div`` wrapping the mermaid content.  The template is as fol
 
 <div class="mermaid" id="flowchart_mmd">
 
-  ![Sample Flowchart](../../docs/images/flowchart_mmd.svg)
+  ![Sample Flowchart](images/flowchart_mmd.svg)
 
   <details>
     <summary>Show source code</summary>
