@@ -1,5 +1,40 @@
-# Software and Component Architecture
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
+- [Software and Component Architecture](#software-and-component-architecture)
+  - [Overview](#overview)
+    - [Discovery](#discovery)
+    - [Evaluate](#evaluate)
+    - [Update](#update)
+  - [Logical View](#logical-view)
+  - [RequestDiscovery Function (HTTP)](#requestdiscovery-function-http)
+  - [DiscoverDeltas Function (Timer)](#discoverdeltas-function-timer)
+  - [Discovery Function](#discovery-function)
+
+# Software and Component Architecture
+## Overview
+The system is built on Azure Functions (v3), Azure Storage Queues and CosmosDB.  
+
+The system is broken down into three major units of work: Discovery, Evaluate and Update.  
+
+### Discovery
+The Discovery unit of work is responsible for querying Azure AD (via a Graph API delta query) for any ServicePrincipals that have changed since the last run.  The boundary of this unit of work is either all ServicePrincipals in the Directory that have changed since the last baseline.
+
+A first run or a "force seed" should be considered a baseline.  During a first run any ServicePrincipals that are currently deleted are ignored from consideration. The rationale is that once a ServicePrincipal is deleted, it is immutable and will never have any state changes other than purged from the Directory.
+
+Discovery is triggered via the _discovery_ queue.  Messages are posted into the _discovery_ queue via two Azure functions, **RequestDiscovery** and **DiscoverDeltas**.  The **RequestDiscovery** function is an HTTP triggered function allowing a user or automation to initiate a Full Seed operation.  This may be done as an initial seed activity or to force a reseed of the system.  The Full Seed operation should be viewed as a baseline of the system where changes to ServicePrincipals are monitored from the baseline forward.  The **DiscoverDeltas** function is a Timer trigged function using a configurable schedule that performs the _delta_ query on a predictable schedule.  The default schedule triggers the function on the hour and half hour (0 */30 * * * *).  
+
+For each ServicePrincipal discovered for evaluation, an _evaluate_ message is posted into the **evaluate** queue for the next unit of work.
+
+### Evaluate
+The Evaluate unit of work is responsible for performing audit checks against a single ServicePrincipal and if possible, commands an update to the ServicePrincipal in the Directory.  
+
+Evaluate is triggered via the _evaluate_ queue.  The command message contains enough metadata for the ServicePrincipal for audit as well as remediation/update.  If the ServicePrincipal object fails audit, the system will attempt to revert it to a last known good state.  This last known good state is the last time the system detected the object in a PASSing state as tracked in the ObjectTracking Repository.  If a last known good state is not found, the default behavior is use the _Owners_ attribute to update the Notes field.  In either case, if an update to a ServicePrincipal is needed in the Directory, an _update_ message is posted into the **update** queue for the next unit of work.
+
+### Update
+The Update unit of work is resonsible for updating a ServicePrincipal in the Directory and recording the last known good state of the object.  
+
+>**Note**: Only the `Notes` field will be updated on the object.  Other housekeeping attributes may be updated by the Directory. (e.g. LastUpdateTime)
+
+
 
 ## Logical View
 ![Logical view](images/architecture-logical-view.png)
