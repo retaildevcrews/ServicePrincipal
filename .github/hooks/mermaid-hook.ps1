@@ -40,7 +40,7 @@ if ($mdPaths.Count -gt 0)
             $filename = "$($_.id).svg"
           }
 
-          if (-not [string]::IsNullOrWhiteSpace($filename))
+          if (-not [string]::IsNullOrWhiteSpace($_.id))
           {
             # mermaid text is in the details section of the div
             $_.details.'#text' | ForEach-Object {$_ -replace '```mermaid|```', ''} |
