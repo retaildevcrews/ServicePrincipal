@@ -1,5 +1,16 @@
-# Mermaid MarkDown 
+<h1>Mermaid Markdown</h1>
 
+- [Local Configuration](#local-configuration)
+  - [Linux](#linux)
+  - [Windows](#windows)
+- [Markup Container Format](#markup-container-format)
+- [Examples](#examples)
+
+
+## Local Configuration
+You must tell git to look in a different directory for the hook.  The commands below will override the configuration for the local repository only.
+
+### Linux
 ```sh
 
 # Run these commands from root of project
@@ -8,6 +19,33 @@ chmod +x .github/hooks/pre-commit
 
 ```
 
+### Windows
+```sh
+
+# Run these commands from root of project
+git config --local core.hooksPath .github/hooks
+
+```
+
+## Markup Container Format
+The hook expects a ``div`` wrapping the mermaid content.  The template is as follows:
+
+```md
+<div class="mermaid" id="name of the diagram">
+
+![Diagram Name](path to the svg in the images directory)
+
+<details>
+  <summary>Show source code</summary>
+
+  MERMAID CONTENT HERE
+
+</details>
+</div>
+
+```
+
+## Examples
 <div class="mermaid" id="sequence_mmd">
 
   ![Sample Sequence](../../docs/images/sequence_mmd.svg)
