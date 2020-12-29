@@ -1,4 +1,4 @@
-# Mermaid MarkDown Spike
+# Mermaid MarkDown 
 
 ```sh
 
