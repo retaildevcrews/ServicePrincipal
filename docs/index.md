@@ -14,4 +14,5 @@ This solution is to automate the process of retrieving specific AAD objects, tra
 * [Azure Cloud Shell setup](cloudshell.md)
 * [Developer Walkthrough](walkthrough.md)
 * [Versioning Strategy](Versioning.md)
+* [Mermaid Diagrams](mermaid.md)
 * [Glossary](glossary.md)
