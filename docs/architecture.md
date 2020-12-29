@@ -1,10 +1,10 @@
 # Software and Component Architecture
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-
+## Logical View
 ![Logical view](images/architecture-logical-view.png)
 
-# RequestDiscovery Function (HTTP)
+## RequestDiscovery Function (HTTP)
 <div class="mermaid" id="seq_requestdiscoveryhttp">
 
 ![SEQ 1](images/seq_requestdiscoveryhttp.svg)
@@ -48,7 +48,7 @@
 </details>
 </div>
 
-# DiscoverDeltas Function (Timer)
+## DiscoverDeltas Function (Timer)
 <div class="mermaid" id="seq_requestdiscoverytimer">
 
 ![SEQ 2](images/seq_requestdiscoverytimer.svg)
@@ -94,7 +94,7 @@
 </div>
 
 
-# Discovery Function
+## Discovery Function
 <div class="mermaid" id="seq_discoveryfunction">
 
 ![SEQ 3](images/seq_discoveryfunction.svg)
@@ -171,4 +171,3 @@
         ```
     </details>
 </div>
-
