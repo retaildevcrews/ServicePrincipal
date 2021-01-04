@@ -1,3 +1,4 @@
+![License](https://img.shields.io/badge/license-MIT-green.svg)
 <h1>Mermaid Markdown</h1>
 
 - [Local Configuration](#local-configuration)
