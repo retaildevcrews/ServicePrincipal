@@ -7,18 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="LinkedDependencies\**" />
     <Compile Remove="TestResults\**" />
     <Compile Remove="UtilitiesUnitTests\**" />
+    <EmbeddedResource Remove="LinkedDependencies\**" />
     <EmbeddedResource Remove="TestResults\**" />
     <EmbeddedResource Remove="UtilitiesUnitTests\**" />
+    <None Remove="LinkedDependencies\**" />
     <None Remove="TestResults\**" />
     <None Remove="UtilitiesUnitTests\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\..\..\spikes\AzQueueTestTool\AzQueueTestTool\TestCases\Queues\StringExtensions.cs" Link="LinkedDependencies\StringExtensions.cs" />
-    <Compile Include="..\..\..\spikes\AzQueueTestTool\AzQueueTestTool\TestCases\ServicePrincipals\EmailSettings.cs" Link="LinkedDependencies\EmailSettings.cs" />
-    <Compile Include="..\..\..\spikes\AzQueueTestTool\AzQueueTestTool\TestCases\ServicePrincipals\GraphHelper.cs" Link="LinkedDependencies\GraphHelper.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,18 +34,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CSE.Automation.TestsPrep\CSE.Automation.TestsPrep.csproj" />
     <ProjectReference Include="..\CSE.Automation\CSE.Automation.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="LinkedDependencies\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="appconfig.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="appsettings.Development.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

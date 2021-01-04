@@ -34,14 +34,17 @@ namespace CSE.Automation.Processors
         public abstract Task<IEnumerable<ActivityHistory>> GetActivityStatus(ActivityContext context, string activityId, string correlationId);
         public abstract Task<GraphOperationMetrics> DiscoverDeltas(ActivityContext context, bool forceReseed = false);
 
-        public async Task Lock()
+        public async Task Lock(string lockingActivityID)
         {
-            await configService.Lock(this.ConfigurationId.ToString(), this.DefaultConfigurationResourceName).ConfigureAwait(false);
+            await configService.Lock(this.ConfigurationId.ToString(), lockingActivityID, this.DefaultConfigurationResourceName).ConfigureAwait(false);
         }
 
         public async Task Unlock()
         {
-            await configService.Unlock().ConfigureAwait(false);
+            // Note: Integration test run before the system is up and running.
+            // Discover queue integration tests create, utilize and dispose their own ProcessorConfiguration.
+            // so Unlock method was also fixed to be able to unlock any configuration not just the default one that is hardcoded.
+            await configService.Unlock(this.config.Id).ConfigureAwait(false);
         }
 
         protected void EnsureInitialized()

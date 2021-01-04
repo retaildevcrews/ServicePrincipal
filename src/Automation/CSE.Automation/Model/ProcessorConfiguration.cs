@@ -32,13 +32,26 @@ namespace CSE.Automation.Model
         public string Description { get; set; }
 
         public bool IsProcessorLocked { get; set; }
+
+        public string LockingActivityId { get; set; }
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
     public enum RunState
     {
+        /// <summary>
+        /// Disabled Run State
+        /// </summary>
         Disabled,
+
+        /// <summary>
+        /// Seed Run State
+        /// </summary>
         Seed,
+
+        /// <summary>
+        /// Delta Run State
+        /// </summary>
         DeltaRun,
     }
 }

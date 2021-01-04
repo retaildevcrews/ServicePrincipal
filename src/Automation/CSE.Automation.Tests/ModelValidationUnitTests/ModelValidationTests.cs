@@ -3,19 +3,14 @@ using Xunit;
 using CSE.Automation.Model;
 using FluentValidation;
 using System;
-using System.Collections.Generic;
-using FluentValidation.Results;
-using System.Linq;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
 using CSE.Automation.Validators;
 using CSE.Automation.Graph;
 using Microsoft.Graph;
 using System.Threading.Tasks;
 using CSE.Automation.Interfaces;
-using Microsoft.VisualStudio.TestPlatform.Utilities;
 using Newtonsoft.Json;
 using Xunit.Abstractions;
+using ActivityContext = CSE.Automation.Model.ActivityContext;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests
 {

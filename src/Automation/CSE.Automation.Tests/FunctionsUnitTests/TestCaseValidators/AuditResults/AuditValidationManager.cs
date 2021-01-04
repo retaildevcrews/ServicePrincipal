@@ -10,13 +10,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
 {
     internal class AuditValidationManager : IResultsManager, IDisposable
     {
-        private readonly InputGenerator _inputGenerator;
+        private readonly IInputGenerator _inputGenerator;
         private readonly AuditRepositoryTest _auditRepositoryTest;
         private ActivityContext _activityContext;
 
         private AuditEntry _savedAuditEntry;
 
-        public AuditValidationManager(InputGenerator inputGenerator, AuditRepositoryTest auditRepositoryTest, ActivityContext activityContext)
+        public AuditValidationManager(IInputGenerator inputGenerator, AuditRepositoryTest auditRepositoryTest, ActivityContext activityContext)
         {
             _inputGenerator = inputGenerator;
             _auditRepositoryTest = auditRepositoryTest;
@@ -41,17 +41,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
             {
                 result = dataResult[0];
             }
-            else
-            {
-                throw new Exception($"Unable to Get the most recent Audit item  for Test Case Id: {_inputGenerator.TestCaseId}");
-            }
 
             return result;
         }
 
         public bool Validate()
         {
-            string resultValidatorClassName = _inputGenerator.TestCaseId.GetAuditValidator();
+            string resultValidatorClassName = _inputGenerator.TestCaseCollection.GetAuditValidator(_inputGenerator.TestCaseId); 
 
             var servicePrincipal = _inputGenerator.GetServicePrincipal();
 
@@ -66,7 +62,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
             var instantiatedObject = Activator.CreateInstance(objectType, args) as IAuditResultValidator;
 
             return instantiatedObject.Validate();
-          
+
         }
         public void Dispose()
         {

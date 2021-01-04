@@ -1,136 +1,117 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.System.ComponentModel;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases;
+using CSE.Automation.Validators;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 {
     static class Extensions
     {
-     
-        public static string GetSpStateDefinition(this Enum value)
+
+        public static string GetSpStateDefinition(this ITestCaseCollection testCaseCollection, Enum value)
         {
-            var type = value.GetType();
+            var type = testCaseCollection.GetType();
 
-            string name = Enum.GetName(type, value);
-            if (name == null)
-            {
-                return null;
-            }
+            var typeEnum = value.GetType();
+            string nameEnum = Enum.GetName(typeEnum, value);
 
-            var field = type.GetField(name);
-            if (field == null)
-            {
-                return null;
-            }
+            var propInfo = type.GetProperty(nameEnum);
 
-            var attr = Attribute.GetCustomAttribute(field, typeof(SpStateDefinitionAttribute)) as SpStateDefinitionAttribute;
-            if (attr == null)
-            {
-                return null;
-            }
+            var attr = Attribute.GetCustomAttribute(propInfo, typeof(SpStateDefinitionAttribute)) as SpStateDefinitionAttribute;
 
-            return attr.SpStateDefinitionName;
+            return attr?.SpStateDefinitionName;
         }
 
-        public static string GetSpValidator(this Enum value)
+        public static string GetSpValidator(this ITestCaseCollection testCaseCollection, Enum value)
         {
-            var type = value.GetType();
-            string name = Enum.GetName(type, value);
+            var type = testCaseCollection.GetType();
 
-            if (name == null)
-            {
-                return null;
-            }
+            var typeEnum = value.GetType();
+            string nameEnum = Enum.GetName(typeEnum, value);
 
-            var field = type.GetField(name);
-            if (field == null)
-            {
-                return null;
-            }
+            var propInfo = type.GetProperty(nameEnum);
 
-            var attr = Attribute.GetCustomAttribute(field, typeof(SpValidatorAttribute)) as SpValidatorAttribute;
-            if (attr == null)
-            {
-                return null;
-            }
+            var attr = Attribute.GetCustomAttribute(propInfo, typeof(SpValidatorAttribute)) as SpValidatorAttribute;
 
-            return attr.ValidatorName;
+            return attr?.ValidatorName;
         }
 
-        public static string GetObjectValidator(this Enum value)
+        public static string GetObjectValidator(this ITestCaseCollection testCaseCollection, Enum value)
         {
-            var type = value.GetType();
-            string name = Enum.GetName(type, value);
+            var type = testCaseCollection.GetType();
 
-            if (name == null)
-            {
-                return null;
-            }
+            var typeEnum = value.GetType();
+            string nameEnum = Enum.GetName(typeEnum, value);
 
-            var field = type.GetField(name);
-            if (field == null)
-            {
-                return null;
-            }
+            var propInfo = type.GetProperty(nameEnum);
 
-            var attr = Attribute.GetCustomAttribute(field, typeof(ObjectValidatorAttribute)) as ObjectValidatorAttribute;
-            if (attr == null)
-            {
-                return null;
-            }
+            var attr = Attribute.GetCustomAttribute(propInfo, typeof(ObjectValidatorAttribute)) as ObjectValidatorAttribute;
 
-            return attr.ValidatorName;
+            return attr?.ValidatorName;
         }
 
-        public static string GetAuditValidator(this Enum value)
+        public static string GetAuditValidator(this ITestCaseCollection testCaseCollection, Enum value)
         {
-            var type = value.GetType();
-            string name = Enum.GetName(type, value);
+            var type = testCaseCollection.GetType();
 
-            if (name == null)
-            {
-                return null;
-            }
+            var typeEnum = value.GetType();
+            string nameEnum = Enum.GetName(typeEnum, value);
 
-            var field = type.GetField(name);
-            if (field == null)
-            {
-                return null;
-            }
+            var propInfo = type.GetProperty(nameEnum);
 
-            var attr = Attribute.GetCustomAttribute(field, typeof(AuditValidatorAttribute)) as AuditValidatorAttribute;
-            if (attr == null)
-            {
-                return null;
-            }
+            var attr = Attribute.GetCustomAttribute(propInfo, typeof(AuditValidatorAttribute)) as AuditValidatorAttribute;
 
-            return attr.ValidatorName;
+            return attr?.ValidatorName;
         }
 
-        public static string GetObjectStateDefinition(this Enum value)
+        public static string GetObjectStateDefinition(this ITestCaseCollection testCaseCollection, Enum value)
         {
-            var type = value.GetType();
+            var type = testCaseCollection.GetType();
 
-            string name = Enum.GetName(type, value);
-            if (name == null)
-            {
-                return null;
-            }
+            var typeEnum = value.GetType();
+            string nameEnum = Enum.GetName(typeEnum, value);
 
-            var field = type.GetField(name);
-            if (field == null)
-            {
-                return null;
-            }
+            var propInfo = type.GetProperty(nameEnum);
 
-            var attr = Attribute.GetCustomAttribute(field, typeof(ObjectStateDefinitionAttribute)) as ObjectStateDefinitionAttribute;
-            if (attr == null)
-            {
-                return null;
-            }
+            var attr = Attribute.GetCustomAttribute(propInfo, typeof(ObjectStateDefinitionAttribute)) as ObjectStateDefinitionAttribute;
 
-            return attr.ObjectStateDefinitionName;
+            return attr?.ObjectStateDefinitionName;
+        }
+
+        public static string GetConfigValidator(this ITestCaseCollection testCaseCollection, Enum value)
+        {
+            var type = testCaseCollection.GetType();
+
+            var typeEnum = value.GetType();
+            string nameEnum = Enum.GetName(typeEnum, value);
+
+            var propInfo = type.GetProperty(nameEnum);
+
+            var attr = Attribute.GetCustomAttribute(propInfo, typeof(ConfigValidatorAttribute)) as ConfigValidatorAttribute;
+
+            return attr?.ValidatorName;
+        }
+
+        public static string GetActivityValidator(this ITestCaseCollection testCaseCollection, Enum value)
+        {
+            var type = testCaseCollection.GetType();
+
+            var typeEnum = value.GetType();
+            string nameEnum = Enum.GetName(typeEnum, value);
+
+            var propInfo = type.GetProperty(nameEnum);
+
+            var attr = Attribute.GetCustomAttribute(propInfo, typeof(ActivityValidatorAttribute)) as ActivityValidatorAttribute;
+
+            return attr?.ValidatorName;
+        }
+
+        public static List<string> GetAsList(this string notes)
+        {
+            return notes.Split(ServicePrincipalModelValidator.NotesSeparators).Select(x => x.Trim()).ToList();
         }
     }
 }

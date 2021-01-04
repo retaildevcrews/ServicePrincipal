@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
+using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 
@@ -10,12 +13,12 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers
 {
     internal class ServicePrincipalGraphHelperTest : ServicePrincipalGraphHelper
     {
-        private string displayNamePatternFilter;
+        private string _displayNamePatternFilter;
 
         public ServicePrincipalGraphHelperTest(GraphHelperSettings settings, IAuditService auditService, IGraphServiceClient graphClient, 
             string displayNamePatternFilter, ILogger<ServicePrincipalGraphHelper> logger) : base(settings, auditService, graphClient, logger)
         {
-            this.displayNamePatternFilter = displayNamePatternFilter;
+            _displayNamePatternFilter = displayNamePatternFilter;
         }
 
         protected override IServicePrincipalDeltaRequest GetGraphSeedRequest()
@@ -24,7 +27,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers
                 .ServicePrincipals
                 .Delta()
                 .Request()
-                .Filter(GetFilterString(displayNamePatternFilter));
+                .Filter(GetFilterString(_displayNamePatternFilter));
         }
 
         private string GetFilterString(string displayNamePatternFilter)
@@ -60,7 +63,17 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers
                 }
             }
 
+            DeleteServicePrincial();
+
             return filterTemplate;
+        }
+
+        private void DeleteServicePrincial()
+        {
+            string servicePrincipalToDelete = $"{_displayNamePatternFilter}{TestCaseCollection.TestRemovedAttributeSuffix}";
+
+            using ServicePrincipalHelper servicePrincipalHelper = new ServicePrincipalHelper();
+            servicePrincipalHelper.DeleteServicePrincipal(servicePrincipalToDelete);
         }
     }
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using CSE.Automation.Model;
-using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGenerator;
+using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases.TestCaseCollection;
 using CSE.Automation.Extensions;
 using Microsoft.Graph;
 using CSE.Automation.DataAccess;
@@ -21,7 +21,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
         }
         public override bool Validate()
         {
-            int invalidEmailsCount = ServicePrincipalObject.Notes.Split(';').ToList().Count();
+            int invalidEmailsCount = ServicePrincipalObject.Notes.GetAsList().Count();
 
             Task<IEnumerable<AuditEntry>> getAuditItems = Task.Run(() => Repository.GetItemsAsync(ServicePrincipalObject.Id, Context.CorrelationId));
             getAuditItems.Wait();
@@ -38,7 +38,8 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
 
                 bool validReasonPass = (auditEntry.Reason == AuditCode.Fail_AttributeValidation.Description());
 
-                bool isNewAuditEntryPass = auditEntry.Timestamp > SavedAuditEntry.Timestamp;
+                //SavedAuditEntry will be null when Audit Colection is empty
+                bool isNewAuditEntryPass = SavedAuditEntry != null ? auditEntry.Timestamp > SavedAuditEntry.Timestamp : true;
 
 
                 if (!typePass || !validReasonPass ||  !isNewAuditEntryPass)

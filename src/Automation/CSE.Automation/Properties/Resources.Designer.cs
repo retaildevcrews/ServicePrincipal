@@ -70,6 +70,15 @@ namespace CSE.Automation.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to successfully discover ServicePrincipal deltas..
+        /// </summary>
+        internal static string ServicePrincipalDiscoverException {
+            get {
+                return ResourceManager.GetString("ServicePrincipalDiscoverException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
         internal static byte[] ServicePrincipalProcessorConfiguration {

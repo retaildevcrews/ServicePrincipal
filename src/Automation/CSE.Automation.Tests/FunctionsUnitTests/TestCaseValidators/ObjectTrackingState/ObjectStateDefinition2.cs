@@ -6,14 +6,14 @@ using CSE.Automation.DataAccess;
 using CSE.Automation.Model;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Graph;
-using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.InputGenerator;
+using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases.TestCaseCollection;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrackingState
 {
     internal class ObjectStateDefinition2 : ObjectStateDefinitionBase, IObjectStateDefinition
     {
         public ObjectStateDefinition2(ServicePrincipal servicePrincipal, ServicePrincipalModel servicePrincipalModel,
-                                      ObjectTrackingRepository objectTrackingRepository, ActivityContext activityContext, InputGenerator inputGenerator)
+                                      ObjectTrackingRepository objectTrackingRepository, ActivityContext activityContext, IInputGenerator inputGenerator)
                                     : base(servicePrincipal, servicePrincipalModel, objectTrackingRepository, activityContext, inputGenerator)
         {
         }
@@ -26,7 +26,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ObjectTrack
             if (ObjectTrackingItemExists())
             {
 
-                Task<TrackingModel> deleteTask = Task.Run(() => Repository.DeleteDocumentAsync(ServicePrincipalObject.Id, "ServicePrincipal"));
+                Task<TrackingModel> deleteTask = Task.Run(() => Repository.DeleteDocumentAsync(ServicePrincipalObject.Id, ProcessorType.ServicePrincipal.ToString()));
                 deleteTask.Wait();
 
                 return deleteTask.Result == null;

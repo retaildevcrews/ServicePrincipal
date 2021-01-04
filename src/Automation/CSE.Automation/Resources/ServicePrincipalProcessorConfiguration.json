@@ -13,5 +13,7 @@
   "lastDeltaRun": "",
   "lastSeedTime": "",
   "description": "",
-  "configType": "ServicePrincipal"
+  "configType": "ServicePrincipal",
+  "isProcessorLocked": false,
+  "lockingActivityId": ""
 }

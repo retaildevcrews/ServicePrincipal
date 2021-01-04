@@ -1,7 +1,4 @@
 {
-    "RESOURCE_GROUP_NAME": "serviceprincipal-rg-dev",
-    "FUNCTION_APP_NAME": "sp-funcn-dev",
-    "KEYVAULT_NAME": "sp-kv-dev",
     "SPAuditCollection": "Audit",
     "SPConfigurationCollection": "Configuration",
     "SPObjectTrackingCollection": "ObjectTracking",

@@ -31,22 +31,16 @@ variable "ENV" {
   description = "The last suffix which should be used for all resources in this example. Used by all modules"
 }
 
-variable "COSMOS_AUDIT_COL" {
-  type        = string
-  description = "The CosmosDB Collection name used to hold Audit records"
+variable "COLLECTIONS" {
+  type = list(object({
+    name = string
+    partitionkey = string
+  }))
+  description = "List of the collections to create"
 }
 
-variable "COSMOS_CONFIG_COL" {
+variable "TENANT_NAME" {
   type        = string
-  description = "The CosmosDB Collection for hold the system's configuration document"
+  description = "The short name of the tenant. Used for resource naming"
 }
 
-variable "COSMOS_OBJ_TRACKING_COL" {
-  type        = string
-  description = "The Collection used to hold ServicePrincipal and other AAD object items being tracked"
-}
-
-variable "COSMOS_ACTIVITY_HISTORY_COL" {
-  type        = string
-  description = "The Collection used to hold status of tracked Activities"
-}

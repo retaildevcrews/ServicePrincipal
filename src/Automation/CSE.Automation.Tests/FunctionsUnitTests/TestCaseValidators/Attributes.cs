@@ -50,5 +50,23 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
                 ObjectStateDefinitionName = objectStateDefinitionName;
             }
         }
+
+        internal class ConfigValidatorAttribute : Attribute
+        {
+            public string ValidatorName;
+            public ConfigValidatorAttribute(string validatorName)
+            {
+                ValidatorName = validatorName;
+            }
+        }
+
+        internal class ActivityValidatorAttribute : Attribute
+        {
+            public string ValidatorName;
+            public ActivityValidatorAttribute(string validatorName)
+            {
+                ValidatorName = validatorName;
+            }
+        }
     }
 }

@@ -3,14 +3,15 @@
 data "azurerm_client_config" "current" {}
 
 locals {
+  kv_name = "kv-${var.PROJECT_NAME}-${var.TENANT_NAME}-${var.ENV}"
   secrets = {
     "SPCosmosKey" = var.COSMOS_RW_KEY,
-    "AppInsightsKey" = azurerm_application_insights.svc-ppl-appi.instrumentation_key,
-    "SPStorageAccountPrimaryKey" = data.azurerm_storage_account.svc-ppl-storage-acc.primary_access_key,
-    "graphAppClientId" = var.GRAPH_SP_ID, #azuread_application.graphclient.application_id
-    "graphAppClientSecret" = var.GRAPH_SP_SECRET, #random_password.graphspsecret.result
+    "AppInsightsKey" = azurerm_application_insights.instance.instrumentation_key,
+    "SPStorageAccountPrimaryKey" = data.azurerm_storage_account.instance.primary_access_key,
+    "graphAppClientId" = var.TF_CLIENT_SP_ID, # var.GRAPH_SP_ID, #azuread_application.graphclient.application_id
+    "graphAppClientSecret" = var.TF_CLIENT_SP_SECRET, # var.GRAPH_SP_SECRET, #random_password.graphspsecret.result
     "graphAppTenantId" = var.TENANT_ID,
-    "SPStorageConnectionString" = data.azurerm_storage_account.svc-ppl-storage-acc.primary_connection_string,
+    "SPStorageConnectionString" = data.azurerm_storage_account.instance.primary_connection_string,
     "SPTfClientId" = var.TF_CLIENT_SP_ID,
     "SPTfClientSecret" = var.TF_CLIENT_SP_SECRET,
     "SPAcrClientId" = var.ACR_SP_ID,
@@ -19,10 +20,10 @@ locals {
 }
 
 # Create Key Vault // As of today 8-27-2020 v13.1 has some issues https://github.com/hashicorp/terraform/issues/26011
-resource "azurerm_key_vault" "kv" {
-  depends_on = [ data.azurerm_storage_account.svc-ppl-storage-acc ]
+resource azurerm_key_vault instance {
+  depends_on = [ data.azurerm_storage_account.instance ]
 
-  name                            = "${var.NAME}-kv-${var.ENV}"
+  name                            = local.kv_name
   location                        = var.LOCATION
   resource_group_name             = var.APP_RG_NAME
   sku_name                        = "standard"
@@ -39,7 +40,7 @@ resource "azurerm_key_vault" "kv" {
 # However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
 
 resource "azurerm_key_vault_access_policy" "terraform-sp" {
-  key_vault_id = azurerm_key_vault.kv.id
+  key_vault_id = azurerm_key_vault.instance.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
@@ -49,15 +50,14 @@ resource "azurerm_key_vault_access_policy" "terraform-sp" {
     "Set",
     "Delete"
   ]
-
 }
 
-resource "azurerm_key_vault_access_policy" "fn-default-pol" {
-  depends_on = [azurerm_function_app.fn-default]
+resource azurerm_key_vault_access_policy instance-pol {
+  depends_on = [azurerm_function_app.instance]
 
-  key_vault_id = azurerm_key_vault.kv.id
+  key_vault_id = azurerm_key_vault.instance.id
   tenant_id    = var.TENANT_ID 
-  object_id    = azurerm_function_app.fn-default.identity[0].principal_id 
+  object_id    = azurerm_function_app.instance.identity[0].principal_id 
 
   secret_permissions = [
     "Get",
@@ -66,12 +66,12 @@ resource "azurerm_key_vault_access_policy" "fn-default-pol" {
   ]
 }
 
-resource "azurerm_key_vault_access_policy" "fn-staging-slot-policy" {
-  depends_on = [ azurerm_app_service_slot.service-slot-staging ]
+resource azurerm_key_vault_access_policy fn-staging-slot-policy {
+  depends_on = [ azurerm_app_service_slot.staging ]
 
-  key_vault_id = azurerm_key_vault.kv.id
+  key_vault_id = azurerm_key_vault.instance.id
   tenant_id    = var.TENANT_ID 
-  object_id    = azurerm_app_service_slot.service-slot-staging.identity[0].principal_id 
+  object_id    = azurerm_app_service_slot.staging.identity[0].principal_id 
 
   secret_permissions = [
     "Get",
@@ -81,12 +81,12 @@ resource "azurerm_key_vault_access_policy" "fn-staging-slot-policy" {
 }
 
 # SECRETS
-resource "azurerm_key_vault_secret" "secret" {
+resource azurerm_key_vault_secret secret {
   for_each = local.secrets
 
   depends_on = [ azurerm_key_vault_access_policy.terraform-sp ]
 
   name         = each.key
   value        = each.value
-  key_vault_id = azurerm_key_vault.kv.id
+  key_vault_id = azurerm_key_vault.instance.id
 }
