@@ -1,56 +1,65 @@
-# Service Principal Data Dictionary 
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
+# Service Principal Data Dictionary 
 
-##Data  
+## Data  
+
+The system will have 4 persistent collections of data: Configuration, Audit, ObjectTracking and ActivityHistory.  Additionally, a data structure will be stored in the AAD Service Principal Notes field. 
+
+### Configuration
+
+Attribute | Type | Source
+--------- | ---- | ------
+id | string/GUID | constant
+configType | ProcessorType | ServicePrincipal, User
+deltaLink | string | Graph API
+runState | RunState | Disabled, Seed, DeltaRun
+lastDeltaRun | datetimeoffset | 
+lastSeedRun | datetimeoffset | 
+isProcessorLocked | bool | 
+
+### Audit 
+
+Attribute | Type | Source
+---------- | ---- | ------
+id | string/GUID | 
+correlationId | string/GUID | trigger
+objectId | string/GUID | AAD
+type | AuditActionType | Pass, Fail, Change, Ignore
+code | AuditCode | Pass_ServicePrincipal, Ignore_ServicePrincipalDeleted, Change_ServicePrincipalUpdated, Fail_AttributeValidation, Fail_MissingOWners
+reason | string | 
+message | string | 
+timestamp | datetimeoffset | 
+auditYearMonth | string | self
+attributeName | string | 
+existingAttributeValue | string | AAD
+updatedAttributeValue| string | 
+
+
+
+### ObjectTracking
+
+
+Attribute | Type | Source
+---------- | ---- | ------
+id | string/GUID | 
+correlationId | string/GUID | trigger
+created | datetimeoffset |  
+deleted | datetimeoffset |
+lastUpdated | datetimeoffset | 
+objectType | ObjectType | ServicePrincipal
+entity | object | ServicePrincipal 
  
-The system will have 3 collections of data: ObjectTracking, Audit, and Configuration.  Additionally, a data structure will be stored in the AAD Service Principal Notes field. 
-
-Document Type | Fields | Type| Source
------------- | ------------- | ------------- | -------------
-Graph Object |  
- | | id | string/GUID | AAD
-| | createdDateTime | datetime | AAD
-| | deletedDateTime | datetime | AAD
-| | lastUpdatedDateTime |datetime | SPAutomation
-| | appId | string/GUID | AAD
-| | appDisplayName | string | AAD
-| | displayName | string | AAD
-| | objectType | string | AAD
-| | notes | string | AAD
-| | status | string | SPAutomation
-
-##Audit 
-
-Document Type | Fields | Type| Source
------------- | ------------- | ------------- | -------------
-Graph Object |  
-| | id | string/GUID | AAD
-| | createdDateTime | datetime | AAD
-| | deletedDateTime | datetime | AAD
-| | lastUpdatedDateTime |datetime | SPAutomation
-| | appId | string/GUID | AAD
-| | appDisplayName | string | AAD
-| | displayName | string | AAD
-| | objectType | string | AAD
-| | notes | string | AAD
-| | status | string | SPAutomation
-| | correlationId | string/GUID | Application
-| | actionType| string | Application
-| | actionReason |string | Application
-| | actionDateTime | datetime | AAD
-
-
-##Configuration
-Field | Type | Range
------------- | ------------- | ------------- 
-| deltaQuery | string |
-| runState| string | seedOnly,seedAndRun, deltaRun, disabled
-|lastDeltaRun | DateTime |  
-| seedTime| DateTime |
- 
- 
-##Notes
-Field | Type | Range
------------- | ------------- | ------------- 
-| businessOwners | string[] | Valid AAD User
+### ServicePrincipal
+Attribute | Type | Source
+---------- | ---- | ------
+id | string/GUID | AAD
+appId | string/GUID | AAD
+created | datetimeoffset |  
+deleted | datetimeoffset |
+objectType | ObjectType | ServicePrincipal
+servicePrincipalType | string | AAD
+appDisplayName | string | AAD
+displayName | string | AAD
+owners | list(string) | AAD
+notes | string | List of Valid AAD Users, delimited (,;)
 
