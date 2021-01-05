@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Graph;
 
-namespace CSE.Automation.Extensions
+namespace CSE.Automation.Model
 {
     internal static class ServicePrincipalComparer
     {
