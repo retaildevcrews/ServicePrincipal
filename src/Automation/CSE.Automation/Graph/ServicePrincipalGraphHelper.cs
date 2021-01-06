@@ -16,6 +16,13 @@ namespace CSE.Automation.Graph
 {
     internal class ServicePrincipalGraphHelper : GraphHelperBase<ServicePrincipal>
     {
+        /// <summary>
+        /// Constructor for ServicePrincipalGraphHelper
+        /// </summary>
+        /// <param name="settings">Settings for the graph helper</param>
+        /// <param name="auditService">An instance of the Audit Service</param>
+        /// <param name="graphClient">An instance of a GraphClient</param>
+        /// <param name="logger">An instance of an ILogger</param>
         public ServicePrincipalGraphHelper(GraphHelperSettings settings, IAuditService auditService, IGraphServiceClient graphClient, ILogger<ServicePrincipalGraphHelper> logger)
                 : base(settings, auditService, graphClient, logger)
         {
@@ -38,7 +45,7 @@ namespace CSE.Automation.Graph
             }
 
             IServicePrincipalDeltaCollectionPage collectionPage;
-            var servicePrincipalList = new List<ServicePrincipal>();
+            var servicePrincipalList = new HashSet<ServicePrincipal>(ServicePrincipalComparer.Default);
 
             // Build first page of directory elements
             if (IsSeedRun(config))
@@ -61,13 +68,13 @@ namespace CSE.Automation.Graph
                 collectionPage = await collectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
             }
 
-            servicePrincipalList.AddRange(PruneRemovedOnFirstRun(context, collectionPage, metrics, config));
+            servicePrincipalList.UnionWith(PruneRemovedOnFirstRun(context, collectionPage, metrics, config));
 
             while (collectionPage.NextPageRequest != null)
             {
                 collectionPage = await collectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
 
-                servicePrincipalList.AddRange(PruneRemovedOnFirstRun(context, collectionPage, metrics, config));
+                servicePrincipalList.UnionWith(PruneRemovedOnFirstRun(context, collectionPage, metrics, config));
             }
 
             logger.LogInformation($"Discovered {servicePrincipalList.Count} delta objects.");
@@ -118,6 +125,10 @@ namespace CSE.Automation.Graph
                 .Request();
         }
 
+        private static bool IsSeedRun(ProcessorConfiguration config) =>
+            config.RunState == RunState.Seed ||
+            string.IsNullOrEmpty(config.DeltaLink);
+
         private IList<ServicePrincipal> PruneRemovedOnFirstRun(ActivityContext context, IServicePrincipalDeltaCollectionPage collectionPage, GraphOperationMetrics metrics, ProcessorConfiguration config)
         {
             IList<ServicePrincipal> pageList = collectionPage.CurrentPage ?? new List<ServicePrincipal>();
@@ -147,13 +158,6 @@ namespace CSE.Automation.Graph
             }
 
             return pageList;
-        }
-
-        private static bool IsSeedRun(ProcessorConfiguration config)
-        {
-            return
-                config.RunState == RunState.Seed ||
-                string.IsNullOrEmpty(config.DeltaLink);
         }
     }
 }
