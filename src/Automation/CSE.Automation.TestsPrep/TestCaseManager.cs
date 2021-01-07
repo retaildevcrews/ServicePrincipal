@@ -34,7 +34,7 @@ namespace CSE.Automation.TestsPrep
 
             Task.WaitAll(queryObjects.ToArray());
 
-            GenerateMessagesForAllRules(getSPsTask.Result, getUserTask.Result);
+            ExecuteAllRules(getSPsTask.Result, getUserTask.Result);
         }
 
         internal void Cleanup()
@@ -45,7 +45,7 @@ namespace CSE.Automation.TestsPrep
             }
         }
 
-        private void GenerateMessagesForAllRules(List<ServicePrincipal> availableServicePrincipals, List<User> availableUsers)
+        private void ExecuteAllRules(List<ServicePrincipal> availableServicePrincipals, List<User> availableUsers)
         {
             using (RulesManager rulesManager = new RulesManager(availableServicePrincipals, availableUsers, _spSettings))
             {
