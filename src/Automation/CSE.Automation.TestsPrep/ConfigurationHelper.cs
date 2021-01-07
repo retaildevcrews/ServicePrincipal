@@ -26,21 +26,13 @@ namespace CSE.Automation.TestsPrep
 
         private IConfigurationRoot BuildConfiguration()
         {
+
             var configBuilder = new ConfigurationBuilder()
                 .AddJsonFile("appconfig.json", true)
-                .AddAzureKeyVaultConfiguration(Constants.KeyVaultName)
-                .AddEnvironmentVariables();
+                .AddEnvironmentVariables()
+                .AddAzureKeyVaultConfiguration(Constants.KeyVaultName);
 
-            string devConfigPath = string.Concat(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "\\appconfig.development.json");
-            if (System.IO.File.Exists(devConfigPath))
-            {
-                configBuilder.AddJsonFile("appconfig.development.json", true);
-            }
-
-            IConfigurationRoot config = configBuilder.Build();
-
-            return config;
-
+            return configBuilder.Build();
         }
         private GraphHelperSettings CreateGraphSettings()
         {
