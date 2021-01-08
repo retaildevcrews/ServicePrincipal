@@ -210,7 +210,8 @@ function Build_Resource_Names()
   # the following two are needed by prepare, check them for existance and length
   export TFRG_NAME=$(./build-resource-name.sh -r resourcegroup -n $APP_NAME -e $ENV -t $TENANT_NAME)-tf
   export TFSA_NAME=$(./build-resource-name.sh -r storageaccount -n $APP_NAME -e $ENV -t $TENANT_NAME)tf
-  export KEYVAULT_NAME=$(./build-resource-name.sh -r keyvault -n $APP_NAME -e $ENV -t $TENANT_NAME)    
+  export KEYVAULT_NAME=$(./build-resource-name.sh -r keyvault -n $APP_NAME -e $ENV -t $TENANT_NAME)   
+  export TFCI_NAME=citfstate 
 
   # the following are created by terraform, check them for existance and length
   export APPSA_NAME=$(./build-resource-name.sh -r storageaccount -n $APP_NAME -e $ENV -t $TENANT_NAME)app
@@ -321,7 +322,7 @@ function Initialize_Terraform()
     if [ ! -d ./.terraform ] || [ $INIT -eq 1 ]
     then
       # The TF variables are initialized in _prepare-terraform
-        terraform init -reconfigure -backend-config="resource_group_name=${TF_RG_NAME}" -backend-config="storage_account_name=${TFSA_NAME}" -backend-config="container_name=${TFCI_NAME}" -backend-config="key=${svc_ppl_Name}.terraform.tfstate"
+        terraform init -reconfigure -backend-config="resource_group_name=${TFRG_NAME}" -backend-config="storage_account_name=${TFSA_NAME}" -backend-config="container_name=${TFCI_NAME}" -backend-config="key=${svc_ppl_Name}.terraform.tfstate"
     fi
 }
 
