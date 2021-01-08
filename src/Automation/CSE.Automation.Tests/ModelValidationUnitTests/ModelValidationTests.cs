@@ -3,11 +3,11 @@ using Xunit;
 using CSE.Automation.Model;
 using FluentValidation;
 using System;
-using CSE.Automation.Validators;
 using CSE.Automation.Graph;
 using Microsoft.Graph;
 using System.Threading.Tasks;
 using CSE.Automation.Interfaces;
+using CSE.Automation.Model.Validators;
 using Newtonsoft.Json;
 using Xunit.Abstractions;
 using ActivityContext = CSE.Automation.Model.ActivityContext;
@@ -38,7 +38,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         AbstractValidator<AuditEntry> auditEntryValidator = new AuditEntryValidator();
 
         [Fact]
-        [Trait("Category","Unit")]
+        [Trait("Category", "Unit")]
         public void ServicePrincipalModelValidate_ReturnsValidationFailuresIfInvalid()
         {
             var servicePrincipal = new ServicePrincipalModel
@@ -56,7 +56,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
-        [Trait("Category","Unit")]
+        [Trait("Category", "Unit")]
         public void ServicePrincipalModelValidate_ReturnsTrueIfValid()
         {
             var servicePrincipal = new ServicePrincipalModel
@@ -74,13 +74,13 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
             var results = servicePrincipalValidator.Validate(servicePrincipal);
             output.WriteLine(JsonConvert.SerializeObject(results, Formatting.Indented));
-            
+
             Assert.True(results.IsValid);
             Assert.True(results.Errors.Count == 0);
         }
 
         [Fact]
-        [Trait("Category","Unit")]
+        [Trait("Category", "Unit")]
         public void AuditEntryModelValidate_ReturnsValidationFailuresIfInvalid()
         {
             var auditItem = new AuditEntry();
@@ -89,25 +89,29 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             output.WriteLine(JsonConvert.SerializeObject(results, Formatting.Indented));
 
             Assert.False(results.IsValid);
-            Assert.Contains(results.Errors, x => x.PropertyName == "CorrelationId");
+            Assert.Contains(results.Errors, x => x.PropertyName == "Descriptor");
             Assert.Contains(results.Errors, x => x.PropertyName == "Type");
             Assert.Contains(results.Errors, x => x.PropertyName == "Reason");
         }
 
         [Fact]
-        [Trait("Category","Unit")]
+        [Trait("Category", "Unit")]
         public void AuditEntryModelValidate_ReturnsTrueIfValid()
         {
             var context = new ActivityContext(null);
 
             var auditItem = new AuditEntry()
             {
-                CorrelationId = "fake correlation id",
+                Descriptor = new AuditDescriptor()
+                {
+                    CorrelationId = "fake correlation id",
+                    ObjectId = "fake object id",
+                },
                 Type = AuditActionType.Change,
                 Reason = "fake action reason",
-                AuditYearMonth = "qweradsf",
-                AttributeName = "asdf",
-                ExistingAttributeValue = "asdf",
+                AuditYearMonth = "202011",
+                AttributeName = "attribute",
+                ExistingAttributeValue = "value",
                 Timestamp = DateTimeOffset.Now
             };
 

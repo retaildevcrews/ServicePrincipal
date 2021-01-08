@@ -104,7 +104,7 @@ namespace CSE.Automation.Processors
         /// Return the status of an activity from activityhistory.
         /// </summary>
         /// <param name="context">An instance of an <see cref="ActivityContext"/>.</param>
-        /// <param name="activityId">Id of the activity to report.</param>
+        /// <param name="activityId">ObjectId of the activity to report.</param>
         /// <param name="correlationId">Correlation id of the activities to report.</param>
         /// <returns>A Task that may be awaited.</returns>
         /// <remarks>Either activityId or correlationId must be provided.</remarks>
@@ -151,7 +151,7 @@ namespace CSE.Automation.Processors
             logger.LogInformation($"Resolving Owners for ServicePrincipal objects...");
             int servicePrincipalCount = 0;
 
-            // foreach (var sp in servicePrincipalList.Where(sp => string.IsNullOrWhiteSpace(sp.AppId) == false && string.IsNullOrWhiteSpace(sp.DisplayName) == false))
+            // foreach (var sp in servicePrincipalList.Where(sp => string.IsNullOrWhiteSpace(sp.ObjectId) == false && string.IsNullOrWhiteSpace(sp.DisplayName) == false))
             foreach (var sp in servicePrincipalList)
             {
                 ServicePrincipal fullSP = null;
@@ -243,12 +243,17 @@ namespace CSE.Automation.Processors
 
                 // emit into Audit log, all failures
                 errors.ForEach(async error => await auditService.PutFail(
-                                   context: context,
-                                   code: AuditCode.Fail_AttributeValidation,
-                                   objectId: entity.Id,
-                                   attributeName: error.PropertyName,
-                                   existingAttributeValue: error.AttemptedValue != null && error.AttemptedValue.GetType() == typeof(List<string>) ? string.Join(",", error.AttemptedValue as List<string>) : error.AttemptedValue?.ToString(),
-                                   message: error.ErrorMessage).ConfigureAwait(false));
+                                descriptor: new AuditDescriptor
+                                {
+                                    CorrelationId = context.CorrelationId,
+                                    ObjectId = entity.Id,
+                                    AppId = entity.AppId,
+                                    DisplayName = entity.DisplayName,
+                                },
+                                code: AuditCode.AttributeValidation,
+                                attributeName: error.PropertyName,
+                                existingAttributeValue: error.AttemptedValue != null && error.AttemptedValue.GetType() == typeof(List<string>) ? string.Join(",", error.AttemptedValue as List<string>) : error.AttemptedValue?.ToString(),
+                                message: error.ErrorMessage).ConfigureAwait(false));
 
                 // Invalid ServicePrincipal, valid Owners, update the service principal from Owners
                 if (entity.HasOwners())
@@ -268,7 +273,14 @@ namespace CSE.Automation.Processors
             {
                 // remember this was the last time we saw the ServicePrincipal as 'good'
                 await UpdateLastKnownGood(context, entity).ConfigureAwait(true);
-                await auditService.PutPass(context, AuditCode.Pass_ServicePrincipal, entity.Id, null, null).ConfigureAwait(false);
+                var descriptor = new AuditDescriptor
+                {
+                    CorrelationId = context.CorrelationId,
+                    ObjectId = entity.Id,
+                    AppId = entity.AppId,
+                    DisplayName = entity.DisplayName,
+                };
+                await auditService.PutPass(descriptor, AuditCode.Pass, null, null).ConfigureAwait(false);
             }
         }
 
@@ -284,24 +296,32 @@ namespace CSE.Automation.Processors
         {
             if (settings.AADUpdateMode == UpdateMode.Update)
             {
+                var auditEntryDescriptor = new AuditDescriptor
+                {
+                    CorrelationId = context.CorrelationId,
+                    ObjectId = command.ObjectId,
+                    AppId = command.AppId,
+                    DisplayName = command.DisplayName,
+                };
+
                 try
                 {
                     await graphHelper.PatchGraphObject(new ServicePrincipal
                     {
-                        Id = command.Id,
+                        Id = command.ObjectId,
                         Notes = command.Notes.Changed,
                     }).ConfigureAwait(true);
                 }
                 catch (Microsoft.Graph.ServiceException exSvc)
                 {
-                    logger.LogError(exSvc, $"Failed to update AAD Service Principal {command.Id}");
+                    logger.LogError(exSvc, $"Failed to update AAD Service Principal {command.ObjectId}");
                     try
                     {
-                        await auditService.PutFail(context, AuditCode.Fail_AADUpdate, command.Id, "Notes", command.Notes.Current, exSvc.Message).ConfigureAwait(false);
+                        await auditService.PutFail(auditEntryDescriptor, AuditCode.AADUpdate, "Notes", command.Notes.Current, exSvc.Message).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError(ex, $"Failed to Audit update to AAD Service Principal {command.Id}");
+                        logger.LogError(ex, $"Failed to Audit update to AAD Service Principal {command.ObjectId}");
 
                         // do not rethrow, it will hide the real failure
                     }
@@ -309,17 +329,17 @@ namespace CSE.Automation.Processors
 
                 try
                 {
-                    await auditService.PutChange(context, AuditCode.Change_ServicePrincipalUpdated, command.Id, "Notes", command.Notes.Current, command.Notes.Changed, command.Action.Description()).ConfigureAwait(false);
+                    await auditService.PutChange(auditEntryDescriptor, AuditCode.Updated, "Notes", command.Notes.Current, command.Notes.Changed, command.Action.Description()).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, $"Failed to Audit update to AAD Service Principal {command.Id}");
+                    logger.LogError(ex, $"Failed to Audit update to AAD Service Principal {command.ObjectId}");
                     throw;
                 }
             }
             else
             {
-                logger.LogInformation($"Update mode is {settings.AADUpdateMode}, ServicePrincipal {command.Id} will not be updated.");
+                logger.LogInformation($"Update mode is {settings.AADUpdateMode}, ServicePrincipal {command.ObjectId} will not be updated.");
             }
         }
 
@@ -341,7 +361,7 @@ namespace CSE.Automation.Processors
             // command the AAD Update
             var updateCommand = new ServicePrincipalUpdateCommand()
             {
-                Id = entity.Id,
+                ObjectId = entity.Id,
                 Notes = (entity.Notes, ownersList),
                 Action = ServicePrincipalUpdateAction.Update, // "Update Notes from Owners",
             };
@@ -373,7 +393,7 @@ namespace CSE.Automation.Processors
                 // build the command here so we don't need to pass the delta values down the call tree
                 var updateCommand = new ServicePrincipalUpdateCommand()
                 {
-                    Id = entity.Id,
+                    ObjectId = entity.Id,
                     Notes = (entity.Notes, lastKnownGood.Notes),
                     Action = ServicePrincipalUpdateAction.Revert, // "Revert to Last Known Good",
                 };
@@ -430,16 +450,26 @@ namespace CSE.Automation.Processors
         /// <param name="context">Context of the activity.</param>
         /// <param name="entity">Entity of type <see cref="ServicePrincipalModel"/> to report.</param>
         /// <returns>Task to be awaited.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Catch all for missing audit messages")]
         private async Task AlertInvalidPrincipal(ActivityContext context, ServicePrincipalModel entity)
         {
+            var failMessage = $"AUDIT FAIL: {entity.Id} {AuditCode.MissingOwners.Description()}";
+
             try
             {
-                await auditService.PutFail(context, AuditCode.Fail_MissingOwners, entity.Id, "Notes", null).ConfigureAwait(true);
-                logger.LogWarning($"AUDIT FAIL: {entity.Id} {AuditCode.Fail_MissingOwners.Description()}");
+                var auditEntryDescriptor = new AuditDescriptor
+                {
+                    CorrelationId = context.CorrelationId,
+                    ObjectId = entity.Id,
+                    AppId = entity.AppId,
+                    DisplayName = entity.DisplayName,
+                };
+                await auditService.PutFail(auditEntryDescriptor, AuditCode.MissingOwners, "Notes", null).ConfigureAwait(true);
+                logger.LogWarning(failMessage);
             }
             catch (Exception)
             {
-                throw;
+                logger.LogError($"Failed to log audit message: {failMessage}");
             }
 
             await Task.CompletedTask.ConfigureAwait(false);

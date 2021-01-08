@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using CSE.Automation.Model.Validators;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.System.ComponentModel;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases;
-using CSE.Automation.Validators;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 {

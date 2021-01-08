@@ -143,7 +143,7 @@ namespace CSE.Automation.DataAccess
         /// <summary>
         /// Given a document id and its partition value, retrieve the document, if it exists.
         /// </summary>
-        /// <param name="id">Id of the document.</param>
+        /// <param name="id">ObjectId of the document.</param>
         /// <param name="partitionKey">Value of the partitionkey for the document.</param>
         /// <returns>An instance of the document or null.</returns>
         public async Task<TEntity> GetByIdAsync(string id, string partitionKey)

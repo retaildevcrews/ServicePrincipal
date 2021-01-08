@@ -36,7 +36,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
             {
                 bool typePass = (auditEntry.Type == AuditActionType.Fail);
 
-                bool validReasonPass = (auditEntry.Reason == AuditCode.Fail_AttributeValidation.Description());
+                bool validReasonPass = (auditEntry.Reason == AuditCode.AttributeValidation.Description());
 
                 //SavedAuditEntry will be null when Audit Colection is empty
                 bool isNewAuditEntryPass = SavedAuditEntry != null ? auditEntry.Timestamp > SavedAuditEntry.Timestamp : true;

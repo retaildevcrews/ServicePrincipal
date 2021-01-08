@@ -13,7 +13,7 @@ namespace CSE.Automation.Model
         /// Use default comparision logic when determining ServicePrincipal equality.
         ///
         /// First, GetHashCode will be called for an initial equality check.  Since the default implementation
-        /// uses the hashcode of the Id, it is determining equality if the Ids of the objects match (case insensitive)
+        /// uses the hashcode of the ObjectId, it is determining equality if the Ids of the objects match (case insensitive)
         /// </summary>
         public class DefaultComparer : IEqualityComparer<ServicePrincipal>
         {

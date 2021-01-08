@@ -45,7 +45,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ActivityRes
             }
             else
             {
-                throw new Exception($"Unable to get ActivityHistory record for Test Case Id: {_inputGenerator.TestCaseId}");
+                throw new Exception($"Unable to get ActivityHistory record for Test Case ObjectId: {_inputGenerator.TestCaseId}");
             }
 
             return result;

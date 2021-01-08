@@ -33,8 +33,8 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
             {
                 bool typePass = (auditEntry.Type == AuditActionType.Fail);
 
-                bool validReasonPass = (auditEntry.Reason == AuditCode.Fail_MissingOwners.Description()) ||
-                                        (auditEntry.Reason == AuditCode.Fail_AttributeValidation.Description());
+                bool validReasonPass = (auditEntry.Reason == AuditCode.MissingOwners.Description()) ||
+                                        (auditEntry.Reason == AuditCode.AttributeValidation.Description());
 
                 bool isNewAuditEntryPass = SavedAuditEntry != null ? auditEntry.Timestamp > SavedAuditEntry.Timestamp : true;
 

@@ -13,12 +13,12 @@ namespace CSE.Automation.Interfaces
 {
     internal interface IAuditService
     {
-        Task PutFail(ActivityContext context, AuditCode code, string objectId, string attributeName, string existingAttributeValue, string message = null, DateTimeOffset? auditTime = null);
+        Task PutFail(AuditDescriptor descriptor, AuditCode code, string attributeName, string existingAttributeValue, string message = null, DateTimeOffset? auditTime = null);
 
-        Task PutPass(ActivityContext context, AuditCode code, string objectId, string attributeName, string existingAttributeValue, string message = null, DateTimeOffset? auditTime = null);
+        Task PutPass(AuditDescriptor descriptor, AuditCode code, string attributeName, string existingAttributeValue, string message = null, DateTimeOffset? auditTime = null);
 
-        Task PutIgnore(ActivityContext context, AuditCode code, string objectId, string attributeName, string existingAttributeValue, string message = null, DateTimeOffset? auditTime = null);
+        Task PutIgnore(AuditDescriptor descriptor, AuditCode code, string attributeName, string existingAttributeValue, string message = null, DateTimeOffset? auditTime = null);
 
-        Task PutChange(ActivityContext context, AuditCode code, string objectId, string attributeName, string existingAttributeValue, string updatedAttributeValue, string message = null, DateTimeOffset? auditTime = null);
+        Task PutChange(AuditDescriptor descriptor, AuditCode code, string attributeName, string existingAttributeValue, string updatedAttributeValue, string message = null, DateTimeOffset? auditTime = null);
     }
 }

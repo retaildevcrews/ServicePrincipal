@@ -88,7 +88,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrin
                         {
                             if (!messageFound)/// state.Break(); takes its time and does not break the loop immediately 
                             {
-                                messageFound = command.CorrelationId == _activityContext.CorrelationId && command.Id == NewServicePrincipal.Id
+                                messageFound = command.CorrelationId == _activityContext.CorrelationId && command.ObjectId == NewServicePrincipal.Id
                                               && targetQueueMessages.Contains(command.Action); // we need to use Enums instead of "Strings"
 
 
