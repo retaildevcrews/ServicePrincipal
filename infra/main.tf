@@ -84,7 +84,7 @@ resource "azurerm_dashboard" "appDashboard" {
       fn_app_name = "fa-${var.NAME}-${var.TENANT_NAME}-${var.ENV}",
       cosmos_account_name = "cdb-${var.NAME}-${var.TENANT_NAME}-${var.ENV}",
       dashboardName = "ai-${var.NAME}-${var.ENV}",
-      subscription_id = "${var.TF_SUB_ID}"
+      subscription_id = var.TF_SUB_ID
   })
   
   depends_on = [ 
