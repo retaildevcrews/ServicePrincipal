@@ -17,7 +17,7 @@ The ResourceGroup is used to contain resources specific to this application.
 
 The StorageAccount is used by Terraform to store its state file.  This state file is a critical resource that if lost, the infrastructure would need to be recreated.  
 
-There are three ServicePrincipals created as part of the provisioning process:
+There are two ServicePrincipals created as part of the provisioning process:
 
 ServicePrincipal | Purpose | Graph Permissions | Resource Permissions
 -----------------|---------|-------------------|-----------

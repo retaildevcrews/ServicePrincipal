@@ -8,6 +8,7 @@
   - [RequestDiscovery Function (HTTP)](#requestdiscovery-function-http)
   - [DiscoverDeltas Function (Timer)](#discoverdeltas-function-timer)
   - [Discovery Function](#discovery-function)
+  - [Required Permissions](#required-permissions)
 
 # Software and Component Architecture
 ## Overview
@@ -206,3 +207,11 @@ The Update unit of work is resonsible for updating a ServicePrincipal in the Dir
         ```
     </details>
 </div>
+
+## Required Permissions
+
+| API | API Permission | Permission Type | User Permission | Documentation |
+| --- | --- | --- | --- | --- |
+| GET ServicePrincipal | Directory.Read.All  | Delegated | Application administrator | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-get?view=graph-rest-beta&tabs=http |
+| UPDATE ServicePrincipal | Directory.ReadWrite.All  | Delegated | Application administrator | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-update?view=graph-rest-beta&tabs=http | 
+| LIST ServicePrincipals | Directory.Read.All  | Delegated | Application administrator | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-list?view=graph-rest-beta&tabs=http |
