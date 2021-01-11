@@ -72,8 +72,8 @@ az ad app permission grant --id $SERVICE_PRINCIPAL_ID --api $GRAPH_ID
 az ad app permission admin-consent --id $SERVICE_PRINCIPAL_ID
 
 # Push Secrets To Github
-pwsh .github/put-github-secret.ps1 -UserName $GH_USER -PersonalToken $GH_TOKEN -OrgAndRepo "$GH_ORG/$GH_REPO" -SecretKey SERVICE_PRINCIPAL_SECRET -SecretVal "$SERVICE_PRINCIPAL_SECRET"
+pwsh infra/cicd/put-github-secret.ps1 -UserName $GH_USER -PersonalToken $GH_TOKEN -OrgAndRepo "$GH_ORG/$GH_REPO" -SecretKey SERVICE_PRINCIPAL_SECRET -SecretVal "$SERVICE_PRINCIPAL_SECRET"
 
-pwsh .github/put-github-secret.ps1 -UserName $GH_USER -PersonalToken $GH_TOKEN -OrgAndRepo "$GH_ORG/$GH_REPO" -SecretKey SERVICE_PRINCIPAL_ID -SecretVal "$SERVICE_PRINCIPAL_ID"
+pwsh infra/cicd/put-github-secret.ps1 -UserName $GH_USER -PersonalToken $GH_TOKEN -OrgAndRepo "$GH_ORG/$GH_REPO" -SecretKey SERVICE_PRINCIPAL_ID -SecretVal "$SERVICE_PRINCIPAL_ID"
 
-pwsh .github/put-github-secret.ps1 -UserName $GH_USER -PersonalToken $GH_TOKEN -OrgAndRepo "$GH_ORG/$GH_REPO" -SecretKey TENANT_ID -SecretVal "$TENANT_ID"
+pwsh infra/cicd/put-github-secret.ps1 -UserName $GH_USER -PersonalToken $GH_TOKEN -OrgAndRepo "$GH_ORG/$GH_REPO" -SecretKey TENANT_ID -SecretVal "$TENANT_ID"

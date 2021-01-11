@@ -60,10 +60,10 @@ Capture the following information and save for later prompting:
 
 az login
 
-chmod +x .github/CICD-Setup.sh
+chmod +x infra/cicd/cicd-setup.sh
 
 #Follow Enter Previously Captured Information When Script Prompts
-.github/CICD-Setup.sh
+infra/cicd/cicd-setup.sh
 
 ```
 
