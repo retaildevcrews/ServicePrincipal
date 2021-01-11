@@ -55,7 +55,7 @@ The Update unit of work is resonsible for updating a ServicePrincipal in the Dir
             participant AC as Activity Context
             participant AS as Activity Service
             participant AR as Activity Repository
-            participant QS as Queueu Service
+            participant QS as Queue Service
             participant DQ as DiscoveryQueue
 
             C ->>+F: HTTP GET full=true redirect=true
@@ -99,7 +99,7 @@ The Update unit of work is resonsible for updating a ServicePrincipal in the Dir
             participant AC as Activity Context
             participant AS as Activity Service
             participant AR as Activity Repository
-            participant QS as Queueu Service
+            participant QS as Queue Service
             participant DQ as DiscoveryQueue
 
             C ->>+F: 0 */30 * * * *
@@ -217,4 +217,7 @@ Several Microsoft Graph API calls are required to support the major units of wor
 | Directory.Read.All  | Delegated | GET ServicePrincipal | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-get?view=graph-rest-beta&tabs=http |
 | | | LIST ServicePrincipals | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-list?view=graph-rest-beta&tabs=http |
 | Application.ReadWrite.All  | Delegated | UPDATE ServicePrincipal | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-update?view=graph-rest-beta&tabs=http |
+| Directory.Read.All  | Application | GET ServicePrincipal | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-get?view=graph-rest-beta&tabs=http |
+| | | LIST ServicePrincipals | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-list?view=graph-rest-beta&tabs=http |
+| Application.ReadWrite.All  | Application | UPDATE ServicePrincipal | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-update?view=graph-rest-beta&tabs=http |
 
