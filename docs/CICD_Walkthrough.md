@@ -86,3 +86,11 @@ git push
 Navigate to your Github Repository and Click on Actions Tab
 
 You should see a new workflow was kicked off after you pushed your changes
+
+## Getting Upstream Updates
+
+You may periodically want to pull updates from the original repository.
+
+To do that you can sync your fork with the upstream repository.
+
+[GitHub Docs - Syncing a Fork](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/syncing-a-fork)
