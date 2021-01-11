@@ -62,15 +62,6 @@ export GRAPH_ID=$(az ad sp list --query "[?appDisplayName=='Microsoft Graph'].ap
 
 export appReadWriteAll=$(az ad sp show --id $GRAPH_ID --query "oauth2Permissions[?value=='Application.ReadWrite.All'].id | [0]" -o tsv)
 
-# Add App persmission
-az ad app permission add --id $SERVICE_PRINCIPAL_ID --api $GRAPH_ID --api-permissions $appReadWriteAll=Scope
-
-# Make permissions effective
-az ad app permission grant --id $SERVICE_PRINCIPAL_ID --api $GRAPH_ID
-
-# Admin consent
-az ad app permission admin-consent --id $SERVICE_PRINCIPAL_ID
-
 # Push Secrets To Github
 pwsh infra/cicd/put-github-secret.ps1 -UserName $GH_USER -PersonalToken $GH_TOKEN -OrgAndRepo "$GH_ORG/$GH_REPO" -SecretKey SERVICE_PRINCIPAL_SECRET -SecretVal "$SERVICE_PRINCIPAL_SECRET"
 
