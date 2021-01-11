@@ -19,13 +19,13 @@ Configuration values are segregated into several categories:
 * __Secrets__ - non-secret values that allow behavior of the application to be set as a _development_ time concern.
 
 ## Environments
-
-Name | Code | Category | Description
----------|----------|---------
- Local Dev | - | Local | Local Development Environment
- Development | dev | Non-Production | Shared Development Environment (in Azure)
- QA | qa | Non-Production | Testing Environment
- Production | prod | Production | Production environment
+ 
+Name | Code | Category | Description  
+-----|------|--------- | -----------
+ Local Dev | - | Local | Local Development Environment  
+ Development | dev | Non-Production | Shared Development Environment (in Azure)  
+ QA | qa | Non-Production | Testing Environment  
+ Production | prod | Production | Production environment  
 
  > __Note__: We have made the decision __not__ to create a full separate QA environment.  We provision separate QA storage (StorageAccount, CosmosDB Database) to separate the data persistence needs of shared dev and qa.
 
