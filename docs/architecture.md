@@ -210,11 +210,11 @@ The Update unit of work is resonsible for updating a ServicePrincipal in the Dir
 
 ## Required Permissions for API Calls
 
-Several Microsoft Graph API calls are required to support the major units of work. The service principal http://<NAME>-sp-<ENVIRONMENT> is created for this purpose, and granted the following permissions to enable the listed API calls.
+Several Microsoft Graph API calls are required to support the major units of work. The service principal http://{NAME}-sp-{ENVIRONMENT} is created for this purpose, and granted the following permissions to enable the listed API calls.
 
 | API Permission | Permission Type | MS Graph API Call | Documentation |
 | --- | --- | --- | --- |
 | Directory.Read.All  | Delegated | GET ServicePrincipal | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-get?view=graph-rest-beta&tabs=http |
-| | Delegated | LIST ServicePrincipals | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-list?view=graph-rest-beta&tabs=http |
-| Application.ReadWrite.All  | Application | UPDATE ServicePrincipal | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-update?view=graph-rest-beta&tabs=http |
+| | | LIST ServicePrincipals | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-list?view=graph-rest-beta&tabs=http |
+| Application.ReadWrite.All  | Delegated | UPDATE ServicePrincipal | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-update?view=graph-rest-beta&tabs=http |
 
