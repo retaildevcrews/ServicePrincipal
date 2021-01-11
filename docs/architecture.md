@@ -215,3 +215,13 @@ The Update unit of work is resonsible for updating a ServicePrincipal in the Dir
 | GET ServicePrincipal | Directory.Read.All  | Delegated | Application administrator | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-get?view=graph-rest-beta&tabs=http |
 | UPDATE ServicePrincipal | Directory.ReadWrite.All  | Delegated | Application administrator | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-update?view=graph-rest-beta&tabs=http | 
 | LIST ServicePrincipals | Directory.Read.All  | Delegated | Application administrator | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-list?view=graph-rest-beta&tabs=http |
+
+| API Permission | Permission Type | API | Documentation |
+| --- | --- | --- | --- |
+| Directory.Read.All  | Delegated | GET ServicePrincipal | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-get?view=graph-rest-beta&tabs=http |
+| | Delegated | LIST ServicePrincipals | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-list?view=graph-rest-beta&tabs=http |
+| Application.ReadWrite.All  | Application | UPDATE ServicePrincipal | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-update?view=graph-rest-beta&tabs=http |
+| Directory.Read.All  | Delegated | GET ServicePrincipal | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-get?view=graph-rest-beta&tabs=http |
+| | Delegated | LIST ServicePrincipals | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-list?view=graph-rest-beta&tabs=http |
+| Application.ReadWrite.All  | Application | UPDATE ServicePrincipal | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-update?view=graph-rest-beta&tabs=http |
+
