@@ -61,7 +61,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
             var updateCommand = new ServicePrincipalUpdateCommand()
             {
                 CorrelationId = activityContext.CorrelationId,
-                Id = _validatedServicePrincipalWraper.AADServicePrincipal.Id,
+                ObjectId = _validatedServicePrincipalWraper.AADServicePrincipal.Id,
                 Notes = (_validatedServicePrincipalWraper.AADServicePrincipal.Notes, ownersListAsString),
                 Action = ServicePrincipalUpdateAction.Update, // "Update Notes from Owners",
             };

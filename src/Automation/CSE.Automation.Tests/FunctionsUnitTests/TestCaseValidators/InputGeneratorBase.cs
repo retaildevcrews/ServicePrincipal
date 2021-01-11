@@ -147,7 +147,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 
                 if (_servicePrincipalWrapper == null)
                 {
-                    throw new Exception($"Unable to create ServicePrincipalWrapper for Test Case Id: {TestCaseId}");
+                    throw new Exception($"Unable to create ServicePrincipalWrapper for Test Case ObjectId: {TestCaseId}");
                 }
             }
             return _servicePrincipalWrapper;

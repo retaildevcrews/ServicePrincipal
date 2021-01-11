@@ -14,12 +14,12 @@ namespace CSE.Automation.Model
     internal class ActivityHistory
     {
         /// <summary>
-        /// Gets or sets unique Id of the document
+        /// Gets or sets unique ObjectId of the document
         /// </summary>
         public string Id { get; set; }
 
         /// <summary>
-        /// Gets or sets the correlation Id of the activity
+        /// Gets or sets the correlation ObjectId of the activity
         /// </summary>
         public string CorrelationId { get; set; }
 

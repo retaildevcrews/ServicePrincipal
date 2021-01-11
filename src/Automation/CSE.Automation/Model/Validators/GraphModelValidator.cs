@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using CSE.Automation.Interfaces;
-using CSE.Automation.Model;
-using FluentValidation;
 using System;
 using System.Net.Mail;
 using System.Text.Json;
+using CSE.Automation.Interfaces;
+using FluentValidation;
 
-namespace CSE.Automation.Validators
+namespace CSE.Automation.Model.Validators
 {
     public class GraphModelValidator : AbstractValidator<GraphModel>, IModelValidator<GraphModel>
     {

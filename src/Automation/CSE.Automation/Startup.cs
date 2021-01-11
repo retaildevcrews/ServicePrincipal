@@ -12,10 +12,9 @@ using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
 using CSE.Automation.KeyVault;
 using CSE.Automation.Model;
+using CSE.Automation.Model.Validators;
 using CSE.Automation.Processors;
 using CSE.Automation.Services;
-using CSE.Automation.Validators;
-
 using FluentValidation;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;

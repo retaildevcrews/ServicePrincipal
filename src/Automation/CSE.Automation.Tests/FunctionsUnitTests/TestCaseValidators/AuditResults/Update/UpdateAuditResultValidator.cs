@@ -26,12 +26,12 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.AuditResult
             bool attributeNamePass = NewAuditEntry.AttributeName == "Notes";
 
 
-            bool validReasonPass = (NewAuditEntry.Reason == AuditCode.Change_ServicePrincipalUpdated.Description());
+            bool validReasonPass = (NewAuditEntry.Reason == AuditCode.Updated.Description());
 
             bool isNewAuditEntryPass = NewAuditEntry.Timestamp > SavedAuditEntry.Timestamp;
             
-            bool validCorrelationIdPass = Guid.TryParse(NewAuditEntry.CorrelationId, out Guid dummyGuid) &&
-                                        NewAuditEntry.CorrelationId.Equals(Context.CorrelationId);
+            bool validCorrelationIdPass = NewAuditEntry.Descriptor != null && Guid.TryParse(NewAuditEntry.Descriptor.CorrelationId, out Guid dummyGuid) &&
+                                        NewAuditEntry.Descriptor.CorrelationId.Equals(Context.CorrelationId);
 
             return (attributeNamePass && typePass && isNewAuditEntryPass && validCorrelationIdPass && validReasonPass);
 

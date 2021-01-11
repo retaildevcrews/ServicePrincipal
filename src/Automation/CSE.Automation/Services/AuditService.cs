@@ -24,17 +24,16 @@ namespace CSE.Automation.Services
             this.logger = logger;
         }
 
-        public async Task PutFail(ActivityContext context, AuditCode code, string objectId, string attributeName, string existingAttributeValue, string message = null, DateTimeOffset? auditTime = null)
+        public async Task PutFail(AuditDescriptor descriptor, AuditCode code, string attributeName, string existingAttributeValue, string message = null, DateTimeOffset? auditTime = null)
         {
             var formatCulture = CultureInfo.CurrentCulture;
             auditTime ??= DateTimeOffset.Now;
 
             var entry = new AuditEntry
             {
-                CorrelationId = context.CorrelationId,
-                ObjectId = objectId,
+                Descriptor = descriptor,
                 Type = AuditActionType.Fail,
-                Code = (int)code,
+                Code = code,
                 Reason = string.Format(formatCulture, code.Description(), attributeName),
                 Message = message,
                 Timestamp = auditTime ?? DateTimeOffset.Now,
@@ -46,20 +45,19 @@ namespace CSE.Automation.Services
             auditRepository.GenerateId(entry);
             await auditRepository.CreateDocumentAsync(entry).ConfigureAwait(false);
 
-            logger.LogTrace($"Logged Audit {code} for {objectId}");
+            logger.LogTrace($"Logged Audit {code} for {descriptor.ObjectId}");
         }
 
-        public async Task PutPass(ActivityContext context, AuditCode code, string objectId, string attributeName, string existingAttributeValue, string message = null, DateTimeOffset? auditTime = null)
+        public async Task PutPass(AuditDescriptor descriptor, AuditCode code, string attributeName, string existingAttributeValue, string message = null, DateTimeOffset? auditTime = null)
         {
             var formatCulture = CultureInfo.CurrentCulture;
             auditTime ??= DateTimeOffset.Now;
 
             var entry = new AuditEntry
             {
-                CorrelationId = context.CorrelationId,
-                ObjectId = objectId,
+                Descriptor = descriptor,
                 Type = AuditActionType.Pass,
-                Code = (int)code,
+                Code = code,
                 Reason = string.Format(formatCulture, code.Description(), attributeName),
                 Message = message,
                 Timestamp = auditTime.Value,
@@ -71,20 +69,19 @@ namespace CSE.Automation.Services
             auditRepository.GenerateId(entry);
             await auditRepository.CreateDocumentAsync(entry).ConfigureAwait(false);
 
-            logger.LogTrace($"Logged Audit {code} for {objectId}");
+            logger.LogTrace($"Logged Audit {code} for {descriptor.ObjectId}");
         }
 
-        public async Task PutIgnore(ActivityContext context, AuditCode code, string objectId, string attributeName, string existingAttributeValue, string message = null, DateTimeOffset? auditTime = null)
+        public async Task PutIgnore(AuditDescriptor descriptor, AuditCode code, string attributeName, string existingAttributeValue, string message = null, DateTimeOffset? auditTime = null)
         {
             var formatCulture = CultureInfo.CurrentCulture;
             auditTime ??= DateTimeOffset.Now;
 
             var entry = new AuditEntry
             {
-                CorrelationId = context.CorrelationId,
-                ObjectId = objectId,
+                Descriptor = descriptor,
                 Type = AuditActionType.Ignore,
-                Code = (int)code,
+                Code = code,
                 Reason = string.Format(formatCulture, code.Description(), attributeName),
                 Message = message,
                 Timestamp = auditTime.Value,
@@ -96,20 +93,19 @@ namespace CSE.Automation.Services
             auditRepository.GenerateId(entry);
             await auditRepository.CreateDocumentAsync(entry).ConfigureAwait(false);
 
-            logger.LogTrace($"Logged Audit {code} for {objectId}");
+            logger.LogTrace($"Logged Audit {code} for {descriptor.ObjectId}");
         }
 
-        public async Task PutChange(ActivityContext context, AuditCode code, string objectId, string attributeName, string existingAttributeValue, string updatedAttributeValue, string message = null, DateTimeOffset? auditTime = null)
+        public async Task PutChange(AuditDescriptor descriptor, AuditCode code, string attributeName, string existingAttributeValue, string updatedAttributeValue, string message = null, DateTimeOffset? auditTime = null)
         {
             var formatCulture = CultureInfo.CurrentCulture;
             auditTime ??= DateTimeOffset.Now;
 
             var entry = new AuditEntry
             {
-                CorrelationId = context.CorrelationId,
-                ObjectId = objectId,
+                Descriptor = descriptor,
                 Type = AuditActionType.Change,
-                Code = (int)code,
+                Code = code,
                 Reason = string.Format(formatCulture, code.Description(), attributeName),
                 Message = message,
                 Timestamp = auditTime.Value,
@@ -122,7 +118,7 @@ namespace CSE.Automation.Services
             auditRepository.GenerateId(entry);
             await auditRepository.CreateDocumentAsync(entry).ConfigureAwait(false);
 
-            logger.LogTrace($"Logged Audit {code} for {objectId}");
+            logger.LogTrace($"Logged Audit {code} for {descriptor.ObjectId}");
         }
     }
 }
