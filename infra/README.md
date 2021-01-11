@@ -35,7 +35,7 @@ The service principal \<appName>-sp-\<env> requires the permissions listed in th
 | | | LIST ServicePrincipals | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-list?view=graph-rest-beta&tabs=http |
 | Application.ReadWrite.All  | Application | UPDATE ServicePrincipal | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-update?view=graph-rest-beta&tabs=http |
 
-A role assignment is created and assigned to the service principal \<appName>-acr-sp-\<env> and scoped to the azure container registry.
+A role assignment scoped to the azure container registry is created and assigned to the service principal \<appName>-acr-sp-\<env>.
  
 # Prerequisites
 * An Azure subscription in which you have administrator access
