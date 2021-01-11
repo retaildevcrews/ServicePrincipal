@@ -208,7 +208,7 @@ The Update unit of work is resonsible for updating a ServicePrincipal in the Dir
     </details>
 </div>
 
-## Required Permissions for API Calls
+## Required Permissions
 
 Several Microsoft Graph API calls are required to support the major units of work. The service principal http://{NAME}-sp-{ENVIRONMENT} is created for this purpose, and granted the following permissions to enable the listed API calls.
 
@@ -221,3 +221,4 @@ Several Microsoft Graph API calls are required to support the major units of wor
 | | | LIST ServicePrincipals | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-list?view=graph-rest-beta&tabs=http |
 | Application.ReadWrite.All  | Application | UPDATE ServicePrincipal | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-update?view=graph-rest-beta&tabs=http |
 
+A second service principal named http://{NAME}-acr-sp-{ENVIRONMENT} is also created along with a role assignment assigned to it and scoped to the azure container registry named {NAME}{TENANT_NAME}{ENVIRONMENT}
