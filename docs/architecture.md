@@ -8,7 +8,7 @@
   - [RequestDiscovery Function (HTTP)](#requestdiscovery-function-http)
   - [DiscoverDeltas Function (Timer)](#discoverdeltas-function-timer)
   - [Discovery Function](#discovery-function)
-  - [Required Permissions for API Calls](#required-permissions)
+  - [Required Permissions](#required-permissions)
 
 # Software and Component Architecture
 ## Overview
