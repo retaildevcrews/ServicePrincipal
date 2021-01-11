@@ -24,7 +24,18 @@ ServicePrincipal | Purpose | Graph Permissions | Resource Permissions
  \<appName>-sp-\<env> | Application Identity | Application.ReadWrite.All  Directory.Read.All | 
  \<appName>-acr-sp-\<env> | Container Registry Identity | | Container Registry - pull
 
+The service principal \<appName>-sp-\<env> requires the permissions listed in the table below to enable Microsoft Graph API calls that support the major units of work.
 
+| API Permission | Permission Type | MS Graph API Call | Documentation |
+| --- | --- | --- | --- |
+| Directory.Read.All  | Delegated | GET ServicePrincipal | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-get?view=graph-rest-beta&tabs=http |
+| | | LIST ServicePrincipals | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-list?view=graph-rest-beta&tabs=http |
+| Application.ReadWrite.All  | Delegated | UPDATE ServicePrincipal | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-update?view=graph-rest-beta&tabs=http |
+| Directory.Read.All  | Application | GET ServicePrincipal | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-get?view=graph-rest-beta&tabs=http |
+| | | LIST ServicePrincipals | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-list?view=graph-rest-beta&tabs=http |
+| Application.ReadWrite.All  | Application | UPDATE ServicePrincipal | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-update?view=graph-rest-beta&tabs=http |
+
+A role assignment is created and assigned to the service principal \<appName>-acr-sp-\<env> and scoped to the azure container registry.
  
 # Prerequisites
 * An Azure subscription in which you have administrator access
