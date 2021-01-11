@@ -11,31 +11,28 @@
   - Azure CLI ([download](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest))
 - Infrastructure Setup: [infra/README.md](../infra/README.md)
 
-## Clone Repository
+## Fork Repository
 
-Create a new repository in your Github Organization
+Navigate to [retaildevcrews/ServicePrincipal](https://github.com/retaildevcrews/ServicePrincipal)
+
+In the top-right corner of the page, click Fork.
+
+![How to fork a repository](images/fork-repo.png)
+
+Place in destination organization
 
 - [ ] Copy URI of new repository to use in next step
 
+## Clone Repository To Local
+
 ```sh
 
-git clone git@github.com:retaildevcrews/ServicePrincipal.git
-cd ServicePrincipal
-
-# Please Note SSH and HTTPS Connection URIs Vary
-git remote set-url origin git@github.com:retaildevcrews/ServicePrincipal.git
-git remote set-url origin < ENTER URI TO NEW REPO HERE >
-
-git branch -M main
-
-# If Following Push Fails, Set Email and Name and Try Again
-git push -u origin main
+# Please Note SSH and HTTPS Connection URIs Differ
+git clone < ENTER URI TO NEW REPO HERE >
 
 ```
 
-## Create Github SP Connector and Push Secrets To Repo
-
-### Create Personal Token
+## Create Personal Token
 
 Follow steps in this [guide](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) to create a personal access token. This will be used to create and push sensitive tokens used by CICD
 
@@ -45,7 +42,7 @@ For Scopes / Permissions, check "repo" Box
 
 After completing this walkthrough this token can be removed using GitHub UI
 
-### Capture Additional Repo Information
+## Capture Additional Repo Information
 
 Capture the following information and save for later prompting:
 
@@ -54,7 +51,7 @@ Capture the following information and save for later prompting:
 - [ ] Your Github Organization That Contains Repository
 - [ ] Your Github Repository Name
 
-### Run Script to Create SP Connection and Push Secrets
+## Run Script to Create SP Connection and Push Secrets
 
 ```sh
 
