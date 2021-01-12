@@ -24,9 +24,11 @@ ServicePrincipal | Purpose | Graph Permissions | Resource Permissions
  \<appName>-sp-\<env> | Application Identity | Application.ReadWrite.All  Directory.Read.All | 
  \<appName>-acr-sp-\<env> | Container Registry Identity | | Container Registry - pull
 
-The service principal **\<appName>-sp-\<env>** requires the permissions listed in the table below to enable Microsoft Graph API calls that support the major units of work.
+ ## Service Principal Permissions
 
-| API Permission | Permission Type | MS Graph API Call | Documentation |
+A role assignment scoped to the azure container registry is created and assigned to the service principal **\<appName>-acr-sp-\<env>**. The service principal **\<appName>-sp-\<env>** requires the Microsoft Graph permissions listed in the table below to enable Microsoft Graph API calls that support the major units of work. [Application resource permissions](https://docs.microsoft.com/en-us/graph/permissions-reference#application-resource-permissions) allow the application to read and update service principals, while [directory permissions](https://docs.microsoft.com/en-us/graph/permissions-reference#directory-permissions) allow the application to read data from the directory.
+
+| MS Graph Permission | Permission Type | MS Graph API Call | Documentation |
 | --- | --- | --- | --- |
 | Directory.Read.All  | Delegated | GET ServicePrincipal | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-get?view=graph-rest-beta&tabs=http |
 | | | LIST ServicePrincipals | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-list?view=graph-rest-beta&tabs=http |
@@ -35,7 +37,6 @@ The service principal **\<appName>-sp-\<env>** requires the permissions listed i
 | | | LIST ServicePrincipals | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-list?view=graph-rest-beta&tabs=http |
 | Application.ReadWrite.All  | Application | UPDATE ServicePrincipal | https://docs.microsoft.com/en-us/graph/api/serviceprincipal-update?view=graph-rest-beta&tabs=http |
 
-A role assignment scoped to the azure container registry is created and assigned to the service principal **\<appName>-acr-sp-\<env>**.
  
 # Prerequisites
 * An Azure subscription in which you have administrator access
