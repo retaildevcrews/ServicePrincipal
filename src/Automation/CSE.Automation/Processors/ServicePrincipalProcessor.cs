@@ -178,7 +178,7 @@ namespace CSE.Automation.Processors
                 {
                     if (DateTimeOffset.TryParse(value.ToString(), out var dateValue))
                     {
-                        createdDateTime = dateValue.ToUniversalTime();
+                        createdDateTime = dateValue;
                     }
                 }
 
