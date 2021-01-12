@@ -50,7 +50,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.DataAccess
                 throw new InvalidDataException($"Invalid GUID value {objectId}", ex);
             }
 
-            string sql = $"SELECT * FROM c WHERE c.objectId = '{objectId}' ORDER BY c._ts DESC OFFSET 0 LIMIT {limit}";
+            string sql = $"SELECT * FROM c WHERE c.descriptor.objectId = '{objectId}' ORDER BY c._ts DESC OFFSET 0 LIMIT {limit}";
 
             return await InternalCosmosDBSqlQuery(sql).ConfigureAwait(false);
         }
@@ -71,7 +71,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.DataAccess
                 throw new InvalidDataException($"Invalid GUID value(s) '{objectId}' , '{correlationId}'", ex);
             }
 
-            string sql = $"SELECT * FROM c where c.correlationId = '{correlationId}' and c.objectId = '{objectId}' ORDER BY c._ts DESC";
+            string sql = $"SELECT * FROM c where c.descriptor.correlationId = '{correlationId}' and c.descriptor.objectId = '{objectId}' ORDER BY c._ts DESC";
 
             return await InternalCosmosDBSqlQuery(sql).ConfigureAwait(false);
         }
@@ -93,7 +93,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.DataAccess
                 throw new InvalidDataException($"Invalid GUID value(s) '{objectId}' , '{correlationId}'", ex);
             }
 
-            string sql = $"SELECT VALUE COUNT(1) FROM c where c.correlationId = '{correlationId}' and c.objectId = '{objectId}'";
+            string sql = $"SELECT VALUE COUNT(1) FROM c where c.descriptor.correlationId = '{correlationId}' and c.descriptor.objectId = '{objectId}'";
 
 
             var query = this.GetPrivateContainerInstance().GetItemQueryIterator<int>(sql);
