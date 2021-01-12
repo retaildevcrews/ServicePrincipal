@@ -58,17 +58,11 @@ namespace CSE.Automation.Services
         {
             TrackingModel lastKnownGoodWrapper = await Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(false);
 
-            DateTimeOffset createdLastKnownGood = DateTimeOffset.MinValue;
-            if (lastKnownGoodWrapper != null)
-            {
-                createdLastKnownGood = lastKnownGoodWrapper.Created;
-            }
-
             var now = DateTimeOffset.Now;
             var model = new TrackingModel<TEntity>
             {
                 CorrelationId = context.CorrelationId,
-                Created = createdLastKnownGood == DateTimeOffset.MinValue ? now : createdLastKnownGood,
+                Created = lastKnownGoodWrapper?.Created ?? now,
                 LastUpdated = now,
                 TypedEntity = entity,
             };
