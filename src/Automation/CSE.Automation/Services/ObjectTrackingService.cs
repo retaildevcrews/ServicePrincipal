@@ -56,11 +56,13 @@ namespace CSE.Automation.Services
         public async Task<TrackingModel> Put<TEntity>(ActivityContext context, TEntity entity)
             where TEntity : GraphModel
         {
+            TrackingModel lastKnownGoodWrapper = await Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(false);
+
             var now = DateTimeOffset.Now;
             var model = new TrackingModel<TEntity>
             {
                 CorrelationId = context.CorrelationId,
-                Created = now,
+                Created = lastKnownGoodWrapper?.Created ?? now,
                 LastUpdated = now,
                 TypedEntity = entity,
             };
