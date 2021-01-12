@@ -38,13 +38,16 @@ namespace CSE.Automation.Model.Validators
                 throw new ArgumentNullException(nameof(model));
             }
 
-            if (model.Deleted.HasValue)
+            if (model.Created.HasValue)
             {
-                return model.LastUpdated >= model.Deleted && model.Deleted >= model.Created;
-            }
-            else if (model.LastUpdated.HasValue)
-            {
-                return model.LastUpdated >= model.Created;
+                if (model.Deleted.HasValue)
+                {
+                    return model.LastUpdated >= model.Deleted && model.Deleted >= model.Created;
+                }
+                else if (model.LastUpdated.HasValue)
+                {
+                    return model.LastUpdated >= model.Created;
+                }
             }
 
             return true;

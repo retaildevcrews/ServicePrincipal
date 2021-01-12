@@ -173,13 +173,22 @@ namespace CSE.Automation.Processors
                     logger.LogInformation($"\tResolved {servicePrincipalCount} ServicePrincipals.");
                 }
 
+                DateTimeOffset? createdDateTime = null;
+                if (sp.AdditionalData.TryGetValue("createdDateTime", out var value))
+                {
+                    if (DateTimeOffset.TryParse(value.ToString(), out var dateValue))
+                    {
+                        createdDateTime = dateValue.ToUniversalTime();
+                    }
+                }
+
                 var model = new ServicePrincipalModel()
                 {
                     Id = sp.Id,
                     AppId = sp.AppId,
                     DisplayName = sp.DisplayName,
                     Notes = sp.Notes,
-                    Created = DateTimeOffset.Parse(sp.AdditionalData["createdDateTime"].ToString(), CultureInfo.CurrentCulture),
+                    Created = createdDateTime,
                     Deleted = sp.DeletedDateTime,
                     Owners = owners,
                     ObjectType = ObjectType.ServicePrincipal,
