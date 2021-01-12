@@ -54,7 +54,7 @@ The Update unit of work is resonsible for updating a ServicePrincipal in the Dir
             participant AC as Activity Context
             participant AS as Activity Service
             participant AR as Activity Repository
-            participant QS as Queueu Service
+            participant QS as Queue Service
             participant DQ as DiscoveryQueue
 
             C ->>+F: HTTP GET full=true redirect=true
@@ -98,7 +98,7 @@ The Update unit of work is resonsible for updating a ServicePrincipal in the Dir
             participant AC as Activity Context
             participant AS as Activity Service
             participant AR as Activity Repository
-            participant QS as Queueu Service
+            participant QS as Queue Service
             participant DQ as DiscoveryQueue
 
             C ->>+F: 0 */30 * * * *
