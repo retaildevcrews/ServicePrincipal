@@ -11,7 +11,7 @@ namespace CSE.Automation.Model
     {
         public string Id { get; set; }
 
-        public DateTimeOffset Created { get; set; }
+        public DateTimeOffset? Created { get; set; }
         public DateTimeOffset? Deleted { get; set; }
         public DateTimeOffset? LastUpdated { get; set; }
 
@@ -26,15 +26,4 @@ namespace CSE.Automation.Model
         /// </summary>
         ServicePrincipal,
     }
-
-    /*
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum Status
-    {
-        Valid,
-        Invalid,
-        Deleted,
-        Remediated
-    }
-    */
 }
