@@ -41,12 +41,12 @@ jobs:
     - name: Get Resources
       run: |
         export FN_NAME=$(az resource list -g ${RESOURCE_GROUP} --resource-type Microsoft.Web/sites --query '[].name' -o tsv)
-        export KV_NAME=$(az resource list -g ${RESOURCE_GROUP} --resource-type Microsoft.KeyVault/vaults --query '[].name' -o tsv)
+        export KEYVAULT_NAME=$(az resource list -g ${RESOURCE_GROUP} --resource-type Microsoft.KeyVault/vaults --query '[].name' -o tsv)
         export DB_NAME=$(az resource list -g ${RESOURCE_GROUP} --resource-type Microsoft.DocumentDB/databaseAccounts --query '[].name' -o tsv)
         export ACR_NAME=$(az resource list -g ${RESOURCE_GROUP} --resource-type Microsoft.ContainerRegistry/registries --query '[].name' -o tsv)
         export STORAGE_NAME=$(az resource list -g ${RESOURCE_GROUP} --resource-type Microsoft.Storage/storageAccounts --query '[].name' -o tsv)
         echo "FN_NAME=${FN_NAME}" >> $GITHUB_ENV
-        echo "KV_NAME=${KV_NAME}" >> $GITHUB_ENV
+        echo "KEYVAULT_NAME=${KEYVAULT_NAME}" >> $GITHUB_ENV
         echo "DB_NAME=${DB_NAME}" >> $GITHUB_ENV
         echo "ACR_REG_REPO_URL=${ACR_NAME}.azurecr.io/serviceprincipal" >> $GITHUB_ENV
         echo "STORAGE_NAME=${STORAGE_NAME}" >> $GITHUB_ENV
@@ -71,7 +71,6 @@ jobs:
         az storage queue create --fail-on-exist --account-name ${STORAGE_NAME} --name "${QUEUE_PREFIX}-evaluate"
         az storage queue create --fail-on-exist --account-name ${STORAGE_NAME} --name "${QUEUE_PREFIX}-update"
         cd src/Automation/CSE.Automation.TestsPrep
-        export KEYVAULT_NAME="${KV_NAME}"
         dotnet run
 
     - name: Run Integration Tests
@@ -81,7 +80,6 @@ jobs:
         export SPDiscoverQueue="${QUEUE_PREFIX}-discover"
         export SPEvaluateQueue="${QUEUE_PREFIX}-evaluate"
         export SPUpdateQueue="${QUEUE_PREFIX}-update"
-        export KEYVAULT_NAME="${KV_NAME}"
         export SPCosmosURL="https://${DB_NAME}.documents.azure.com:443/"
         export SPCosmosDatabase=$(az cosmosdb sql database list -g $RESOURCE_GROUP -a $DB_NAME --query '[].name' -o tsv | grep qa)
         dotnet test --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed" --filter "Category=Integration"
