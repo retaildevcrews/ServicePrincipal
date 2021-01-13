@@ -82,12 +82,12 @@ jobs:
         export SPCosmosDatabase=$(az cosmosdb sql database list -g $RESOURCE_GROUP -a $DB_NAME --query '[].name' -o tsv | grep qa)
         echo "SPCosmosDatabase=${SPCosmosDatabase}" >> $GITHUB_ENV
 
-    - name: Run Critital Integration Tests
+    - name: Run Critical Integration Tests
       run: |
         cd src/Automation
         dotnet test --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed" --filter "Category=Integration Critical"
 
-    - name: Run Non Critital Integration Tests
+    - name: Run Non Critical Integration Tests
       continue-on-error: true
       run: |
         cd src/Automation
