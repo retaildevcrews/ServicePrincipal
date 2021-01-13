@@ -62,7 +62,7 @@ az login
 
 chmod +x infra/cicd/cicd-setup.sh
 
-# Follow Enter Previously Captured Information When Script Prompts
+# Enter Previously Captured Information When Script Prompts
 infra/cicd/cicd-setup.sh
 
 ```
