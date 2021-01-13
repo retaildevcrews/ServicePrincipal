@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -44,6 +44,8 @@ namespace CSE.Automation.TestsPrep
                 Console.WriteLine($"Starting process...");
                 testCaseManager.Start();
                 logFileName = testCaseManager.LogFileName;
+                Console.WriteLine($"Logs at:");
+                Console.WriteLine($"{logFileName}");
             }
 
             
@@ -53,13 +55,13 @@ namespace CSE.Automation.TestsPrep
 
                 File.AppendAllText(logFileName, $"{Environment.NewLine}***************  Time elapsed - {stopWatch.Elapsed}");
 
-                Process.Start("notepad.exe", logFileName);
-                Task.Delay(500);
+                //Process.Start("notepad.exe", logFileName);
+                //Task.Delay(500);
 
-                Console.Clear();
+                //Console.Clear();
                 Console.WriteLine($"{Environment.NewLine}Process completed!, time elapsed - {stopWatch.Elapsed}");
             }
-
+            Console.WriteLine("Process Completed");
         }
 
         private static void ConfirmationMessage()

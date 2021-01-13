@@ -1,4 +1,4 @@
-﻿using CSE.Automation.TestsPrep.TestCases.Rules;
+using CSE.Automation.TestsPrep.TestCases.Rules;
 using CSE.Automation.TestsPrep.TestCases.ServicePrincipals;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Graph;
@@ -79,7 +79,7 @@ namespace CSE.Automation.TestsPrep
 
                 System.IO.Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs"));
 
-                LogFileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs\\" + DateTime.Now.ToString("yyyyMMddHHmmss") + "_Execution.log");
+                LogFileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", DateTime.Now.ToString("yyyyMMddHHmmss") + "_Execution.log");
                 System.IO.File.WriteAllLines(LogFileName, logger);
                 Task.Delay(500);
             }
