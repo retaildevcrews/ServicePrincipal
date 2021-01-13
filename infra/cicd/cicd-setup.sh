@@ -48,7 +48,6 @@ if [ $TempKey == null ]; then
   echo "Unable to Login To Repository"
 else
   >&2 echo "Able to Login To Repository"
-  exit 1
 fi
 
 # Create Service Principal with RBAC
