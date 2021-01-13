@@ -23,6 +23,8 @@ Place in destination organization
 
 - [ ] Copy URI of new repository to use in next step
 
+Before continuing, nagivate to your forked repository in browser, click on Actions tab and then Enable Github Actions
+
 ## Clone Repository To Local
 
 ```sh
