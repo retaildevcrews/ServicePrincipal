@@ -29,6 +29,7 @@ Place in destination organization
 
 # Please Note SSH and HTTPS Connection URIs Differ
 git clone < ENTER URI TO NEW REPO HERE >
+cd ServicePrincipal
 
 ```
 
@@ -64,15 +65,22 @@ infra/cicd/cicd-setup.sh
 
 ```
 
+## Create Service Principals For Integration Testing
+
+```sh
+
+export RESOURCE_GROUP=< ENTER RESOURCE GROUP CREATED HERE >
+export KEYVAULT_NAME=$(az resource list -g ${RESOURCE_GROUP} --resource-type Microsoft.KeyVault/vaults --query '[].name' -o tsv)
+export AUTH_TYPE=CLI
+dotnet run --project src/Automation/CSE.Automation.TestsPrep/CSE.Automation.TestsPrep.csproj
+
+```
+
 ## First GitHub Action Run
 
 ```sh
 
-code .github/workflows/dockerCI.yml
-
-# Replace Value of jobs.build.env.RESOURCE_GROUP with Resource Group Created By Infrastructure Scripts (Can Also Be Retreived From portal.azure.com)
-
-# Save File
+sed -i "s/\(\s*RESOURCE_GROUP: \)\(.*\)/\1$RESOURCE_GROUP/g" .github/workflows/dockerCI.yml
 
 # Stage and Commit
 git add .
