@@ -3,7 +3,7 @@ name: Docker CI
 on:
   push:
     branches:
-      - alfredo/cicd-first-run-fixes
+      - main
 
     paths-ignore:
       - 'docs/**'
@@ -113,7 +113,6 @@ jobs:
         export VERSION_PREFIX=${majorminor}.${patch}
         echo $VERSION_PREFIX
         echo "VERSION_PREFIX=${VERSION_PREFIX}" >> $GITHUB_ENV
-        exit 1
 
     - name: Build Container
     # Version Prefix must be of following format: ^\d+(\.\d+){1,3}$
