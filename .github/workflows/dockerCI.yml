@@ -70,9 +70,7 @@ jobs:
         az storage queue create --fail-on-exist --account-name ${STORAGE_NAME} --name "${QUEUE_PREFIX}-discover"
         az storage queue create --fail-on-exist --account-name ${STORAGE_NAME} --name "${QUEUE_PREFIX}-evaluate"
         az storage queue create --fail-on-exist --account-name ${STORAGE_NAME} --name "${QUEUE_PREFIX}-update"
-        cd src/Automation/CSE.Automation.TestsPrep
         export KEYVAULT_NAME="${KV_NAME}"
-        dotnet run
 
     - name: Run Integration Tests
       continue-on-error: true
