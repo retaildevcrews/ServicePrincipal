@@ -48,7 +48,6 @@ if [ $TempKey == null ]; then
   echo "Unable to Login To Repository"
 else
   >&2 echo "Able to Login To Repository"
-  exit 1
 fi
 
 # Create Service Principal with RBAC
@@ -63,6 +62,8 @@ export GRAPH_ID=$(az ad sp list --query "[?appDisplayName=='Microsoft Graph'].ap
 export appReadWriteAll=$(az ad sp show --id $GRAPH_ID --query "oauth2Permissions[?value=='Application.ReadWrite.All'].id | [0]" -o tsv)
 
 # Push Secrets To Github
+pwsh --command "Install-Module PSSodium"
+
 pwsh infra/cicd/put-github-secret.ps1 -UserName $GH_USER -PersonalToken $GH_TOKEN -OrgAndRepo "$GH_ORG/$GH_REPO" -SecretKey SERVICE_PRINCIPAL_SECRET -SecretVal "$SERVICE_PRINCIPAL_SECRET"
 
 pwsh infra/cicd/put-github-secret.ps1 -UserName $GH_USER -PersonalToken $GH_TOKEN -OrgAndRepo "$GH_ORG/$GH_REPO" -SecretKey SERVICE_PRINCIPAL_ID -SecretVal "$SERVICE_PRINCIPAL_ID"

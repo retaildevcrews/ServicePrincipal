@@ -12,8 +12,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionScripts", "Solution
 		SolutionScripts\local.settings.json.template = SolutionScripts\local.settings.json.template
 		SolutionScripts\SolutionCommands.ps1 = SolutionScripts\SolutionCommands.ps1
 	EndProjectSection
+	ProjectSection(FolderGlobals) = preProject
+		C_5_4Users_4nsikanudoyen_4source_4repos_4ServicePrincipal_4src_4Automation_4SolutionScripts_4local_1settings_1json_1template__JsonSchema = https://json-stat.org/format/schema/2.0/
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSE.Automation.TestsPrep", "CSE.Automation.TestsPrep\CSE.Automation.TestsPrep.csproj", "{7B58FC36-F080-4542-AF4B-CA17A8F499D8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSE.Automation.TestsPrep", "CSE.Automation.TestsPrep\CSE.Automation.TestsPrep.csproj", "{7B58FC36-F080-4542-AF4B-CA17A8F499D8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

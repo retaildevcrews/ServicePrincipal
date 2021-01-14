@@ -7,7 +7,7 @@
 
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
     "AUTH_TYPE": "VS",
-    "KEYVAULT_NAME": "sp-kv-dev",
+    "KEYVAULT_NAME": "kv-svcprincipal-cse-dev",
     "configId": "02a54ac9-441e-43f1-88ee-fde420db2559",
     "visibilityDelayGapSeconds": "8",
     "queueRecordProcessThreshold": "300",
