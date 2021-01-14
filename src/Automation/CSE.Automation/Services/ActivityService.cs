@@ -37,9 +37,9 @@ namespace CSE.Automation.Services
         }
 
         /// <summary>
-        /// Given a document Id, return an instance of the ActivityHistory document.
+        /// Given a document ObjectId, return an instance of the ActivityHistory document.
         /// </summary>
-        /// <param name="id">Unique Id of the document.</param>
+        /// <param name="id">Unique ObjectId of the document.</param>
         /// <returns>An instance of <see cref="ActivityHistory"/> document or null.</returns>
         public async Task<ActivityHistory> Get(string id)
         {
@@ -55,7 +55,7 @@ namespace CSE.Automation.Services
         /// Create an instance of an ActivityHistory model
         /// </summary>
         /// <param name="name">Name of the activity</param>
-        /// <param name="correlationId">Correlation Id of the activity</param>
+        /// <param name="correlationId">Correlation ObjectId of the activity</param>
         /// <param name="withTracking">True if the activity is tracked in ActivityHistory</param>
         /// <returns>A new instance of <see cref="ActivityHistory"/>.</returns>
         public ActivityContext CreateContext(string name, string correlationId = null, bool withTracking = false)

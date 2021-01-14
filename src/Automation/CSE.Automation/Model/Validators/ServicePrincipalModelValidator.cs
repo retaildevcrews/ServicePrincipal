@@ -1,17 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using CSE.Automation.Graph;
-using CSE.Automation.Interfaces;
-using CSE.Automation.Model;
-using FluentValidation;
-using FluentValidation.Results;
-using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
 using System.Linq;
-using System.Runtime.CompilerServices;
+using CSE.Automation.Interfaces;
+using FluentValidation;
+using Microsoft.Graph;
 
-namespace CSE.Automation.Validators
+namespace CSE.Automation.Model.Validators
 {
     internal class ServicePrincipalModelValidator : AbstractValidator<ServicePrincipalModel>, IModelValidator<ServicePrincipalModel>
     {

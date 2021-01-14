@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using CSE.Automation.Validators;
+using CSE.Automation.Model.Validators;
 
 namespace CSE.Automation.TestsPrep.TestCases
 {

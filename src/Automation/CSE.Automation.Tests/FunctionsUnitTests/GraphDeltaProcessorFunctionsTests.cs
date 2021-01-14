@@ -20,7 +20,6 @@ using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ServicePrincipa
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators;
 using static CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases.TestCaseCollection;
 using System.Runtime.CompilerServices;
-using CSE.Automation.Validators;
 using CSE.Automation.KeyVault;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.DataAccess;
 using System.Reflection;
@@ -29,6 +28,7 @@ using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ConfigurationRe
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.ActivityResults;
 using CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.Helpers;
 using System.IO;
+using CSE.Automation.Model.Validators;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests
 {
@@ -280,7 +280,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
-        [Trait("Category","Integration")]
+        [Trait("Category", "Integration Critical")]
         public void FunctionEvaluateTestCase1()
         {
             using var testCaseCollection = new EvaluateTestCaseCollection();
@@ -322,7 +322,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
 
         [Fact]
-        [Trait("Category","Integration")]
+        [Trait("Category", "Integration Critical")]
         public void FunctionEvaluateTestCase2()
         {
             using var testCaseCollection = new EvaluateTestCaseCollection();
@@ -363,7 +363,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
-        [Trait("Category","Integration")]
+        [Trait("Category", "Integration Critical")]
         public void FunctionEvaluateTestCase2_2()
         {
             using var testCaseCollection = new EvaluateTestCaseCollection();
@@ -404,7 +404,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
-        [Trait("Category","Integration")]
+        [Trait("Category", "Integration Critical")]
         public void FunctionEvaluateTestCase3() 
         {
             using var testCaseCollection = new EvaluateTestCaseCollection();
@@ -445,7 +445,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
-        [Trait("Category","Integration")]
+        [Trait("Category", "Integration Critical")]
         public void FunctionEvaluateTestCase3_2()
         {
             using var testCaseCollection = new EvaluateTestCaseCollection();
@@ -486,7 +486,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
-        [Trait("Category","Integration")]
+        [Trait("Category", "Integration Critical")]
         public void FunctionEvaluateTestCase4()
         {
             using var testCaseCollection = new EvaluateTestCaseCollection();
@@ -528,7 +528,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
 
         [Fact]
-        [Trait("Category","Integration")]
+        [Trait("Category", "Integration Critical")]
         public void FunctionEvaluateTestCase5()
         {
             using var testCaseCollection = new EvaluateTestCaseCollection();
@@ -570,7 +570,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         }
 
         [Fact]
-        [Trait("Category","Integration")]
+        [Trait("Category", "Integration Critical")]
         public void FunctionEvaluateTestCase6()
         {
             using var testCaseCollection = new EvaluateTestCaseCollection();

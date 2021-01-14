@@ -26,7 +26,9 @@ namespace CSE.Automation.Model
     internal class ServicePrincipalUpdateCommand
     {
         public string CorrelationId { get; set; }
-        public string Id { get; set; }
+        public string ObjectId { get; set; }
+        public string AppId { get; set; }
+        public string DisplayName { get; set; }
         public (string Current, string Changed) Notes { get; set; }
         public ServicePrincipalUpdateAction Action { get; set; }
     }

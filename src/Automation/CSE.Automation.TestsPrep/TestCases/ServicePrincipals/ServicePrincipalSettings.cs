@@ -60,16 +60,6 @@ namespace CSE.Automation.TestsPrep.TestCases.ServicePrincipals
             }
         }
 
-        public bool InteractiveRun
-        {
-            get
-            {
-                bool defaultValue= false;
-                bool.TryParse(_configHelper.Config["interactiveRun"], out defaultValue);
-                return defaultValue;
-            }
-        }
-
         public int NumberOfSPObjectsToCreatePerTestCase => int.Parse(_configHelper.Config["numberOfServicePrincipalObjectsToCreatePerTestCase"]);
 
         public int NumberOfUsersToCreatePerTestCase => int.Parse(_configHelper.Config["numberOfUsersToCreatePerTestCase"]);

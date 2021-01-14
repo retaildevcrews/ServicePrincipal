@@ -3,16 +3,19 @@
 
 using System;
 using CSE.Automation.Interfaces;
-using CSE.Automation.Model;
 using FluentValidation;
 
-namespace CSE.Automation.Validators
+namespace CSE.Automation.Model.Validators
 {
-    public class AuditEntryValidator : AbstractValidator<AuditEntry>, IModelValidator<AuditEntry>
+    internal class AuditEntryValidator : AbstractValidator<AuditEntry>, IModelValidator<AuditEntry>
     {
         public AuditEntryValidator()
         {
-            RuleFor(x => x.CorrelationId).NotNull().NotEmpty();
+            RuleFor(x => x.Descriptor).NotNull().DependentRules(() =>
+            {
+                RuleFor(x => x.Descriptor.ObjectId).Cascade(CascadeMode.Stop).NotNull().NotEmpty();
+                RuleFor(x => x.Descriptor.CorrelationId).Cascade(CascadeMode.Stop).NotNull().NotEmpty();
+            });
             RuleFor(x => x.Type).NotEmpty();
             RuleFor(x => x.Reason).NotEmpty();
             RuleFor(x => x.Timestamp).NotEmpty().NotEqual(DateTimeOffset.MinValue);

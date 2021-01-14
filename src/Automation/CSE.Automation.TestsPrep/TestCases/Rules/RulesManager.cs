@@ -36,21 +36,20 @@ namespace CSE.Automation.TestsPrep.TestCases.Rules
                 throw new InvalidDataException($"The number of available SP objects in AAD do not match the number of 'SP per Ruleset Count'. Current Ruleset count is {RuleSetsList.Count} ");
             }
 
-            ConsoleHelper.UpdateConsole($"Sorting AAD objects...", _spSettings.InteractiveRun);
+            Console.WriteLine($"Sorting AAD objects...");
             _availableServicePrincipals.Sort(new ServicePrincipalComparer());
             _availableUsers.Sort(new UserComparer());
 
             //NOTE:  switch back to regular foreach if you want to get "GetNext(x)" in sequence 
             //However it will increase execution time by 50%
 
-            //Parallel.ForEach(_spSettings.TargetTestCaseList, ruleSetName =>
             foreach (var ruleSetName in _spSettings.TargetTestCaseList)
             {
                 string objectToInstantiate = $"CSE.Automation.TestsPrep.TestCases.Rules.{ruleSetName}, CSE.Automation.TestsPrep";
 
                 var objectType = Type.GetType(objectToInstantiate);
 
-                ConsoleHelper.UpdateConsole($"Executing Test Case {ruleSetName}...", _spSettings.InteractiveRun);
+                Console.WriteLine($"Executing Test Case {ruleSetName}...");
 
                 var nextServicePrincipalSet = _availableServicePrincipals.GetNext(_spSettings.NumberOfSPObjectsToCreatePerTestCase);
 
@@ -63,13 +62,12 @@ namespace CSE.Automation.TestsPrep.TestCases.Rules
                 RuleSetsList.Add(instantiatedObject);
 
                 instantiatedObject.Execute();
-            }//);
+            }
 
-            ConsoleHelper.UpdateConsole($"Rules executed...", _spSettings.InteractiveRun);
+            Console.WriteLine($"Rules executed...");
         }
 
-       
-
+ 
         public void Dispose()
         {
             //throw new NotImplementedException();

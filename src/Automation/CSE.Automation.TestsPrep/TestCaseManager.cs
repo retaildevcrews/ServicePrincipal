@@ -1,4 +1,4 @@
-﻿using CSE.Automation.TestsPrep.TestCases.Rules;
+using CSE.Automation.TestsPrep.TestCases.Rules;
 using CSE.Automation.TestsPrep.TestCases.ServicePrincipals;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Graph;
@@ -14,6 +14,8 @@ namespace CSE.Automation.TestsPrep
     internal class TestCaseManager : IDisposable
     {
         private readonly ServicePrincipalSettings _spSettings;
+
+        private readonly StringBuilder log = new StringBuilder();
 
         public string LogFileName { get; private set; }
 
@@ -34,9 +36,13 @@ namespace CSE.Automation.TestsPrep
 
             Task.WaitAll(queryObjects.ToArray());
 
-            GenerateMessagesForAllRules(getSPsTask.Result, getUserTask.Result);
+            ExecuteAllRules(getSPsTask.Result, getUserTask.Result);
         }
 
+        internal string GetExecutionLog()
+        {
+            return log.ToString();
+        }
         internal void Cleanup()
         {
             using (ServicePrincipalManager ServicePrincipalManager = new ServicePrincipalManager(_spSettings))
@@ -45,7 +51,7 @@ namespace CSE.Automation.TestsPrep
             }
         }
 
-        private void GenerateMessagesForAllRules(List<ServicePrincipal> availableServicePrincipals, List<User> availableUsers)
+        private void ExecuteAllRules(List<ServicePrincipal> availableServicePrincipals, List<User> availableUsers)
         {
             using (RulesManager rulesManager = new RulesManager(availableServicePrincipals, availableUsers, _spSettings))
             {
@@ -58,31 +64,23 @@ namespace CSE.Automation.TestsPrep
 
         private void GenerateLog(List<IRuleSet> ruleSetsList)
         {
-            if (_spSettings.InteractiveRun)
+            foreach (var ruleSet in ruleSetsList)
             {
-                List<string> logger = new List<string>();
+                if (ruleSet.ServicePrincipals == null || ruleSet.ServicePrincipals.Count == 0)
+                    continue;
 
-                foreach (var ruleSet in ruleSetsList)
-                {
-                    if (ruleSet.ServicePrincipals == null || ruleSet.ServicePrincipals.Count == 0)
-                        continue;
+                StringBuilder sbLog = new StringBuilder();
 
-                    StringBuilder sbLog = new StringBuilder();
+                BuildLogEntry(ruleSet, sbLog);
 
-                    BuildLogEntry(ruleSet, sbLog);
-
-                    logger.Add(sbLog.ToString());
-
-                    ConsoleHelper.UpdateConsole($"Sending [{ruleSet.GetType().Name}] messages to Queue...", _spSettings.InteractiveRun);
-
-                }
-
-                System.IO.Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs"));
-
-                LogFileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs\\" + DateTime.Now.ToString("yyyyMMddHHmmss") + "_Execution.log");
-                System.IO.File.WriteAllLines(LogFileName, logger);
-                Task.Delay(500);
+                log.AppendLine(sbLog.ToString());
             }
+
+            System.IO.Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs"));
+
+            LogFileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", DateTime.Now.ToString("yyyyMMddHHmmss") + "_Execution.log");
+            System.IO.File.WriteAllLines(LogFileName, new string[] { log.ToString() } );
+            Task.Delay(500);
         }
 
         private void BuildLogEntry(IRuleSet ruleSet, StringBuilder sbLog)
@@ -101,7 +99,7 @@ namespace CSE.Automation.TestsPrep
         {
             using (ServicePrincipalManager ServicePrincipalManager = new ServicePrincipalManager(_spSettings))
             {
-                ConsoleHelper.UpdateConsole($"Getting Service Principal Objects...", _spSettings.InteractiveRun);
+                Console.WriteLine($"Getting Service Principal Objects...");
                 
                 return ServicePrincipalManager.GetOrCreateServicePrincipals();
             }
@@ -112,7 +110,7 @@ namespace CSE.Automation.TestsPrep
         {
             using (ServicePrincipalManager ServicePrincipalManager = new ServicePrincipalManager(_spSettings))
             {
-                ConsoleHelper.UpdateConsole($"Getting User Objects...", _spSettings.InteractiveRun);
+                Console.WriteLine($"Getting User Objects...");
                 return ServicePrincipalManager.GetOrCreateUsers();
             }
 

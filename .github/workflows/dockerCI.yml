@@ -41,12 +41,12 @@ jobs:
     - name: Get Resources
       run: |
         export FN_NAME=$(az resource list -g ${RESOURCE_GROUP} --resource-type Microsoft.Web/sites --query '[].name' -o tsv)
-        export KV_NAME=$(az resource list -g ${RESOURCE_GROUP} --resource-type Microsoft.KeyVault/vaults --query '[].name' -o tsv)
+        export KEYVAULT_NAME=$(az resource list -g ${RESOURCE_GROUP} --resource-type Microsoft.KeyVault/vaults --query '[].name' -o tsv)
         export DB_NAME=$(az resource list -g ${RESOURCE_GROUP} --resource-type Microsoft.DocumentDB/databaseAccounts --query '[].name' -o tsv)
         export ACR_NAME=$(az resource list -g ${RESOURCE_GROUP} --resource-type Microsoft.ContainerRegistry/registries --query '[].name' -o tsv)
         export STORAGE_NAME=$(az resource list -g ${RESOURCE_GROUP} --resource-type Microsoft.Storage/storageAccounts --query '[].name' -o tsv)
         echo "FN_NAME=${FN_NAME}" >> $GITHUB_ENV
-        echo "KV_NAME=${KV_NAME}" >> $GITHUB_ENV
+        echo "KEYVAULT_NAME=${KEYVAULT_NAME}" >> $GITHUB_ENV
         echo "DB_NAME=${DB_NAME}" >> $GITHUB_ENV
         echo "ACR_REG_REPO_URL=${ACR_NAME}.azurecr.io/serviceprincipal" >> $GITHUB_ENV
         echo "STORAGE_NAME=${STORAGE_NAME}" >> $GITHUB_ENV
@@ -67,20 +67,29 @@ jobs:
         echo "GIT_HASH=${GIT_HASH}" >> $GITHUB_ENV
         export QUEUE_PREFIX="sit-$(date '+%Y%m%d')-${GIT_HASH}"
         echo "QUEUE_PREFIX=${QUEUE_PREFIX}" >> $GITHUB_ENV
-        az storage queue create --fail-on-exist --account-name ${STORAGE_NAME} --name "${QUEUE_PREFIX}-discover"
-        az storage queue create --fail-on-exist --account-name ${STORAGE_NAME} --name "${QUEUE_PREFIX}-evaluate"
-        az storage queue create --fail-on-exist --account-name ${STORAGE_NAME} --name "${QUEUE_PREFIX}-update"
-
-    - name: Run Integration Tests
-      continue-on-error: true
-      run: |
-        cd src/Automation
         export SPDiscoverQueue="${QUEUE_PREFIX}-discover"
         export SPEvaluateQueue="${QUEUE_PREFIX}-evaluate"
         export SPUpdateQueue="${QUEUE_PREFIX}-update"
-        export KEYVAULT_NAME="${KV_NAME}"
-        export SPCosmosURL="https://${DB_NAME}.documents.azure.com:443/"
+        echo "SPDiscoverQueue=${SPDiscoverQueue}" >> $GITHUB_ENV
+        echo "SPEvaluateQueue=${SPEvaluateQueue}" >> $GITHUB_ENV
+        echo "SPUpdateQueue=${SPUpdateQueue}" >> $GITHUB_ENV
+        az storage queue create --fail-on-exist --account-name ${STORAGE_NAME} --name "${SPDiscoverQueue}"
+        az storage queue create --fail-on-exist --account-name ${STORAGE_NAME} --name "${SPEvaluateQueue}"
+        az storage queue create --fail-on-exist --account-name ${STORAGE_NAME} --name "${SPUpdateQueue}"
+        # Integration Tests Pull From $GITHUB_ENV
+        echo "SPCosmosURL=https://${DB_NAME}.documents.azure.com:443/" >> $GITHUB_ENV
         export SPCosmosDatabase=$(az cosmosdb sql database list -g $RESOURCE_GROUP -a $DB_NAME --query '[].name' -o tsv | grep qa)
+        echo "SPCosmosDatabase=${SPCosmosDatabase}" >> $GITHUB_ENV
+
+    - name: Run Critical Integration Tests
+      run: |
+        cd src/Automation
+        dotnet test --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed" --filter "Category=Integration Critical"
+
+    - name: Run Non Critical Integration Tests
+      continue-on-error: true
+      run: |
+        cd src/Automation
         dotnet test --collect:"XPlat Code Coverage" --logger "console;verbosity=detailed" --filter "Category=Integration"
 
     - name: Cleanup Testing Resources

@@ -90,7 +90,7 @@ namespace CSE.Automation.Graph
         /// <summary>
         /// Gets Service Principal Graph Object With Owners
         /// </summary>
-        /// <param name="id">The Service Principal Oject Id</param>
+        /// <param name="id">The Service Principal Oject ObjectId</param>
         /// <returns>Tasks with Service Principal </returns>
         public async override Task<ServicePrincipal> GetGraphObjectWithOwners(string id)
         {
@@ -145,9 +145,14 @@ namespace CSE.Automation.Graph
 
                 // Report Audit Ignore messages for all the elements that were already removed from the directory
                 removedList.ToList().ForEach(sp => auditService.PutIgnore(
-                    context: context,
-                    code: AuditCode.Ignore_ServicePrincipalDeleted,
-                    objectId: sp.Id,
+                    descriptor: new AuditDescriptor
+                    {
+                        CorrelationId = context.CorrelationId,
+                        ObjectId = sp.Id,
+                        AppId = sp.AppId,
+                        DisplayName = sp.DisplayName,
+                    },
+                    code: AuditCode.Deleted,
                     attributeName: "AdditionalData",
                     existingAttributeValue: "@removed"));
                 logger.LogInformation($"\tTrimmed {removedList.Count} ServicePrincipals.");
