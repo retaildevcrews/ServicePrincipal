@@ -23,6 +23,8 @@ Place in destination organization
 
 - [ ] Copy URI of new repository to use in next step
 
+Before continuing, nagivate to your forked repository in browser, click on Actions tab and then Enable Github Actions
+
 ## Clone Repository To Local
 
 ```sh
@@ -56,11 +58,12 @@ Capture the following information and save for later prompting:
 
 ```sh
 
+# The Following Command Is Not Needed If Using Azure Cloud Shell
 az login
 
 chmod +x infra/cicd/cicd-setup.sh
 
-#Follow Enter Previously Captured Information When Script Prompts
+# Enter Previously Captured Information When Script Prompts
 infra/cicd/cicd-setup.sh
 
 ```
@@ -101,4 +104,17 @@ You may periodically want to pull updates from the original repository.
 
 To do that you can sync your fork with the upstream repository.
 
-[GitHub Docs - Syncing a Fork](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/syncing-a-fork)
+```sh
+
+# You may need to switch out upstream URI if connecting to GitHub via SSH
+git remote add upstream https://github.com/retaildevcrews/ServicePrincipal.git
+
+git fetch upstream
+
+git checkout main
+
+git merge upstream/main
+
+git push
+
+```
