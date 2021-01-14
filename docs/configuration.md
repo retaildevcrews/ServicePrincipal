@@ -5,6 +5,7 @@ This document discusses the configuration strategy and configuration settings fo
 - [Overview](#overview)
 - [Environments](#environments)
 - [Configuration Sources](#configuration-sources)
+- [Configuration Settings](#configuration-settings)
 - [Local Development Environment](#local-development-environment)
 - [Shared Environment](#shared-environment)
   - [Shared Development Environment](#shared-development-environment)
@@ -36,12 +37,41 @@ The configuration sources vary a litte between a local and non-local environment
 
 Source| Configuration Category | Environment Categories
 ---------|----------|---------
- local.settings.json | NonSecret | Local, Non-Production, Production
+ Function Configuration | NonSecret | Local, Non-Production, Production
  appsettings.Development.json | NonSecret | Local, Non-Production
  appsettings.Production.json | NonSecret | Production
  KeyVault | Secret | Non-Production, Production
 
+
+## Configuration Settings
+
+Name                        | Description | Category | Source | DataType | Values | Default Value
+----------------------------|-------------|----------|--------|----------|--------|--------------
+ AUTH_TYPE                  | Authentication type  | NonSecret | Function Configuration / Environment | X | MI | CLI, MI, VS  
+ KEYVAULT_NAME              | X | NonSecret | Function Configuration | string | - | Set by Terraform
+ graphAppClientId           | X | Secret    | KeyVault | Guid | - | Set by Terraform  
+ graphAppTenantId           | X | Secret    | KeyVault | Guid | - | Set by Terraform   
+ graphAppClientSecret       | X | Secret    | KeyVault | string | - | Set by Terraform    
+ SPCosmosKey                | X | Secret    | KeyVault | string | - | Set by Terraform   
+ SPCosmosURL                | X | NonSecret | Function Configuration | string | - | Set by Terraform   
+ SPCosmosDatabase           | X | NonSecret | Function Configuration | string | - | Set by Terraform   
+ SPConfigurationCollection  | X | NonSecret | Function Configuration | string | - | Set by Terraform   
+ SPAuditCollection          | X | NonSecret | Function Configuration | string | - | Audit   
+ SPObjectTrackingCollection | X | NonSecret | Function Configuration | string | - | ObjectTracking   
+ SPActivityHistoryCollection| X | NonSecret | Function Configuration | string | - | ActivityHistory   
+ SPStorageConnectionString  | X | Secret    | KeyVault | string | - | Set by Terraform   
+ SPDiscoverQueue            | X | NonSecret | Function Configuration | string | - | discover   
+ SPEvaluateQueue            | X | NonSecret | Function Configuration | string | - | evaluate     
+ SPUpdateQueue              | X | NonSecret | Function Configuration | string | - | update   
+ SPDeltaDiscoverySchedule   | X | NonSecret | Function Configuration | string | - | 0 */30 * * * * <br />(See [NCHRON](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-timer?tabs=csharp#ncrontab-expressions))   
+ configId                   | X | NonSecret | appSettings.X.json | Guid | - | 02a54ac9-441e-43f1-88ee-fde420db2559   
+ aadUpdateMode              | X | NonSecret | Function Configuration | Enum | Update, ReportOnly | Update   
+ visibilityDelayGapSeconds  | X | NonSecret | appSettings.X.json | X | - | 8   
+ queueRecordProcessThreshold| X | NonSecret | appSettings.X.json | X | - | 10   
+
+
 ## Local Development Environment
+
 ## Shared Environment
 ### Shared Development Environment
 ### Shared QA Environment
