@@ -5,12 +5,9 @@ This document discusses the configuration strategy and configuration settings fo
 - [Overview](#overview)
 - [Environments](#environments)
 - [Configuration Sources](#configuration-sources)
-- [Configuration Settings](#configuration-settings)
 - [Local Development Environment](#local-development-environment)
-- [Shared Environment](#shared-environment)
-  - [Shared Development Environment](#shared-development-environment)
-  - [Shared QA Environment](#shared-qa-environment)
-- [Production Environment](#production-environment)
+- ['Production' Environment](#production-environment)
+- [Configuration Settings](#configuration-settings)
 
 
 ## Overview
@@ -28,26 +25,41 @@ Name | Code | Category | Description
  QA | qa | Non-Production | Testing Environment  
  Production | prod | Production | Production environment  
 
- > __Note__: We have made the decision __not__ to create a full separate QA environment.  We provision separate QA storage (StorageAccount, CosmosDB Database) to separate the data persistence needs of shared dev and qa.
+ > __Note__: We have made the decision __not__ to create a full separate QA environment.  We provision separate QA storage (StorageAccount, CosmosDB Database) to separate the data persistence needs of shared dev and qa.  Currently Integration Tests are run from the build client against QA storage resources.
 
 ## Configuration Sources
 As we look at the path to production, the configuration needs change.  What is suitable for a local developer's machine is not appropriate for a production environment.
 
 The configuration sources vary a litte between a local and non-local environment.  The sources are enumerated in the table below.
 
-Source| Configuration Category | Environment Categories
----------|----------|---------
- Function Configuration | NonSecret | Local, Non-Production, Production
- appsettings.Development.json | NonSecret | Local, Non-Production
+Source| Configuration Category | Environment Categories | Note
+---------|----------|---------|-
+ Function Configuration | NonSecret | Local, Non-Production, Production |This is either Environment variables or local.settings.json which are exposed as the Function Configuration in the Portal
+ appsettings.Development.json | NonSecret | Local, Non-Production | Used to provide local dev environment overrides
  appsettings.Production.json | NonSecret | Production
- KeyVault | Secret | Non-Production, Production
+ KeyVault | Secret | Non-Production, Production | Only secrets should be in the KeyVault, it is not a general purpose configuration store.
 
+
+## Local Development Environment
+The local development environment uses local.settings.json, environment variables, appSettings.Development.json, host.json and KeyVault for configuration sources.  The order of precedence of settings is as follows:
+1. environment variables
+2. local.settings.json
+3. KeyVault
+4. appSettings.Development.json
+
+Where higher numbered sources overlay lower numbered sources.  
+> The settings that are marked as Secret, will only be retrieved from KeyVault.
+
+The local development environment is running the Azure Storage emulator and Azure CosmosDB emulator so local settings overrides are needed to point to the correct resources.  You should not use local.settings.json for these settings (locally) since this file is used for local development **as well as** the values for the function deployment into Azure.
+
+## 'Production' Environment
+The production environment uses Function Configuration, appSettings.Production.json, host.json and KeyVault for configuration sources.
 
 ## Configuration Settings
 
 Name                        | Description | Category | Source | DataType | Values | Default Value
-----------------------------|-------------|----------|--------|----------|--------|--------------
- AUTH_TYPE                  | Authentication type  | NonSecret | Function Configuration / Environment | X | MI | CLI, MI, VS  
+----------------------------|-------------|----------|--------|----------|--------|--------
+ AUTH_TYPE                  | Authentication type for Azure resource access | NonSecret | Function Configuration / Environment | X | MI | CLI, MI, VS  
  KEYVAULT_NAME              | X | NonSecret | Function Configuration | string | - | Set by Terraform
  graphAppClientId           | X | Secret    | KeyVault | Guid | - | Set by Terraform  
  graphAppTenantId           | X | Secret    | KeyVault | Guid | - | Set by Terraform   
@@ -69,10 +81,3 @@ Name                        | Description | Category | Source | DataType | Value
  visibilityDelayGapSeconds  | X | NonSecret | appSettings.X.json | X | - | 8   
  queueRecordProcessThreshold| X | NonSecret | appSettings.X.json | X | - | 10   
 
-
-## Local Development Environment
-
-## Shared Environment
-### Shared Development Environment
-### Shared QA Environment
-## Production Environment
