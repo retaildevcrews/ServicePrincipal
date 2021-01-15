@@ -30,13 +30,13 @@ The goal of this document is to explain enough about the framework and system to
   - Create a copy of the file **local.settings.json.example** and name it **local.settings.json**
   - In the file **local.settings.json**, update or add the variables shown below with the listed values
 
-  | Property | Value |
-  |----------|-------|
-  | KEYVAULT_NAME | < name of the key vault generated when infrastructure was provisioned in the previous step > |
-  | AUTH_TYPE | "CLI" |
-  | SPCosmosURL | "https://localhost:8081" |
-  | SPCosmosDatabase  | "SPAutomate" |
-  | SPStorageConnectionString | < get Connection String from your Microsoft Azure Storage Explorer under "Properties" > |
+    | Property | Value |
+    |----------|-------|
+    | KEYVAULT_NAME | < name of the key vault generated when infrastructure was provisioned in the previous step > |
+    | AUTH_TYPE | "CLI" |
+    | SPCosmosURL | "https://localhost:8081" |
+    | SPCosmosDatabase  | "SPAutomate" |
+    | SPStorageConnectionString | < get Connection String from your Microsoft Azure Storage Explorer under "Properties" > |
 
   - Navigate to src/Automation/SolutionScripts
   - In the file **local.settings.json.template**, update the value of the variable "KEYVAULT_NAME" with the name of the key vault generated when infrastructure was provisioned 
