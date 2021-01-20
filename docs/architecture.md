@@ -8,6 +8,8 @@
   - [RequestDiscovery Function (HTTP)](#requestdiscovery-function-http)
   - [DiscoverDeltas Function (Timer)](#discoverdeltas-function-timer)
   - [Discovery Function](#discovery-function)
+  - [Evaluate Function (HTTP)](#evaluate-function-http)
+  - [Update Function (HTTP)](#update-function-http)
 
 # Software and Component Architecture
 ## Overview
@@ -40,119 +42,283 @@ The Update unit of work is resonsible for updating a ServicePrincipal in the Dir
 ![Logical view](images/architecture-logical-view.png)
 
 ## RequestDiscovery Function (HTTP)
+Request a Discovery from client initiated HTTP GET.
+
 <div class="mermaid" id="seq_requestdiscoveryhttp">
 
 ![SEQ 1](images/seq_requestdiscoveryhttp.svg)
 
 <details>
     <summary>Show source code</summary>
-        ```mermaid
-        sequenceDiagram
-            participant C as client
-            participant F as RequestDiscovery Function
-            participant P as ServicePrincipalProcessor
-            participant AC as Activity Context
-            participant AS as Activity Service
-            participant AR as Activity Repository
-            participant QS as Queue Service
-            participant DQ as DiscoveryQueue
+    ```mermaid
+    sequenceDiagram
+        participant C as client
+        participant F as RequestDiscovery Function
+        participant P as ServicePrincipalProcessor
+        participant AC as Activity Context
+        participant AS as Activity Service
+        participant AR as Activity Repository
+        participant QS as Queue Service
+        participant DQ as DiscoveryQueue
 
-            C ->>+F: HTTP GET full=true redirect=true
-            % Create Activity %
-            F ->>+AS: CreateContext(tracked)
-            AS ->> AC: ctor()
-            AC -->> AS: activity context
-            AS ->> AR: Put()
-            AR -->> AS: activity context
-            AS -->>-F: activity context
+        C ->>+F: HTTP GET full=true redirect=true
+        % Create Activity %
+        F ->>+AS: CreateContext(tracked)
+        AS ->> AC: ctor()
+        AC -->> AS: activity context
+        AS ->> AR: Put()
+        AR -->> AS: activity context
+        AS -->>-F: activity context
 
-            F ->>+P: RequestDiscovery()
-            P ->>+QS: Send(RequestDiscoveryCommand)
-            QS ->>+DQ: RequestDiscoveryCommand
-            DQ -->>-QS: Success
-            QS -->>-P: Success
+        F ->>+P: RequestDiscovery()
+        P ->>+QS: Send(RequestDiscoveryCommand)
+        QS ->>+DQ: RequestDiscoveryCommand
+        DQ -->>-QS: Success
+        QS -->>-P: Success
 
-            F ->> AC: end()
-            F ->> AC: dispose()
-            AC ->> AS: Put()
-            AS ->>+AR: UpsertDocumentAsync
-            AR -->>-AS: document
+        F ->> AC: end()
+        F ->> AC: dispose()
+        AC ->> AS: Put()
+        AS ->>+AR: UpsertDocumentAsync
+        AR -->>-AS: document
 
-            F -->>-C: 200
-        ```
+        F -->>-C: 200
+    ```
 </details>
 </div>
 
 ## DiscoverDeltas Function (Timer)
+Command a Discovery based on timer.
+
 <div class="mermaid" id="seq_requestdiscoverytimer">
 
 ![SEQ 2](images/seq_requestdiscoverytimer.svg)
     
 <details>
-        <summary>Show source code</summary>
-        ```mermaid
-        sequenceDiagram
-            participant C as Timer
-            participant F as RequestDiscovery Function
-            participant P as ServicePrincipalProcessor
-            participant AC as Activity Context
-            participant AS as Activity Service
-            participant AR as Activity Repository
-            participant QS as Queue Service
-            participant DQ as DiscoveryQueue
+    <summary>Show source code</summary>
+    ```mermaid
+    sequenceDiagram
+        participant C as Timer
+        participant F as RequestDiscovery Function
+        participant P as ServicePrincipalProcessor
+        participant AC as Activity Context
+        participant AS as Activity Service
+        participant AR as Activity Repository
+        participant QS as Queue Service
+        participant DQ as DiscoveryQueue
 
-            C ->>+F: 0 */30 * * * *
+        C ->>+F: 0 */30 * * * *
 
-            % Create Activity %
-            F ->>+AS: CreateContext(tracked)
-            AS ->> AC: ctor()
-            AC -->> AS: activity context
-            AS ->> AR: Put()
-            AR -->> AS: activity context
-            AS -->>-F: activity context
+        % Create Activity %
+        F ->>+AS: CreateContext(tracked)
+        AS ->> AC: ctor()
+        AC -->> AS: activity context
+        AS ->> AR: Put()
+        AR -->> AS: activity context
+        AS -->>-F: activity context
 
-            F ->>+P: RequestDiscovery()
-            P ->>+QS: Send(RequestDiscoveryCommand)
-            QS ->>+DQ: RequestDiscoveryCommand
-            DQ -->>-QS: Success
-            QS -->>-P: Success
+        F ->>+P: RequestDiscovery()
+        P ->>+QS: Send(RequestDiscoveryCommand)
+        QS ->>+DQ: RequestDiscoveryCommand
+        DQ -->>-QS: Success
+        QS -->>-P: Success
 
-            F ->> AC: end()
-            F ->> AC: dispose()
-            AC ->> AS: Put()
-            AS ->>+AR: UpsertDocumentAsync
-            AR -->>-AS: document
+        F ->> AC: end()
+        F ->> AC: dispose()
+        AC ->> AS: Put()
+        AS ->>+AR: UpsertDocumentAsync
+        AR -->>-AS: document
 
-            F -->>-C: 200
-        ```
+        F -->>-C: 200
+    ```
 </details>
 </div>
 
 
 ## Discovery Function
+Discover changed ServicePrincipals in Directory.
+
 <div class="mermaid" id="seq_discoveryfunction">
 
 ![SEQ 3](images/seq_discoveryfunction.svg)
 
 <details>
     <summary>Show source code</summary>
-        ```mermaid
-        sequenceDiagram
-            participant DQ as DiscoveryQueue
-            participant F as Discovery Function
+    ```mermaid
+    sequenceDiagram
+        participant DQ as DiscoveryQueue
+        participant F as Discovery Function
+        participant P as ServicePrincipal Processor
+        participant AS as Activity Service
+        participant AC as Activity Context
+        participant AR as Activity Repository
+        participant GH as Graph Helper
+        participant GS as Graph Service
+        participant QS as Queue Service
+        participant EQ as Evaluate Queue
+        participant CS as Config Service
+        participant CR as Config Repository
+
+
+        DQ -->>F: request command
+
+        % Create Activity %
+        F ->>+AS: CreateContext(tracked, lock)
+        AS ->> AC: ctor()
+        AC -->> AS: activity context
+        AS ->> AR: Put()
+        AR -->> AS: activity context
+        AS -->>-F: activity context
+
+        alt Processor Locked
+            F ->> AC: Failed
+        else Processor Unlocked
+            F ->>+P: DiscoverDeltas(FullSeed)
+            P ->>+GH: GetDeltaGraphObjects()
+            loop while NextPageRequest != null
+            GH ->> GS: NextPageRequest.GetAsync()
+            GS -->> GH: Page (200 records)
+            GH ->> GH: Prune Removed / Add to List
+            end
+            GH -->>-P: (metrics, IEnumerable::ServicePrincipal)
+
+
+            loop each ServicePrincipal in list
+            P ->>+GH: GetGraphObjectWithOwners
+            GH -->>-P: ServicePrincipal
+            P ->> P: contruct ServicePrincipalModel
+            P ->>+QS: Send EvaluateServicePrincpalCommand
+            QS ->> EQ: EvaluateServicePrincipalCommand
+            EQ -->>QS: Success
+            QS -->>-P: Success
+            end
+            P ->> P: Update Config (DeltaLink, RunState)
+            P ->>+CS: Put
+            CS ->>+CR: ReplaceDocumentAsync
+            CR -->>-CS: ProcessorConfiguration
+            CS -->>-P: ProcessorConfiguration
+
+            P ->> AC: MergeMetrics
+            P ->> AS: Put()
+            AS ->>+AR: UpsertDocumentAsync
+            AR -->>-AS: document
+        end
+
+        F ->> AC: end()
+        F ->> AC: dispose()
+        AC ->> AS: Put()
+        AS ->>+AR: UpsertDocumentAsync
+        AR -->>-AS: document
+
+        P -->>-F: metrics
+    ```
+</details>
+</div>
+
+
+## Evaluate Function (HTTP)
+Evaluate a single ServicePrincipal from Evaluate command queue.
+
+<div class="mermaid" id="seq_evaluate">
+
+![SEQ 1](images/seq_evaluate.svg)
+
+<details>
+    <summary>Show source code</summary>
+    ```mermaid
+    sequenceDiagram
+        participant CQ as EvaluateQueue
+        participant F as Evaluate Function
+        participant P as ServicePrincipal Processor
+        participant AS as Activity Service
+        participant AC as Activity Context
+        participant AR as Activity Repository
+        participant QSF as Queue Service Factory
+        participant V as Validator
+        participant AUD as Audit Service
+        participant QS as Queue Service
+        participant OTS as Object Tracking Service
+        participant UQ as Update Queue
+
+        CQ -->>F: request command
+
+        % Create Activity %
+        F ->>+AS: CreateContext(tracked, lock)
+        AS ->> AC: ctor()
+        AC -->> AS: activity context
+        AS ->> AR: Put()
+        AR -->> AS: activity context
+        AS -->>-F: activity context
+
+        % Core Logic %
+        F ->>+P: Evaluate(model)
+        P ->>+QSF: Create (update queue)
+        QSF ->>-P: QueueService
+
+        loop for each validator
+        P ->>+V: Validate(model)
+        V ->>-P: errors
+        end
+
+        alt error count > 0
+            loop for each error
+            P ->> AUD: PutFail
+            end
+            alt HasOwners == true
+                    P ->>+QS: UpdateCommand
+                    QS ->> UQ: ServicePrincipalUpdateCommand
+                    UQ --> QS: Success
+                    QS -->-P: Success
+            else
+                P ->> OTS: Get Last Known Good
+                alt has Last Known Good
+                    P ->>+QS: UpdateCommand
+                    QS ->> UQ: ServicePrincipalUpdateCommand
+                    UQ --> QS: Success
+                    QS -->-P: Success
+                else
+                    P ->> AUD: PutFail (cannot remediate)
+                end
+            end
+        else error count == 0
+            P ->> OTS: Put(model)
+            P ->> AUD: PutPass
+        end
+        P -->>-F: Success
+
+        % Termination %
+        F ->> AC: end()
+        F ->> AC: dispose()
+        AC ->> AS: Put()
+        AS ->>+AR: UpsertDocumentAsync
+        AR -->>-AS: document
+    ```
+</details>
+</div>
+
+## Update Function (HTTP)
+Update a ServicePrincipal from Update command queue.
+
+<div class="mermaid" id="seq_update">
+
+![SEQ 1](images/seq_update.svg)
+
+<details>
+    <summary>Show source code</summary>
+    ```mermaid
+    sequenceDiagram
+            participant CQ as EvaluateQueue
+            participant F as Evaluate Function
             participant P as ServicePrincipal Processor
             participant AS as Activity Service
             participant AC as Activity Context
             participant AR as Activity Repository
             participant GH as Graph Helper
             participant GS as Graph Service
-            participant QS as Queue Service
-            participant EQ as Evaluate Queue
-            participant CS as Config Service
-            participant CR as Config Repository
 
+            participant AUD as Audit Service
 
-            DQ -->>F: request command
+            CQ -->>F: request command
 
             % Create Activity %
             F ->>+AS: CreateContext(tracked, lock)
@@ -162,47 +328,23 @@ The Update unit of work is resonsible for updating a ServicePrincipal in the Dir
             AR -->> AS: activity context
             AS -->>-F: activity context
 
-            alt Processor Locked
-                F ->> AC: Failed
-            else Processor Unlocked
-                F ->>+P: DiscoverDeltas(FullSeed)
-                P ->>+GH: GetDeltaGraphObjects()
-                loop while NextPageRequest != null
-                GH ->> GS: NextPageRequest.GetAsync()
-                GS -->> GH: Page (200 records)
-                GH ->> GH: Prune Removed / Add to List
-                end
-                GH -->>-P: (metrics, IEnumerable::ServicePrincipal)
+            % Core Logic %
+            F ->>+P: Update(model)
 
-
-                loop each ServicePrincipal in list
-                P ->>+GH: GetGraphObjectWithOwners
-                GH -->>-P: ServicePrincipal
-                P ->> P: contruct ServicePrincipalModel
-                P ->>+QS: Send EvaluateServicePrincpalCommand
-                QS ->> EQ: EvaluateServicePrincipalCommand
-                EQ -->>QS: Success
-                QS -->>-P: Success
-                end
-                P ->> P: Update Config (DeltaLink, RunState)
-                P ->>+CS: Put
-                CS ->>+CR: ReplaceDocumentAsync
-                CR -->>-CS: ProcessorConfiguration
-                CS -->>-P: ProcessorConfiguration
-
-                P ->> AC: MergeMetrics
-                P ->> AS: Put()
-                AS ->>+AR: UpsertDocumentAsync
-                AR -->>-AS: document
+            alt UpdateMode == Update
+                P ->> GH: Patch(ServicePrincipal)
+                GH ->> GS: Update(ServicePrincipal)
+                P ->> AUD: PutChange
             end
 
+            P -->>-F: Success
+
+            % Termination %
             F ->> AC: end()
             F ->> AC: dispose()
             AC ->> AS: Put()
             AS ->>+AR: UpsertDocumentAsync
             AR -->>-AS: document
-
-            P -->>-F: metrics
-        ```
-    </details>
+    ```    
+</details>
 </div>
