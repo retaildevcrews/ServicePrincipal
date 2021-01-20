@@ -268,14 +268,14 @@ Evaluate a single ServicePrincipal from Evaluate command queue.
                     P ->>+QS: UpdateCommand
                     QS ->> UQ: ServicePrincipalUpdateCommand
                     UQ --> QS: Success
-                    QS -->-P:
+                    QS -->-P: Success
             else
                 P ->> OTS: Get Last Known Good
                 alt has Last Known Good
                     P ->>+QS: UpdateCommand
                     QS ->> UQ: ServicePrincipalUpdateCommand
                     UQ --> QS: Success
-                    QS -->-P:
+                    QS -->-P: Success
                 else
                     P ->> AUD: PutFail (cannot remediate)
                 end
@@ -284,7 +284,7 @@ Evaluate a single ServicePrincipal from Evaluate command queue.
             P ->> OTS: Put(model)
             P ->> AUD: PutPass
         end
-        P -->>-F:
+        P -->>-F: Success
 
         % Termination %
         F ->> AC: end()
@@ -337,7 +337,7 @@ Update a ServicePrincipal from Update command queue.
                 P ->> AUD: PutChange
             end
 
-            P -->>-F:
+            P -->>-F: Success
 
             % Termination %
             F ->> AC: end()
