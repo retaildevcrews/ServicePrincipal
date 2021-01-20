@@ -225,75 +225,75 @@ Evaluate a single ServicePrincipal from Evaluate command queue.
 
 <details>
     <summary>Show source code</summary>
-    ```mermaid
-    sequenceDiagram
-            participant CQ as EvaluateQueue
-            participant F as Evaluate Function
-            participant P as ServicePrincipal Processor
-            participant AS as Activity Service
-            participant AC as Activity Context
-            participant AR as Activity Repository
-            participant QSF as Queue Service Factory
-            participant V as Validator
-            participant AUD as Audit Service
-            participant QS as Queue Service
-            participant OTS as Object Tracking Service
-            participant UQ as Update Queue
+```mermaid
+sequenceDiagram
+        participant CQ as EvaluateQueue
+        participant F as Evaluate Function
+        participant P as ServicePrincipal Processor
+        participant AS as Activity Service
+        participant AC as Activity Context
+        participant AR as Activity Repository
+        participant QSF as Queue Service Factory
+        participant V as Validator
+        participant AUD as Audit Service
+        participant QS as Queue Service
+        participant OTS as Object Tracking Service
+        participant UQ as Update Queue
 
-            CQ -->>F: request command
+        CQ -->>F: request command
 
-            % Create Activity %
-            F ->>+AS: CreateContext(tracked, lock)
-            AS ->> AC: ctor()
-            AC -->> AS: activity context
-            AS ->> AR: Put()
-            AR -->> AS: activity context
-            AS -->>-F: activity context
+        % Create Activity %
+        F ->>+AS: CreateContext(tracked, lock)
+        AS ->> AC: ctor()
+        AC -->> AS: activity context
+        AS ->> AR: Put()
+        AR -->> AS: activity context
+        AS -->>-F: activity context
 
-            % Core Logic %
-            F ->>+P: Evaluate(model)
-            P ->>+QSF: Create (update queue)
-            QSF ->>-P: QueueService
+        % Core Logic %
+        F ->>+P: Evaluate(model)
+        P ->>+QSF: Create (update queue)
+        QSF ->>-P: QueueService
 
-            loop for each validator
-            P ->>+V: Validate(model)
-            V ->>-P: errors
+        loop for each validator
+        P ->>+V: Validate(model)
+        V ->>-P: errors
+        end
+
+        alt error count > 0
+            loop for each error
+            P ->> AUD: PutFail
             end
-
-            alt error count > 0
-                loop for each error
-                P ->> AUD: PutFail
-                end
-                alt HasOwners == true
-                        P ->>+QS: UpdateCommand
-                        QS ->> UQ: ServicePrincipalUpdateCommand
-                        UQ --> QS: Success
-                        QS -->-P:
+            alt HasOwners == true
+                    P ->>+QS: UpdateCommand
+                    QS ->> UQ: ServicePrincipalUpdateCommand
+                    UQ --> QS: Success
+                    QS -->-P:
+            else
+                P ->> OTS: Get Last Known Good
+                alt has Last Known Good
+                    P ->>+QS: UpdateCommand
+                    QS ->> UQ: ServicePrincipalUpdateCommand
+                    UQ --> QS: Success
+                    QS -->-P:
                 else
-                    P ->> OTS: Get Last Known Good
-                    alt has Last Known Good
-                        P ->>+QS: UpdateCommand
-                        QS ->> UQ: ServicePrincipalUpdateCommand
-                        UQ --> QS: Success
-                        QS -->-P:
-                    else
-                        P ->> AUD: PutFail (cannot remediate)
-                    end
+                    P ->> AUD: PutFail (cannot remediate)
                 end
-            else error count == 0
-                P ->> OTS: Put(model)
-                P ->> AUD: PutPass
             end
+        else error count == 0
+            P ->> OTS: Put(model)
+            P ->> AUD: PutPass
+        end
 
-            P -->>-F:
+        P -->>-F:
 
-            % Termination %
-            F ->> AC: end()
-            F ->> AC: dispose()
-            AC ->> AS: Put()
-            AS ->>+AR: UpsertDocumentAsync
-            AR -->>-AS: document
-    ```
+        % Termination %
+        F ->> AC: end()
+        F ->> AC: dispose()
+        AC ->> AS: Put()
+        AS ->>+AR: UpsertDocumentAsync
+        AR -->>-AS: document
+```
 </details>
 </div>
 
