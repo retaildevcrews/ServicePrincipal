@@ -20,7 +20,7 @@ echo $FUNCTION_APP_NAME
 cat $configSettingsFile | \
   jq -r 'to_entries | map(.key + "=" + .value) | @tsv' | \
   tr "\t" "\n" | \
-  (cat && echo "KEYVAULT_NAME=${KV_NAME}") | \
+  (cat && echo "KEYVAULT_NAME=${KEYVAULT_NAME}") | \
   while read line 
 do
   echo "$line"
