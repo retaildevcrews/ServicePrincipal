@@ -49,7 +49,11 @@ if ($mdPaths.Count -gt 0)
             $svgPath = Join-Path -Path $mdDir -ChildPath $filename
 
             Write-Verbose "Writing new content for $svgPath"
-            (Get-Content $svgPath) | ForEach-Object {$_ -replace 'mermaid-\d+', 'mermaid'} | Set-Content -Path $svgPath
+            $svgContents = (Get-Content $svgPath) |
+              ForEach-Object {$_ -replace 'mermaid-\d+', 'mermaid'} |
+              ForEach-Object {[xml]$_}
+            $svgContents.svg.height = "auto"
+            Set-Content -Path $svgPath -Value $svgContents.svg.OuterXml
             
             Write-Verbose "Adding $svgPath to index"
             git add $svgPath

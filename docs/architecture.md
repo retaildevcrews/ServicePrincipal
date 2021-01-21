@@ -50,6 +50,7 @@ Request a Discovery from client initiated HTTP GET.
 
 <details>
     <summary>Show source code</summary>
+
     ```mermaid
     sequenceDiagram
         participant C as client
@@ -96,6 +97,7 @@ Command a Discovery based on timer.
     
 <details>
     <summary>Show source code</summary>
+
     ```mermaid
     sequenceDiagram
         participant C as Timer
@@ -144,6 +146,7 @@ Discover changed ServicePrincipals in Directory.
 
 <details>
     <summary>Show source code</summary>
+
     ```mermaid
     sequenceDiagram
         participant DQ as DiscoveryQueue
@@ -225,6 +228,7 @@ Evaluate a single ServicePrincipal from Evaluate command queue.
 
 <details>
     <summary>Show source code</summary>
+
     ```mermaid
     sequenceDiagram
         participant CQ as EvaluateQueue
@@ -305,6 +309,7 @@ Update a ServicePrincipal from Update command queue.
 
 <details>
     <summary>Show source code</summary>
+
     ```mermaid
     sequenceDiagram
             participant CQ as EvaluateQueue
@@ -345,6 +350,6 @@ Update a ServicePrincipal from Update command queue.
             AC ->> AS: Put()
             AS ->>+AR: UpsertDocumentAsync
             AR -->>-AS: document
-    ```    
+    ```
 </details>
 </div>
