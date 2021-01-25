@@ -13,22 +13,21 @@ namespace CSE.Automation.Model
         /// <summary>
         /// Update Notes
         /// </summary>
-        [Description("Update Notes from Owners.")]
+        [Description("Update Notes from Owners")]
         Update,
 
         /// <summary>
         /// Revert
         /// </summary>
-        [Description("Revert to Last Known Good.")]
+        [Description("Revert to Last Known Good")]
         Revert,
     }
 
     internal class ServicePrincipalUpdateCommand
     {
         public string CorrelationId { get; set; }
-        public string ObjectId { get; set; }
-        public string AppId { get; set; }
-        public string DisplayName { get; set; }
+        public ServicePrincipalModel Entity { get; set; }
+        public DateTimeOffset? LastKnownGoodTime { get; set; }
         public (string Current, string Changed) Notes { get; set; }
         public ServicePrincipalUpdateAction Action { get; set; }
     }
