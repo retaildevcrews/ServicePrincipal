@@ -38,7 +38,6 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases
         [SpStateDefinition("SpStateDefinition3_2")]
         [ObjectStateDefinition("ObjectStateDefinition3_2")]
         [SpValidator("SpResultValidator3_2")]
-        [ObjectValidator("ObjectResultValidator3_2")]
         [AuditValidator("AuditResultValidator3_2")]
         public TestCase TC3_2 => TestCase.TC3_2; //<<<<<<<<<<<<<<<<<<<No override,  this Test Case is only applicable for Evaluate
 

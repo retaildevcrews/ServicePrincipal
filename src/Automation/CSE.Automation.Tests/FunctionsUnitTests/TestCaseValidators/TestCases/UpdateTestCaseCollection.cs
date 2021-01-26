@@ -10,6 +10,8 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators.TestCases
         [SpStateDefinition("UpdateSpStateDefinition1")]
         [SpValidator("UpdateSpResultValidator")]  // Common Result Validator class
         [AuditValidator("UpdateAuditResultValidator")]// Unique Audit Validator class
+        [ObjectStateDefinition("ObjectStateDefinition3")]
+        [ObjectValidator("ObjectResultValidator3")]
         public override TestCase TC1 => TestCase.TC1;
 
 
