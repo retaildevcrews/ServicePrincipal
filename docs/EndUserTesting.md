@@ -19,14 +19,14 @@ az login
 
 export userInitials=$(az ad signed-in-user show --query "displayName" -o tsv | sed 's/\(\w\)\w*/\1/g' | sed 's/\s//g')
 
-pwsh infra/cicd/create-test-sp.ps1 -SPName "$userInitials-No-Owner-No-Notes" -Owner none
-pwsh infra/cicd/create-test-sp.ps1 -SPName "$userInitials-No-Owner-No-Email" -Owner none -Notes "blah blah"
-pwsh infra/cicd/create-test-sp.ps1 -SPName "$userInitials-No-Owner-Invalid-Email" -Owner none -Notes joe@gmail.com
-pwsh infra/cicd/create-test-sp.ps1 -SPName "$userInitials-No-Owner-Valid-Email" -Owner none -Notes joe@walmart.com
-pwsh infra/cicd/create-test-sp.ps1 -SPName "$userInitials-Owner-Set-No-Notes" -Owner myself
-pwsh infra/cicd/create-test-sp.ps1 -SPName "$userInitials-Owner-Set-No-Email" -Owner myself -Notes "blah blah"
-pwsh infra/cicd/create-test-sp.ps1 -SPName "$userInitials-Owner-Set-Invalid-Email" -Owner myself -Notes joe@gmail.com
-pwsh infra/cicd/create-test-sp.ps1 -SPName "$userInitials-Owner-Set-Valid-Email" -Owner myself -Notes joe@walmart.com
+pwsh scripts/create-test-sp.ps1 -SPName "$userInitials-No-Owner-No-Notes" -Owner none
+pwsh scripts/create-test-sp.ps1 -SPName "$userInitials-No-Owner-No-Email" -Owner none -Notes "blah blah"
+pwsh scripts/create-test-sp.ps1 -SPName "$userInitials-No-Owner-Invalid-Email" -Owner none -Notes joe@gmail.com
+pwsh scripts/create-test-sp.ps1 -SPName "$userInitials-No-Owner-Valid-Email" -Owner none -Notes joe@walmart.com
+pwsh scripts/create-test-sp.ps1 -SPName "$userInitials-Owner-Set-No-Notes" -Owner myself
+pwsh scripts/create-test-sp.ps1 -SPName "$userInitials-Owner-Set-No-Email" -Owner myself -Notes "blah blah"
+pwsh scripts/create-test-sp.ps1 -SPName "$userInitials-Owner-Set-Invalid-Email" -Owner myself -Notes joe@gmail.com
+pwsh scripts/create-test-sp.ps1 -SPName "$userInitials-Owner-Set-Valid-Email" -Owner myself -Notes joe@walmart.com
 
 ```
 
