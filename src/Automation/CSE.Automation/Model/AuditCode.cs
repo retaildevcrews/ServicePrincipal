@@ -37,7 +37,7 @@ namespace CSE.Automation.Model
         /// <summary>
         /// Code for a ServicePrincipal missing Owner values in the extension field (Notes).
         /// </summary>
-        [Description("ServicePrincipal is missing Owners in extention field (Notes).")]
+        [Description("ServicePrincipal is missing Owners in extension field (Notes).")]
         MissingOwners = -2,
 
         /// <summary>
