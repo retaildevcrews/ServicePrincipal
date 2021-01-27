@@ -261,7 +261,11 @@ namespace CSE.Automation.Processors
                                 },
                                 code: AuditCode.AttributeValidation,
                                 attributeName: error.PropertyName,
-                                existingAttributeValue: error.AttemptedValue != null && error.AttemptedValue.GetType() == typeof(List<string>) ? string.Join(",", error.AttemptedValue as List<string>) : error.AttemptedValue?.ToString(),
+#pragma warning disable SA1118 // Parameter should not span multiple lines
+                                existingAttributeValue: error.AttemptedValue != null && error.AttemptedValue.GetType() == typeof(List<string>)
+                                                            ? string.Join(",", error.AttemptedValue as List<string> ?? new List<string>())
+                                                            : error.AttemptedValue?.ToString(),
+#pragma warning restore SA1118 // Parameter should not span multiple lines
                                 message: error.ErrorMessage).ConfigureAwait(false));
 
                 // Invalid ServicePrincipal, valid Owners, update the service principal from Owners
@@ -281,7 +285,7 @@ namespace CSE.Automation.Processors
             else
             {
                 // remember this was the last time we saw the ServicePrincipal as 'good'
-                await UpdateLastKnownGood(context, entity).ConfigureAwait(true);
+                await UpdateLastKnownGood(context, null, entity).ConfigureAwait(true);
                 var descriptor = new AuditDescriptor
                 {
                     CorrelationId = context.CorrelationId,
@@ -308,31 +312,38 @@ namespace CSE.Automation.Processors
                 var auditEntryDescriptor = new AuditDescriptor
                 {
                     CorrelationId = context.CorrelationId,
-                    ObjectId = command.ObjectId,
-                    AppId = command.AppId,
-                    DisplayName = command.DisplayName,
+                    ObjectId = command.Entity.Id,
+                    AppId = command.Entity.AppId,
+                    DisplayName = command.Entity.DisplayName,
                 };
 
                 try
                 {
+                    logger.LogInformation($"{command.Entity.Id} ({command.Entity.DisplayName}) {command.Action.Description()}");
+
                     await graphHelper.PatchGraphObject(new ServicePrincipal
                     {
-                        Id = command.ObjectId,
+                        Id = command.Entity.Id,
                         Notes = command.Notes.Changed,
                     }).ConfigureAwait(true);
+
+                    // once AAD is updated, we can update LKG
+                    command.Entity.Notes = command.Notes.Changed;
+                    await UpdateLastKnownGood(context, null, command.Entity).ConfigureAwait(false);
                 }
                 catch (Microsoft.Graph.ServiceException exSvc)
                 {
-                    logger.LogError(exSvc, $"Failed to update AAD Service Principal {command.ObjectId}");
+                    logger.LogError(exSvc, $"Failed to update AAD Service Principal {command.Entity.Id} ({command.Entity.ServicePrincipalType})");
                     try
                     {
                         await auditService.PutFail(auditEntryDescriptor, AuditCode.AADUpdate, "Notes", command.Notes.Current, exSvc.Message).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError(ex, $"Failed to Audit update to AAD Service Principal {command.ObjectId}");
+                        logger.LogError(ex, $"Failed to Audit update to AAD Service Principal {command.Entity.Id} ({command.Entity.ServicePrincipalType})");
 
                         // do not rethrow, it will hide the real failure
+                        return;
                     }
                 }
 
@@ -342,13 +353,13 @@ namespace CSE.Automation.Processors
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, $"Failed to Audit update to AAD Service Principal {command.ObjectId}");
+                    logger.LogError(ex, $"Failed to Audit update to AAD Service Principal {command.Entity.Id} ({command.Entity.ServicePrincipalType})");
                     throw;
                 }
             }
             else
             {
-                logger.LogInformation($"Update mode is {settings.AADUpdateMode}, ServicePrincipal {command.ObjectId} will not be updated.");
+                logger.LogInformation($"Update mode is {settings.AADUpdateMode}, {command.Entity.Id} ({command.Entity.ServicePrincipalType}) will not be updated.");
             }
         }
 
@@ -370,16 +381,17 @@ namespace CSE.Automation.Processors
             // command the AAD Update
             var updateCommand = new ServicePrincipalUpdateCommand()
             {
-                ObjectId = entity.Id,
+                Entity = entity,
+                LastKnownGoodTime = lastKnownGoodWrapper?.LastUpdated,
                 Notes = (entity.Notes, ownersList),
                 Action = ServicePrincipalUpdateAction.Update, // "Update Notes from Owners",
             };
             await CommandAADUpdate(context, updateCommand, queueService).ConfigureAwait(true);
 
-            // update local entity so we have something to send to object service
-            entity.Notes = ownersList;
+            // // update local entity so we have something to send to object service
+            // entity.Notes = ownersList;
 
-            await UpdateLastKnownGood(context, lastKnownGoodWrapper, entity).ConfigureAwait(false);
+            // await UpdateLastKnownGood(context, lastKnownGoodWrapper, entity).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -397,18 +409,18 @@ namespace CSE.Automation.Processors
             // bad SP Notes, bad SP Owners, last known good found
             if (lastKnownGood != null)
             {
-                logger.LogInformation($"Reverting {entity.Id} to last known good state from {lastKnownGood.LastUpdated}");
-
                 // build the command here so we don't need to pass the delta values down the call tree
                 var updateCommand = new ServicePrincipalUpdateCommand()
                 {
-                    ObjectId = entity.Id,
+                    Entity = entity,
+                    LastKnownGoodTime = lastKnownGood.LastUpdated,
                     Notes = (entity.Notes, lastKnownGood.Notes),
                     Action = ServicePrincipalUpdateAction.Revert, // "Revert to Last Known Good",
                 };
 
                 await CommandAADUpdate(context, updateCommand, queueService).ConfigureAwait(true);
-                await UpdateLastKnownGood(context, lastKnownGoodWrapper, lastKnownGood).ConfigureAwait(false);
+
+                // await UpdateLastKnownGood(context, lastKnownGoodWrapper, lastKnownGood).ConfigureAwait(false);
             }
 
             // oops, bad SP Notes, bad SP Owners and no last known good.
@@ -420,11 +432,11 @@ namespace CSE.Automation.Processors
 
         private async Task UpdateLastKnownGood(ActivityContext context, TrackingModel trackingModel, ServicePrincipalModel model)
         {
-            // if we dont have a tracking model that means we have never recorded a last known good.  create one by
+            // if we don't have a tracking model that means we have never recorded a last known good.  create one by
             //  writing just the entity to the service.
             if (trackingModel is null)
             {
-                await UpdateLastKnownGood(context, model).ConfigureAwait(true);
+                await objectService.Put(context, model).ConfigureAwait(false);
             }
             else
             {
@@ -433,11 +445,6 @@ namespace CSE.Automation.Processors
                 // make sure to write the wrapper back to get the same document updated
                 await objectService.Put(context, trackingModel).ConfigureAwait(false);
             }
-        }
-
-        private async Task UpdateLastKnownGood(ActivityContext context, ServicePrincipalModel entity)
-        {
-            await objectService.Put(context, entity).ConfigureAwait(false);
         }
 
         private static async Task CommandAADUpdate(ActivityContext context, ServicePrincipalUpdateCommand command, IAzureQueueService queueService)

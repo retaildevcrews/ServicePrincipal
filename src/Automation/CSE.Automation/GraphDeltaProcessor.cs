@@ -113,7 +113,6 @@ namespace CSE.Automation
         /// <param name="msg">Discovery request message</param>
         /// <param name="log">An instance of an <see cref="ILogger"/></param>
         /// <returns>An awaitable Task</returns>
-        /// <remarks>This function must throw on error in order for the message to be abandoned for retry.</remarks>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Ensure graceful return under all trappable error conditions.")]
         [FunctionName("Discover")]
         [StorageAccount(Constants.SPStorageConnectionString)]
@@ -129,7 +128,7 @@ namespace CSE.Automation
             catch (Exception ex)
             {
                 log.LogError(ex, $"Failed to deserialize queue message into RequestDiscoveryCommand.");
-                throw;
+                return;
             }
 
             var operation = command.DiscoveryMode.Description();
@@ -137,7 +136,7 @@ namespace CSE.Automation
 
             try
             {
-                log.LogDebug("Executing Discover QueueTrigger Function");
+                log.LogDebug($"Executing Discover QueueTrigger Function - [{context.CorrelationId}/{context.Activity.Id}]");
 
                 context.Activity.CommandSource = command.Source;
                 context.WithProcessorLock(processor);
@@ -151,7 +150,7 @@ namespace CSE.Automation
 
                 ex.Data["activityContext"] = context;
                 log.LogError(ex, Resources.LockConflictMessage);
-                throw;
+                return; // this will delete the message, we don't want to retry
             }
 
             try
@@ -166,7 +165,6 @@ namespace CSE.Automation
 
                 ex.Data["activityContext"] = context;
                 log.LogError(ex, Resources.ServicePrincipalDiscoverException);
-                throw;
             }
         }
 
@@ -192,7 +190,7 @@ namespace CSE.Automation
             catch (Exception ex)
             {
                 log.LogError(ex, $"Failed to deserialize queue message into EvaluateServicePrincipalCommand.");
-                throw;
+                return;
             }
 
             ActivityContext context = null;
@@ -215,7 +213,6 @@ namespace CSE.Automation
 
                 ex.Data["activityContext"] = context;
                 log.LogError(ex, $"Message {msg.Id} aborting: {ex.Message}");
-                throw;
             }
             finally
             {
@@ -247,7 +244,7 @@ namespace CSE.Automation
             catch (Exception ex)
             {
                 log.LogError(ex, $"Failed to deserialize queue message into ServicePrincipalUpdateCommand.");
-                throw;
+                return;
             }
 
             ActivityContext context = null;
@@ -272,7 +269,6 @@ namespace CSE.Automation
 
                 ex.Data["activityContext"] = context;
                 log.LogError(ex, $"Message {msg.Id} aborting: {ex.Message}");
-                throw;
             }
             finally
             {
