@@ -23,7 +23,7 @@ namespace CSE.Automation.Model.Validators
                 {
                     field?.Split(NotesSeparators).Select(x => x.Trim()).ToList().ForEach(token =>
                     {
-                        if (graphHelper.GetGraphObjectWithOwners(token).Result is null)
+                        if (graphHelper.GetEntityWithOwners(token).Result is null)
                         {
                             context.AddFailure($"'{token}' is not a valid UserPrincipalName in this directory");
                         }

@@ -33,7 +33,7 @@ namespace CSE.Automation.Graph
         }
 
         public abstract Task<(GraphOperationMetrics metrics, IEnumerable<TEntity> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config);
-        public abstract Task<TEntity> GetGraphObjectWithOwners(string id);
+        public abstract Task<TEntity> GetEntityWithOwners(string id);
         public abstract Task PatchGraphObject(TEntity entity);
     }
 }

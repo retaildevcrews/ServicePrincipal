@@ -13,6 +13,7 @@ using System.IO;
 using Microsoft.Azure.Cosmos.Linq;
 using CSE.Automation.DataAccess;
 using System.Threading.Tasks;
+using CSE.Automation.Graph;
 
 namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 {
@@ -43,7 +44,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
     internal class GraphDeltaProcessorWrapperFactory : IDisposable
     { 
 
-        private IGraphHelper<ServicePrincipal> _graphHelper;
+        private IServicePrincipalGraphHelper _graphHelper;
         private IQueueServiceFactory _queueServiceFactory;
         private IConfigService<ProcessorConfiguration> _configService;
         private IObjectTrackingService _objectService;
@@ -60,7 +61,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests.TestCaseValidators
 
         private ConfigRepository _configRespository;
         public GraphDeltaProcessorWrapperFactory(
-            IGraphHelper<ServicePrincipal> graphHelper,
+            IServicePrincipalGraphHelper graphHelper,
             IQueueServiceFactory queueServiceFactory,
             IConfigService<ProcessorConfiguration> configService,
             IObjectTrackingService objectService,

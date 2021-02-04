@@ -25,7 +25,7 @@ namespace CSE.Automation.Graph
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Ignore all errors and return null")]
-        public async override Task<User> GetGraphObjectWithOwners(string id)
+        public async override Task<User> GetEntityWithOwners(string id)
         {
             try
             {

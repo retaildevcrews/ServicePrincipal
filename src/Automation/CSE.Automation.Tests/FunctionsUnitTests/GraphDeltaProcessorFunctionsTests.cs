@@ -39,7 +39,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
         private ServicePrincipalProcessorSettings _servicePrincipalProcessorSettings;
 
         private ISecretClient _secretClient;
-        private IGraphHelper<ServicePrincipal> _graphHelper;
+        private IServicePrincipalGraphHelper _graphHelper;
         private IQueueServiceFactory _queueServiceFactory;
 
         private VersionMetadata _versionMetadata;
@@ -170,7 +170,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
 
                 .AddScoped<IAuditService>(x => _auditService)
                
-                .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelperTest>(x => (ServicePrincipalGraphHelperTest)_graphHelper)
+                .AddScoped<IServicePrincipalGraphHelper, ServicePrincipalGraphHelperTest>(x => (ServicePrincipalGraphHelperTest)_graphHelper)
                 .AddScoped<IGraphHelper<User>, UserGraphHelper>()
                 .AddScoped<IModelValidator<GraphModel>, GraphModelValidator>()
                 .AddScoped<IModelValidator<ServicePrincipalModel>, ServicePrincipalModelValidator>()

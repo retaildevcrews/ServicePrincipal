@@ -235,7 +235,7 @@ namespace CSE.Automation
                 .AddScoped<IConfigService<ProcessorConfiguration>, ConfigService>()
 
                 .AddSingleton<IGraphServiceClient, GraphClient>()
-                .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>()
+                .AddScoped<IServicePrincipalGraphHelper, ServicePrincipalGraphHelper>()
                 .AddScoped<IGraphHelper<User>, UserGraphHelper>()
                 .AddScoped<IServicePrincipalProcessor, ServicePrincipalProcessor>()
 

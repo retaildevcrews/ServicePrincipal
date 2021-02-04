@@ -35,7 +35,7 @@ namespace CSE.Automation.Processors
     {
         public static string ConstDefaultConfigurationResourceName = "ServicePrincipalProcessorConfiguration";
 
-        private readonly IGraphHelper<ServicePrincipal> graphHelper;
+        private readonly IServicePrincipalGraphHelper graphHelper;
         private readonly ServicePrincipalProcessorSettings settings;
         private readonly IQueueServiceFactory queueServiceFactory;
         private readonly IObjectTrackingService objectService;
@@ -45,7 +45,7 @@ namespace CSE.Automation.Processors
 
         public ServicePrincipalProcessor(
             ServicePrincipalProcessorSettings settings,
-            IGraphHelper<ServicePrincipal> graphHelper,
+            IServicePrincipalGraphHelper graphHelper,
             IQueueServiceFactory queueServiceFactory,
             IConfigService<ProcessorConfiguration> configService,
             IObjectTrackingService objectService,
@@ -154,17 +154,35 @@ namespace CSE.Automation.Processors
             // foreach (var sp in servicePrincipalList.Where(sp => string.IsNullOrWhiteSpace(sp.ObjectId) == false && string.IsNullOrWhiteSpace(sp.DisplayName) == false))
             foreach (var sp in servicePrincipalList)
             {
-                ServicePrincipal fullSP = null;
+                List<string> owners = null;
+
+                // Get the list of owners from the ServicePrincipal
                 try
                 {
-                    fullSP = await graphHelper.GetGraphObjectWithOwners(sp.Id).ConfigureAwait(false);
+                    ServicePrincipal spObject = await graphHelper.GetEntityWithOwners(sp.Id).ConfigureAwait(false);
+                    owners = spObject?.Owners.Select(x => (x as User)?.UserPrincipalName).ToList();
                 }
                 catch (Microsoft.Graph.ServiceException svcEx)
                 {
-                    logger.LogWarning(svcEx, $"Failed to get Owners on {sp.Id}");
+                    logger.LogWarning(svcEx, $"Failed to get Owners on ServicePrincipal ({sp.Id})");
                 }
 
-                var owners = fullSP?.Owners.Select(x => (x as User)?.UserPrincipalName).ToList();
+                // If no owners found on ServicePrincipal AND this is an Application ServicePrincipal, try to get the owners from the Application Object
+                if (owners.IsEmpty() && string.Equals(sp.ServicePrincipalType, "Application", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    try
+                    {
+                        var appObject = await graphHelper.GetApplicationWithOwners(sp.AppId).ConfigureAwait(false);
+                        if (appObject != null)
+                        {
+                            owners = appObject.Owners.Select(x => (x as User)?.UserPrincipalName).ToList();
+                        }
+                    }
+                    catch (Microsoft.Graph.ServiceException svcEx)
+                    {
+                        logger.LogWarning(svcEx, $"Failed to get Owners on Application ({sp.AppId})");
+                    }
+                }
 
                 servicePrincipalCount++;
 
