@@ -97,7 +97,7 @@ Validate If Audit Passed Or Failed Based On [Test Matrix](#reference-integration
 # Results Sorted by Timestamp Ascending (Latest Results At End)
 # Run The Following Command For Each Test Case You Are Testing
 # Replace displayName for each Test Case
-pwsh ./scripts/query-cosmos.ps1 -CosmosEndpoint $CosmosEndpoint -DatabaseName $CosmosDatabase -CollectionName ObjectTracking -Query  "SELECT * FROM c WHERE c.entity.displayName = 'alfredosp-tf-sp-dev'"
+pwsh ./scripts/query-cosmos.ps1 -CosmosEndpoint $CosmosEndpoint -DatabaseName $CosmosDatabase -CollectionName ObjectTracking -Query  "SELECT * FROM c WHERE c.entity.displayName = 'E2E-Testing-TC1'"
 
 Validate If Last Known Good Was Created Based On [Test Matrix](#reference-integration-test-matrix)
 
