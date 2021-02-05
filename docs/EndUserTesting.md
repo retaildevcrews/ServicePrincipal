@@ -39,9 +39,8 @@ pwsh scripts/create-test-sp.ps1 -SPName "E2E-Testing-TC8" -AddOwners $mySpName -
 
 ```bash
 
-# Input Function App Name
-
-export FN_NAME=fa-svcprincipal-cse-dev
+# Input Function App Name, Can be Retrieved from Azure Portal
+export FN_NAME="Input the name to your function application"
 
 # Run Following Commands
 
