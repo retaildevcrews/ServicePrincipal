@@ -12,6 +12,10 @@
 
 ## Creating Test Service Principals
 
+The Following Service Principals Are Being Created According to the [Test Matrix](#reference-integration-test-matrix)
+
+Modify Service Principals Based On Your Testing Requirements
+
 ```sh
 
 # If using Azure Cloud Shell, this step can be skipped
@@ -19,6 +23,7 @@ az login
 
 export mySpName=$(az ad signed-in-user show --query "userPrincipalName" -o tsv)
 
+# The Following Script Can Also Remove Owners and Notes with the -RemoveAllOwners and -RemoveNotes Flags
 pwsh scripts/create-test-sp.ps1 -SPName "E2E-Testing-TC1"
 pwsh scripts/create-test-sp.ps1 -SPName "E2E-Testing-TC2" -SetNotes "blah blah"
 pwsh scripts/create-test-sp.ps1 -SPName "E2E-Testing-TC3" -SetNotes joe@gmail.com
