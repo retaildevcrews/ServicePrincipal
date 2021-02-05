@@ -64,8 +64,8 @@ export appReadWriteAll=$(az ad sp show --id $GRAPH_ID --query "oauth2Permissions
 # Push Secrets To Github
 pwsh --command "Install-Module PSSodium"
 
-pwsh infra/cicd/put-github-secret.ps1 -UserName $GH_USER -PersonalToken $GH_TOKEN -OrgAndRepo "$GH_ORG/$GH_REPO" -SecretKey SERVICE_PRINCIPAL_SECRET -SecretVal "$SERVICE_PRINCIPAL_SECRET"
+pwsh scripts/put-github-secret.ps1 -UserName $GH_USER -PersonalToken $GH_TOKEN -OrgAndRepo "$GH_ORG/$GH_REPO" -SecretKey SERVICE_PRINCIPAL_SECRET -SecretVal "$SERVICE_PRINCIPAL_SECRET"
 
-pwsh infra/cicd/put-github-secret.ps1 -UserName $GH_USER -PersonalToken $GH_TOKEN -OrgAndRepo "$GH_ORG/$GH_REPO" -SecretKey SERVICE_PRINCIPAL_ID -SecretVal "$SERVICE_PRINCIPAL_ID"
+pwsh scripts/put-github-secret.ps1 -UserName $GH_USER -PersonalToken $GH_TOKEN -OrgAndRepo "$GH_ORG/$GH_REPO" -SecretKey SERVICE_PRINCIPAL_ID -SecretVal "$SERVICE_PRINCIPAL_ID"
 
-pwsh infra/cicd/put-github-secret.ps1 -UserName $GH_USER -PersonalToken $GH_TOKEN -OrgAndRepo "$GH_ORG/$GH_REPO" -SecretKey TENANT_ID -SecretVal "$TENANT_ID"
+pwsh scripts/put-github-secret.ps1 -UserName $GH_USER -PersonalToken $GH_TOKEN -OrgAndRepo "$GH_ORG/$GH_REPO" -SecretKey TENANT_ID -SecretVal "$TENANT_ID"

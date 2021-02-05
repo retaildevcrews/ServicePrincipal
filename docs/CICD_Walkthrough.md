@@ -61,10 +61,10 @@ Capture the following information and save for later prompting:
 # The Following Command Is Not Needed If Using Azure Cloud Shell
 az login
 
-chmod +x infra/cicd/cicd-setup.sh
+chmod +x scripts/cicd-setup.sh
 
 # Enter Previously Captured Information When Script Prompts
-infra/cicd/cicd-setup.sh
+scripts/cicd-setup.sh
 
 ```
 
