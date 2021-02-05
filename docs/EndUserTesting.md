@@ -2,13 +2,13 @@
 
 ## Prerequisites
 
-Azure Active Directory Permissions To Create Service Principals
-Infrastructure Already Setup
-CICD Workflow has run at least once Successfully
-Bash
-Powershell
-
-## Validate Service Is Operational
+- Azure subscription with admin permissions. Any of the following will suffice:
+  - Global Administrator
+  - Application Administrator
+  - Cloud Application Administrator
+- Bash Environment (Following Dependencies Should Be Preloaded if Using Cloud Shell)
+  - PowerShell ([download](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.1))
+  - Azure CLI ([download](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest))
 
 ## Creating Test Service Principals
 
@@ -17,38 +17,83 @@ Powershell
 # If using Azure Cloud Shell, this step can be skipped
 az login
 
-export userInitials=$(az ad signed-in-user show --query "displayName" -o tsv | sed 's/\(\w\)\w*/\1/g' | sed 's/\s//g')
+export mySpName=$(az ad signed-in-user show --query "userPrincipalName" -o tsv)
 
-pwsh scripts/create-test-sp.ps1 -SPName "$userInitials-No-Owner-No-Notes" -Owner none
-pwsh scripts/create-test-sp.ps1 -SPName "$userInitials-No-Owner-No-Email" -Owner none -Notes "blah blah"
-pwsh scripts/create-test-sp.ps1 -SPName "$userInitials-No-Owner-Invalid-Email" -Owner none -Notes joe@gmail.com
-pwsh scripts/create-test-sp.ps1 -SPName "$userInitials-No-Owner-Valid-Email" -Owner none -Notes joe@walmart.com
-pwsh scripts/create-test-sp.ps1 -SPName "$userInitials-Owner-Set-No-Notes" -Owner myself
-pwsh scripts/create-test-sp.ps1 -SPName "$userInitials-Owner-Set-No-Email" -Owner myself -Notes "blah blah"
-pwsh scripts/create-test-sp.ps1 -SPName "$userInitials-Owner-Set-Invalid-Email" -Owner myself -Notes joe@gmail.com
-pwsh scripts/create-test-sp.ps1 -SPName "$userInitials-Owner-Set-Valid-Email" -Owner myself -Notes joe@walmart.com
+pwsh scripts/create-test-sp.ps1 -SPName "E2E-Testing-TC1"
+pwsh scripts/create-test-sp.ps1 -SPName "E2E-Testing-TC2" -SetNotes "blah blah"
+pwsh scripts/create-test-sp.ps1 -SPName "E2E-Testing-TC3" -SetNotes joe@gmail.com
+pwsh scripts/create-test-sp.ps1 -SPName "E2E-Testing-TC4" -SetNotes joe@walmart.com
+pwsh scripts/create-test-sp.ps1 -SPName "E2E-Testing-TC5" -AddOwners $mySpName
+pwsh scripts/create-test-sp.ps1 -SPName "E2E-Testing-TC6" -AddOwners $mySpName -SetNotes "blah blah"
+pwsh scripts/create-test-sp.ps1 -SPName "E2E-Testing-TC7" -AddOwners $mySpName -SetNotes joe@gmail.com
+pwsh scripts/create-test-sp.ps1 -SPName "E2E-Testing-TC8" -AddOwners $mySpName -SetNotes joe@walmart.com
 
 ```
 
-NOPE - One Time Script
+## Validate Function Running
 
-Manual Creation
+```bash
+
+# Input Function App Name
+
+export FN_NAME=fa-svcprincipal-cse-dev
+
+# Run Following Commands
+
+export RESOURCE_GROUP=$(az functionapp list --query "[?name=='$FN_NAME']" --query "[].resourceGroup" -o tsv)
+
+export FN_MASTER_KEY=$(az functionapp keys list -n $FN_NAME -g $RESOURCE_GROUP --query masterKey -o tsv)
+
+# Validate Following Command Returns JSON
+curl https://$FN_NAME.azurewebsites.net/api/Version?code=$FN_MASTER_KEY
+
+```
 
 ## Processing Service Principals
 
-NOPE - Run Integration Tests
+```bash
 
-Navigate To Function App
+# This Will Kick Off A New Delta Discovery Request
+# It Is Possible Any Service Principal Changes You Made Were Already Picked Up
+export runId=$(az rest -u "https://$FN_NAME.azurewebsites.net/api/RequestDiscovery?code=$FN_MASTER_KEY" --query correlationId -o tsv --skip-authorization-header)
 
-Requst Manual Delta Run
+# Re-run This Command Until Status is Completed or Failed
+# If This Command Fails, It Is Possible Another Discovery Was Running at the Same Time
+az rest -u "https://$FN_NAME.azurewebsites.net/api/Activities?correlationId=$runId&code=$FN_MASTER_KEY" --skip-authorization-header --query "activity[-1].status" -o tsv
 
-Wait For Completion
+```
 
 ## Validating Results
 
+```bash
+
+export CosmosEndpoint=$(az functionapp config appsettings list -n $FN_NAME -g $RESOURCE_GROUP --query "[?name=='SPCosmosURL'][].value" -o tsv)
+
+export CosmosDatabase=$(az functionapp config appsettings list -n $FN_NAME -g $RESOURCE_GROUP --query "[?name=='SPCosmosDatabase'][].value" -o tsv)
+
+```
+
 ### Accessing Audit Logs
 
-Navigate To Cosmos DB
+```bash
+
+# Results Sorted by Timestamp Ascending (Latest Results At End)
+pwsh ./scripts/query-cosmos.ps1 -CosmosEndpoint $CosmosEndpoint -DatabaseName $CosmosDatabase -CollectionName Audit -Query  "SELECT * FROM c WHERE c.descriptor.displayName = 'E2E-Testing-TC1'"
+
+```
+
+Validate If Audit Passed Or Failed Based On [Test Matrix](#reference-integration-test-matrix)
+
+### Accessing Last Known Good Service Principal
+
+```bash
+
+# Results Sorted by Timestamp Ascending (Latest Results At End)
+pwsh ./scripts/query-cosmos.ps1 -CosmosEndpoint $CosmosEndpoint -DatabaseName $CosmosDatabase -CollectionName ObjectTracking -Query  "SELECT * FROM c WHERE c.entity.displayName = 'alfredosp-tf-sp-dev'"
+
+Validate If Last Known Good Was Created Based On [Test Matrix](#reference-integration-test-matrix)
+
+```
 
 ## Optional Clean Up
 
@@ -56,18 +101,18 @@ Navigate To Cosmos DB
 
 az login
 
-az ad sp delete --id "http://$userInitials-No-Owner-No-Notes"
-az ad sp delete --id "http://$userInitials-No-Owner-No-Email"
-az ad sp delete --id "http://$userInitials-No-Owner-Invalid-Email"
-az ad sp delete --id "http://$userInitials-No-Owner-Valid-Email"
-az ad sp delete --id "http://$userInitials-Owner-Set-No-Notes"
-az ad sp delete --id "http://$userInitials-Owner-Set-No-Email"
-az ad sp delete --id "http://$userInitials-Owner-Set-Invalid-Email"
-az ad sp delete --id "http://$userInitials-Owner-Set-Valid-Email"
+az ad sp delete --id "E2E-Testing-TC1"
+az ad sp delete --id "E2E-Testing-TC2"
+az ad sp delete --id "E2E-Testing-TC3"
+az ad sp delete --id "E2E-Testing-TC4"
+az ad sp delete --id "E2E-Testing-TC5"
+az ad sp delete --id "E2E-Testing-TC6"
+az ad sp delete --id "E2E-Testing-TC7"
+az ad sp delete --id "E2E-Testing-TC8"
 
 ```
 
-### Integration Test Matrix
+### Reference Integration Test Matrix
 
 LKG = Last Known Good (Service Principal)
 

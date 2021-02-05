@@ -45,7 +45,6 @@ function GetSpId
       Write-Error "Could not find owner: $owner"
       exit 1
     }
-
   }
 }
 
