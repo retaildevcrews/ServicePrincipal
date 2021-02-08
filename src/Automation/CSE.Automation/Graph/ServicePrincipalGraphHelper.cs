@@ -14,7 +14,7 @@ using Microsoft.Graph;
 
 namespace CSE.Automation.Graph
 {
-    internal class ServicePrincipalGraphHelper : GraphHelperBase<ServicePrincipal>
+    internal class ServicePrincipalGraphHelper : GraphHelperBase<ServicePrincipal>, IServicePrincipalGraphHelper
     {
         /// <summary>
         /// Constructor for ServicePrincipalGraphHelper
@@ -90,9 +90,9 @@ namespace CSE.Automation.Graph
         /// <summary>
         /// Gets Service Principal Graph Object With Owners
         /// </summary>
-        /// <param name="id">The Service Principal Oject ObjectId</param>
-        /// <returns>Tasks with Service Principal </returns>
-        public async override Task<ServicePrincipal> GetGraphObjectWithOwners(string id)
+        /// <param name="id">The Service Principal Object Id</param>
+        /// <returns>Task returning a Service Principal</returns>
+        public async override Task<ServicePrincipal> GetEntityWithOwners(string id)
         {
             var entity = await GraphClient.ServicePrincipals[id]
                 .Request()
@@ -101,6 +101,23 @@ namespace CSE.Automation.Graph
                 .ConfigureAwait(false);
 
             return entity;
+        }
+
+        /// <summary>
+        /// Gets Application Graph Object With Owners
+        /// </summary>
+        /// <param name="appId">The Application Object Id</param>
+        /// <returns>Task returning an Application Object</returns>
+        public async Task<Application> GetApplicationWithOwners(string appId)
+        {
+            var entityList = await GraphClient.Applications
+                .Request()
+                .Filter($"appId eq '{appId}'")
+                .Expand("Owners")
+                .GetAsync()
+                .ConfigureAwait(false);
+
+            return entityList.FirstOrDefault();
         }
 
         /// <summary>

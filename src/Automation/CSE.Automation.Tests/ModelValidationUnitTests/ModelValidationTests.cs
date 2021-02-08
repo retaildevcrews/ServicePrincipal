@@ -29,7 +29,7 @@ namespace CSE.Automation.Tests.FunctionsUnitTests
             Task<User> outTask = Task.FromResult(new User());
 
             var mockUserGraphHelper = Substitute.For<IGraphHelper<User>>();
-            mockUserGraphHelper.GetGraphObjectWithOwners(Arg.Any<string>()).Returns(outTask);
+            mockUserGraphHelper.GetEntityWithOwners(Arg.Any<string>()).Returns(outTask);
 
             return mockUserGraphHelper;
         }
