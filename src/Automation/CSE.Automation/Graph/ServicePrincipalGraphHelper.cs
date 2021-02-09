@@ -155,29 +155,26 @@ namespace CSE.Automation.Graph
 
             logger.LogDebug($"\tDiscovered {count} Service Principals");
 
-            if (IsSeedRun(config))
-            {
-                // Build secondary list of elements that were removed from the directory
-                List<ServicePrincipal> removedList = pageList.Where(x => x.AdditionalData.Keys.Contains("@removed")).ToList();
+            // Build secondary list of elements that were removed from the directory
+            List<ServicePrincipal> removedList = pageList.Where(x => x.AdditionalData.Keys.Contains("@removed")).ToList();
 
-                // Report Audit Ignore messages for all the elements that were already removed from the directory
-                removedList.ToList().ForEach(sp => auditService.PutIgnore(
-                    descriptor: new AuditDescriptor
-                    {
-                        CorrelationId = context.CorrelationId,
-                        ObjectId = sp.Id,
-                        AppId = sp.AppId,
-                        DisplayName = sp.DisplayName,
-                    },
-                    code: AuditCode.Deleted,
-                    attributeName: "AdditionalData",
-                    existingAttributeValue: "@removed"));
-                logger.LogInformation($"\tTrimmed {removedList.Count} ServicePrincipals.");
-                metrics.Removed += removedList.Count;
+            // Report Audit Ignore messages for all the elements that were already removed from the directory
+            removedList.ToList().ForEach(sp => auditService.PutIgnore(
+                descriptor: new AuditDescriptor
+                {
+                    CorrelationId = context.CorrelationId,
+                    ObjectId = sp.Id,
+                    AppId = sp.AppId,
+                    DisplayName = sp.DisplayName,
+                },
+                code: AuditCode.Deleted,
+                attributeName: "AdditionalData",
+                existingAttributeValue: "@removed"));
+            logger.LogInformation($"\tTrimmed {removedList.Count} ServicePrincipals.");
+            metrics.Removed += removedList.Count;
 
-                // Filter list to include only those elements that are currently active
-                pageList = pageList.Where(x => x.AdditionalData.Keys.Contains("@removed") == false).ToList();
-            }
+            // Filter list to include only those elements that are currently active
+            pageList = pageList.Where(x => x.AdditionalData.Keys.Contains("@removed") == false).ToList();
 
             return pageList;
         }
