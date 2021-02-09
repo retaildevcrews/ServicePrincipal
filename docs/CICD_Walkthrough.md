@@ -61,10 +61,10 @@ Capture the following information and save for later prompting:
 # The Following Command Is Not Needed If Using Azure Cloud Shell
 az login
 
-chmod +x infra/cicd/cicd-setup.sh
+chmod +x scripts/cicd-setup.sh
 
 # Enter Previously Captured Information When Script Prompts
-infra/cicd/cicd-setup.sh
+scripts/cicd-setup.sh
 
 ```
 
@@ -107,6 +107,7 @@ To do that you can sync your fork with the upstream repository.
 ```sh
 
 # You may need to switch out upstream URI if connecting to GitHub via SSH
+# This command only needs to be once
 git remote add upstream https://github.com/retaildevcrews/ServicePrincipal.git
 
 git fetch upstream
@@ -115,6 +116,7 @@ git checkout main
 
 git merge upstream/main
 
+# During Merge, You might get a merge conflict.
 git push
 
 ```
