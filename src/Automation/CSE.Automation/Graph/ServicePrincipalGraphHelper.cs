@@ -68,13 +68,13 @@ namespace CSE.Automation.Graph
                 collectionPage = await collectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
             }
 
-            servicePrincipalList.UnionWith(PruneRemovedOnFirstRun(context, collectionPage, metrics, config));
+            servicePrincipalList.UnionWith(PruneRemovedOnFirstRun(context, collectionPage, metrics));
 
             while (collectionPage.NextPageRequest != null)
             {
                 collectionPage = await collectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
 
-                servicePrincipalList.UnionWith(PruneRemovedOnFirstRun(context, collectionPage, metrics, config));
+                servicePrincipalList.UnionWith(PruneRemovedOnFirstRun(context, collectionPage, metrics));
             }
 
             logger.LogInformation($"Discovered {servicePrincipalList.Count} delta objects.");
@@ -146,7 +146,7 @@ namespace CSE.Automation.Graph
             config.RunState == RunState.Seed ||
             string.IsNullOrEmpty(config.DeltaLink);
 
-        private IList<ServicePrincipal> PruneRemovedOnFirstRun(ActivityContext context, IServicePrincipalDeltaCollectionPage collectionPage, GraphOperationMetrics metrics, ProcessorConfiguration config)
+        private IList<ServicePrincipal> PruneRemovedOnFirstRun(ActivityContext context, IServicePrincipalDeltaCollectionPage collectionPage, GraphOperationMetrics metrics)
         {
             IList<ServicePrincipal> pageList = collectionPage.CurrentPage ?? new List<ServicePrincipal>();
             var count = pageList.Count;
