@@ -15,13 +15,11 @@ namespace CSE.Automation.Services
     internal class ObjectTrackingService : IObjectTrackingService
     {
         private readonly IObjectTrackingRepository objectRepository;
-        private readonly IAuditService auditService;
         private readonly ILogger logger;
 
-        public ObjectTrackingService(IObjectTrackingRepository objectRepository, IAuditService auditService, ILogger<ObjectTrackingService> logger)
+        public ObjectTrackingService(IObjectTrackingRepository objectRepository, ILogger<ObjectTrackingService> logger)
         {
             this.objectRepository = objectRepository;
-            this.auditService = auditService;
             this.logger = logger;
         }
 
@@ -56,18 +54,20 @@ namespace CSE.Automation.Services
         public async Task<TrackingModel> Put<TEntity>(ActivityContext context, TEntity entity)
             where TEntity : GraphModel
         {
-            TrackingModel lastKnownGoodWrapper = await Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(false);
+            // get the wrapper if it exists
+            TrackingModel wrapper = await Get<TEntity>(entity.Id).ConfigureAwait(false);
 
             var now = DateTimeOffset.Now;
-            var model = new TrackingModel<TEntity>
+            var newWrapper = new TrackingModel<TEntity>
             {
+                Id = wrapper?.Id,
                 CorrelationId = context.CorrelationId,
-                Created = lastKnownGoodWrapper?.Created ?? now,
+                Created = wrapper?.Created ?? now,
                 LastUpdated = now,
                 TypedEntity = entity,
             };
-            objectRepository.GenerateId(model);
-            return await objectRepository.UpsertDocumentAsync(model).ConfigureAwait(false);
+            objectRepository.GenerateId(newWrapper);
+            return await objectRepository.UpsertDocumentAsync(newWrapper).ConfigureAwait(false);
         }
 
         /// <summary>
