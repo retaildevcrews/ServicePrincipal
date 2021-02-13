@@ -1,0 +1,30 @@
+﻿using System;
+using System.Collections.Generic;
+using CSE.Automation.Model;
+using Newtonsoft.Json;
+
+namespace CSE.Automation.Tests.UnitTests.TestCaseValidators.ServicePrincipalResults
+{
+    internal class SpResultValidator6 : SpResultValidatorBase, ISpResultValidator
+    {
+
+        public SpResultValidator6(string savedServicePrincipalAsString, IInputGenerator inputGenerator, ActivityContext activityContext) 
+                                : base(savedServicePrincipalAsString, inputGenerator, activityContext)
+        {
+        }
+
+        public override bool Validate()
+        {
+            var newServicePrincipalAsString = JsonConvert.SerializeObject(NewServicePrincipal);
+
+            bool servicePrincipalPass = SavedServicePrincipalAsString.Equals(newServicePrincipalAsString, StringComparison.InvariantCultureIgnoreCase);
+
+            List<ServicePrincipalUpdateAction> targetQueueMessages = new List<ServicePrincipalUpdateAction> () { ServicePrincipalUpdateAction.Update};
+
+            bool messageFound = DoesMessageExistInUpdateQueue(targetQueueMessages);
+
+            return (servicePrincipalPass && messageFound);
+
+        }
+    }
+}

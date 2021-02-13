@@ -36,7 +36,7 @@ namespace CSE.Automation.Processors
         public static string ConstDefaultConfigurationResourceName = "ServicePrincipalProcessorConfiguration";
 
         private readonly IServicePrincipalGraphHelper graphHelper;
-        private readonly ServicePrincipalProcessorSettings settings;
+        private readonly IServicePrincipalProcessorSettings settings;
         private readonly IQueueServiceFactory queueServiceFactory;
         private readonly IObjectTrackingService objectService;
         private readonly IAuditService auditService;
@@ -44,7 +44,7 @@ namespace CSE.Automation.Processors
         private readonly IEnumerable<IModelValidator<ServicePrincipalModel>> validators;
 
         public ServicePrincipalProcessor(
-            ServicePrincipalProcessorSettings settings,
+            IServicePrincipalProcessorSettings settings,
             IServicePrincipalGraphHelper graphHelper,
             IQueueServiceFactory queueServiceFactory,
             IConfigService<ProcessorConfiguration> configService,
@@ -262,6 +262,8 @@ namespace CSE.Automation.Processors
             IAzureQueueService queueService = queueServiceFactory.Create(settings.QueueConnectionString, settings.UpdateQueueName);
 
             var errors = validators.SelectMany(v => v.Validate(entity).Errors).ToList();
+            TrackingModel trackingModel = await objectService.Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(false);
+
             if (errors.Count > 0)
             {
                 // emit into Operations log
@@ -286,24 +288,15 @@ namespace CSE.Automation.Processors
 #pragma warning restore SA1118 // Parameter should not span multiple lines
                                 message: error.ErrorMessage).ConfigureAwait(false));
 
-                // Invalid ServicePrincipal, valid Owners, update the service principal from Owners
-                if (entity.HasOwners())
-                {
-                    await UpdateNotesFromOwners(context, entity, queueService).ConfigureAwait(false);
-                }
-
-                // Revert the ServicePrincipal if we can
-                else
-                {
-                    await RevertToLastKnownGood(context, entity, queueService).ConfigureAwait(false);
-                }
+                // attempt remediation
+                await RemediateServicePrincipal(context, trackingModel, entity, queueService).ConfigureAwait(false);
             }
 
             // No errors, ServicePrincipal passes audit
             else
             {
                 // remember this was the last time we saw the ServicePrincipal as 'good'
-                await UpdateLastKnownGood(context, null, entity).ConfigureAwait(true);
+                await UpdateLastKnownGood(context, trackingModel, entity).ConfigureAwait(true);
                 var descriptor = new AuditDescriptor
                 {
                     CorrelationId = context.CorrelationId,
@@ -347,7 +340,10 @@ namespace CSE.Automation.Processors
 
                     // once AAD is updated, we can update LKG
                     command.Entity.Notes = command.Notes.Changed;
-                    await UpdateLastKnownGood(context, null, command.Entity).ConfigureAwait(false);
+
+                    TrackingModel trackingModel = await objectService.Get<ServicePrincipalModel>(command.Entity.Id).ConfigureAwait(false);
+
+                    await UpdateLastKnownGood(context, trackingModel, command.Entity).ConfigureAwait(false);
                 }
                 catch (Microsoft.Graph.ServiceException exSvc)
                 {
@@ -381,6 +377,46 @@ namespace CSE.Automation.Processors
             }
         }
 
+        private async Task RemediateServicePrincipal(ActivityContext context, TrackingModel trackingModel, ServicePrincipalModel entity, IAzureQueueService queueService)
+        {
+            if (trackingModel != null)
+            {
+                await RemediateFromLastKnownGood(context, entity, trackingModel, queueService).ConfigureAwait(false);
+            }
+            else if (entity.HasOwners())
+            {
+                await RemediateFromOwners(context, entity, queueService).ConfigureAwait(false);
+            }
+            else
+            {
+                await AlertInvalidPrincipal(context, entity).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
+        /// Update the ServicePrincipal from the last known good state.
+        /// </summary>
+        /// <param name="context">Context of the activity.</param>
+        /// <param name="entity">Original ServicePrincipalModel</param>
+        /// <param name="lastKnownGood">ServicePrincipalModel from Last Known Good</param>
+        /// <param name="queueService">An instance of a Queue Service to send an update message.</param>
+        /// <returns>A Task that returns nothing.</returns>
+        private static async Task RemediateFromLastKnownGood(ActivityContext context, ServicePrincipalModel entity, TrackingModel lastKnownGood, IAzureQueueService queueService)
+        {
+            var lastKnownGoodEntity = TrackingModel.Unwrap<ServicePrincipalModel>(lastKnownGood);
+
+            // build the command here so we don't need to pass the delta values down the call tree
+            var updateCommand = new ServicePrincipalUpdateCommand()
+            {
+                Entity = lastKnownGoodEntity,
+                LastKnownGoodTime = lastKnownGood.LastUpdated,
+                Notes = (entity.Notes, lastKnownGoodEntity.Notes),
+                Action = ServicePrincipalUpdateAction.Revert, // "Revert to Last Known Good",
+            };
+
+            await CommandAADUpdate(context, updateCommand, queueService).ConfigureAwait(true);
+        }
+
         /// <summary>
         /// Update the ServicePrincipal Notes from the Owners List
         /// </summary>
@@ -388,10 +424,8 @@ namespace CSE.Automation.Processors
         /// <param name="entity">Entity of type <see cref="ServicePrincipalModel"/>.</param>
         /// <param name="queueService">An instance of a Queue Service to send an update message.</param>
         /// <returns>A Task that returns nothing.</returns>
-        private async Task UpdateNotesFromOwners(ActivityContext context, ServicePrincipalModel entity, IAzureQueueService queueService)
+        private static async Task RemediateFromOwners(ActivityContext context, ServicePrincipalModel entity, IAzureQueueService queueService)
         {
-            TrackingModel lastKnownGoodWrapper = await objectService.Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(true);
-
             // get new value for Notes (from the list of Owners)
             // var owners = sp.Owners.Select(x => (x as User)?.UserPrincipalName);
             var ownersList = string.Join(';', entity.Owners);
@@ -400,65 +434,30 @@ namespace CSE.Automation.Processors
             var updateCommand = new ServicePrincipalUpdateCommand()
             {
                 Entity = entity,
-                LastKnownGoodTime = lastKnownGoodWrapper?.LastUpdated,
                 Notes = (entity.Notes, ownersList),
                 Action = ServicePrincipalUpdateAction.Update, // "Update Notes from Owners",
             };
             await CommandAADUpdate(context, updateCommand, queueService).ConfigureAwait(true);
-
-            // // update local entity so we have something to send to object service
-            // entity.Notes = ownersList;
-
-            // await UpdateLastKnownGood(context, lastKnownGoodWrapper, entity).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Update the ServicePrincipal from the last known good state.
+        /// Update the LKG document
         /// </summary>
         /// <param name="context">Context of the activity.</param>
+        /// <param name="trackingModel">LKG wrapper of the entity</param>
         /// <param name="entity">Entity of type <see cref="ServicePrincipalModel"/>.</param>
-        /// <param name="queueService">An instance of a Queue Service to send an update message.</param>
         /// <returns>A Task that returns nothing.</returns>
-        private async Task RevertToLastKnownGood(ActivityContext context, ServicePrincipalModel entity, IAzureQueueService queueService)
+        private async Task UpdateLastKnownGood(ActivityContext context, TrackingModel trackingModel, ServicePrincipalModel entity)
         {
-            TrackingModel lastKnownGoodWrapper = await objectService.Get<ServicePrincipalModel>(entity.Id).ConfigureAwait(false);
-            var lastKnownGood = TrackingModel.Unwrap<ServicePrincipalModel>(lastKnownGoodWrapper);
-
-            // bad SP Notes, bad SP Owners, last known good found
-            if (lastKnownGood != null)
-            {
-                // build the command here so we don't need to pass the delta values down the call tree
-                var updateCommand = new ServicePrincipalUpdateCommand()
-                {
-                    Entity = entity,
-                    LastKnownGoodTime = lastKnownGood.LastUpdated,
-                    Notes = (entity.Notes, lastKnownGood.Notes),
-                    Action = ServicePrincipalUpdateAction.Revert, // "Revert to Last Known Good",
-                };
-
-                await CommandAADUpdate(context, updateCommand, queueService).ConfigureAwait(true);
-
-                // await UpdateLastKnownGood(context, lastKnownGoodWrapper, lastKnownGood).ConfigureAwait(false);
-            }
-
-            // oops, bad SP Notes, bad SP Owners and no last known good.
-            else
-            {
-                await AlertInvalidPrincipal(context, entity).ConfigureAwait(false);
-            }
-        }
-
-        private async Task UpdateLastKnownGood(ActivityContext context, TrackingModel trackingModel, ServicePrincipalModel model)
-        {
-            // if we don't have a tracking model that means we have never recorded a last known good.  create one by
+            // if we don't have a tracking entity that means we have never recorded a last known good.  create one by
             //  writing just the entity to the service.
             if (trackingModel is null)
             {
-                await objectService.Put(context, model).ConfigureAwait(false);
+                await objectService.Put(context, entity).ConfigureAwait(false);
             }
             else
             {
-                trackingModel.Entity = model;
+                trackingModel.Entity = entity;
 
                 // make sure to write the wrapper back to get the same document updated
                 await objectService.Put(context, trackingModel).ConfigureAwait(false);
