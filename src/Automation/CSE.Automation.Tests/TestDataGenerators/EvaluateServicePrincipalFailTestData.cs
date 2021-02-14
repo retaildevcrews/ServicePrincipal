@@ -6,55 +6,58 @@ using CSE.Automation.Model;
 
 namespace CSE.Automation.Tests.TestDataGenerators
 {
-   public  class EvaluateServicePrincipalPassTestData : IEnumerable<object[]>
+    public class EvaluateServicePrincipalFailTestData : IEnumerable<object[]>
     {
 
         public IEnumerator<object[]> GetEnumerator()
         {
+            // No LKG
             yield return new object[]
             {
                 new ServicePrincipalModel()
                 {
-                    AppDisplayName = "Valid1 - No LKG, Single Owner",
+                    AppDisplayName = "Fail1 - No LKG, No Owners",
                     AppId = "AppId1",
                     Created = DateTimeOffset.Now.AddDays(-1),
                     Deleted = null,
                     DisplayName = "Display Name1",
-                    Id = "Id1",
+                    Id = "NO_LKG1",
                     LastUpdated = null,
-                    Notes = "user1@mydirectory.com"
+                    Notes = null,
+                    Owners = new List<string>()
                 }
             };
             yield return new object[]
             {
                 new ServicePrincipalModel()
                 {
-                    AppDisplayName = "Valid2 - No LKG, Two Owners, commas",
+                    AppDisplayName = "Fail2 - No LKG, One Owner",
                     AppId = "AppId2",
                     Created = DateTimeOffset.Now.AddDays(-1),
                     Deleted = null,
                     DisplayName = "Display Name2",
-                    Id = "Id2",
+                    Id = "NO_LKG2",
                     LastUpdated = null,
-                    Notes = "user1@mydirectory.com, user2@mydirectory.com"
+                    Owners = new List<string>() { "user1@mydirectory.com" }
                 }
             };
             yield return new object[]
             {
                 new ServicePrincipalModel()
                 {
-                    AppDisplayName = "Valid3 - No LKG, Two Owners, semicolon",
+                    AppDisplayName = "Fail3 - No LKG, Two Owners",
                     AppId = "AppId3",
                     Created = DateTimeOffset.Now.AddDays(-1),
                     Deleted = null,
-                    DisplayName = "Display Name3",
-                    Id = "Id3",
+                    DisplayName = "Display Name2",
+                    Id = "NO_LKG3",
                     LastUpdated = null,
-                    Notes = "user1@mydirectory.com;    user2@mydirectory.com"
+                    Owners = new List<string>() {"user1@mydirectory.com, user2@mydirectory.com"}
                 }
             };
         }
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator(); 
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
+
 }

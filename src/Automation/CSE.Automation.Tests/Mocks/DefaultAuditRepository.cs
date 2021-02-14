@@ -13,7 +13,7 @@ namespace CSE.Automation.Tests.Mocks
 
         public async Task<bool> Test()
         {
-            return true;
+            return await Task.FromResult(true);
         }
 
         public async Task Reconnect(bool force = false)
@@ -22,22 +22,22 @@ namespace CSE.Automation.Tests.Mocks
         }
 
         public string Id { get; }
-        public async Task<AuditEntry> GetByIdAsync(string id, string partitionKey)
+        public Task<AuditEntry> GetByIdAsync(string id, string partitionKey)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<ItemResponse<AuditEntry>> GetByIdWithMetaAsync(string id, string partitionKey)
+        public Task<ItemResponse<AuditEntry>> GetByIdWithMetaAsync(string id, string partitionKey)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<AuditEntry>> GetPagedAsync(string q, int offset = 0, int limit = 0)
+        public Task<IEnumerable<AuditEntry>> GetPagedAsync(string q, int offset = 0, int limit = 0)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<AuditEntry>> GetAllAsync(TypeFilter filter = TypeFilter.Any)
+        public Task<IEnumerable<AuditEntry>> GetAllAsync(TypeFilter filter = TypeFilter.Any)
         {
             throw new NotImplementedException();
         }
@@ -52,7 +52,7 @@ namespace CSE.Automation.Tests.Mocks
             return entity.Id;
         }
 
-        public async Task<AuditEntry> ReplaceDocumentAsync(string id, AuditEntry newDocument, ItemRequestOptions reqOptions = null)
+        public Task<AuditEntry> ReplaceDocumentAsync(string id, AuditEntry newDocument, ItemRequestOptions reqOptions = null)
         {
             throw new NotImplementedException();
         }
@@ -63,12 +63,12 @@ namespace CSE.Automation.Tests.Mocks
             return await Task.FromResult(newDocument);
         }
 
-        public async Task<AuditEntry> UpsertDocumentAsync(AuditEntry newDocument)
+        public Task<AuditEntry> UpsertDocumentAsync(AuditEntry newDocument)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<AuditEntry> DeleteDocumentAsync(string id, string partitionKey)
+        public Task<AuditEntry> DeleteDocumentAsync(string id, string partitionKey)
         {
             throw new NotImplementedException();
         }

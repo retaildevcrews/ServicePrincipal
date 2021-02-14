@@ -8,17 +8,17 @@ namespace CSE.Automation.Tests.Mocks
 {
     internal class NoopActivityService : IActivityService
     {
-        public async Task<ActivityHistory> Put(ActivityHistory document)
+        public Task<ActivityHistory> Put(ActivityHistory document)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<ActivityHistory> Get(string id)
+        public Task<ActivityHistory> Get(string id)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<ActivityHistory>> GetCorrelated(string correlationId)
+        public Task<IEnumerable<ActivityHistory>> GetCorrelated(string correlationId)
         {
             throw new NotImplementedException();
         }

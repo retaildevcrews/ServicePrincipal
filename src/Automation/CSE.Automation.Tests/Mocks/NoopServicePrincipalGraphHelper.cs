@@ -7,24 +7,24 @@ using Microsoft.Graph;
 
 namespace CSE.Automation.Tests.Mocks
 {
-    internal class ServicePrincipalGraphHelperMock : IServicePrincipalGraphHelper
+    internal class NoopServicePrincipalGraphHelper : IServicePrincipalGraphHelper
     {
-        public async Task<(GraphOperationMetrics metrics, IEnumerable<ServicePrincipal> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config)
+        public Task<(GraphOperationMetrics metrics, IEnumerable<ServicePrincipal> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<ServicePrincipal> GetEntityWithOwners(string id)
+        public Task<ServicePrincipal> GetEntityWithOwners(string id)
         {
             throw new NotImplementedException();
         }
 
-        public async Task PatchGraphObject(ServicePrincipal entity)
+        public Task PatchGraphObject(ServicePrincipal entity)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<Application> GetApplicationWithOwners(string appId)
+        public Task<Application> GetApplicationWithOwners(string appId)
         {
             throw new NotImplementedException();
         }
