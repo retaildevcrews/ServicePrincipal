@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace CSE.Automation.Tests.UnitTests.Services
+namespace CSE.Automation.Tests.IntegrationTests.Services
 {
     public class ConfigServiceTests
     {
