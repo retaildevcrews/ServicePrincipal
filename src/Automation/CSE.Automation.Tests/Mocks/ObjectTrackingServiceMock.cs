@@ -19,7 +19,11 @@ namespace CSE.Automation.Tests.Mocks
 
         public ObjectTrackingServiceMock WithData(TrackingModel[] data)
         {
-            this.Data = data.ToList();
+            if (data != null)
+            {
+                this.Data = data.ToList();
+            }
+
             return this;
         }
 

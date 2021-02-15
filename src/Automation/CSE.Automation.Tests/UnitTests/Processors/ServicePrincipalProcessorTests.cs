@@ -42,7 +42,9 @@ namespace CSE.Automation.Tests.UnitTests.Processors
             var testUsers = new string[]
             {
                 "user1@mydirectory.com",
-                "user2@mydirectory.com"
+                "user2@mydirectory.com",
+                "LKG1@mydirectory.com",
+                "LKG2@mydirectory.com"
             };
 
             var objectTrackingService = ObjectTrackingServiceMock.Create().WithData(new[]
@@ -64,7 +66,7 @@ namespace CSE.Automation.Tests.UnitTests.Processors
             services
                 .AddSingleton<IServicePrincipalProcessorSettings, ServicePrincipalProcessorSettingsMock>()
                 .AddSingleton<IAuditRepository, DefaultAuditRepository>()
-                .AddSingleton<IQueueServiceFactory, NoopQueueServiceFactory>()
+                .AddSingleton<IQueueServiceFactory, DefaultQueueServiceFactory<ServicePrincipalUpdateCommand>>()
                 .AddSingleton<IConfigService<ProcessorConfiguration>, DefaultConfigService>()
                 .AddSingleton<IObjectTrackingService>(objectTrackingService)
                 .AddSingleton<IModelValidatorFactory, ModelValidatorFactory>()
@@ -123,7 +125,7 @@ namespace CSE.Automation.Tests.UnitTests.Processors
         /// <summary>
         /// Evaluation tests that should pass
         /// </summary>
-        /// <param name="entity">An instance returned from the class data generator</param>
+        /// <param name="testModel">An instance of test data returned from the class data generator</param>
         /// <remarks>
         ///     Dependencies:
         ///         IQueueService - mocked, no messages should be posted to Update queue
@@ -133,34 +135,54 @@ namespace CSE.Automation.Tests.UnitTests.Processors
         [Theory]
         [Trait("Category", "Unit")]
         [ClassData(typeof(EvaluateServicePrincipalFailTestData))]
-        public void Evaluate_should_fail(ServicePrincipalModel entity)
+        public void Evaluate_should_fail(ServicePrincipalTestData testModel)
         {
+            // Setup LKG data
+            var objectService = fixture.Host.Services.GetService<IObjectTrackingService>() as ObjectTrackingServiceMock;
+            Assert.NotNull(objectService);
+            objectService.WithData(testModel.ObjectServiceData);
+
             var auditRepository = fixture.Host.Services.GetService<IAuditRepository>() as DefaultAuditRepository;
             Assert.NotNull(auditRepository);
+
+            var queueService = fixture.Host.Services.GetService<IQueueServiceFactory>()?.Create(null, null) as DefaultAzureQueueService<ServicePrincipalUpdateCommand>;
+            Assert.NotNull(queueService);
 
             var processor = fixture.Host.Services.GetService<IServicePrincipalProcessor>();
             Assert.NotNull(processor);
 
             var context = new ActivityContext(null);
 
-            processor.Evaluate(context, entity);
+            processor.Evaluate(context, testModel.Model);
 
             // Assertions
-            Assert.True(auditRepository.Data.Count == 2, $"Audit Item Count == {auditRepository.Data.Count}");
+            Assert.True(auditRepository.Data.Count == testModel.ExpectedAuditCodes.Length, $"Audit Item Count == {auditRepository.Data.Count}");
 
-            var expectedAuditCodes = new AuditCode[] {AuditCode.AttributeValidation, AuditCode.MissingOwners};
             for (var index = 0; index < auditRepository.Data.Count; index++)
             {
                 var auditItem = auditRepository.Data[index];
 
                 Assert.Equal(AuditActionType.Fail, auditItem.Type);
-                Assert.Equal(expectedAuditCodes[index], auditItem.Code);
+                Assert.Equal(testModel.ExpectedAuditCodes[index], auditItem.Code);
                 Assert.Equal(DateTime.Now.ToString("yyyyMM"), auditItem.AuditYearMonth);
 
                 Assert.Equal(context.CorrelationId, auditItem.Descriptor.CorrelationId);
-                Assert.Equal(entity.Id, auditItem.Descriptor.ObjectId);
-                Assert.Equal(entity.AppId, auditItem.Descriptor.AppId);
-                Assert.Equal(entity.DisplayName, auditItem.Descriptor.DisplayName);
+                Assert.Equal(testModel.Model.Id, auditItem.Descriptor.ObjectId);
+                Assert.Equal(testModel.Model.AppId, auditItem.Descriptor.AppId);
+                Assert.Equal(testModel.Model.DisplayName, auditItem.Descriptor.DisplayName);
+
+                if (testModel.ExpectedUpdateMessage != null)
+                {
+                    var queueMessage = queueService.Data.FirstOrDefault();
+                    Assert.NotNull(queueMessage);
+
+                    var command = queueMessage.Document;
+                    Assert.NotNull(command);
+
+                    Assert.Equal(command.CorrelationId, context.CorrelationId);
+                    Assert.Equal(ServicePrincipalUpdateAction.Update, command.Action);
+                    Assert.Equal(testModel.ExpectedUpdateMessage.Notes, command.Notes);
+                }
             }
         }
     }
