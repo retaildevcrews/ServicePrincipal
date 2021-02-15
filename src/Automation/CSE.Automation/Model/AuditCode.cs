@@ -41,9 +41,21 @@ namespace CSE.Automation.Model
         MissingOwners = -2,
 
         /// <summary>
+        /// Code for a ServicePrincipal Notes containing an invalid formatted UPN.
+        /// </summary>
+        [Description("'{0}' format is not a valid UserPrincipalName")]
+        InvalidUPN = -3,
+
+        /// <summary>
+        /// Code for a ServicePrincipal Notes containing an invalid Directory UPN.
+        /// </summary>
+        [Description("'{0}' is not a valid UserPrincipalName in this directory")]
+        InvalidDirectoryUPN = -4,
+
+        /// <summary>
         /// Code when AAD fails to update.
         /// </summary>
         [Description("Failed to update ServicePrincipal field: {0}.")]
-        AADUpdate = -3,
+        AADUpdate = -5,
     }
 }

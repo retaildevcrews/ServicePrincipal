@@ -10,7 +10,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
         internal ServicePrincipalModel Model { get; set; }
         internal AuditCode[] ExpectedAuditCodes { get; set; }
         internal ServicePrincipalUpdateCommand ExpectedUpdateMessage { get; set; }
-        internal TrackingModel<ServicePrincipalModel>[] ObjectServiceData { get; set; }
+        internal TrackingModel[] ObjectServiceData { get; set; }
 
         public override string ToString()
         {

@@ -6,55 +6,71 @@ using CSE.Automation.Model;
 
 namespace CSE.Automation.Tests.TestDataGenerators
 {
-   public  class EvaluateServicePrincipalPassTestData : IEnumerable<object[]>
+    public class EvaluateServicePrincipalPassTestData : IEnumerable<object[]>
     {
 
         public IEnumerator<object[]> GetEnumerator()
         {
             yield return new object[]
             {
-                new ServicePrincipalModel()
+                new ServicePrincipalTestData
                 {
-                    AppDisplayName = "Valid1 - No LKG, Single Owner",
-                    AppId = "AppId1",
-                    Created = DateTimeOffset.Now.AddDays(-1),
-                    Deleted = null,
-                    DisplayName = "Display Name1",
-                    Id = "Id1",
-                    LastUpdated = null,
-                    Notes = "user1@mydirectory.com"
+                    ExpectedAuditCodes = new AuditCode[] { AuditCode.Pass },
+                    ExpectedUpdateMessage = null,
+                    Model = new ServicePrincipalModel()
+                    {
+                        AppDisplayName = "Valid1 - No LKG, Single Owner",
+                        AppId = "AppId1",
+                        Created = DateTimeOffset.Now.AddDays(-1),
+                        Deleted = null,
+                        DisplayName = "Display Name1",
+                        Id = "Id1",
+                        LastUpdated = null,
+                        Notes = "user1@mydirectory.com"
+                    },
+                }
+
+            };
+            yield return new object[]
+            {
+                new ServicePrincipalTestData
+                {
+                    ExpectedAuditCodes = new AuditCode[] { AuditCode.Pass },
+                    ExpectedUpdateMessage = null,
+                    Model = new ServicePrincipalModel()
+                    {
+                        AppDisplayName = "Valid2 - No LKG, Two Owners, commas",
+                        AppId = "AppId2",
+                        Created = DateTimeOffset.Now.AddDays(-1),
+                        Deleted = null,
+                        DisplayName = "Display Name2",
+                        Id = "Id2",
+                        LastUpdated = null,
+                        Notes = "user1@mydirectory.com, user2@mydirectory.com"
+                    },
                 }
             };
             yield return new object[]
             {
-                new ServicePrincipalModel()
+                new ServicePrincipalTestData
                 {
-                    AppDisplayName = "Valid2 - No LKG, Two Owners, commas",
-                    AppId = "AppId2",
-                    Created = DateTimeOffset.Now.AddDays(-1),
-                    Deleted = null,
-                    DisplayName = "Display Name2",
-                    Id = "Id2",
-                    LastUpdated = null,
-                    Notes = "user1@mydirectory.com, user2@mydirectory.com"
-                }
-            };
-            yield return new object[]
-            {
-                new ServicePrincipalModel()
-                {
-                    AppDisplayName = "Valid3 - No LKG, Two Owners, semicolon",
-                    AppId = "AppId3",
-                    Created = DateTimeOffset.Now.AddDays(-1),
-                    Deleted = null,
-                    DisplayName = "Display Name3",
-                    Id = "Id3",
-                    LastUpdated = null,
-                    Notes = "user1@mydirectory.com;    user2@mydirectory.com"
+                    ExpectedAuditCodes = new AuditCode[] { AuditCode.Pass },
+                    ExpectedUpdateMessage = null,
+                    Model = new ServicePrincipalModel()
+                    {
+                        AppDisplayName = "Valid3 - No LKG, Two Owners, semicolon",
+                        AppId = "AppId3",
+                        Created = DateTimeOffset.Now.AddDays(-1),
+                        Deleted = null,
+                        DisplayName = "Display Name3",
+                        Id = "Id3",
+                        LastUpdated = null,
+                        Notes = "user1@mydirectory.com;    user2@mydirectory.com"
+                    },
                 }
             };
         }
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator(); 
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

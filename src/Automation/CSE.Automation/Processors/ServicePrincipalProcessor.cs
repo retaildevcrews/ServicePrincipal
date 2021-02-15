@@ -271,22 +271,32 @@ namespace CSE.Automation.Processors
                 logger.LogError($"ServicePrincipal {entity.Id} failed validation.\n{errorMsg}");
 
                 // emit into Audit log, all failures
-                errors.ForEach(async error => await auditService.PutFail(
-                                descriptor: new AuditDescriptor
-                                {
-                                    CorrelationId = context.CorrelationId,
-                                    ObjectId = entity.Id,
-                                    AppId = entity.AppId,
-                                    DisplayName = entity.DisplayName,
-                                },
-                                code: AuditCode.AttributeValidation,
-                                attributeName: error.PropertyName,
+                errors.ForEach(async error =>
+                {
+                    // Check for more specific audit fail code.  Default to AttributeValidation.
+                    if (Enum.TryParse(error.ErrorCode, true, out AuditCode code) == false)
+                    {
+                        code = AuditCode.AttributeValidation;
+                    }
+
+                    await auditService.PutFail(
+                        descriptor: new AuditDescriptor
+                        {
+                            CorrelationId = context.CorrelationId,
+                            ObjectId = entity.Id,
+                            AppId = entity.AppId,
+                            DisplayName = entity.DisplayName,
+                        },
+                        code: code,
+                        attributeName: error.PropertyName,
 #pragma warning disable SA1118 // Parameter should not span multiple lines
-                                existingAttributeValue: error.AttemptedValue != null && error.AttemptedValue.GetType() == typeof(List<string>)
-                                                            ? string.Join(",", error.AttemptedValue as List<string> ?? new List<string>())
-                                                            : error.AttemptedValue?.ToString(),
+                        existingAttributeValue: error.AttemptedValue != null &&
+                                                error.AttemptedValue.GetType() == typeof(List<string>)
+                            ? string.Join(",", error.AttemptedValue as List<string> ?? new List<string>())
+                            : error.AttemptedValue?.ToString(),
 #pragma warning restore SA1118 // Parameter should not span multiple lines
-                                message: error.ErrorMessage).ConfigureAwait(false));
+                        message: error.ErrorMessage).ConfigureAwait(false);
+                });
 
                 // attempt remediation
                 await RemediateServicePrincipal(context, trackingModel, entity, queueService).ConfigureAwait(false);

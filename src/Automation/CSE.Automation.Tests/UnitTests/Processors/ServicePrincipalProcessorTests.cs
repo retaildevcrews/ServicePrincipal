@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
@@ -12,16 +13,23 @@ using CSE.Automation.Tests.TestDataGenerators;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Graph;
+using Newtonsoft.Json;
 using Xunit;
+using Xunit.Abstractions;
+using ActivityContext = CSE.Automation.Model.ActivityContext;
 
 namespace CSE.Automation.Tests.UnitTests.Processors
 {
     public class ServicePrincipalProcessorTests : IClassFixture<UnitTestFixture>
     {
         private UnitTestFixture fixture;
-        public ServicePrincipalProcessorTests(UnitTestFixture fixture)
+        private readonly ITestOutputHelper output;
+
+        public ServicePrincipalProcessorTests(UnitTestFixture fixture, ITestOutputHelper output)
         {
             this.fixture = fixture;
+            this.output = output;
+
             this.fixture.BuildHost(() => null, RegisterServices);
         }
 
@@ -47,30 +55,15 @@ namespace CSE.Automation.Tests.UnitTests.Processors
                 "LKG2@mydirectory.com"
             };
 
-            var objectTrackingService = ObjectTrackingServiceMock.Create().WithData(new[]
-            {
-                new TrackingModel
-                {
-                    Id = "LKG1",
-                    CorrelationId = "Correlation 1",
-                    Created = DateTimeOffset.Now,
-                    LastUpdated = DateTimeOffset.Now,
-                    ObjectType = ObjectType.ServicePrincipal,
-                    Entity = new ServicePrincipalModel
-                    {
-                        Id = "LKG1"
-                    }
-                }
-            });
 
             services
                 .AddSingleton<IServicePrincipalProcessorSettings, ServicePrincipalProcessorSettingsMock>()
                 .AddSingleton<IAuditRepository, DefaultAuditRepository>()
                 .AddSingleton<IQueueServiceFactory, DefaultQueueServiceFactory<ServicePrincipalUpdateCommand>>()
                 .AddSingleton<IConfigService<ProcessorConfiguration>, DefaultConfigService>()
-                .AddSingleton<IObjectTrackingService>(objectTrackingService)
+                .AddSingleton<IObjectTrackingService, ObjectTrackingServiceMock>()
                 .AddSingleton<IModelValidatorFactory, ModelValidatorFactory>()
-                .AddSingleton<IGraphHelper<User>>(new UserGraphHelperMock() { Data = testUsers.Select(x => new User{ Id = x }).ToList() })
+                .AddSingleton<IGraphHelper<User>>(new UserGraphHelperMock() { Data = testUsers.Select(x => new User { Id = x }).ToList() })
 
                 .AddScoped<IActivityService, NoopActivityService>()
                 .AddScoped<IAuditService, AuditService>()
@@ -82,11 +75,11 @@ namespace CSE.Automation.Tests.UnitTests.Processors
                 .AddScoped<IModelValidator<AuditEntry>, AuditEntryValidator>();
         }
 
-        
+
         /// <summary>
         /// Evaluation tests that should pass
         /// </summary>
-        /// <param name="entity">An instance returned from the class data generator</param>
+        /// <param name="testData">An instance of test data returned from the class data generator</param>
         /// <remarks>
         ///     Dependencies:
         ///         IQueueService - mocked, no messages should be posted to Update queue
@@ -96,36 +89,15 @@ namespace CSE.Automation.Tests.UnitTests.Processors
         [Theory]
         [Trait("Category", "Unit")]
         [ClassData(typeof(EvaluateServicePrincipalPassTestData))]
-        public void Evaluate_should_pass(ServicePrincipalModel entity)
+        public void Evaluate_should_pass(ServicePrincipalTestData testData)
         {
-            var auditRepository = fixture.Host.Services.GetService<IAuditRepository>() as DefaultAuditRepository;
-            Assert.NotNull(auditRepository);
-
-            var processor = fixture.Host.Services.GetService<IServicePrincipalProcessor>();
-            Assert.NotNull(processor);
-
-            var context = new ActivityContext(null);
-
-            processor.Evaluate(context, entity);
-
-            // Assertions
-            Assert.True(auditRepository.Data.Count == 1);
-
-            var auditItem = auditRepository.Data[0];
-            Assert.Equal(AuditActionType.Pass, auditItem.Type);
-            Assert.Equal(AuditCode.Pass, auditItem.Code);
-            Assert.Equal(DateTime.Now.ToString("yyyyMM"), auditItem.AuditYearMonth);
-
-            Assert.Equal(context.CorrelationId, auditItem.Descriptor.CorrelationId);
-            Assert.Equal(entity.Id, auditItem.Descriptor.ObjectId);
-            Assert.Equal(entity.AppId, auditItem.Descriptor.AppId);
-            Assert.Equal(entity.DisplayName, auditItem.Descriptor.DisplayName);
+            Evaluate_Test_Data(testData, AuditActionType.Pass);
         }
 
         /// <summary>
         /// Evaluation tests that should pass
         /// </summary>
-        /// <param name="testModel">An instance of test data returned from the class data generator</param>
+        /// <param name="testData">An instance of test data returned from the class data generator</param>
         /// <remarks>
         ///     Dependencies:
         ///         IQueueService - mocked, no messages should be posted to Update queue
@@ -135,12 +107,22 @@ namespace CSE.Automation.Tests.UnitTests.Processors
         [Theory]
         [Trait("Category", "Unit")]
         [ClassData(typeof(EvaluateServicePrincipalFailTestData))]
-        public void Evaluate_should_fail(ServicePrincipalTestData testModel)
+        public void Evaluate_should_fail(ServicePrincipalTestData testData)
+        {
+            Evaluate_Test_Data(testData, AuditActionType.Fail);
+        }
+
+        /// <summary>
+        /// Perform an Evaluate test on the data record.
+        /// </summary>
+        /// <param name="testData"></param>
+        /// <param name="auditActionType">The expected AuditActionType of all audit messages in the audit repository.</param>
+        private void Evaluate_Test_Data(ServicePrincipalTestData testData, AuditActionType auditActionType)
         {
             // Setup LKG data
             var objectService = fixture.Host.Services.GetService<IObjectTrackingService>() as ObjectTrackingServiceMock;
             Assert.NotNull(objectService);
-            objectService.WithData(testModel.ObjectServiceData);
+            objectService.WithData(testData.ObjectServiceData);
 
             var auditRepository = fixture.Host.Services.GetService<IAuditRepository>() as DefaultAuditRepository;
             Assert.NotNull(auditRepository);
@@ -153,36 +135,46 @@ namespace CSE.Automation.Tests.UnitTests.Processors
 
             var context = new ActivityContext(null);
 
-            processor.Evaluate(context, testModel.Model);
+            processor.Evaluate(context, testData.Model);
 
             // Assertions
-            Assert.True(auditRepository.Data.Count == testModel.ExpectedAuditCodes.Length, $"Audit Item Count == {auditRepository.Data.Count}");
+            Assert.True(auditRepository.Data.Count == testData.ExpectedAuditCodes.Length, $"Audit Item Count expected: {testData.ExpectedAuditCodes.Length} actual: {auditRepository.Data.Count}");
 
             for (var index = 0; index < auditRepository.Data.Count; index++)
             {
                 var auditItem = auditRepository.Data[index];
+                output.WriteLine($"Audit Item {index+1}");
+                output.WriteLine(JsonConvert.SerializeObject(auditItem, Formatting.Indented));
 
-                Assert.Equal(AuditActionType.Fail, auditItem.Type);
-                Assert.Equal(testModel.ExpectedAuditCodes[index], auditItem.Code);
+                Assert.Equal(auditActionType, auditItem.Type);
+                Assert.Equal(testData.ExpectedAuditCodes[index], auditItem.Code);
                 Assert.Equal(DateTime.Now.ToString("yyyyMM"), auditItem.AuditYearMonth);
 
                 Assert.Equal(context.CorrelationId, auditItem.Descriptor.CorrelationId);
-                Assert.Equal(testModel.Model.Id, auditItem.Descriptor.ObjectId);
-                Assert.Equal(testModel.Model.AppId, auditItem.Descriptor.AppId);
-                Assert.Equal(testModel.Model.DisplayName, auditItem.Descriptor.DisplayName);
+                Assert.Equal(testData.Model.Id, auditItem.Descriptor.ObjectId);
+                Assert.Equal(testData.Model.AppId, auditItem.Descriptor.AppId);
+                Assert.Equal(testData.Model.DisplayName, auditItem.Descriptor.DisplayName);
+            }
 
-                if (testModel.ExpectedUpdateMessage != null)
-                {
-                    var queueMessage = queueService.Data.FirstOrDefault();
-                    Assert.NotNull(queueMessage);
+            output.WriteLine("");
+            if (testData.ExpectedUpdateMessage == null)
+            {
+                Assert.True(queueService.Data.Count == 0);
+                output.WriteLine($"No Queue Messages");
+            }
+            else 
+            {
+                var queueMessage = queueService.Data.FirstOrDefault();
+                Assert.NotNull(queueMessage);
 
-                    var command = queueMessage.Document;
-                    Assert.NotNull(command);
+                var command = queueMessage.Document;
+                Assert.NotNull(command);
+                output.WriteLine($"QueueMessage Command");
+                output.WriteLine(JsonConvert.SerializeObject(command, Formatting.Indented));
 
-                    Assert.Equal(command.CorrelationId, context.CorrelationId);
-                    Assert.Equal(ServicePrincipalUpdateAction.Update, command.Action);
-                    Assert.Equal(testModel.ExpectedUpdateMessage.Notes, command.Notes);
-                }
+                Assert.Equal(command.CorrelationId, context.CorrelationId);
+                Assert.Equal(testData.ExpectedUpdateMessage.Action, command.Action);
+                Assert.Equal(testData.ExpectedUpdateMessage.Notes, command.Notes);
             }
         }
     }

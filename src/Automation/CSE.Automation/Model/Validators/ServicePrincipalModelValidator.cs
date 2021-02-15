@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Globalization;
 using System.Linq;
+using CSE.Automation.Extensions;
 using CSE.Automation.Interfaces;
 using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.Graph;
 
 namespace CSE.Automation.Model.Validators
@@ -25,7 +28,8 @@ namespace CSE.Automation.Model.Validators
                     {
                         if (graphHelper.GetEntityWithOwners(token).Result is null)
                         {
-                            context.AddFailure($"'{token}' is not a valid UserPrincipalName in this directory");
+                            var failure = new ValidationFailure("Notes", string.Format(CultureInfo.CurrentCulture, AuditCode.InvalidDirectoryUPN.Description(), token), field) { ErrorCode = AuditCode.InvalidDirectoryUPN.ToString() };
+                            context.AddFailure(failure);
                         }
                     });
                 });
