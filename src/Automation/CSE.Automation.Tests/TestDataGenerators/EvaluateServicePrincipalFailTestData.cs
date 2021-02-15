@@ -15,11 +15,11 @@ namespace CSE.Automation.Tests.TestDataGenerators
             // No LKG
             yield return new object[]
             {
-                new ServicePrincipalTestData
+                new ServicePrincipalEvaluateTestData
                 {
                     ExpectedAuditCodes = new AuditCode[] { AuditCode.AttributeValidation, AuditCode.MissingOwners },
                     ExpectedUpdateMessage = null,
-                    Model = new ServicePrincipalModel()
+                    Target = new ServicePrincipalModel()
                     {
                         AppDisplayName = "Fail1 - No LKG, No Owners, Cannot Remediate",
                         AppId = "AppId1",
@@ -36,7 +36,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
             };
             yield return new object[]
             {
-                new ServicePrincipalTestData
+                new ServicePrincipalEvaluateTestData
                 {
                     ExpectedAuditCodes = new AuditCode[] { AuditCode.AttributeValidation },
                     ExpectedUpdateMessage = new ServicePrincipalUpdateCommand
@@ -44,7 +44,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
                         Action = ServicePrincipalUpdateAction.Update,
                         Notes = (null, "user1@mydirectory.com")
                     },
-                    Model = new ServicePrincipalModel
+                    Target = new ServicePrincipalModel
                     {
                         AppDisplayName = "Fail2 - No LKG, One Owner, Remediate from Owners",
                         AppId = "AppId2",
@@ -59,7 +59,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
             };
             yield return new object[]
             {
-                new ServicePrincipalTestData
+                new ServicePrincipalEvaluateTestData
                 {
                     ExpectedAuditCodes = new AuditCode[] { AuditCode.AttributeValidation },
                     ExpectedUpdateMessage = new ServicePrincipalUpdateCommand
@@ -67,7 +67,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
                         Action = ServicePrincipalUpdateAction.Update,
                         Notes = (null, "user1@mydirectory.com, user2@mydirectory.com")
                     },
-                    Model = new ServicePrincipalModel()
+                    Target = new ServicePrincipalModel()
                     {
                         AppDisplayName = "Fail3 - No LKG, Two Owners, Remediate from Owners",
                         AppId = "AppId3",
@@ -82,7 +82,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
             };
             yield return new object[]
             {
-                new ServicePrincipalTestData
+                new ServicePrincipalEvaluateTestData
                 {
                     ExpectedAuditCodes = new AuditCode[] { AuditCode.InvalidDirectoryUPN },
                     ExpectedUpdateMessage = new ServicePrincipalUpdateCommand
@@ -90,7 +90,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
                         Action = ServicePrincipalUpdateAction.Update,
                         Notes = ("user3@mydirectory.com", "user1@mydirectory.com, user2@mydirectory.com")
                     },
-                    Model = new ServicePrincipalModel()
+                    Target = new ServicePrincipalModel()
                     {
                         AppDisplayName = "Fail4 - No LKG, Bad UPN in notes (single), Remediate from Owners",
                         AppId = "AppId4",
@@ -106,7 +106,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
             };
             yield return new object[]
             {
-                new ServicePrincipalTestData
+                new ServicePrincipalEvaluateTestData
                 {
                     ExpectedAuditCodes = new AuditCode[] { AuditCode.InvalidDirectoryUPN },
                     ExpectedUpdateMessage = new ServicePrincipalUpdateCommand
@@ -114,7 +114,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
                         Action = ServicePrincipalUpdateAction.Update,
                         Notes = ("user3@mydirectory.com, user2@mydirectory.com", "user1@mydirectory.com, user2@mydirectory.com")
                     },
-                    Model = new ServicePrincipalModel()
+                    Target = new ServicePrincipalModel()
                     {
                         AppDisplayName = "Fail5 - No LKG, Bad UPN in notes (embedded), Remediate from Owners",
                         AppId = "AppId5",
@@ -130,7 +130,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
             };
             yield return new object[]
             {
-                new ServicePrincipalTestData
+                new ServicePrincipalEvaluateTestData
                 {
                     ExpectedAuditCodes = new AuditCode[] { AuditCode.AttributeValidation, AuditCode.InvalidDirectoryUPN },
                     ExpectedUpdateMessage = new ServicePrincipalUpdateCommand
@@ -138,7 +138,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
                         Action = ServicePrincipalUpdateAction.Update,
                         Notes = ("Please call Joe.Smith@gmail.com for information", "user1@mydirectory.com, user2@mydirectory.com")
                     },
-                    Model = new ServicePrincipalModel()
+                    Target = new ServicePrincipalModel()
                     {
                         AppDisplayName = "Fail6 - No LKG, Random message in Notes, Remediate from Owners",
                         AppId = "AppId6",
@@ -154,7 +154,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
             };
             yield return new object[]
             {
-                new ServicePrincipalTestData
+                new ServicePrincipalEvaluateTestData
                 {
                     ExpectedAuditCodes = new AuditCode[] { AuditCode.InvalidDirectoryUPN },
                     ExpectedUpdateMessage = new ServicePrincipalUpdateCommand
@@ -162,7 +162,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
                         Action = ServicePrincipalUpdateAction.Update,
                         Notes = ("Joe.Smith@gmail.com", "user1@mydirectory.com, user2@mydirectory.com")
                     },
-                    Model = new ServicePrincipalModel()
+                    Target = new ServicePrincipalModel()
                     {
                         AppDisplayName = "Fail7 - No LKG, Custodian not in Directory, Remediate from Owners",
                         AppId = "AppId6",
@@ -180,7 +180,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
             // LKG
             yield return new object[]
             {
-                new ServicePrincipalTestData
+                new ServicePrincipalEvaluateTestData
                 {
                     ObjectServiceData = new TrackingModel[]
                     {
@@ -192,7 +192,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
                         Action = ServicePrincipalUpdateAction.Revert,
                         Notes = (null, "LKG1@mydirectory.com" )
                     },
-                    Model = new ServicePrincipalModel()
+                    Target = new ServicePrincipalModel()
                     {
                         AppDisplayName = "Fail_LKG1 - LKG, No Owners, Remediate from LKG",
                         AppId = "AppId1",
@@ -209,7 +209,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
             };
             yield return new object[]
             {
-                new ServicePrincipalTestData
+                new ServicePrincipalEvaluateTestData
                 {
                     ObjectServiceData = new TrackingModel[]
                     {
@@ -221,7 +221,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
                         Action = ServicePrincipalUpdateAction.Revert,
                         Notes = (null, "LKG2@mydirectory.com" )
                     },
-                    Model = new ServicePrincipalModel()
+                    Target = new ServicePrincipalModel()
                     {
                         AppDisplayName = "Fail_LKG2 - LKG, With Owners, Remediate from LKG",
                         AppId = "AppId2",

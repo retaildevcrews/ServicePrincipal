@@ -5,16 +5,16 @@ using CSE.Automation.Model;
 
 namespace CSE.Automation.Tests.TestDataGenerators
 {
-    public class ServicePrincipalTestData
+    public class ServicePrincipalEvaluateTestData
     {
-        internal ServicePrincipalModel Model { get; set; }
+        internal ServicePrincipalModel Target { get; set; }
         internal AuditCode[] ExpectedAuditCodes { get; set; }
         internal ServicePrincipalUpdateCommand ExpectedUpdateMessage { get; set; }
         internal TrackingModel[] ObjectServiceData { get; set; }
 
         public override string ToString()
         {
-            return $"{Model.Id}, {Model.AppDisplayName}";
+            return $"{Target.Id}, {Target.AppDisplayName}";
         }
     }
 }

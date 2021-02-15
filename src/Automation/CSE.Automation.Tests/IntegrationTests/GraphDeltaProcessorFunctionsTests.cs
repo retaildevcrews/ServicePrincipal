@@ -119,8 +119,8 @@ namespace CSE.Automation.Tests.IntegrationTests
             _graphHelperSettings = new GraphHelperSettings(_secretClient);
 
             var graphClient = new GraphClient(_graphHelperSettings);
-            
-            
+
+
             Assembly thisAssembly = Assembly.GetExecutingAssembly();
             _versionMetadata = new VersionMetadata(thisAssembly);
 
@@ -143,7 +143,7 @@ namespace CSE.Automation.Tests.IntegrationTests
 
             string displayNamePatternFilter = _config["displayNamePatternFilter"];
 
-            _graphHelper = new ServicePrincipalGraphHelperTest(_graphHelperSettings, _auditService, graphClient ,displayNamePatternFilter,_spGraphHelperLogger);
+            _graphHelper = new ServicePrincipalGraphHelperTest(_graphHelperSettings, _auditService, graphClient, displayNamePatternFilter, _spGraphHelperLogger);
 
 
             _builder = new ServiceCollection();
@@ -166,7 +166,7 @@ namespace CSE.Automation.Tests.IntegrationTests
                 .AddScoped<IGraphServiceClient, GraphClient>(x => graphClient)
 
                 .AddScoped<IAuditService>(x => _auditService)
-               
+
                 .AddScoped<IServicePrincipalGraphHelper, ServicePrincipalGraphHelperTest>(x => (ServicePrincipalGraphHelperTest)_graphHelper)
                 .AddScoped<IGraphHelper<User>, UserGraphHelper>()
                 .AddScoped<IModelValidator<GraphModel>, GraphModelValidator>()
@@ -215,7 +215,7 @@ namespace CSE.Automation.Tests.IntegrationTests
                 VisibilityDelayGapSeconds = _config["visibilityDelayGapSeconds"].ToInt(8),
                 QueueRecordProcessThreshold = _config["queueRecordProcessThreshold"].ToInt(10),
                 AADUpdateMode = _config["aadUpdateMode"].As<UpdateMode>(UpdateMode.Update)
-                
+
             };
 
 
@@ -272,7 +272,7 @@ namespace CSE.Automation.Tests.IntegrationTests
             _config = configBuilder.Build();
         }
 
-        [Fact]
+        [Fact(Skip = "Disabled for dependency reasons")]
         [Trait("Category", "Integration Critical")]
         public void FunctionEvaluateTestCase1()
         {
@@ -314,7 +314,7 @@ namespace CSE.Automation.Tests.IntegrationTests
         }
 
 
-        [Fact]
+        [Fact(Skip = "Disabled for dependency reasons")]
         [Trait("Category", "Integration Critical")]
         public void FunctionEvaluateTestCase2()
         {
@@ -355,7 +355,7 @@ namespace CSE.Automation.Tests.IntegrationTests
 
         }
 
-        [Fact]
+        [Fact(Skip = "Disabled for dependency reasons")]
         [Trait("Category", "Integration Critical")]
         public void FunctionEvaluateTestCase2_2()
         {
@@ -396,9 +396,9 @@ namespace CSE.Automation.Tests.IntegrationTests
 
         }
 
-        [Fact]
+        [Fact(Skip = "Disabled for dependency reasons")]
         [Trait("Category", "Integration Critical")]
-        public void FunctionEvaluateTestCase3() 
+        public void FunctionEvaluateTestCase3()
         {
             using var testCaseCollection = new EvaluateTestCaseCollection();
 
@@ -430,7 +430,7 @@ namespace CSE.Automation.Tests.IntegrationTests
             Assert.True(validAudit, "Audit Validation");
         }
 
-        [Fact]
+        [Fact(Skip = "Disabled for dependency reasons")]
         [Trait("Category", "Integration Critical")]
         public void FunctionEvaluateTestCase3_2()
         {
@@ -471,7 +471,7 @@ namespace CSE.Automation.Tests.IntegrationTests
 
         }
 
-        [Fact]
+        [Fact(Skip = "Disabled for dependency reasons")]
         [Trait("Category", "Integration Critical")]
         public void FunctionEvaluateTestCase4()
         {
@@ -513,7 +513,7 @@ namespace CSE.Automation.Tests.IntegrationTests
         }
 
 
-        [Fact]
+        [Fact(Skip = "Disabled for dependency reasons")]
         [Trait("Category", "Integration Critical")]
         public void FunctionEvaluateTestCase5()
         {
@@ -555,7 +555,7 @@ namespace CSE.Automation.Tests.IntegrationTests
 
         }
 
-        [Fact]
+        [Fact(Skip = "Disabled for dependency reasons")]
         [Trait("Category", "Integration Critical")]
         public void FunctionEvaluateTestCase6()
         {
@@ -567,7 +567,7 @@ namespace CSE.Automation.Tests.IntegrationTests
 
             using var inputGenerator = new EvaluateInputGenerator(_config, _graphHelperSettings, testCaseCollection, thisTestCase);
 
-           
+
             CloudQueueMessage  cloudQueueMessage = new CloudQueueMessage(inputGenerator.GetTestMessageContent(activityContext));
 
             //Create Validators 
@@ -590,7 +590,7 @@ namespace CSE.Automation.Tests.IntegrationTests
             Assert.True(validAudit, "Audit Validation");
         }
 
-        [Fact]
+        [Fact(Skip = "Disabled for dependency reasons")]
         [Trait("Category", "Integration")]
         public void FunctionDiscoverTestCase1()
         {
@@ -639,7 +639,7 @@ namespace CSE.Automation.Tests.IntegrationTests
 
         }
 
-        [Fact]
+        [Fact(Skip = "Disabled for dependency reasons")]
         [Trait("Category", "Integration")]
         public void FunctionDiscoverTestCase1_2()
         {
@@ -692,7 +692,7 @@ namespace CSE.Automation.Tests.IntegrationTests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Disabled for dependency reasons")]
         [Trait("Category", "Integration")]
         public void FunctionDiscoverTestCase2()
         {
@@ -741,7 +741,7 @@ namespace CSE.Automation.Tests.IntegrationTests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Disabled for dependency reasons")]
         [Trait("Category", "Integration")]
         public void FunctionDiscoverTestCase3()
         {
@@ -792,7 +792,7 @@ namespace CSE.Automation.Tests.IntegrationTests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Disabled for dependency reasons")]
         [Trait("Category", "Integration")]
         public void FunctionUpdateTestCase1()
         {
@@ -831,7 +831,7 @@ namespace CSE.Automation.Tests.IntegrationTests
 
         }
 
-        [Fact]
+        [Fact(Skip = "Disabled for dependency reasons")]
         [Trait("Category", "Integration")]
         public void FunctionUpdateTestCase2()
         {
@@ -855,7 +855,7 @@ namespace CSE.Automation.Tests.IntegrationTests
             Task thisTask = Task.Run (() => _graphDeltaProcessor.UpdateAAD(cloudQueueMessage, _graphLogger));
             thisTask.Wait();
 
-  
+
             bool validServicePrincipal = servicePrincipalValidationManager.Validate();
 
             Assert.True(validServicePrincipal, "Service Principal Validation");
@@ -868,7 +868,7 @@ namespace CSE.Automation.Tests.IntegrationTests
         }
 
 
-        [Fact]
+        [Fact(Skip = "Disabled for dependency reasons")]
         [Trait("Category", "Integration")]
         public void FunctionUpdateTestCase3()
         {

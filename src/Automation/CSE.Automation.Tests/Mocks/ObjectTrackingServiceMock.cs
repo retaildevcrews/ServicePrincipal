@@ -10,7 +10,7 @@ namespace CSE.Automation.Tests.Mocks
 {
     internal class ObjectTrackingServiceMock : IObjectTrackingService 
     {
-        private List<TrackingModel> Data { get; set; } = new List<TrackingModel>();
+        public Dictionary<string, TrackingModel> Data { get; private set; } = new Dictionary<string, TrackingModel>();
 
         public static ObjectTrackingServiceMock Create()
         {
@@ -21,7 +21,7 @@ namespace CSE.Automation.Tests.Mocks
         {
             if (data != null)
             {
-                this.Data = data.ToList();
+                this.Data = data.ToDictionary(x => x.Id);
             }
 
             return this;
@@ -29,7 +29,8 @@ namespace CSE.Automation.Tests.Mocks
 
         public async Task<TrackingModel> Get<TEntity>(string id) where TEntity : GraphModel
         {
-            return await Task.FromResult(this.Data.FirstOrDefault(x => string.Equals(id, x.Id)));
+            this.Data.TryGetValue(id, out TrackingModel item);
+            return await Task.FromResult(item);
         }
 
         public async Task<TEntity> GetAndUnwrap<TEntity>(string id) where TEntity : GraphModel
@@ -52,7 +53,7 @@ namespace CSE.Automation.Tests.Mocks
                 TypedEntity = entity,
             };
 
-            this.Data.Add(newWrapper);
+            InsertOrUpdate(newWrapper);
             return await Task.FromResult(newWrapper);
         }
 
@@ -65,10 +66,14 @@ namespace CSE.Automation.Tests.Mocks
             entity.CorrelationId = context.CorrelationId;
             entity.LastUpdated = DateTimeOffset.Now;
 
-            this.Data.Add(entity);
+            InsertOrUpdate(entity);
             return await Task.FromResult(entity);
         }
 
+        private void InsertOrUpdate(TrackingModel entity)
+        {
+            this.Data[entity.Id] = entity;
+        }
         public static string Get8CharacterRandomString()
         {
             string path = Path.GetRandomFileName();
