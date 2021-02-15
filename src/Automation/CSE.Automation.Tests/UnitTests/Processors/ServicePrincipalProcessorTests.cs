@@ -7,7 +7,6 @@ using CSE.Automation.Model;
 using CSE.Automation.Model.Validators;
 using CSE.Automation.Processors;
 using CSE.Automation.Services;
-using CSE.Automation.Tests.Fixtures;
 using CSE.Automation.Tests.Mocks;
 using CSE.Automation.Tests.TestDataGenerators;
 using Microsoft.Extensions.Configuration;
