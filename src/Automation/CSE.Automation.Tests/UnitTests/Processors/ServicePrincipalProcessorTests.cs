@@ -95,7 +95,7 @@ namespace CSE.Automation.Tests.UnitTests.Processors
         }
 
         /// <summary>
-        /// Evaluation tests that should pass
+        /// Evaluation tests that should fail
         /// </summary>
         /// <param name="evaluateTestData">An instance of test data returned from the class data generator</param>
         /// <remarks>
