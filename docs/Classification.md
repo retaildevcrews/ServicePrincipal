@@ -14,41 +14,51 @@ This script is expected to be part of an iterative and manual process to aid cus
 
 ## Prerequisites
 
-- Install [Powershell](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.1)
-- run `install-module Microsoft.Graph`
-- Install [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-- run `az login -u <Email With Access To Active Directory To Be Classified>`
-- Ensure you are in this directory `cd spikes/ServicePrincipalClassification`
+- Shell Environment (Following Dependencies Should Be Preloaded if Using Cloud Shell)
+  - PowerShell ([download](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.1))
+  - Azure CLI ([download](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest))
+
+## Steps Before Running Script
+
+```pwsh
+
+install-module Microsoft.Graph
+
+az login
+
+cd scripts/ServicePrincipalClassification
+
+```
 
 ## Options When Running
 
 ### Summary Mode Only
 
-./Classification.ps1
+`./Classification.ps1`
 
 ### Export Results To CSV (Default File Type)
 
-`scripts/ServicePrincipalClassification/Classification.ps1 temp.csv`
+`./Classification.ps1 temp.csv`
 
 OR
 
-`scripts/ServicePrincipalClassification/Classification.ps1 -OutputFile temp.csv`
+`./Classification.ps1 -OutputFile temp.csv`
 
 OR
 
-`scripts/ServicePrincipalClassification/Classification.ps1 -OutputFile temp.csv -OutputType csv`
+`./Classification.ps1 -OutputFile temp.csv -OutputType csv`
 
 ### Export Results to TSV (Tab Separated Values)
 
-`scripts/ServicePrincipalClassification/Classification.ps1 -OutputFile temp.tab -OutputType tsv`
+`./Classification.ps1 -OutputFile temp.tab -OutputType tsv`
 
 ### Export Results to JSON
 
-`scripts/ServicePrincipalClassification/Classification.ps1 -OutputFile temp.json -OutputType json`
+`./Classification.ps1 -OutputFile temp.json -OutputType json`
 
 ### Export Results to PowerShell Variable
 
-`$results = scripts/ServicePrincipalClassification/Classification.ps1 -PassThru`
+`$results = ./Classification.ps1 -PassThru`
 
 ## Configuration
 

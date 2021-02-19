@@ -15,9 +15,9 @@ function ValidateArguments
   }
 }
 
-$ClassificationMapping = Get-Content 'scripts/ServicePrincipalClassification/resources/classification_mapping.json' | ConvertFrom-Json
+$ClassificationMapping = Get-Content './resources/classification_mapping.json' | ConvertFrom-Json
 
-$CategoryOobeList = Get-Content 'scripts/ServicePrincipalClassification/resources/category_oobe_list.json' | ConvertFrom-Json
+$CategoryOobeList = Get-Content './resources/category_oobe_list.json' | ConvertFrom-Json
 
 function ClassifyMicrosoft
 {
@@ -134,6 +134,6 @@ $groups |
     } 
 
   }
-  else {
+  if ($PassThru) {
     return $results
   }
