@@ -6,7 +6,7 @@
   - Global Administrator
   - Application Administrator
   - Cloud Application Administrator
-- Bash Environment (Following Dependencies Should Be Preloaded if Using Cloud Shell)
+- Shell Environment (Following Dependencies Should Be Preloaded if Using Cloud Shell)
   - PowerShell ([download](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.1))
   - Azure CLI ([download](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest))
 
@@ -37,7 +37,7 @@ pwsh scripts/create-test-sp.ps1 -SPName "E2E-Testing-TC8" -AddOwners $mySpName -
 
 ## Validate Function Running
 
-```bash
+```sh
 
 # Input Function App Name, Can be Retrieved from Azure Portal
 export FN_NAME="Input the name to your function application"
@@ -49,13 +49,13 @@ export RESOURCE_GROUP=$(az functionapp list --query "[?name=='$FN_NAME']" --quer
 export FN_MASTER_KEY=$(az functionapp keys list -n $FN_NAME -g $RESOURCE_GROUP --query masterKey -o tsv)
 
 # Validate Following Command Returns JSON
-curl https://$FN_NAME.azurewebsites.net/api/Version?code=$FN_MASTER_KEY
+az rest -u "https://$FN_NAME.azurewebsites.net/api/Version?code=$FN_MASTER_KEY" --skip-authorization-header
 
 ```
 
 ## Processing Service Principals
 
-```bash
+```sh
 
 # This Will Kick Off A New Delta Discovery Request
 # It Is Possible Any Service Principal Changes You Made Were Already Picked Up
@@ -69,7 +69,7 @@ az rest -u "https://$FN_NAME.azurewebsites.net/api/Activities?correlationId=$run
 
 ## Validating Results
 
-```bash
+```sh
 
 export CosmosEndpoint=$(az functionapp config appsettings list -n $FN_NAME -g $RESOURCE_GROUP --query "[?name=='SPCosmosURL'][].value" -o tsv)
 
@@ -79,7 +79,7 @@ export CosmosDatabase=$(az functionapp config appsettings list -n $FN_NAME -g $R
 
 ### Accessing Audit Logs
 
-```bash
+```sh
 
 # Results Sorted by Timestamp Ascending (Latest Results At End)
 # Run The Following Command For Each Test Case You Are Testing
@@ -92,7 +92,7 @@ Validate If Audit Passed Or Failed Based On [Test Matrix](#reference-integration
 
 ### Accessing Last Known Good Service Principal
 
-```bash
+```sh
 
 # Results Sorted by Timestamp Ascending (Latest Results At End)
 # Run The Following Command For Each Test Case You Are Testing
