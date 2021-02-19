@@ -112,13 +112,13 @@ namespace CSE.Automation.Tests.UnitTests.Processors
             Evaluate(evaluateTestData, AuditActionType.Fail);
         }
 
-        [Theory]
-        [Trait("Category", "Unit")]
-        [ClassData(typeof(UpdateServicePrincipalTestData))]
-        public void Update_should_pass(ServicePrincipalUpdateTestData updateTestData)
-        {
-            Update(updateTestData);
-        }
+        //[Theory]
+        //[Trait("Category", "Unit")]
+        //[ClassData(typeof(UpdateServicePrincipalTestData))]
+        //public void Update_should_pass(ServicePrincipalUpdateTestData updateTestData)
+        //{
+        //    Update(updateTestData);
+        //}
 
         /// <summary>
         /// Perform an Evaluate test on the data record.
