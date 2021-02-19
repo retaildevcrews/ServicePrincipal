@@ -178,6 +178,7 @@ namespace CSE.Automation
                     QueueRecordProcessThreshold = config["queueRecordProcessThreshold"].ToInt(10),
                     AADUpdateMode = config["aadUpdateMode"].As<UpdateMode>(UpdateMode.Update),
                 })
+                .AddSingleton<IServicePrincipalProcessorSettings>(provider => provider.GetRequiredService<ServicePrincipalProcessorSettings>())
                 .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ServicePrincipalProcessorSettings>());
         }
 
