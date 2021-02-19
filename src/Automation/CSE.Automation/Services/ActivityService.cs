@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CSE.Automation.Extensions;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
 using Microsoft.Extensions.Logging;
@@ -80,10 +81,13 @@ namespace CSE.Automation.Services
                 document = this.Put(document).Result;
             }
 
-            return new ActivityContext(withTracking ? this : null)
+            var context = new ActivityContext(withTracking ? this : null)
             {
                 Activity = document,
             }.WithCorrelationId(correlationId);
+
+            context.LoggingScope = logger.BeginScopeWith(new { correlationId = correlationId, activityId = context.Activity.Id });
+            return context;
         }
     }
 }

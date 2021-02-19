@@ -12,6 +12,19 @@ namespace CSE.Automation.Model
 {
     internal sealed class ActivityContext : IDisposable
     {
+        public ActivityHistory Activity { get; set; }
+
+        public DateTimeOffset StartTime { get; } = DateTimeOffset.Now;
+        public string CorrelationId { get; private set; } = Guid.NewGuid().ToString();
+        public IDisposable LoggingScope { get; set; }
+        public TimeSpan ElapsedTime { get { return elapsed ?? Timer.Elapsed; } }
+
+        private readonly IActivityService activityService;
+        private IDeltaProcessor processor;
+        private TimeSpan? elapsed;
+        private bool disposedValue;
+        private bool isLocked;
+
         public ActivityContext(IActivityService activityService)
             : this()
         {
@@ -41,18 +54,6 @@ namespace CSE.Automation.Model
             elapsed = Timer.Elapsed;
             Timer = null;
         }
-
-        public ActivityHistory Activity { get; set; }
-
-        public DateTimeOffset StartTime { get; } = DateTimeOffset.Now;
-        public string CorrelationId { get; private set; } = Guid.NewGuid().ToString();
-        private IActivityService activityService;
-        private IDeltaProcessor processor;
-        private TimeSpan? elapsed;
-        private bool disposedValue;
-        private bool isLocked;
-
-        public TimeSpan ElapsedTime { get { return elapsed ?? Timer.Elapsed; } }
 
         [JsonIgnore]
         public Stopwatch Timer { get; private set; }
@@ -114,6 +115,12 @@ namespace CSE.Automation.Model
                     {
                         processor.Unlock().Wait();
                         isLocked = false;
+                    }
+
+                    if (LoggingScope != null)
+                    {
+                        LoggingScope.Dispose();
+                        LoggingScope = null;
                     }
                 }
 
