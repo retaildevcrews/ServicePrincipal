@@ -50,6 +50,7 @@ jobs:
         echo "DB_NAME=${DB_NAME}" >> $GITHUB_ENV
         echo "ACR_REG_REPO_URL=${ACR_NAME}.azurecr.io/serviceprincipal" >> $GITHUB_ENV
         echo "STORAGE_NAME=${STORAGE_NAME}" >> $GITHUB_ENV
+        echo "GIT_HASH=$( echo ${{ github.sha }} | cut -c1-7 )" >> $GITHUB_ENV
 
     - name: Checkout Code
       uses: actions/checkout@v2
@@ -63,8 +64,6 @@ jobs:
 
     - name: Create Testing Resources
       run: |
-        export GIT_HASH=$( echo ${{ github.sha }} | cut -c1-7 )
-        echo "GIT_HASH=${GIT_HASH}" >> $GITHUB_ENV
         export QUEUE_PREFIX="sit-$(date '+%Y%m%d')-${GIT_HASH}"
         echo "QUEUE_PREFIX=${QUEUE_PREFIX}" >> $GITHUB_ENV
         export SPDiscoverQueue="${QUEUE_PREFIX}-discover"
@@ -145,6 +144,7 @@ jobs:
         then
           VERSION_SUFFIX="${GIT_HASH}"
           docker tag temp ${ACR_REG_REPO_URL}:latest
+          docker push ${ACR_REG_REPO_URL}:latest
         else
           PR_NUMBER=$(echo "${{ github.ref }}" | awk 'BEGIN { FS = "/" } ; { print $3 }')
           VERSION_SUFFIX="PR${PR_NUMBER}-${GIT_HASH}"
@@ -156,7 +156,7 @@ jobs:
         echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
 
         docker tag temp "${IMAGE_NAME}"
-        docker push ${ACR_REG_REPO_URL}
+        docker push ${IMAGE_NAME}
 
     - name: Deploy Application Settings 
       run: |        
