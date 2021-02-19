@@ -338,12 +338,10 @@ namespace CSE.Automation
         private async Task<dynamic> CommandDiscovery(DiscoveryMode discoveryMode, string source, ILogger log)
         {
             ActivityContext context = null;
-            IDisposable logScope = null;
 
             try
             {
                 context = activityService.CreateContext($"{discoveryMode.Description()} Request", withTracking: true);
-                logScope = log.BeginScope("Activity {CorrelationId}", context.CorrelationId);
 
                 context.Activity.CommandSource = source;
                 await processor.RequestDiscovery(context, discoveryMode, source).ConfigureAwait(false);
@@ -376,7 +374,6 @@ namespace CSE.Automation
             finally
             {
                 context?.Dispose();
-                logScope?.Dispose();
             }
         }
 
