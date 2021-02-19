@@ -23,14 +23,21 @@ namespace CSE.Automation.DataAccess
             this.settings = settings;
         }
 
-        public override string GenerateId(TrackingModel entity)
+        /// <summary>
+        /// Generate an id for the tracking model.
+        /// </summary>
+        /// <param name="trackingModel">An instance of the tracking model</param>
+        /// <returns>The id of the tracking model</returns>
+        /// <remarks>The id of the tracking model must be the same as the wrapped entity.  The entity's id is projected to the outer wrapper.</remarks>
+        public override string GenerateId(TrackingModel trackingModel)
         {
-            if (string.IsNullOrWhiteSpace(entity.Id))
+            var entity = trackingModel.Entity as GraphModel;
+            if (string.IsNullOrWhiteSpace(entity?.Id))
             {
-                entity.Id = Guid.NewGuid().ToString();
+                trackingModel.Id = Guid.NewGuid().ToString();
             }
 
-            return entity.Id;
+            return trackingModel.Id;
         }
 
         public override string CollectionName => this.settings.CollectionName;

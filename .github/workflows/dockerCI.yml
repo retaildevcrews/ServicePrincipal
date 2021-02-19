@@ -144,6 +144,7 @@ jobs:
         then
           VERSION_SUFFIX="${GIT_HASH}"
           docker tag temp ${ACR_REG_REPO_URL}:latest
+          docker push ${ACR_REG_REPO_URL}:latest
         else
           PR_NUMBER=$(echo "${{ github.ref }}" | awk 'BEGIN { FS = "/" } ; { print $3 }')
           VERSION_SUFFIX="PR${PR_NUMBER}-${GIT_HASH}"
@@ -155,7 +156,7 @@ jobs:
         echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
 
         docker tag temp "${IMAGE_NAME}"
-        docker push ${ACR_REG_REPO_URL}
+        docker push ${IMAGE_NAME}
 
     - name: Deploy Application Settings 
       run: |        
