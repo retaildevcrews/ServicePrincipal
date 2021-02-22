@@ -1,3 +1,15 @@
+[CmdletBinding()]
+Param(
+  [ValidateSet("FullSeed", "Deltas")]
+  [string]$DiscoveryMode = "FullSeed",
+
+  [string]$FunctionName = "fa-svcprincipal-cse-dev",
+
+  [string]$QueueName = $null,
+
+  [switch]$Local
+)
+
 # setup
 Function GenerateAuthorizationHeader{
   [CmdletBinding()]
@@ -20,61 +32,94 @@ Function GenerateAuthorizationHeader{
 [System.Web.HttpUtility]::UrlEncode("type=$keyType&ver=$tokenVersion&sig=$signature")
 }
 
-$FN_NAME = "fa-svcprincipal-cse-dev"
-
-$RESOURCE_GROUP=$(az functionapp list --query "[?name=='$FN_NAME']" --query "[].resourceGroup" -o tsv)
-
-# post to cosmosdb
-
-$CosmosEndpoint=$(az functionapp config appsettings list -n $FN_NAME -g $RESOURCE_GROUP --query "[?name=='SPCosmosURL'][].value" -o tsv)
-
-$CosmosDatabase=$(az functionapp config appsettings list -n $FN_NAME -g $RESOURCE_GROUP --query "[?name=='SPCosmosDatabase'][].value" -o tsv)
-
-$Collection = $(az functionapp config appsettings list -n $FN_NAME -g $RESOURCE_GROUP --query "[?name=='SPActivityHistoryCollection'][].value" -o tsv)
-
+# setup our global ids
 $correlationId = [System.guid]::NewGuid().toString()
 $activityId = [System.guid]::NewGuid().toString()
 
-$CosmosAccountName = az cosmosdb list --query "[?documentEndpoint=='$CosmosEndpoint'].name" -o tsv
-$ResourceGroup = az cosmosdb list --query "[?name=='$CosmosAccountName'].resourceGroup" -o tsv
-$MasterKey = az cosmosdb keys list -n $CosmosAccountName -g $ResourceGroup --query "primaryMasterKey" -o tsv
+if ($Local)
+{
+  # executing in local mode, using development storage (for testing)
+  $StorageConnectionString="UseDevelopmentStorage=true"
+  # executing in local mode, using well-known queue name (for testing)
+  if ([string]::IsNullOrWhiteSpace($QueueName))
+  {
+    $QueueName="discover"
+  }  
+}
+else {
+  # Create Activity record in CosmosDB (for tracking)
+  $RESOURCE_GROUP=$(az functionapp list --query "[?name=='$FunctionName']" --query "[].resourceGroup" -o tsv)
 
-$document = @{
-  id = $activityId;
-  correlationId = $correlationId;
-  created = [System.DateTimeOffset]::Now;
-  name = "Full Discovery Request";
-  status = "Running"
-} | ConvertTo-Json
+  $CosmosEndpoint=$(az functionapp config appsettings list -n $FunctionName -g $RESOURCE_GROUP --query "[?name=='SPCosmosURL'][].value" -o tsv)
+  $CosmosDatabase=$(az functionapp config appsettings list -n $FunctionName -g $RESOURCE_GROUP --query "[?name=='SPCosmosDatabase'][].value" -o tsv)
+  $Collection = $(az functionapp config appsettings list -n $FunctionName -g $RESOURCE_GROUP --query "[?name=='SPActivityHistoryCollection'][].value" -o tsv)
 
-$now = [DateTime]::UtcNow.ToString("r")
+  $CosmosAccountName = az cosmosdb list --query "[?documentEndpoint=='$CosmosEndpoint'].name" -o tsv
+  $ResourceGroup = az cosmosdb list --query "[?name=='$CosmosAccountName'].resourceGroup" -o tsv
+  $MasterKey = az cosmosdb keys list -n $CosmosAccountName -g $ResourceGroup --query "primaryMasterKey" -o tsv
 
-$authHeader = GenerateAuthorizationHeader -verb post -resourceLink "dbs/$CosmosDatabase/colls/$Collection" -resourceType docs -key $MasterKey -keyType "master" -tokenVersion "1.0" -dateTime $now
+  $document = @{
+    id = $activityId;
+    correlationId = $correlationId;
+    created = [System.DateTimeOffset]::Now;
+    name = "Discovery Request";
+    status = "Completed"
+  } | ConvertTo-Json
 
-$headers = @{
-  "x-ms-date"=$now
-  "x-ms-version"="2018-12-31"
-  "Authorization"="$authHeader"
-  "x-ms-documentdb-partitionkey"="[`"$correlationId`"]"
+  $now = [DateTime]::UtcNow.ToString("r")
+
+  $authHeader = GenerateAuthorizationHeader -verb post -resourceLink "dbs/$CosmosDatabase/colls/$Collection" -resourceType docs -key $MasterKey -keyType "master" -tokenVersion "1.0" -dateTime $now
+
+  $headers = @{
+    "x-ms-date"=$now
+    "x-ms-version"="2018-12-31"
+    "Authorization"="$authHeader"
+    "x-ms-documentdb-partitionkey"="[`"$correlationId`"]"
+  }
+
+  Invoke-RestMethod -Uri "https://$CosmosAccountName.documents.azure.com/dbs/$CosmosDatabase/colls/$Collection/docs" -Method 'Post' -Body $document -Headers $headers | ConvertTo-Json
+
+  Write-Host "Activity Recorded - Cosmos: $($CosmosAccountName), DB: $($CosmosDatabase), CorrelationId: $($correlationId)"
+
+  # if we are non-local, find the storage connection string from the function app
+  $StorageConnectionString=$(az functionapp config appsettings list -n $FunctionName -g $RESOURCE_GROUP --query "[?name=='SPStorageConnectionString'][].value" -o tsv)
+
+  # if no queue name is provided, query the function app for its Discover queue setting
+  if ([string]::IsNullOrWhiteSpace($QueueName))
+  {
+    $QueueName=$(az functionapp config appsettings list -n $FunctionName -g $RESOURCE_GROUP --query "[?name=='SPDiscoverQueue'][].value" -o tsv)
+  }  
 }
 
-Invoke-RestMethod -Uri "https://$CosmosAccountName.documents.azure.com/dbs/$CosmosDatabase/colls/$Collection/docs" -Method 'Post' -Body $document -Headers $headers | ConvertTo-Json
 
-# post to discover queue
+Write-Host "QueueName: $QueueName"
+# Command the Discovery by posting message directly into queue
 
-$StorageConnectionString=$(az functionapp config appsettings list -n $FN_NAME -g $RESOURCE_GROUP --query "[?name=='SPStorageConnectionString'][].value" -o tsv)
 
-$DiscoverQueueName=$(az functionapp config appsettings list -n $FN_NAME -g $RESOURCE_GROUP --query "[?name=='SPDiscoverQueue'][].value" -o tsv)
-
+# $message = @{
+#   timestamp = [System.DateTimeOffset]::Now;
+#   operation = "FullSeed";
+#   discoveryMode = "FullSeed";
+#   activityId = $activityId;
+#   correlationId = $correlationId
+# } | ConvertTo-Json
+$Source = "PSH"
 $message = @{
-  timestamp = [System.DateTimeOffset]::Now;
-  operation = "FullSeed";
-  discoveryMode = "FullSeed";
-  activityId = $activityId;
-  correlationId = $correlationId
-} | ConvertTo-Json
-$bytes = [System.Text.Encoding]::Unicode.GetBytes($message)
+  QueueMessageType = 0;  # Data
+  Document = @{
+    CorrelationId = $correlationId;
+    DiscoveryMode = $DiscoveryMode;
+    Source = $Source;
+  };
+  Attempt = 1;
+} | ConvertTo-Json -Compress
+
+# Must use UTF8 encoding
+$bytes = [System.Text.Encoding]::UTF8.GetBytes($message)
 $encodedMessage =[Convert]::ToBase64String($Bytes)
 
-az storage message put --content $encodedMessage --queue-name $DiscoverQueueName --connection-string $StorageConnectionString
+# the auth and queue name parameters seem to be order dependent
+az storage message put --connection-string $StorageConnectionString --queue-name $QueueName --content $encodedMessage 
+
+Write-Host "Message Sent - Queue: $($QueueName), CorrelationId: $($correlationId), DiscoveryMode: $($DiscoveryMode), Source: $($Source)"
 
