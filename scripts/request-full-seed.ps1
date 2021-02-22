@@ -121,5 +121,6 @@ $encodedMessage =[Convert]::ToBase64String($Bytes)
 # the auth and queue name parameters seem to be order dependent
 az storage message put --connection-string $StorageConnectionString --queue-name $QueueName --content $encodedMessage 
 
-Write-Host "Message Sent - Queue: $($QueueName), CorrelationId: $($correlationId), DiscoveryMode: $($DiscoveryMode), Source: $($Source)"
+Write-Host "Message Sent - Queue: $($QueueName)"
+Write-Host "Message: $($message)"
 
