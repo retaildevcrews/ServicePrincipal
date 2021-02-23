@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Threading.Tasks;
 using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
@@ -62,6 +63,11 @@ namespace CSE.Automation.Processors
             logger.LogInformation($"Initializing {this.GetType().Name}");
 
             config = configService.Get(this.ConfigurationId.ToString(), ProcessorType, DefaultConfigurationResourceName);
+            if (config == null)
+            {
+                throw new ApplicationException($"Missing configuration for {ProcessorType}-{ConfigurationId}");
+            }
+
             initialized = true;
         }
     }
