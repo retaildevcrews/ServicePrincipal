@@ -143,7 +143,7 @@ namespace CSE.Automation.Tests.IntegrationTests
 
             string displayNamePatternFilter = _config["displayNamePatternFilter"];
 
-            _graphHelper = new ServicePrincipalGraphHelperTest(_graphHelperSettings, _auditService, graphClient, displayNamePatternFilter, _spGraphHelperLogger);
+            _graphHelper = new ServicePrincipalGraphHelperTest(_graphHelperSettings, _auditService, _objectService, graphClient, displayNamePatternFilter, _spGraphHelperLogger);
 
 
             _builder = new ServiceCollection();

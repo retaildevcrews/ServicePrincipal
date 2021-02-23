@@ -11,8 +11,8 @@ namespace CSE.Automation.Tests.IntegrationTests.TestCaseValidators.Helpers
     {
         private string _displayNamePatternFilter;
 
-        public ServicePrincipalGraphHelperTest(GraphHelperSettings settings, IAuditService auditService, IGraphServiceClient graphClient, 
-            string displayNamePatternFilter, ILogger<ServicePrincipalGraphHelper> logger) : base(settings, auditService, graphClient, logger)
+        public ServicePrincipalGraphHelperTest(GraphHelperSettings settings, IAuditService auditService, IObjectTrackingService objectService, IGraphServiceClient graphClient, 
+            string displayNamePatternFilter, ILogger<ServicePrincipalGraphHelper> logger) : base(settings, auditService, objectService, graphClient, logger)
         {
             _displayNamePatternFilter = displayNamePatternFilter;
         }

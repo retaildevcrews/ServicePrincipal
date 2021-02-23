@@ -4,7 +4,7 @@ using CSE.Automation.Model;
 
 namespace CSE.Automation.Tests.Mocks
 {
-    internal class DefaultConfigService : IConfigService<ProcessorConfiguration>
+    internal class ConfigServiceMock : IConfigService<ProcessorConfiguration>
     {
         public ProcessorConfiguration Config { get; set; }
 

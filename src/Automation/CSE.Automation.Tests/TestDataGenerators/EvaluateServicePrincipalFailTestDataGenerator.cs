@@ -7,7 +7,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CSE.Automation.Tests.TestDataGenerators
 {
-    public class EvaluateServicePrincipalFailTestData : IEnumerable<object[]>
+    public class EvaluateServicePrincipalFailTestDataGenerator : IEnumerable<object[]>
     {
 
         public IEnumerator<object[]> GetEnumerator()

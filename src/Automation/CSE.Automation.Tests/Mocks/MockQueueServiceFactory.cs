@@ -3,13 +3,13 @@ using CSE.Automation.Model;
 
 namespace CSE.Automation.Tests.Mocks
 {
-    internal class DefaultQueueServiceFactory<TEntity> : IQueueServiceFactory
+    internal class MockQueueServiceFactory<TEntity> : IQueueServiceFactory
     {
-        private DefaultAzureQueueService<TEntity> _queue = null;
+        private AzureQueueServiceMock<TEntity> _queue = null;
 
         public IAzureQueueService Create(string connectionString, string queueName)
         {
-            return _queue ??= new DefaultAzureQueueService<TEntity>();
+            return _queue ??= new AzureQueueServiceMock<TEntity>();
         }
     }
 }

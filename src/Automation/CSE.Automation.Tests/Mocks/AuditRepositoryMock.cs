@@ -7,7 +7,7 @@ using Microsoft.Azure.Cosmos;
 
 namespace CSE.Automation.Tests.Mocks
 {
-    internal class DefaultAuditRepository : IAuditRepository
+    internal class AuditRepositoryMock : IAuditRepository
     {
         public List<AuditEntry> Data = new List<AuditEntry>();
 

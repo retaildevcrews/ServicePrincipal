@@ -6,7 +6,7 @@ using CSE.Automation.Model;
 
 namespace CSE.Automation.Tests.TestDataGenerators
 {
-    public class EvaluateServicePrincipalPassTestData : IEnumerable<object[]>
+    public class EvaluateServicePrincipalPassTestDataGenerator : IEnumerable<object[]>
     {
 
         public IEnumerator<object[]> GetEnumerator()
