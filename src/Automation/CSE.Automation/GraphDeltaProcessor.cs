@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System;
+using System.Data;
 using System.Threading.Tasks;
 using CSE.Automation.Extensions;
 using CSE.Automation.Interfaces;
@@ -121,6 +122,10 @@ namespace CSE.Automation
             try
             {
                 command = JsonConvert.DeserializeObject<QueueMessage<RequestDiscoveryCommand>>(msg.AsString).Document;
+                if (command == null)
+                {
+                    throw new InvalidExpressionException($"No command was found on message {msg.Id}");
+                }
             }
             catch (Exception ex)
             {
