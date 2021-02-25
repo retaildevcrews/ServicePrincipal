@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using CSE.Automation.Model;
+using CSE.Automation.Model.Commands;
 
 namespace CSE.Automation.Tests.TestDataGenerators
 {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using CSE.Automation.Model;
+using CSE.Automation.Model.Commands;
 using Newtonsoft.Json;
 
 namespace CSE.Automation.Tests.IntegrationTests.TestCaseValidators.ServicePrincipalResults

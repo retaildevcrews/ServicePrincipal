@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
@@ -25,7 +26,7 @@ namespace CSE.Automation.Tests.UnitTests.ModelValidation
         // Function to create mock instance of UserGraphHelper, which is needed for ServicePrincipalModelValidator instance
         internal static IGraphHelper<User> CreateMockUserGraphHelper()
         {
-            Task<User> outTask = Task.FromResult(new User());
+            var outTask = Task.FromResult((new User(), (IList<User>)new List<User>()));
 
             var mockUserGraphHelper = Substitute.For<IGraphHelper<User>>();
             mockUserGraphHelper.GetEntityWithOwners(Arg.Any<string>()).Returns(outTask);

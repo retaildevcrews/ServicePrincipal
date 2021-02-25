@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using CSE.Automation.Graph;
 using CSE.Automation.Model;
+using CSE.Automation.Model.Commands;
 using CSE.Automation.Tests.IntegrationTests.TestCaseValidators.TestCases;
 using CSE.Automation.TestsPrep.TestCases.ServicePrincipals;
 using Microsoft.Extensions.Configuration;

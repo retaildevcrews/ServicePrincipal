@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using CSE.Automation.Graph;
 using CSE.Automation.Model;
+using CSE.Automation.Model.Commands;
 using CSE.Automation.Tests.IntegrationTests.TestCaseValidators.Helpers;
 using CSE.Automation.Tests.IntegrationTests.TestCaseValidators.TestCases;
 using Microsoft.Extensions.Configuration;

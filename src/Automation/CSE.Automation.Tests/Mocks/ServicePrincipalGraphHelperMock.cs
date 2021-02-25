@@ -11,18 +11,24 @@ namespace CSE.Automation.Tests.Mocks
 {
     internal class ServicePrincipalGraphHelperMock : IServicePrincipalGraphHelper
     {
-        public Dictionary<string, ServicePrincipal> Data { get; private set; } = new Dictionary<string, ServicePrincipal>();
+        public List<Dictionary<string, ServicePrincipal>> Data { get; private set; } = new List<Dictionary<string, ServicePrincipal>>();
+        public int CurrentPage = -1;
 
         public static ServicePrincipalGraphHelperMock Create()
         {
             return new ServicePrincipalGraphHelperMock();
         }
 
-        public ServicePrincipalGraphHelperMock WithData(ServicePrincipal[] data)
+        public ServicePrincipalGraphHelperMock WithData(ServicePrincipal[] page1, ServicePrincipal[] page2 = null)
         {
-            if (data != null)
+            if (page1 != null)
             {
-                this.Data = data.ToDictionary(x => x.Id);
+                this.Data.Add(page1.ToDictionary(x => x.Id));
+
+                if (page2 != null)
+                {
+                    this.Data.Add(page2.ToDictionary(x => x.Id));
+                }
             }
 
             return this;
@@ -30,22 +36,45 @@ namespace CSE.Automation.Tests.Mocks
 
         public async Task<(GraphOperationMetrics metrics, IEnumerable<ServicePrincipal> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config)
         {
-            throw new NotImplementedException();
+            var metrics = new GraphOperationMetrics();
+
+            CurrentPage++;
+            if (CurrentPage < this.Data.Count)
+            {
+                var result = this.Data[CurrentPage].Values;
+                metrics.AdditionalData = "more data";
+                return await Task.FromResult((metrics, result));
+            }
+
+            metrics.AdditionalData = null;
+            return await Task.FromResult((metrics, new List<ServicePrincipal>()));
         }
 
-        public async Task<ServicePrincipal> GetEntityWithOwners(string id)
+        public async Task<(ServicePrincipal, IList<User>)> GetEntityWithOwners(string id)
         {
-            throw new NotImplementedException();
+            ServicePrincipal model = null;
+            IList<User> owners = null;
+
+            if (CurrentPage >= 0 && CurrentPage < this.Data.Count)
+            {
+                this.Data[CurrentPage].TryGetValue(id, out model);
+                if (model != null)
+                {
+                    owners = new List<User>();
+                }
+            }
+
+            return await Task.FromResult((model, owners));
         }
 
-        public async Task PatchGraphObject(ServicePrincipal entity)
+        public Task PatchGraphObject(ServicePrincipal entity)
         {
             throw new NotImplementedException();
         }
 
         public async Task<Application> GetApplicationWithOwners(string appId)
         {
-            throw new NotImplementedException();
+            return await Task.FromResult((Application)null);
         }
     }
 }

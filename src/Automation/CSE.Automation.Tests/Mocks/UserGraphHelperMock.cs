@@ -18,10 +18,10 @@ namespace CSE.Automation.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public async Task<User> GetEntityWithOwners(string id)
+        public async Task<(User, IList<User>)> GetEntityWithOwners(string id)
         {
             var user = Data.FirstOrDefault(x => string.Equals(x.Id, id, StringComparison.OrdinalIgnoreCase));
-            return await Task.FromResult(user);
+            return await Task.FromResult((user, new List<User>()));
         }
 
         public Task PatchGraphObject(User entity)

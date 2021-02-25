@@ -7,6 +7,7 @@ using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
 using CSE.Automation.KeyVault;
 using CSE.Automation.Model;
+using CSE.Automation.Model.Commands;
 using CSE.Automation.Model.Validators;
 using CSE.Automation.Processors;
 using CSE.Automation.Services;

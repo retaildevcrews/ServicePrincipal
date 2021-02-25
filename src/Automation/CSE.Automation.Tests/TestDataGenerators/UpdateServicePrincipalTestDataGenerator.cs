@@ -11,14 +11,15 @@ namespace CSE.Automation.Tests.TestDataGenerators
 
         public IEnumerator<object[]> GetEnumerator()
         {
-            yield return new object[]
-            {
-                //new ServicePrincipalUpdateTestData
-                //{
+            //yield return new object[]
+            //{
+            //    //new ServicePrincipalUpdateTestData
+            //    //{
 
-                //}
+            //    //}
 
-            };
+            //};
+            yield break;
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

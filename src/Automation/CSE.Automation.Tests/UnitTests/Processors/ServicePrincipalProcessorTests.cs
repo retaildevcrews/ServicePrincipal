@@ -5,12 +5,15 @@ using System.Threading.Tasks;
 using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
+using CSE.Automation.Model.Commands;
 using CSE.Automation.Model.Validators;
 using CSE.Automation.Processors;
 using CSE.Automation.Services;
 using CSE.Automation.Tests.Mocks;
+using CSE.Automation.Tests.Mocks.Graph;
 using CSE.Automation.Tests.TestDataGenerators;
 using Microsoft.Azure.Cosmos.Linq;
+using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Graph;
@@ -59,15 +62,18 @@ namespace CSE.Automation.Tests.UnitTests.Processors
 
             services
                 .AddSingleton<IServicePrincipalProcessorSettings, ServicePrincipalProcessorSettingsMock>()
-                .AddSingleton<IServicePrincipalGraphHelper, ServicePrincipalGraphHelperMock>()
+                .AddSingleton<IGraphHelperSettings, GraphHelperSettingsMock>()
+
+                .AddSingleton<IGraphServiceClient, GraphServiceClientMock>()
+                .AddSingleton<IServicePrincipalGraphHelper, ServicePrincipalGraphHelper>()
                 .AddSingleton<IAuditRepository, AuditRepositoryMock>()
-                .AddSingleton<IQueueServiceFactory, MockQueueServiceFactory<ServicePrincipalUpdateCommand>>()
+                .AddSingleton<IQueueServiceFactory, MockQueueServiceFactory>()
                 .AddSingleton<IConfigService<ProcessorConfiguration>, ConfigServiceMock>()
                 .AddSingleton<IObjectTrackingService, ObjectTrackingServiceMock>()
                 .AddSingleton<IModelValidatorFactory, ModelValidatorFactory>()
                 .AddSingleton<IGraphHelper<User>>(new UserGraphHelperMock() { Data = testUsers.Select(x => new User { Id = x }).ToList() })
 
-                .AddScoped<IActivityService, NoopActivityService>()
+                .AddScoped<IActivityService, DefaultActivityService>()
                 .AddScoped<IAuditService, AuditService>()
                 .AddScoped<IServicePrincipalProcessor, ServicePrincipalProcessor>()
                 //.AddScoped<IServicePrincipalGraphHelper, NoopServicePrincipalGraphHelper>()
@@ -155,50 +161,52 @@ namespace CSE.Automation.Tests.UnitTests.Processors
 
         }
 
-        //[Theory]
-        //[Trait("Category", "Unit")]
-        //[ClassData(typeof(UpdateServicePrincipalTestDataGenerator))]
-        //public async Task Update_should_pass(ServicePrincipalUpdateTestData updateTestData)
-        //{
-        //    try
-        //    {
-        //        await Update(updateTestData).ConfigureAwait(false);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        Assert.True(false, e.Message);
-        //    }
-        //}
+        [Theory]
+        [Trait("Category", "Unit")]
+        [ClassData(typeof(UpdateServicePrincipalTestDataGenerator))]
+        public async Task Update_should_pass(ServicePrincipalUpdateTestData testData)
+        {
+            try
+            {
+                await Update(testData).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                Assert.True(false, e.Message);
+            }
+        }
 
         /// <summary>
         /// Perform an Evaluate test on the data record.
         /// </summary>
-        /// <param name="evaluateTestData"></param>
+        /// <param name="testData"></param>
         /// <param name="auditActionType">The expected AuditActionType of all audit messages in the audit repository.</param>
-        private async Task Evaluate(ServicePrincipalEvaluateTestData evaluateTestData, AuditActionType auditActionType)
+        private async Task Evaluate(ServicePrincipalEvaluateTestData testData, AuditActionType auditActionType)
         {
             // Setup LKG data
             var objectService = fixture.Host.Services.GetService<IObjectTrackingService>() as ObjectTrackingServiceMock;
             Assert.NotNull(objectService);
-            objectService.WithData(evaluateTestData.ObjectServiceData);
+            objectService.WithData(testData.ObjectServiceData);
 
             var auditRepository = fixture.Host.Services.GetService<IAuditRepository>() as AuditRepositoryMock;
             Assert.NotNull(auditRepository);
 
-            var queueService = fixture.Host.Services.GetService<IQueueServiceFactory>()?.Create(null, null) as AzureQueueServiceMock<ServicePrincipalUpdateCommand>;
+            var queueService = fixture.Host.Services.GetService<IQueueServiceFactory>()?.Create(null, "update") as AzureQueueServiceMock<ServicePrincipalUpdateCommand>;
             Assert.NotNull(queueService);
 
             var processor = fixture.Host.Services.GetService<IServicePrincipalProcessor>();
             Assert.NotNull(processor);
 
-            var context = new ActivityContext(null);
+            var activityService = fixture.Host.Services.GetService<IActivityService>() as DefaultActivityService;
+            Assert.NotNull(activityService);
+            var context = activityService.CreateContext("Test Case");
 
-            await processor.Evaluate(context, evaluateTestData.Target).ConfigureAwait(false);
+            await processor.Evaluate(context, testData.Target).ConfigureAwait(false);
 
             // Assertions
 
             // AUDIT
-            Assert.True(auditRepository.Data.Count == evaluateTestData.ExpectedAuditCodes.Length, $"Audit Item Count expected: {evaluateTestData.ExpectedAuditCodes.Length} actual: {auditRepository.Data.Count}");
+            Assert.True(auditRepository.Data.Count == testData.ExpectedAuditCodes.Length, $"Audit Item Count expected: {testData.ExpectedAuditCodes.Length} actual: {auditRepository.Data.Count}");
 
             for (var index = 0; index < auditRepository.Data.Count; index++)
             {
@@ -207,18 +215,18 @@ namespace CSE.Automation.Tests.UnitTests.Processors
                 output.WriteLine(JsonConvert.SerializeObject(auditItem, Formatting.Indented));
 
                 Assert.Equal(auditActionType, auditItem.Type);
-                Assert.Equal(evaluateTestData.ExpectedAuditCodes[index], auditItem.Code);
+                Assert.Equal(testData.ExpectedAuditCodes[index], auditItem.Code);
                 Assert.Equal(DateTime.Now.ToString("yyyyMM"), auditItem.AuditYearMonth);
 
                 Assert.Equal(context.CorrelationId, auditItem.Descriptor.CorrelationId);
-                Assert.Equal(evaluateTestData.Target.Id, auditItem.Descriptor.ObjectId);
-                Assert.Equal(evaluateTestData.Target.AppId, auditItem.Descriptor.AppId);
-                Assert.Equal(evaluateTestData.Target.DisplayName, auditItem.Descriptor.DisplayName);
+                Assert.Equal(testData.Target.Id, auditItem.Descriptor.ObjectId);
+                Assert.Equal(testData.Target.AppId, auditItem.Descriptor.AppId);
+                Assert.Equal(testData.Target.DisplayName, auditItem.Descriptor.DisplayName);
             }
 
             // UPDATE QUEUE
             output.WriteLine("");
-            if (evaluateTestData.ExpectedUpdateMessage == null)
+            if (testData.ExpectedUpdateMessage == null)
             {
                 Assert.True(queueService.Data.Count == 0);
                 output.WriteLine($"No Queue Messages");
@@ -234,8 +242,8 @@ namespace CSE.Automation.Tests.UnitTests.Processors
                 output.WriteLine(JsonConvert.SerializeObject(command, Formatting.Indented));
 
                 Assert.Equal(command.CorrelationId, context.CorrelationId);
-                Assert.Equal(evaluateTestData.ExpectedUpdateMessage.Action, command.Action);
-                Assert.Equal(evaluateTestData.ExpectedUpdateMessage.Notes, command.Notes);
+                Assert.Equal(testData.ExpectedUpdateMessage.Action, command.Action);
+                Assert.Equal(testData.ExpectedUpdateMessage.Notes, command.Notes);
             }
         }
 
@@ -310,12 +318,15 @@ namespace CSE.Automation.Tests.UnitTests.Processors
             objectService.WithData(testData.InitialObjectServiceData);
 
             // Setup Graph data
-            var graphHelper = fixture.Host.Services.GetService<IServicePrincipalGraphHelper>() as ServicePrincipalGraphHelperMock;
-            Assert.NotNull(graphHelper);
-            graphHelper.WithData(testData.InitialServicePrincipals);
+            var graphServiceClientMock = fixture.Host.Services.GetService<IGraphServiceClient>() as GraphServiceClientMock;
+            Assert.NotNull(graphServiceClientMock);
+            graphServiceClientMock.WithData(testData.InitialServicePrincipals1, testData.InitialServicePrincipals2);
 
             var auditRepository = fixture.Host.Services.GetService<IAuditRepository>() as AuditRepositoryMock;
             Assert.NotNull(auditRepository);
+
+            var queueService = fixture.Host.Services.GetService<IQueueServiceFactory>()?.Create(null, "evaluate") as AzureQueueServiceMock<ServicePrincipalEvaluateCommand>;
+            Assert.NotNull(queueService);
 
             // Setup processor configuration
             var configService = fixture.Host.Services.GetService<IConfigService<ProcessorConfiguration>>() as ConfigServiceMock;
@@ -325,7 +336,9 @@ namespace CSE.Automation.Tests.UnitTests.Processors
             var processor = fixture.Host.Services.GetService<IServicePrincipalProcessor>();
             Assert.NotNull(processor);
 
-            var context = new ActivityContext(null);
+            var activityService = fixture.Host.Services.GetService<IActivityService>() as DefaultActivityService;
+            Assert.NotNull(activityService);
+            var context = activityService.CreateContext("Test Case").WithCorrelationId(testData.Target.CorrelationId);
 
             await processor.DiscoverDeltas(context, testData.Target.DiscoveryMode == DiscoveryMode.FullSeed);
 
@@ -340,38 +353,64 @@ namespace CSE.Automation.Tests.UnitTests.Processors
                 output.WriteLine($"Audit Item {index + 1}");
                 output.WriteLine(JsonConvert.SerializeObject(auditItem, Formatting.Indented));
 
-                Assert.Equal(AuditActionType.Change, auditItem.Type);
+                Assert.Equal(AuditActionType.Ignore, auditItem.Type);
                 Assert.Equal(testData.ExpectedAuditCodes[index], auditItem.Code);
                 Assert.Equal(DateTime.Now.ToString("yyyyMM"), auditItem.AuditYearMonth);
 
                 Assert.Equal(context.CorrelationId, auditItem.Descriptor.CorrelationId);
-                //Assert.Equal(testData.Target.Entity.Id, auditItem.Descriptor.ObjectId);
-                //Assert.Equal(testData.Target.Entity.AppId, auditItem.Descriptor.AppId);
-                //Assert.Equal(testData.Target.Entity.DisplayName, auditItem.Descriptor.DisplayName);
+            }
+
+            // Queue
+            Assert.Equal(testData.ExpectedEvaluateMessages, queueService.Data.Count);
+            foreach (var message in queueService.Data)
+            {
+                var command = message.Document;
+                Assert.NotNull(command);
+                output.WriteLine($"QueueMessage Command");
+                output.WriteLine(JsonConvert.SerializeObject(command, Formatting.Indented));
+
+                Assert.Equal(command.CorrelationId, context.CorrelationId);
             }
 
             // LKG State
-            //Assert.True(testData.ExpectedObjectServiceData.Length == objectService.Data.Count, $"ObjectTracking Item Count - expected: {testData.ExpectedObjectServiceData.Length} actual: {objectService.Data.Count}");
+            Assert.True(testData.ExpectedObjectServiceData.Length == objectService.Data.Count, $"ObjectTracking Item Count - expected: {testData.ExpectedObjectServiceData.Length} actual: {objectService.Data.Count}");
 
-            //if (testData.ExpectedObjectServiceData.Length > 0)
-            //{
-            //    output.WriteLine("Output Object Tracking Service Data");
-            //    var expectedValues = testData.ExpectedObjectServiceData.ToDictionary(x => x.Id);
-            //    foreach (var item in objectService.Data.Values)
-            //    {
-            //        output.WriteLine(JsonConvert.SerializeObject(item, Formatting.Indented));
-            //        Assert.True(expectedValues.TryGetValue(item.Id, out var expectedItem), $"Failed to find {item.Id} in expected object service values.");
+            if (testData.ExpectedObjectServiceData.Length > 0)
+            {
+                output.WriteLine("Output Object Tracking Service Data");
+                var expectedValues = testData.ExpectedObjectServiceData.ToDictionary(x => x.Id);
+                foreach (var item in objectService.Data.Values)
+                {
+                    output.WriteLine(JsonConvert.SerializeObject(item, Formatting.Indented));
+                    Assert.True(expectedValues.TryGetValue(item.Id, out var expectedItem), $"Failed to find {item.Id} in expected object service values.");
 
-            //        Assert.Equal(expectedItem.Id, item.Id);
-            //        //                    Assert.Equal(expectedItem.CorrelationId, );
-            //        Assert.Equal(expectedItem.ObjectType, item.ObjectType);
+                    Assert.Equal(expectedItem.Id, item.Id);
+                    Assert.Equal(expectedItem.CorrelationId, item.CorrelationId);
+                    Assert.Equal(expectedItem.ObjectType, item.ObjectType);
 
-            //        var model = TrackingModel.Unwrap<ServicePrincipalModel>(item);
-            //        var expectedModel = TrackingModel.Unwrap<ServicePrincipalModel>(expectedItem);
+                    // Check the TrackingModel wrapper
+                    Assert.Equal(expectedItem.Id, item.Id);
 
+                    var secondsTolerance = 10;
+                    var delta = expectedItem.Created - item.Created;
+                    Assert.InRange(delta.TotalSeconds, 0, secondsTolerance);
 
-            //    }
-            //}
+                    if (expectedItem.Deleted.HasValue == false)
+                    {
+                        Assert.Equal(expectedItem.Deleted, item.Deleted);
+                    }
+                    else
+                    {
+                        Assert.NotNull(expectedItem.Deleted);
+                        Assert.NotNull(item.Deleted);
+                        var delta2 = item.Deleted - expectedItem.Deleted;
+                        Assert.True(delta2.HasValue, "Deleted time delta is null");
+
+                        Assert.InRange(delta2.Value.TotalSeconds, 0, secondsTolerance);
+                    }
+
+                }
+            }
         }
 
     }

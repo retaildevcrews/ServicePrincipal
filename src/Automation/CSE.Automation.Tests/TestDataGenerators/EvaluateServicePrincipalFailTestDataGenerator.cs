@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using CSE.Automation.Model;
+using CSE.Automation.Model.Commands;
 using Newtonsoft.Json.Linq;
 
 namespace CSE.Automation.Tests.TestDataGenerators
