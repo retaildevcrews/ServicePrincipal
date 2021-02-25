@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CSE.Automation.Extensions;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
+using CSE.Automation.Model.Commands;
 using CSE.Automation.Properties;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -182,16 +183,16 @@ namespace CSE.Automation
         [StorageAccount(Constants.SPStorageConnectionString)]
         public async Task Evaluate([QueueTrigger(Constants.EvaluateQueueAppSetting)] CloudQueueMessage msg, ILogger log)
         {
-            EvaluateServicePrincipalCommand command;
+            ServicePrincipalEvaluateCommand command;
 
             log.LogInformation("Incoming message from Evaluate queue");
             try
             {
-                command = JsonConvert.DeserializeObject<QueueMessage<EvaluateServicePrincipalCommand>>(msg.AsString).Document;
+                command = JsonConvert.DeserializeObject<QueueMessage<ServicePrincipalEvaluateCommand>>(msg.AsString).Document;
             }
             catch (Exception ex)
             {
-                log.LogError(ex, $"Failed to deserialize queue message into EvaluateServicePrincipalCommand.");
+                log.LogError(ex, $"Failed to deserialize queue message into {nameof(ServicePrincipalEvaluateCommand)}.");
                 return;
             }
 

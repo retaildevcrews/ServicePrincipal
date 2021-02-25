@@ -26,7 +26,7 @@ namespace CSE.Automation.Graph
         /// <param name="objectService">An instance of the Object Tracking Service</param>
         /// <param name="graphClient">An instance of a GraphClient</param>
         /// <param name="logger">An instance of an ILogger</param>
-        public ServicePrincipalGraphHelper(GraphHelperSettings settings, IAuditService auditService, IObjectTrackingService objectService, IGraphServiceClient graphClient, ILogger<ServicePrincipalGraphHelper> logger)
+        public ServicePrincipalGraphHelper(IGraphHelperSettings settings, IAuditService auditService, IObjectTrackingService objectService, IGraphServiceClient graphClient, ILogger<ServicePrincipalGraphHelper> logger)
                 : base(settings, auditService, graphClient, logger)
         {
             this.objectService = objectService;
@@ -58,8 +58,8 @@ namespace CSE.Automation.Graph
                 metrics.Name = GraphOperation.FullSeed;
 
                 collectionPage = await GetGraphSeedRequest()
-                .GetAsync()
-                .ConfigureAwait(false);
+                                        .GetAsync()
+                                        .ConfigureAwait(false);
             }
             else
             {
@@ -96,7 +96,7 @@ namespace CSE.Automation.Graph
         /// </summary>
         /// <param name="id">The Service Principal Object Id</param>
         /// <returns>Task returning a Service Principal</returns>
-        public async override Task<ServicePrincipal> GetEntityWithOwners(string id)
+        public async override Task<(ServicePrincipal, IList<User>)> GetEntityWithOwners(string id)
         {
             var entity = await GraphClient.ServicePrincipals[id]
                 .Request()
@@ -104,7 +104,13 @@ namespace CSE.Automation.Graph
                 .GetAsync()
                 .ConfigureAwait(false);
 
-            return entity;
+            var owners = entity
+                            .Owners?
+                            .Where(x => x.GetType() == typeof(User))
+                            .Select(x => (User)x).ToList()
+                                ?? new List<User>();
+
+            return (entity, owners);
         }
 
         /// <summary>
@@ -197,11 +203,12 @@ namespace CSE.Automation.Graph
         {
             foreach (var item in list)
             {
-                var model = await objectService.Get<ServicePrincipalModel>(item.Id).ConfigureAwait(false);
-                if (model != null)
+                var trackingModel = await objectService.Get<ServicePrincipalModel>(item.Id).ConfigureAwait(false);
+                if (trackingModel != null)
                 {
-                    model.State = TrackingState.Untracked;
-                    await objectService.Put(context, model).ConfigureAwait(false);
+                    trackingModel.Deleted = DateTimeOffset.Now;
+                    trackingModel.State = TrackingState.Untracked;
+                    await objectService.Put(context, trackingModel).ConfigureAwait(false);
                 }
             }
         }

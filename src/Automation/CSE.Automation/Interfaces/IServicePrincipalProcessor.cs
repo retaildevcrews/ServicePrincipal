@@ -3,6 +3,7 @@
 
 using System.Threading.Tasks;
 using CSE.Automation.Model;
+using CSE.Automation.Model.Commands;
 
 namespace CSE.Automation.Interfaces
 {

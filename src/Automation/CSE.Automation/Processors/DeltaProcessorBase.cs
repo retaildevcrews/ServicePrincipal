@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
+using CSE.Automation.Model.Commands;
 using Microsoft.Extensions.Logging;
 
 namespace CSE.Automation.Processors

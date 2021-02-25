@@ -11,6 +11,7 @@ using CSE.Automation.Extensions;
 using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
+using CSE.Automation.Model.Commands;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Newtonsoft.Json.Converters;
@@ -154,13 +155,13 @@ namespace CSE.Automation.Processors
             // foreach (var sp in servicePrincipalList.Where(sp => string.IsNullOrWhiteSpace(sp.ObjectId) == false && string.IsNullOrWhiteSpace(sp.DisplayName) == false))
             foreach (var sp in servicePrincipalList)
             {
-                List<string> owners = null;
+                IList<string> ownerNames = null;
 
                 // Get the list of owners from the ServicePrincipal
                 try
                 {
-                    ServicePrincipal spObject = await graphHelper.GetEntityWithOwners(sp.Id).ConfigureAwait(false);
-                    owners = spObject?.Owners.Select(x => (x as User)?.UserPrincipalName).ToList();
+                    var (_, ownerList) = await graphHelper.GetEntityWithOwners(sp.Id).ConfigureAwait(false);
+                    ownerNames = ownerList.Select(x => x.UserPrincipalName).ToList();
                 }
                 catch (Microsoft.Graph.ServiceException svcEx)
                 {
@@ -168,14 +169,14 @@ namespace CSE.Automation.Processors
                 }
 
                 // If no owners found on ServicePrincipal AND this is an Application ServicePrincipal, try to get the owners from the Application Object
-                if (owners.IsEmpty() && string.Equals(sp.ServicePrincipalType, "Application", StringComparison.InvariantCultureIgnoreCase))
+                if (ownerNames.IsEmpty() && string.Equals(sp.ServicePrincipalType, "Application", StringComparison.InvariantCultureIgnoreCase))
                 {
                     try
                     {
                         var appObject = await graphHelper.GetApplicationWithOwners(sp.AppId).ConfigureAwait(false);
                         if (appObject != null)
                         {
-                            owners = appObject.Owners.Select(x => (x as User)?.UserPrincipalName).ToList();
+                            ownerNames = appObject.Owners.Select(x => (x as User)?.UserPrincipalName).ToList();
                         }
                     }
                     catch (Microsoft.Graph.ServiceException svcEx)
@@ -208,15 +209,15 @@ namespace CSE.Automation.Processors
                     Notes = sp.Notes,
                     Created = createdDateTime,
                     Deleted = sp.DeletedDateTime,
-                    Owners = owners,
+                    Owners = ownerNames,
                     ObjectType = ObjectType.ServicePrincipal,
                     ServicePrincipalType = sp.ServicePrincipalType,
                 };
 
-                var myMessage = new QueueMessage<EvaluateServicePrincipalCommand>()
+                var myMessage = new QueueMessage<ServicePrincipalEvaluateCommand>()
                 {
                     QueueMessageType = QueueMessageType.Data,
-                    Document = new EvaluateServicePrincipalCommand
+                    Document = new ServicePrincipalEvaluateCommand
                     {
                         CorrelationId = context.CorrelationId,
                         Model = model,

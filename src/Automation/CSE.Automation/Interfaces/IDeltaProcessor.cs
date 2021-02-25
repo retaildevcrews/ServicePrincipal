@@ -6,6 +6,7 @@ using CSE.Automation.Model;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CSE.Automation.Model.Commands;
 
 namespace CSE.Automation.Interfaces
 {

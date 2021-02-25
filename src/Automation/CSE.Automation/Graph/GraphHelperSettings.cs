@@ -15,7 +15,7 @@ using SettingsBase = CSE.Automation.Model.SettingsBase;
 
 namespace CSE.Automation.Graph
 {
-    public class GraphHelperSettings : SettingsBase
+    internal class GraphHelperSettings : SettingsBase, IGraphHelperSettings
     {
         public GraphHelperSettings(ISecretClient secretClient)
                 : base(secretClient)

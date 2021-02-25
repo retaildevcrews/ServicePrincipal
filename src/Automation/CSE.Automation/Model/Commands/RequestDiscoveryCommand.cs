@@ -5,7 +5,7 @@ using System.ComponentModel;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace CSE.Automation.Model
+namespace CSE.Automation.Model.Commands
 {
     [JsonConverter(typeof(StringEnumConverter))]
     internal enum DiscoveryMode

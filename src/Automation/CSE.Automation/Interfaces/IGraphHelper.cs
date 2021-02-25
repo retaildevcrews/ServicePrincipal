@@ -5,13 +5,14 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CSE.Automation.Graph;
 using CSE.Automation.Model;
+using Microsoft.Graph;
 
 namespace CSE.Automation.Interfaces
 {
     internal interface IGraphHelper<TEntity>
     {
         Task<(GraphOperationMetrics metrics, IEnumerable<TEntity> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config);
-        Task<TEntity> GetEntityWithOwners(string id);
+        Task<(TEntity, IList<User>)> GetEntityWithOwners(string id);
         Task PatchGraphObject(TEntity entity);
     }
 }

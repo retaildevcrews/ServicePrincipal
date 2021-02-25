@@ -26,7 +26,8 @@ namespace CSE.Automation.Model.Validators
                 {
                     field?.Split(NotesSeparators).Select(x => x.Trim()).ToList().ForEach(token =>
                     {
-                        if (graphHelper.GetEntityWithOwners(token).Result is null)
+                        var (sp, _) = graphHelper.GetEntityWithOwners(token).Result;
+                        if (sp is null)
                         {
                             var failure = new ValidationFailure("Notes", string.Format(CultureInfo.CurrentCulture, AuditCode.InvalidDirectoryUPN.Description(), token), field) { ErrorCode = AuditCode.InvalidDirectoryUPN.ToString() };
                             context.AddFailure(failure);
