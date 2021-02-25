@@ -161,20 +161,20 @@ namespace CSE.Automation.Tests.UnitTests.Processors
 
         }
 
-        [Theory]
-        [Trait("Category", "Unit")]
-        [ClassData(typeof(UpdateServicePrincipalTestDataGenerator))]
-        public async Task Update_should_pass(ServicePrincipalUpdateTestData testData)
-        {
-            try
-            {
-                await Update(testData).ConfigureAwait(false);
-            }
-            catch (Exception e)
-            {
-                Assert.True(false, e.Message);
-            }
-        }
+        //[Theory]
+        //[Trait("Category", "Unit")]
+        //[ClassData(typeof(UpdateServicePrincipalTestDataGenerator))]
+        //public async Task Update_should_pass(ServicePrincipalUpdateTestData testData)
+        //{
+        //    try
+        //    {
+        //        await Update(testData).ConfigureAwait(false);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Assert.True(false, e.Message);
+        //    }
+        //}
 
         /// <summary>
         /// Perform an Evaluate test on the data record.
