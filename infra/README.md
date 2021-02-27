@@ -1,4 +1,5 @@
 - [Introduction](#introduction)
+  - [Service Principal Permissions](#service-principal-permissions)
 - [Prerequisites](#prerequisites)
   - [Login to Azure](#login-to-azure)
 - [The Provisioning Script](#the-provisioning-script)
@@ -49,7 +50,7 @@ On **Ubuntu**, a bash script has been provided to install Terraform (```./instal
 
 ## Login to Azure
 ```bash
-az login -u login@yourdomain.com
+az login 
 
 ###  show your Azure accounts
 az account list -o table
