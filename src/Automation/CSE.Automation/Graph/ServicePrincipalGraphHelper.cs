@@ -16,16 +16,20 @@ namespace CSE.Automation.Graph
 {
     internal class ServicePrincipalGraphHelper : GraphHelperBase<ServicePrincipal>, IServicePrincipalGraphHelper
     {
+        private readonly IObjectTrackingService objectService;
+
         /// <summary>
         /// Constructor for ServicePrincipalGraphHelper
         /// </summary>
         /// <param name="settings">Settings for the graph helper</param>
         /// <param name="auditService">An instance of the Audit Service</param>
+        /// <param name="objectService">An instance of the Object Tracking Service</param>
         /// <param name="graphClient">An instance of a GraphClient</param>
         /// <param name="logger">An instance of an ILogger</param>
-        public ServicePrincipalGraphHelper(GraphHelperSettings settings, IAuditService auditService, IGraphServiceClient graphClient, ILogger<ServicePrincipalGraphHelper> logger)
+        public ServicePrincipalGraphHelper(IGraphHelperSettings settings, IAuditService auditService, IObjectTrackingService objectService, IGraphServiceClient graphClient, ILogger<ServicePrincipalGraphHelper> logger)
                 : base(settings, auditService, graphClient, logger)
         {
+            this.objectService = objectService;
         }
 
         /// <summary>
@@ -54,8 +58,8 @@ namespace CSE.Automation.Graph
                 metrics.Name = GraphOperation.FullSeed;
 
                 collectionPage = await GetGraphSeedRequest()
-                .GetAsync()
-                .ConfigureAwait(false);
+                                        .GetAsync()
+                                        .ConfigureAwait(false);
             }
             else
             {
@@ -68,13 +72,13 @@ namespace CSE.Automation.Graph
                 collectionPage = await collectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
             }
 
-            servicePrincipalList.UnionWith(PruneRemovedOnFirstRun(context, collectionPage, metrics));
+            servicePrincipalList.UnionWith(await PruneRemoved(context, collectionPage, metrics).ConfigureAwait(false));
 
             while (collectionPage.NextPageRequest != null)
             {
                 collectionPage = await collectionPage.NextPageRequest.GetAsync().ConfigureAwait(false);
 
-                servicePrincipalList.UnionWith(PruneRemovedOnFirstRun(context, collectionPage, metrics));
+                servicePrincipalList.UnionWith(await PruneRemoved(context, collectionPage, metrics).ConfigureAwait(false));
             }
 
             logger.LogInformation($"Discovered {servicePrincipalList.Count} delta objects.");
@@ -92,7 +96,7 @@ namespace CSE.Automation.Graph
         /// </summary>
         /// <param name="id">The Service Principal Object Id</param>
         /// <returns>Task returning a Service Principal</returns>
-        public async override Task<ServicePrincipal> GetEntityWithOwners(string id)
+        public async override Task<(ServicePrincipal, IList<User>)> GetEntityWithOwners(string id)
         {
             var entity = await GraphClient.ServicePrincipals[id]
                 .Request()
@@ -100,7 +104,13 @@ namespace CSE.Automation.Graph
                 .GetAsync()
                 .ConfigureAwait(false);
 
-            return entity;
+            var owners = entity
+                            .Owners?
+                            .Where(x => x.GetType() == typeof(User))
+                            .Select(x => (User)x).ToList()
+                                ?? new List<User>();
+
+            return (entity, owners);
         }
 
         /// <summary>
@@ -146,7 +156,7 @@ namespace CSE.Automation.Graph
             config.RunState == RunState.Seed ||
             string.IsNullOrEmpty(config.DeltaLink);
 
-        private IList<ServicePrincipal> PruneRemovedOnFirstRun(ActivityContext context, IServicePrincipalDeltaCollectionPage collectionPage, GraphOperationMetrics metrics)
+        private async Task<IList<ServicePrincipal>> PruneRemoved(ActivityContext context, IServicePrincipalDeltaCollectionPage collectionPage, GraphOperationMetrics metrics)
         {
             IList<ServicePrincipal> pageList = collectionPage.CurrentPage ?? new List<ServicePrincipal>();
             var count = pageList.Count;
@@ -170,6 +180,10 @@ namespace CSE.Automation.Graph
                 code: AuditCode.Deleted,
                 attributeName: "AdditionalData",
                 existingAttributeValue: "@removed"));
+
+            // Update LKG (if exists) for any removed ServicePrincipals
+            await PruneLastKnownGood(context, removedList).ConfigureAwait(false);
+
             logger.LogInformation($"\tTrimmed {removedList.Count} ServicePrincipals.");
             metrics.Removed += removedList.Count;
 
@@ -177,6 +191,26 @@ namespace CSE.Automation.Graph
             pageList = pageList.Where(x => x.AdditionalData.Keys.Contains("@removed") == false).ToList();
 
             return pageList;
+        }
+
+        /// <summary>
+        /// Mark service principals in LKG as deleted
+        /// </summary>
+        /// <param name="context">An instance of ActivityContext</param>
+        /// <param name="list">The list of ServicePrincipals to mark as deleted in LKG</param>
+        /// <returns>An awaitable Task</returns>
+        private async Task PruneLastKnownGood(ActivityContext context, IList<ServicePrincipal> list)
+        {
+            foreach (var item in list)
+            {
+                var trackingModel = await objectService.Get<ServicePrincipalModel>(item.Id).ConfigureAwait(false);
+                if (trackingModel != null)
+                {
+                    trackingModel.Deleted = DateTimeOffset.Now;
+                    trackingModel.State = TrackingState.Untracked;
+                    await objectService.Put(context, trackingModel).ConfigureAwait(false);
+                }
+            }
         }
     }
 }

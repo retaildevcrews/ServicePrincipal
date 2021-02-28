@@ -7,6 +7,7 @@ using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
 using CSE.Automation.KeyVault;
 using CSE.Automation.Model;
+using CSE.Automation.Model.Commands;
 using CSE.Automation.Model.Validators;
 using CSE.Automation.Processors;
 using CSE.Automation.Services;
@@ -143,7 +144,7 @@ namespace CSE.Automation.Tests.IntegrationTests
 
             string displayNamePatternFilter = _config["displayNamePatternFilter"];
 
-            _graphHelper = new ServicePrincipalGraphHelperTest(_graphHelperSettings, _auditService, graphClient, displayNamePatternFilter, _spGraphHelperLogger);
+            _graphHelper = new ServicePrincipalGraphHelperTest(_graphHelperSettings, _auditService, _objectService, graphClient, displayNamePatternFilter, _spGraphHelperLogger);
 
 
             _builder = new ServiceCollection();

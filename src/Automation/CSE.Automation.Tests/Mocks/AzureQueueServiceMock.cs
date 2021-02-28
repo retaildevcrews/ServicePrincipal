@@ -7,7 +7,7 @@ using CSE.Automation.Model;
 
 namespace CSE.Automation.Tests.Mocks
 {
-    internal class DefaultAzureQueueService<TEntity> : IAzureQueueService 
+    internal class AzureQueueServiceMock<TEntity> : IAzureQueueService 
     {
         public List<QueueMessage<TEntity>> Data { get; set; } = new List<QueueMessage<TEntity>>();
 

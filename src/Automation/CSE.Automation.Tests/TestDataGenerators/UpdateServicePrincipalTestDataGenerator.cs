@@ -6,19 +6,20 @@ using CSE.Automation.Model;
 
 namespace CSE.Automation.Tests.TestDataGenerators
 {
-    public class UpdateServicePrincipalTestData : IEnumerable<object[]>
+    public class UpdateServicePrincipalTestDataGenerator : IEnumerable<object[]>
     {
 
         public IEnumerator<object[]> GetEnumerator()
         {
-            yield return new object[]
-            {
-                //new ServicePrincipalUpdateTestData
-                //{
+            //yield return new object[]
+            //{
+            //    //new ServicePrincipalUpdateTestData
+            //    //{
 
-                //}
+            //    //}
 
-            };
+            //};
+            yield break;
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

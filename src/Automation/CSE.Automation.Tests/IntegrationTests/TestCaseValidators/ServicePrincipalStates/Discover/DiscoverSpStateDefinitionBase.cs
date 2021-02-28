@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using CSE.Automation.Model;
+using CSE.Automation.Model.Commands;
 using CSE.Automation.Tests.IntegrationTests.TestCaseValidators.ConfigurationResults;
 using CSE.Automation.Tests.IntegrationTests.TestCaseValidators.Helpers;
 using CSE.Automation.Tests.IntegrationTests.TestCaseValidators.TestCases;

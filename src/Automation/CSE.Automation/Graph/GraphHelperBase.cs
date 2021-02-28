@@ -17,14 +17,13 @@ namespace CSE.Automation.Graph
 {
     internal abstract class GraphHelperBase<TEntity> : IGraphHelper<TEntity>
     {
-        protected IGraphServiceClient GraphClient { get; }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1051:Do not declare visible instance fields", Justification = "Used to super-classes")]
         protected readonly ILogger logger;
-        protected readonly GraphHelperSettings settings;
+        protected readonly IGraphHelperSettings settings;
         protected IAuditService auditService;
 
-        protected GraphHelperBase(GraphHelperSettings settings, IAuditService auditService, IGraphServiceClient graphClient, ILogger logger)
+        protected IGraphServiceClient GraphClient { get; }
+
+        protected GraphHelperBase(IGraphHelperSettings settings, IAuditService auditService, IGraphServiceClient graphClient, ILogger logger)
         {
             this.settings = settings;
             this.auditService = auditService;
@@ -33,7 +32,7 @@ namespace CSE.Automation.Graph
         }
 
         public abstract Task<(GraphOperationMetrics metrics, IEnumerable<TEntity> data)> GetDeltaGraphObjects(ActivityContext context, ProcessorConfiguration config);
-        public abstract Task<TEntity> GetEntityWithOwners(string id);
+        public abstract Task<(TEntity, IList<User>)> GetEntityWithOwners(string id);
         public abstract Task PatchGraphObject(TEntity entity);
     }
 }

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using CSE.Automation.Model;
+using CSE.Automation.Model.Commands;
 using CSE.Automation.Tests.IntegrationTests.TestCaseValidators.Helpers;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Queue;
@@ -126,7 +127,7 @@ namespace CSE.Automation.Tests.IntegrationTests.TestCaseValidators.ServicePrinci
                 {
                     if (msg != null && !string.IsNullOrEmpty(msg.AsString))
                     {
-                        var command = JsonConvert.DeserializeObject<QueueMessage<EvaluateServicePrincipalCommand>>(msg.AsString).Document;
+                        var command = JsonConvert.DeserializeObject<QueueMessage<ServicePrincipalEvaluateCommand>>(msg.AsString).Document;
 
                         lock (foundLock)// needed for Parallel foreach only
                         {
@@ -169,7 +170,7 @@ namespace CSE.Automation.Tests.IntegrationTests.TestCaseValidators.ServicePrinci
                 {
                     if (msg != null && !string.IsNullOrEmpty(msg.AsString))
                     {
-                        var command = JsonConvert.DeserializeObject<QueueMessage<EvaluateServicePrincipalCommand>>(msg.AsString).Document;
+                        var command = JsonConvert.DeserializeObject<QueueMessage<ServicePrincipalEvaluateCommand>>(msg.AsString).Document;
 
                         lock (foundLock)// needed for Parallel foreach only
                         {

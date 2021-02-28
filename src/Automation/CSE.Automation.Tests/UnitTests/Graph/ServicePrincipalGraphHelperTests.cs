@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
+using CSE.Automation.Tests.Mocks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -51,7 +52,8 @@ namespace CSE.Automation.Tests.UnitTests
                         .AddSingleton<ISecretClient>(Substitute.For<ISecretClient>())
                         .AddSingleton<IAuditService>(Substitute.For<IAuditService>())
                         .AddSingleton<IGraphServiceClient>(graphClient)
-                        .AddTransient<GraphHelperSettings>()
+                        .AddSingleton<IObjectTrackingService, ObjectTrackingServiceMock>()
+                        .AddTransient<IGraphHelperSettings, GraphHelperSettings>()
                         .AddScoped<IGraphHelper<ServicePrincipal>, ServicePrincipalGraphHelper>();
                 });
 

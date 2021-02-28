@@ -25,19 +25,21 @@ namespace CSE.Automation.Graph
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Ignore all errors and return null")]
-        public async override Task<User> GetEntityWithOwners(string id)
+        public async override Task<(User, IList<User>)> GetEntityWithOwners(string id)
         {
             try
             {
-                var value = await GraphClient.Users[id]
+                var sp = await GraphClient.Users[id]
                     .Request()
                     .GetAsync()
                     .ConfigureAwait(false);
-                return value;
+
+                var owners = new List<User>();
+                return (sp, owners);
             }
             catch (Exception)
             {
-                return null;
+                return (null, null);
             }
         }
 

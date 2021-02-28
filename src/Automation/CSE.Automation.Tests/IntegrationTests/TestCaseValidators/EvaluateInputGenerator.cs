@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using CSE.Automation.Graph;
 using CSE.Automation.Model;
+using CSE.Automation.Model.Commands;
 using CSE.Automation.Tests.IntegrationTests.TestCaseValidators.TestCases;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -21,10 +22,10 @@ namespace CSE.Automation.Tests.IntegrationTests.TestCaseValidators
         
         public byte[] GetTestMessageContent(ActivityContext activityContext)
         {
-            var myMessage = new QueueMessage<EvaluateServicePrincipalCommand>()
+            var myMessage = new QueueMessage<ServicePrincipalEvaluateCommand>()
             {
                 QueueMessageType = QueueMessageType.Data,
-                Document = new EvaluateServicePrincipalCommand
+                Document = new ServicePrincipalEvaluateCommand
                 {
                     CorrelationId = activityContext.CorrelationId, 
                     Model = GetServicePrincipalWrapper().SPModel,
