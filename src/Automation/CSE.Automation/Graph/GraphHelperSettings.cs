@@ -31,6 +31,8 @@ namespace CSE.Automation.Graph
         [Secret(Constants.GraphAppClientSecretKey)]
         public string GraphAppClientSecret => GetSecret();
 
+        public bool VerboseLogging { get; set; }
+
         public override void Validate()
         {
             if (this.GraphAppClientId.IsNull())

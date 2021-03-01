@@ -126,9 +126,13 @@ namespace CSE.Automation
                 .AddSingleton<VersionMetadata>(versionMetadata)
                 .AddSingleton(credServiceSettings)
                 .AddSingleton(secretServiceSettings)
-                .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<SecretServiceSettings>())
+                .AddTransient<ISettingsValidator>(provider => provider.GetRequiredService<SecretServiceSettings>())
 
-                .AddTransient<GraphHelperSettings>(x => new GraphHelperSettings(x.GetRequiredService<ISecretClient>()))
+                .AddSingleton<GraphHelperSettings>(x => new GraphHelperSettings(x.GetRequiredService<ISecretClient>())
+                {
+                    VerboseLogging = bool.TryParse(config[Constants.GraphAppVerboseLogging], out bool value) && value,
+                })
+                .AddSingleton<IGraphHelperSettings>(provider => provider.GetRequiredService<GraphHelperSettings>())
                 .AddTransient<ISettingsValidator, GraphHelperSettings>()
 
                 .AddSingleton<ConfigRespositorySettings>(x => new ConfigRespositorySettings(x.GetRequiredService<ISecretClient>())
@@ -138,7 +142,7 @@ namespace CSE.Automation
                     DatabaseName = config[Constants.CosmosDBDatabaseName],
                     CollectionName = config[Constants.CosmosDBConfigCollectionName],
                 })
-                .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ConfigRespositorySettings>())
+                .AddTransient<ISettingsValidator>(provider => provider.GetRequiredService<ConfigRespositorySettings>())
 
                 .AddSingleton<AuditRepositorySettings>(x => new AuditRepositorySettings(x.GetRequiredService<ISecretClient>())
                 {
@@ -147,7 +151,7 @@ namespace CSE.Automation
                     DatabaseName = config[Constants.CosmosDBDatabaseName],
                     CollectionName = config[Constants.CosmosDBAuditCollectionName],
                 })
-                .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<AuditRepositorySettings>())
+                .AddTransient<ISettingsValidator>(provider => provider.GetRequiredService<AuditRepositorySettings>())
 
                 .AddSingleton<ObjectTrackingRepositorySettings>(x => new ObjectTrackingRepositorySettings(x.GetRequiredService<ISecretClient>())
                 {
@@ -156,7 +160,7 @@ namespace CSE.Automation
                     DatabaseName = config[Constants.CosmosDBDatabaseName],
                     CollectionName = config[Constants.CosmosDBObjectTrackingCollectionName],
                 })
-                .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ObjectTrackingRepositorySettings>())
+                .AddTransient<ISettingsValidator>(provider => provider.GetRequiredService<ObjectTrackingRepositorySettings>())
 
                 .AddSingleton<ActivityHistoryRepositorySettings>(x => new ActivityHistoryRepositorySettings(x.GetRequiredService<ISecretClient>())
                 {
@@ -165,7 +169,7 @@ namespace CSE.Automation
                     DatabaseName = config[Constants.CosmosDBDatabaseName],
                     CollectionName = config[Constants.CosmosDBActivityHistoryCollectionName],
                 })
-                .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ActivityHistoryRepositorySettings>())
+                .AddTransient<ISettingsValidator>(provider => provider.GetRequiredService<ActivityHistoryRepositorySettings>())
 
                 .AddSingleton(x => new ServicePrincipalProcessorSettings(x.GetRequiredService<ISecretClient>())
                 {
@@ -179,7 +183,7 @@ namespace CSE.Automation
                     AADUpdateMode = config["aadUpdateMode"].As<UpdateMode>(UpdateMode.Update),
                 })
                 .AddSingleton<IServicePrincipalProcessorSettings>(provider => provider.GetRequiredService<ServicePrincipalProcessorSettings>())
-                .AddSingleton<ISettingsValidator>(provider => provider.GetRequiredService<ServicePrincipalProcessorSettings>());
+                .AddTransient<ISettingsValidator>(provider => provider.GetRequiredService<ServicePrincipalProcessorSettings>());
         }
 
         private void ValidateSettings(IFunctionsHostBuilder builder)

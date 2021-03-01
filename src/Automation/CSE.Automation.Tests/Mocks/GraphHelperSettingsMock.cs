@@ -10,6 +10,8 @@ namespace CSE.Automation.Tests.Mocks
         public string GraphAppClientId { get; }
         public string GraphAppTenantId { get; }
         public string GraphAppClientSecret { get; }
+        public bool VerboseLogging { get; }
+
         public void Validate()
         {
             

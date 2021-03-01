@@ -8,6 +8,7 @@ namespace CSE.Automation.Graph
         string GraphAppClientId { get; }
         string GraphAppTenantId { get; }
         string GraphAppClientSecret { get; }
+        bool VerboseLogging { get;  }
         void Validate();
     }
 }
