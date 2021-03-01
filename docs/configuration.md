@@ -60,25 +60,25 @@ The production environment uses Function Configuration, appSettings.Production.j
 Name                        | Description | Category | Source | DataType | Values | Default Value
 ----------------------------|-------------|----------|--------|----------|--------|--------
  AUTH_TYPE                  | Authentication type for Azure resource access | NonSecret | Function Configuration / Environment | X | MI | CLI, MI, VS  
- KEYVAULT_NAME              | X | NonSecret | Function Configuration | string | - | Set by Terraform
- graphAppClientId           | X | Secret    | KeyVault | Guid | - | Set by Terraform  
- graphAppTenantId           | X | Secret    | KeyVault | Guid | - | Set by Terraform   
- graphAppClientSecret       | X | Secret    | KeyVault | string | - | Set by Terraform    
- SPCosmosKey                | X | Secret    | KeyVault | string | - | Set by Terraform   
- SPCosmosURL                | X | NonSecret | Function Configuration | string | - | Set by Terraform   
- SPCosmosDatabase           | X | NonSecret | Function Configuration | string | - | Set by Terraform   
- SPConfigurationCollection  | X | NonSecret | Function Configuration | string | - | Set by Terraform   
- SPAuditCollection          | X | NonSecret | Function Configuration | string | - | Audit   
- SPObjectTrackingCollection | X | NonSecret | Function Configuration | string | - | ObjectTracking   
- SPActivityHistoryCollection| X | NonSecret | Function Configuration | string | - | ActivityHistory   
- SPStorageConnectionString  | X | Secret    | KeyVault | string | - | Set by Terraform   
- SPDiscoverQueue            | X | NonSecret | Function Configuration | string | - | discover   
- SPEvaluateQueue            | X | NonSecret | Function Configuration | string | - | evaluate     
- SPUpdateQueue              | X | NonSecret | Function Configuration | string | - | update   
- SPDeltaDiscoverySchedule   | X | NonSecret | Function Configuration | string | - | 0 */30 * * * * <br />(See [NCHRON](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-timer?tabs=csharp#ncrontab-expressions))   
- configId                   | X | NonSecret | appSettings.X.json | Guid | - | 02a54ac9-441e-43f1-88ee-fde420db2559   
- aadUpdateMode              | X | NonSecret | Function Configuration | Enum | Update, ReportOnly | Update   
- visibilityDelayGapSeconds  | X | NonSecret | appSettings.X.json | X | - | 8   
- queueRecordProcessThreshold| X | NonSecret | appSettings.X.json | X | - | 10   
-
+ KEYVAULT_NAME              | Name of the keyvault where configuration secrets are stored | NonSecret | Function Configuration | string | - | Set by Terraform
+ graphAppClientId           | Client Id used to connect to the Graph API | Secret    | KeyVault | Guid | - | Set by Terraform  
+ graphAppTenantId           | Tenant Id use to connect to the Graph API | Secret    | KeyVault | Guid | - | Set by Terraform   
+ graphAppClientSecret       | Client Secret used to connect to the Graph API | Secret    | KeyVault | string | - | Set by Terraform    
+ SPCosmosKey                | Secret used to connect to CosmosDB | Secret    | KeyVault | string | - | Set by Terraform   
+ SPCosmosURL                | URI of CosmosDB instance | NonSecret | Function Configuration | string | - | Set by Terraform   
+ SPCosmosDatabase           | Name of the CosmosDB instance | NonSecret | Function Configuration | string | - | Set by Terraform   
+ SPConfigurationCollection  | Name of the collection in CosmosDB containing processor configuration | NonSecret | Function Configuration | string | - | Set by Terraform   
+ SPAuditCollection          | Name of the collection in CosmosDB containing Audit records | NonSecret | Function Configuration | string | - | Audit   
+ SPObjectTrackingCollection | Name of the collection in CosmosDB containing the Last Known Good (LKG) state of ServicePrincipals (non-authoritative) | NonSecret | Function Configuration | string | - | ObjectTracking   
+ SPActivityHistoryCollection| Name of the collection in CosmosDB containing activity tracking history | NonSecret | Function Configuration | string | - | ActivityHistory   
+ SPStorageConnectionString  | Connection string to connect to Storage Account (for Queues) | Secret    | KeyVault | string | - | Set by Terraform   
+ SPDiscoverQueue            | Name of the queue for Discover messages | NonSecret | Function Configuration | string | - | discover   
+ SPEvaluateQueue            | Name of the queue for Evaluate messages | NonSecret | Function Configuration | string | - | evaluate     
+ SPUpdateQueue              | Name of the queue for Update messages | NonSecret | Function Configuration | string | - | update   
+ SPDeltaDiscoverySchedule   | Timer schedule for Delta Discovery requests | NonSecret | Function Configuration | string | - | 0 */30 * * * * <br />(See [NCHRON](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-timer?tabs=csharp#ncrontab-expressions))   
+ configId                   | Guid for instance of ServicePrincipal Processor, used to find configuration in Config collection in CosmosDB | NonSecret | appSettings.X.json | Guid | - | 02a54ac9-441e-43f1-88ee-fde420db2559   
+ aadUpdateMode              | Used to control the behavior of the Update logic | NonSecret | Function Configuration | Enum | Update, ReportOnly | Update   
+ visibilityDelayGapSeconds  | Throttle for messages going into Evaluate queue | NonSecret | appSettings.X.json | X | - | 8   
+ queueRecordProcessThreshold| Number of queue messages to process in a batch | NonSecret | appSettings.X.json | X | - | 10   
+ verboseLogging             | If set to true, all ServicePrincipals retrieved during Discovery will be emitted to the Debug log | NonSecret | Function Configuration | X | true, false | false
 
