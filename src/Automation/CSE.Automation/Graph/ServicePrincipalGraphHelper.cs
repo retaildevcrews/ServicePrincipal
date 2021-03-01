@@ -159,7 +159,7 @@ namespace CSE.Automation.Graph
 
         private async Task<IList<ServicePrincipal>> PruneRemoved(ActivityContext context, IServicePrincipalDeltaCollectionPage collectionPage, GraphOperationMetrics metrics)
         {
-            List<ServicePrincipal> pageList = collectionPage.CurrentPage.ToList() ?? new List<ServicePrincipal>();
+            List<ServicePrincipal> pageList = collectionPage.CurrentPage?.ToList() ?? new List<ServicePrincipal>();
             var count = pageList.Count;
 
             metrics.Considered += count;
