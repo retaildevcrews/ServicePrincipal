@@ -9,6 +9,7 @@ using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
+using Newtonsoft.Json;
 
 #pragma warning disable CA1031 // Do not catch general exception types
 
@@ -158,12 +159,19 @@ namespace CSE.Automation.Graph
 
         private async Task<IList<ServicePrincipal>> PruneRemoved(ActivityContext context, IServicePrincipalDeltaCollectionPage collectionPage, GraphOperationMetrics metrics)
         {
-            IList<ServicePrincipal> pageList = collectionPage.CurrentPage ?? new List<ServicePrincipal>();
+            List<ServicePrincipal> pageList = collectionPage.CurrentPage?.ToList() ?? new List<ServicePrincipal>();
             var count = pageList.Count;
 
             metrics.Considered += count;
 
             logger.LogDebug($"\tDiscovered {count} Service Principals");
+            if (settings.VerboseLogging)
+            {
+                pageList.ForEach(sp =>
+                {
+                    logger.LogDebug("{ServicePrincipal}", JsonConvert.SerializeObject(sp, Formatting.None));
+                });
+            }
 
             // Build secondary list of elements that were removed from the directory
             List<ServicePrincipal> removedList = pageList.Where(x => x.AdditionalData.Keys.Contains("@removed")).ToList();

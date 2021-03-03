@@ -13,6 +13,7 @@ namespace CSE.Automation
         public const string GraphAppClientIdKey = "graphAppClientId";
         public const string GraphAppTenantIdKey = "graphAppTenantId";
         public const string GraphAppClientSecretKey = "graphAppClientSecret";
+        public const string GraphAppVerboseLogging = "verboseLogging";
 
         // CosmosDB Constants
         public const int DefaultPageSize = 100;
