@@ -26,6 +26,7 @@ namespace CSE.Automation
         private readonly IActivityService activityService;
         private readonly IServicePrincipalProcessor processor;
         private readonly ILogger logger;
+        private readonly JsonSerializerSettings httpJsonSerializerSettings;
 
         public GraphDeltaProcessor(VersionMetadata versionMetadata, IServiceProvider serviceProvider, IActivityService activityService, IServicePrincipalProcessor processor, ILogger<GraphDeltaProcessor> logger)
         {
@@ -33,6 +34,11 @@ namespace CSE.Automation
             this.activityService = activityService;
             this.processor = processor;
             this.logger = logger;
+            this.httpJsonSerializerSettings = new JsonSerializerSettings()
+            {
+                Formatting = Formatting.None,
+                NullValueHandling = NullValueHandling.Ignore,
+            };
 
             ValidateServices(serviceProvider);
         }
@@ -78,7 +84,7 @@ namespace CSE.Automation
 
                 return hasRedirect
                         ? new RedirectResult($"{uriBuilder.Uri}")
-                        : (IActionResult)new JsonResult(result);
+                        : (IActionResult)new JsonResult(result, httpJsonSerializerSettings);
             }
             catch (Exception ex)
             {
@@ -308,7 +314,7 @@ namespace CSE.Automation
                     context.ElapsedTime,
                 };
 
-                return new JsonResult(result);
+                return new JsonResult(result, httpJsonSerializerSettings);
             }
             catch (Exception ex)
             {
@@ -332,7 +338,7 @@ namespace CSE.Automation
         public Task<IActionResult> Version([HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
         {
             log.LogInformation(this.versionMetadata.ProductVersion);
-            return Task.FromResult((IActionResult)new JsonResult(this.versionMetadata));
+            return Task.FromResult((IActionResult)new JsonResult(this.versionMetadata), httpJsonSerializerSettings);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Ensure graceful return under all trappable error conditions.")]
