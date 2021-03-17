@@ -338,7 +338,7 @@ namespace CSE.Automation
         public Task<IActionResult> Version([HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
         {
             log.LogInformation(this.versionMetadata.ProductVersion);
-            return Task.FromResult((IActionResult)new JsonResult(this.versionMetadata), httpJsonSerializerSettings);
+            return Task.FromResult((IActionResult)new JsonResult(this.versionMetadata, httpJsonSerializerSettings));
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Ensure graceful return under all trappable error conditions.")]
