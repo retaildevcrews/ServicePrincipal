@@ -142,7 +142,7 @@ namespace CSE.Automation
                 log.LogDebug($"Executing Discover QueueTrigger Function - [{context.CorrelationId}/{context.Activity.Id}]");
 
                 context.Activity.CommandSource = command.Source;
-                context.WithProcessorLock(processor);
+                context.WithProcessorLock(processor).AsStatus(ActivityHistoryStatus.Running);
             }
             catch (Exception ex)
             {
