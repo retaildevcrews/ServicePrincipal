@@ -81,7 +81,7 @@ namespace CSE.Automation.Model
             this.Activity.Status = status;
             this.Activity.Message = message;
 
-            activityService.Put(this.Activity);
+            activityService?.Put(this.Activity);
 
             return this;
         }

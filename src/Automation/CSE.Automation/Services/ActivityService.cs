@@ -56,10 +56,11 @@ namespace CSE.Automation.Services
         /// Create an instance of an ActivityHistory model
         /// </summary>
         /// <param name="name">Name of the activity</param>
+        /// <param name="source">Source of the activity create request</param>
         /// <param name="correlationId">Correlation ObjectId of the activity</param>
         /// <param name="withTracking">True if the activity is tracked in ActivityHistory</param>
         /// <returns>A new instance of <see cref="ActivityHistory"/>.</returns>
-        public ActivityContext CreateContext(string name, string correlationId = null, bool withTracking = false)
+        public ActivityContext CreateContext(string name, string source, string correlationId = null, bool withTracking = false)
         {
             var now = DateTimeOffset.Now;
 
@@ -71,6 +72,7 @@ namespace CSE.Automation.Services
                 Created = now,
                 Name = name,
                 Status = ActivityHistoryStatus.Running,
+                CommandSource = source,
             };
 
             // we need the id of the run when we initiate

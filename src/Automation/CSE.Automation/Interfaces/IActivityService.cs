@@ -16,6 +16,6 @@ namespace CSE.Automation.Interfaces
         Task<ActivityHistory> Put(ActivityHistory document);
         Task<ActivityHistory> Get(string id);
         Task<IEnumerable<ActivityHistory>> GetCorrelated(string correlationId);
-        ActivityContext CreateContext(string name, string correlationId = null, bool withTracking = false);
+        ActivityContext CreateContext(string name, string source, string correlationId = null, bool withTracking = false);
     }
 }

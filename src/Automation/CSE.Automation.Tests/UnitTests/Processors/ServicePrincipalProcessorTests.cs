@@ -199,7 +199,7 @@ namespace CSE.Automation.Tests.UnitTests.Processors
 
             var activityService = fixture.Host.Services.GetService<IActivityService>() as DefaultActivityService;
             Assert.NotNull(activityService);
-            var context = activityService.CreateContext("Test Case");
+            var context = activityService.CreateContext("Test Case", "Evaluate TEST");
 
             await processor.Evaluate(context, testData.Target).ConfigureAwait(false);
 
@@ -338,7 +338,7 @@ namespace CSE.Automation.Tests.UnitTests.Processors
 
             var activityService = fixture.Host.Services.GetService<IActivityService>() as DefaultActivityService;
             Assert.NotNull(activityService);
-            var context = activityService.CreateContext("Test Case").WithCorrelationId(testData.Target.CorrelationId);
+            var context = activityService.CreateContext("Test Case", "Discover TEST").WithCorrelationId(testData.Target.CorrelationId);
 
             await processor.DiscoverDeltas(context, testData.Target.DiscoveryMode == DiscoveryMode.FullSeed);
 

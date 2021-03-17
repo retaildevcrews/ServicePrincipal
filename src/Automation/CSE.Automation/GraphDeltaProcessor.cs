@@ -135,14 +135,13 @@ namespace CSE.Automation
             }
 
             var operation = command.DiscoveryMode.Description();
-            using var context = activityService.CreateContext(operation, correlationId: command.CorrelationId, withTracking: true);
+            using var context = activityService.CreateContext(operation, command.Source, correlationId: command.CorrelationId, withTracking: true);
 
             try
             {
                 log.LogDebug($"Executing Discover QueueTrigger Function - [{context.CorrelationId}/{context.Activity.Id}]");
 
-                context.Activity.CommandSource = command.Source;
-                context.WithProcessorLock(processor).AsStatus(ActivityHistoryStatus.Running);
+                context.WithProcessorLock(processor);
             }
             catch (Exception ex)
             {
@@ -197,8 +196,7 @@ namespace CSE.Automation
             ActivityContext context = null;
             try
             {
-                context = activityService.CreateContext("Evaluate Service Principal", command.CorrelationId);
-                context.Activity.CommandSource = "QUEUE";
+                context = activityService.CreateContext("Evaluate Service Principal", "QUEUE", command.CorrelationId);
 
                 await processor.Evaluate(context, command.Model).ConfigureAwait(false);
 
@@ -251,8 +249,7 @@ namespace CSE.Automation
             ActivityContext context = null;
             try
             {
-                context = activityService.CreateContext("Update Service Principal", command.CorrelationId);
-                context.Activity.CommandSource = "QUEUE";
+                context = activityService.CreateContext("Update Service Principal", "QUEUE", command.CorrelationId);
 
                 var message = JsonConvert.DeserializeObject<QueueMessage<ServicePrincipalUpdateCommand>>(msg.AsString);
 
@@ -291,7 +288,7 @@ namespace CSE.Automation
             var activityId = req.Query["activityId"];
             var correlationId = req.Query["correlationId"];
 
-            using var context = activityService.CreateContext("Activities", withTracking: false);
+            using var context = activityService.CreateContext("Activities", "HTTP", withTracking: false);
             try
             {
                 log.LogDebug("Executing ActivityStatus HttpTrigger Function");
@@ -345,9 +342,8 @@ namespace CSE.Automation
 
             try
             {
-                context = activityService.CreateContext($"{discoveryMode.Description()} Request", withTracking: true);
+                context = activityService.CreateContext($"{discoveryMode.Description()} Request", source, withTracking: true);
 
-                context.Activity.CommandSource = source;
                 await processor.RequestDiscovery(context, discoveryMode, source).ConfigureAwait(false);
                 var result = new
                 {
@@ -363,14 +359,15 @@ namespace CSE.Automation
             }
             catch (Exception ex)
             {
+                var message = $"Failed to request Discovery {discoveryMode}";
+
                 if (context != null)
                 {
                     context.Activity.Status = ActivityHistoryStatus.Failed;
-
+                    context.Activity.Message = message;
                     ex.Data["activityContext"] = context;
                 }
 
-                var message = $"Failed to request Discovery {discoveryMode}";
                 log.LogError(ex, message);
 
                 throw;
