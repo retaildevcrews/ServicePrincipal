@@ -146,13 +146,11 @@ namespace CSE.Automation
             }
             catch (Exception ex)
             {
-                if (context != null)
-                {
-                    context.Activity.Status = ActivityHistoryStatus.Failed;
-                }
-
                 ex.Data["activityContext"] = context;
                 log.LogError(ex, Resources.LockConflictMessage);
+
+                context?.AsStatus(ActivityHistoryStatus.Failed, Resources.LockConflictMessage);
+
                 return; // this will delete the message, we don't want to retry
             }
 
@@ -164,10 +162,10 @@ namespace CSE.Automation
             }
             catch (Exception ex)
             {
-                context.Activity.Status = ActivityHistoryStatus.Failed;
-
                 ex.Data["activityContext"] = context;
                 log.LogError(ex, Resources.ServicePrincipalDiscoverException);
+
+                context?.AsStatus(ActivityHistoryStatus.Failed, Resources.ServicePrincipalDiscoverException);
             }
         }
 

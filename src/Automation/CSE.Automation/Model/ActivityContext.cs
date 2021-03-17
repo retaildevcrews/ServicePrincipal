@@ -44,7 +44,7 @@ namespace CSE.Automation.Model
                 throw new ArgumentOutOfRangeException(nameof(status));
             }
 
-            this.Activity.Status = ActivityHistoryStatus.Completed;
+            AsStatus(ActivityHistoryStatus.Completed);
 
             if (Timer is null)
             {
@@ -65,10 +65,24 @@ namespace CSE.Automation.Model
                 throw new ArgumentNullException(nameof(deltaProcessor));
             }
 
+            // Lock the configuration
             deltaProcessor.Lock(this.Activity.Id).Wait();
+
+            // Mark the activity as running
+            AsStatus(ActivityHistoryStatus.Running);
 
             isLocked = true;
             processor = deltaProcessor;
+            return this;
+        }
+
+        public ActivityContext AsStatus(ActivityHistoryStatus status, string message = default)
+        {
+            this.Activity.Status = status;
+            this.Activity.Message = message;
+
+            activityService.Put(this.Activity);
+
             return this;
         }
 
