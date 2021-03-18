@@ -72,7 +72,7 @@ namespace CSE.Automation
             var serviceProvider = new ServiceCollection()
                 .AddLogging(builder =>
                 {
-                    builder.AddConsole();
+                    // builder.AddConsole();
                     builder.AddDebug();
                 })
                 .BuildServiceProvider();

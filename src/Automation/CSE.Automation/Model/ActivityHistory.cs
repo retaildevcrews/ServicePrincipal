@@ -33,6 +33,11 @@ namespace CSE.Automation.Model
         public ActivityHistoryStatus Status { get; set; }
 
         /// <summary>
+        /// Gets or sets a message in case of a Status of Failed.
+        /// </summary>
+        public string Message { get; set; }
+
+        /// <summary>
         /// Gets or sets the metrics for the run
         /// </summary>
         public IDictionary<string, object> Metrics { get; set; } = new Dictionary<string, object>();

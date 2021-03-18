@@ -34,7 +34,7 @@ namespace CSE.Automation.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public ActivityContext CreateContext(string name, string correlationId = null, bool withTracking = false)
+        public ActivityContext CreateContext(string name, string source, string correlationId = null, bool withTracking = false)
         {
             var now = DateTimeOffset.Now;
 
@@ -46,6 +46,7 @@ namespace CSE.Automation.Tests.Mocks
                 Created = now,
                 Name = name,
                 Status = ActivityHistoryStatus.Running,
+                CommandSource = source,
             };
 
             // we need the id of the run when we initiate

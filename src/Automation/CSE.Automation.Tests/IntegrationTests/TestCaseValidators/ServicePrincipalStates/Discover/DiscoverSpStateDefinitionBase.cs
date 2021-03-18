@@ -62,7 +62,7 @@ namespace CSE.Automation.Tests.IntegrationTests.TestCaseValidators.ServicePrinci
 
             TestCase thisTestCase = testCaseCollection.TC1;
 
-            using var activityContext = GraphDeltaProcessorHelper.ActivityServiceInstance.CreateContext($"Nested execution Integration Test - Test Case [{thisTestCase}] ", withTracking: true);
+            using var activityContext = GraphDeltaProcessorHelper.ActivityServiceInstance.CreateContext($"Nested execution Integration Test - Test Case [{thisTestCase}] ", "TEST", withTracking: true);
 
             GraphDeltaProcessorHelper.DeleteDynamicCreatedServicePrincipals = false;
             string mainTestCaseConfigId  = GraphDeltaProcessorHelper.MainTestCaseConfigId;

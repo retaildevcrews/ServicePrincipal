@@ -6,6 +6,5 @@
     "SPDeltaDiscoverySchedule": "0 */30 * * * *",
     "SPDiscoverQueue": "discoverqa",
     "SPEvaluateQueue": "evaluateqa",
-    "SPUpdateQueue": "updateqa",
-    "aadUpdateMode": "ReportOnly"
+    "SPUpdateQueue": "updateqa"
 }

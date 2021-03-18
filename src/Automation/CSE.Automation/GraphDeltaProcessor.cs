@@ -26,6 +26,7 @@ namespace CSE.Automation
         private readonly IActivityService activityService;
         private readonly IServicePrincipalProcessor processor;
         private readonly ILogger logger;
+        private readonly JsonSerializerSettings httpJsonSerializerSettings;
 
         public GraphDeltaProcessor(VersionMetadata versionMetadata, IServiceProvider serviceProvider, IActivityService activityService, IServicePrincipalProcessor processor, ILogger<GraphDeltaProcessor> logger)
         {
@@ -33,6 +34,11 @@ namespace CSE.Automation
             this.activityService = activityService;
             this.processor = processor;
             this.logger = logger;
+            this.httpJsonSerializerSettings = new JsonSerializerSettings()
+            {
+                Formatting = Formatting.None,
+                NullValueHandling = NullValueHandling.Ignore,
+            };
 
             ValidateServices(serviceProvider);
         }
@@ -78,7 +84,7 @@ namespace CSE.Automation
 
                 return hasRedirect
                         ? new RedirectResult($"{uriBuilder.Uri}")
-                        : (IActionResult)new JsonResult(result);
+                        : (IActionResult)new JsonResult(result, httpJsonSerializerSettings);
             }
             catch (Exception ex)
             {
@@ -135,24 +141,21 @@ namespace CSE.Automation
             }
 
             var operation = command.DiscoveryMode.Description();
-            using var context = activityService.CreateContext(operation, correlationId: command.CorrelationId, withTracking: true);
+            using var context = activityService.CreateContext(operation, command.Source, correlationId: command.CorrelationId, withTracking: true);
 
             try
             {
                 log.LogDebug($"Executing Discover QueueTrigger Function - [{context.CorrelationId}/{context.Activity.Id}]");
 
-                context.Activity.CommandSource = command.Source;
                 context.WithProcessorLock(processor);
             }
             catch (Exception ex)
             {
-                if (context != null)
-                {
-                    context.Activity.Status = ActivityHistoryStatus.Failed;
-                }
-
                 ex.Data["activityContext"] = context;
                 log.LogError(ex, Resources.LockConflictMessage);
+
+                context?.AsStatus(ActivityHistoryStatus.Failed, Resources.LockConflictMessage);
+
                 return; // this will delete the message, we don't want to retry
             }
 
@@ -164,10 +167,10 @@ namespace CSE.Automation
             }
             catch (Exception ex)
             {
-                context.Activity.Status = ActivityHistoryStatus.Failed;
-
                 ex.Data["activityContext"] = context;
                 log.LogError(ex, Resources.ServicePrincipalDiscoverException);
+
+                context?.AsStatus(ActivityHistoryStatus.Failed, Resources.ServicePrincipalDiscoverException);
             }
         }
 
@@ -199,8 +202,7 @@ namespace CSE.Automation
             ActivityContext context = null;
             try
             {
-                context = activityService.CreateContext("Evaluate Service Principal", command.CorrelationId);
-                context.Activity.CommandSource = "QUEUE";
+                context = activityService.CreateContext("Evaluate Service Principal", "QUEUE", command.CorrelationId);
 
                 await processor.Evaluate(context, command.Model).ConfigureAwait(false);
 
@@ -253,8 +255,7 @@ namespace CSE.Automation
             ActivityContext context = null;
             try
             {
-                context = activityService.CreateContext("Update Service Principal", command.CorrelationId);
-                context.Activity.CommandSource = "QUEUE";
+                context = activityService.CreateContext("Update Service Principal", "QUEUE", command.CorrelationId);
 
                 var message = JsonConvert.DeserializeObject<QueueMessage<ServicePrincipalUpdateCommand>>(msg.AsString);
 
@@ -293,7 +294,7 @@ namespace CSE.Automation
             var activityId = req.Query["activityId"];
             var correlationId = req.Query["correlationId"];
 
-            using var context = activityService.CreateContext("Activities", withTracking: false);
+            using var context = activityService.CreateContext("Activities", "HTTP", withTracking: false);
             try
             {
                 log.LogDebug("Executing ActivityStatus HttpTrigger Function");
@@ -313,7 +314,7 @@ namespace CSE.Automation
                     context.ElapsedTime,
                 };
 
-                return new JsonResult(result);
+                return new JsonResult(result, httpJsonSerializerSettings);
             }
             catch (Exception ex)
             {
@@ -337,7 +338,7 @@ namespace CSE.Automation
         public Task<IActionResult> Version([HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
         {
             log.LogInformation(this.versionMetadata.ProductVersion);
-            return Task.FromResult((IActionResult)new JsonResult(this.versionMetadata));
+            return Task.FromResult((IActionResult)new JsonResult(this.versionMetadata, httpJsonSerializerSettings));
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Ensure graceful return under all trappable error conditions.")]
@@ -347,9 +348,8 @@ namespace CSE.Automation
 
             try
             {
-                context = activityService.CreateContext($"{discoveryMode.Description()} Request", withTracking: true);
+                context = activityService.CreateContext($"{discoveryMode.Description()} Request", source, withTracking: true);
 
-                context.Activity.CommandSource = source;
                 await processor.RequestDiscovery(context, discoveryMode, source).ConfigureAwait(false);
                 var result = new
                 {
@@ -365,14 +365,15 @@ namespace CSE.Automation
             }
             catch (Exception ex)
             {
+                var message = $"Failed to request Discovery {discoveryMode}";
+
                 if (context != null)
                 {
                     context.Activity.Status = ActivityHistoryStatus.Failed;
-
+                    context.Activity.Message = message;
                     ex.Data["activityContext"] = context;
                 }
 
-                var message = $"Failed to request Discovery {discoveryMode}";
                 log.LogError(ex, message);
 
                 throw;

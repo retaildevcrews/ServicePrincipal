@@ -9,6 +9,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <BuildUTC>$([System.DateTime]::UtcNow.ToString("o"))</BuildUTC>
     <NeutralLanguage>en-US</NeutralLanguage>
+    <Version>1.0-local</Version>
   </PropertyGroup>
 
   <ItemGroup>
