@@ -22,6 +22,8 @@ namespace CSE.Automation.Model
 
         public string Notes { get; set; }
 
+        public IEnumerable<string> Tags { get; set; }
+
 #pragma warning disable CA2227 // Collection properties should be read only
         public IList<string> Owners { get; set; }
 #pragma warning restore CA2227 // Collection properties should be read only

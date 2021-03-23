@@ -12,6 +12,7 @@ namespace CSE.Automation.Processors
         string UpdateQueueName { get; set; }
         string DiscoverQueueName { get; set; }
         UpdateMode AADUpdateMode { get; set; }
+        UpdateField UpdateField { get; set; }
         Guid ConfigurationId { get; set; }
         int VisibilityDelayGapSeconds { get; set; }
         int QueueRecordProcessThreshold { get; set; }

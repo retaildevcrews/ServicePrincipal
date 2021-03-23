@@ -23,7 +23,7 @@ namespace CSE.Automation.Tests.IntegrationTests.TestCaseValidators.AuditResults
             Task<IEnumerable<AuditEntry>> getAuditItems = Task.Run(() => Repository.GetItemsAsync(ServicePrincipalObject.Id, Context.CorrelationId));
             getAuditItems.Wait();
 
-            var auditNoteItems = getAuditItems.Result.Where(x => x.AttributeName == "Notes").ToList();
+            var auditNoteItems = getAuditItems.Result.Where(x => x.AttributeName == "BusinessOwners").ToList();
 
 
             foreach (var auditEntry in auditNoteItems)

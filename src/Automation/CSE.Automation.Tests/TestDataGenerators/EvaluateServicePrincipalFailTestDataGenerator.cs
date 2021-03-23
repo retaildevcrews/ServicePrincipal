@@ -29,7 +29,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
                         DisplayName = "Display Name1",
                         Id = "NO_LKG1",
                         LastUpdated = null,
-                        Notes = null,
+                        BusinessOwners = null,
                         Owners = new List<string>()
                     },
                 }
@@ -43,7 +43,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
                     ExpectedUpdateMessage = new ServicePrincipalUpdateCommand
                     {
                         Action = ServicePrincipalUpdateAction.Update,
-                        Notes = (null, "user1@mydirectory.com")
+                        BusinessOwners = (null, "user1@mydirectory.com")
                     },
                     Target = new ServicePrincipalModel
                     {
@@ -66,7 +66,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
                     ExpectedUpdateMessage = new ServicePrincipalUpdateCommand
                     {
                         Action = ServicePrincipalUpdateAction.Update,
-                        Notes = (null, "user1@mydirectory.com, user2@mydirectory.com")
+                        BusinessOwners = (null, "user1@mydirectory.com, user2@mydirectory.com")
                     },
                     Target = new ServicePrincipalModel()
                     {
@@ -89,7 +89,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
                     ExpectedUpdateMessage = new ServicePrincipalUpdateCommand
                     {
                         Action = ServicePrincipalUpdateAction.Update,
-                        Notes = ("user3@mydirectory.com", "user1@mydirectory.com, user2@mydirectory.com")
+                        BusinessOwners = ("user3@mydirectory.com", "user1@mydirectory.com, user2@mydirectory.com")
                     },
                     Target = new ServicePrincipalModel()
                     {
@@ -100,7 +100,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
                         DisplayName = "Display Name4",
                         Id = "NO_LKG4",
                         LastUpdated = null,
-                        Notes = "user3@mydirectory.com",
+                        BusinessOwners = "user3@mydirectory.com",
                         Owners = new List<string>() {"user1@mydirectory.com, user2@mydirectory.com"}
                     },
                 },
@@ -113,7 +113,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
                     ExpectedUpdateMessage = new ServicePrincipalUpdateCommand
                     {
                         Action = ServicePrincipalUpdateAction.Update,
-                        Notes = ("user3@mydirectory.com, user2@mydirectory.com", "user1@mydirectory.com, user2@mydirectory.com")
+                        BusinessOwners = ("user3@mydirectory.com, user2@mydirectory.com", "user1@mydirectory.com, user2@mydirectory.com")
                     },
                     Target = new ServicePrincipalModel()
                     {
@@ -124,7 +124,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
                         DisplayName = "Display Name5",
                         Id = "NO_LKG5",
                         LastUpdated = null,
-                        Notes = "user3@mydirectory.com, user2@mydirectory.com",
+                        BusinessOwners = "user3@mydirectory.com, user2@mydirectory.com",
                         Owners = new List<string>() {"user1@mydirectory.com, user2@mydirectory.com"}
                     },
                 },
@@ -137,18 +137,18 @@ namespace CSE.Automation.Tests.TestDataGenerators
                     ExpectedUpdateMessage = new ServicePrincipalUpdateCommand
                     {
                         Action = ServicePrincipalUpdateAction.Update,
-                        Notes = ("Please call Joe.Smith@gmail.com for information", "user1@mydirectory.com, user2@mydirectory.com")
+                        BusinessOwners = ("Please call Joe.Smith@gmail.com for information", "user1@mydirectory.com, user2@mydirectory.com")
                     },
                     Target = new ServicePrincipalModel()
                     {
-                        AppDisplayName = "Fail6 - No LKG, Random message in Notes, Remediate from Owners",
+                        AppDisplayName = "Fail6 - No LKG, Random message in BusinessOwners, Remediate from Owners",
                         AppId = "AppId6",
                         Created = DateTimeOffset.Now.AddDays(-1),
                         Deleted = null,
                         DisplayName = "Display Name6",
                         Id = "NO_LKG6",
                         LastUpdated = null,
-                        Notes = "Please call Joe.Smith@gmail.com for information",
+                        BusinessOwners = "Please call Joe.Smith@gmail.com for information",
                         Owners = new List<string>() {"user1@mydirectory.com, user2@mydirectory.com"}
                     },
                 },
@@ -161,7 +161,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
                     ExpectedUpdateMessage = new ServicePrincipalUpdateCommand
                     {
                         Action = ServicePrincipalUpdateAction.Update,
-                        Notes = ("Joe.Smith@gmail.com", "user1@mydirectory.com, user2@mydirectory.com")
+                        BusinessOwners = ("Joe.Smith@gmail.com", "user1@mydirectory.com, user2@mydirectory.com")
                     },
                     Target = new ServicePrincipalModel()
                     {
@@ -172,7 +172,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
                         DisplayName = "Display Name7",
                         Id = "NO_LKG7",
                         LastUpdated = null,
-                        Notes = "Joe.Smith@gmail.com",
+                        BusinessOwners = "Joe.Smith@gmail.com",
                         Owners = new List<string>() {"user1@mydirectory.com, user2@mydirectory.com"}
                     },
                 },
@@ -185,13 +185,13 @@ namespace CSE.Automation.Tests.TestDataGenerators
                 {
                     ObjectServiceData = new TrackingModel[]
                     {
-                        new TrackingModel() { Id = "LKG1", Entity = JObject.FromObject(new ServicePrincipalModel() { Id = "LKG1", Notes = "LKG1@mydirectory.com" }) }
+                        new TrackingModel() { Id = "LKG1", Entity = JObject.FromObject(new ServicePrincipalModel() { Id = "LKG1", BusinessOwners = "LKG1@mydirectory.com" }) }
                     },
                     ExpectedAuditCodes = new AuditCode[] { AuditCode.AttributeValidation },
                     ExpectedUpdateMessage = new ServicePrincipalUpdateCommand
                     {
                         Action = ServicePrincipalUpdateAction.Revert,
-                        Notes = (null, "LKG1@mydirectory.com" )
+                        BusinessOwners = (null, "LKG1@mydirectory.com" )
                     },
                     Target = new ServicePrincipalModel()
                     {
@@ -202,7 +202,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
                         DisplayName = "Display Name1",
                         Id = "LKG1",
                         LastUpdated = null,
-                        Notes = null,
+                        BusinessOwners = null,
                         Owners = new List<string>()
                     },
                 }
@@ -214,13 +214,13 @@ namespace CSE.Automation.Tests.TestDataGenerators
                 {
                     ObjectServiceData = new TrackingModel[]
                     {
-                        new TrackingModel() { Id = "LKG2", Entity = JObject.FromObject(new ServicePrincipalModel() { Id = "LKG2", Notes = "LKG2@mydirectory.com" }) }
+                        new TrackingModel() { Id = "LKG2", Entity = JObject.FromObject(new ServicePrincipalModel() { Id = "LKG2", BusinessOwners = "LKG2@mydirectory.com" }) }
                     },
                     ExpectedAuditCodes = new AuditCode[] { AuditCode.AttributeValidation },
                     ExpectedUpdateMessage = new ServicePrincipalUpdateCommand
                     {
                         Action = ServicePrincipalUpdateAction.Revert,
-                        Notes = (null, "LKG2@mydirectory.com" )
+                        BusinessOwners = (null, "LKG2@mydirectory.com" )
                     },
                     Target = new ServicePrincipalModel()
                     {
@@ -231,7 +231,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
                         DisplayName = "Display Name2",
                         Id = "LKG2",
                         LastUpdated = null,
-                        Notes = null,
+                        BusinessOwners = null,
                         Owners = new List<string>() { "user1@mydirectory.com" }
                     },
                 }

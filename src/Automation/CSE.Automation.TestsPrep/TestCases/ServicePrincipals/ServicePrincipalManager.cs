@@ -188,7 +188,7 @@ namespace CSE.Automation.TestsPrep.TestCases.ServicePrincipals
         {
 
             var servicePrincipalList = GraphHelper.GetAllServicePrincipalsWithNotes($"{_spSettings.ServicePrincipalPrefix}").Result;
-            Console.WriteLine("Service Principal Objects with Notes : " + servicePrincipalList.Count());
+            Console.WriteLine("Service Principal Objects with BusinessOwners : " + servicePrincipalList.Count());
             Console.ReadKey();
         }
 

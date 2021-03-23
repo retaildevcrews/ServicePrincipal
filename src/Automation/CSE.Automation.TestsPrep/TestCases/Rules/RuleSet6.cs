@@ -18,7 +18,7 @@ namespace CSE.Automation.TestsPrep.TestCases.Rules
         {
             base.Execute();
             // set owners 
-            //Empty out Notes field
+            //Empty out BusinessOwners field
 
             HasOwners = GraphHelper.SetOwners(ServicePrincipals, AADUsers);
             

@@ -35,19 +35,19 @@ namespace CSE.Automation.Model
         AttributeValidation = -1,
 
         /// <summary>
-        /// Code for a ServicePrincipal missing Owner values in the extension field (Notes).
+        /// Code for a ServicePrincipal missing Owner values in the extension field.
         /// </summary>
-        [Description("ServicePrincipal is missing Owners in extension field (Notes).")]
+        [Description("ServicePrincipal is missing Owners in extension field.")]
         MissingOwners = -2,
 
         /// <summary>
-        /// Code for a ServicePrincipal Notes containing an invalid formatted UPN.
+        /// Code for a ServicePrincipal BusinessOwners field containing an invalid formatted UPN.
         /// </summary>
         [Description("'{0}' format is not a valid UserPrincipalName")]
         InvalidUPN = -3,
 
         /// <summary>
-        /// Code for a ServicePrincipal Notes containing an invalid Directory UPN.
+        /// Code for a ServicePrincipal BusinessOwners field containing an invalid Directory UPN.
         /// </summary>
         [Description("'{0}' is not a valid UserPrincipalName in this directory")]
         InvalidDirectoryUPN = -4,

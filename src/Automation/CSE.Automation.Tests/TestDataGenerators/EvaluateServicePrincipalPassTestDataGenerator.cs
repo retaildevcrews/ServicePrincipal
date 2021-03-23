@@ -26,7 +26,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
                         DisplayName = "Display Name1",
                         Id = "Id1",
                         LastUpdated = null,
-                        Notes = "user1@mydirectory.com"
+                        BusinessOwners = "user1@mydirectory.com"
                     },
                 }
 
@@ -46,7 +46,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
                         DisplayName = "Display Name2",
                         Id = "Id2",
                         LastUpdated = null,
-                        Notes = "user1@mydirectory.com, user2@mydirectory.com"
+                        BusinessOwners = "user1@mydirectory.com, user2@mydirectory.com"
                     },
                 }
             };
@@ -65,7 +65,7 @@ namespace CSE.Automation.Tests.TestDataGenerators
                         DisplayName = "Display Name3",
                         Id = "Id3",
                         LastUpdated = null,
-                        Notes = "user1@mydirectory.com;    user2@mydirectory.com"
+                        BusinessOwners = "user1@mydirectory.com;    user2@mydirectory.com"
                     },
                 }
             };

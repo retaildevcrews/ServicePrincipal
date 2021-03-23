@@ -20,7 +20,7 @@ namespace CSE.Automation.Tests.IntegrationTests.TestCaseValidators.AuditResults.
 
             bool typePass = (NewAuditEntry.Type == AuditActionType.Change);
 
-            bool attributeNamePass = NewAuditEntry.AttributeName == "Notes";
+            bool attributeNamePass = NewAuditEntry.AttributeName == "BusinessOwners";
 
 
             bool validReasonPass = (NewAuditEntry.Reason == AuditCode.Updated.Description());

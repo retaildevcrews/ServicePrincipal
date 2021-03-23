@@ -17,7 +17,7 @@ namespace CSE.Automation.TestsPrep.TestCases.Rules
         {
             base.Execute();
             //-set owners 
-            //-populated Notes field with valid emails other that AAD emails
+            //-populated BusinessOwners field with valid emails other that AAD emails
 
             HasOwners = GraphHelper.SetOwners(ServicePrincipals, AADUsers);
             

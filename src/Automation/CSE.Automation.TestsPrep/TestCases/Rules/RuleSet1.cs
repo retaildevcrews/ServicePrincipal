@@ -17,7 +17,7 @@ namespace CSE.Automation.TestsPrep.TestCases.Rules
         public override void Execute()
         {
             //-set owners 
-            //-populated Notes field with owners AAD emails
+            //-populated BusinessOwners field with owners AAD emails
             base.Execute();
 
             HasOwners = GraphHelper.SetOwners(ServicePrincipals, AADUsers);

@@ -33,7 +33,7 @@ namespace CSE.Automation.Tests.IntegrationTests.TestCaseValidators.AuditResults
 
                 bool validReasonPass = (auditEntry.Reason == AuditCode.AttributeValidation.Description());
 
-                bool validAttributeNamePass = (auditEntry.AttributeName == "Notes");
+                bool validAttributeNamePass = (auditEntry.AttributeName == "BusinessOwners");
 
                 bool isNewAuditEntryPass = SavedAuditEntry != null ? auditEntry.Timestamp > SavedAuditEntry.Timestamp : true;
 

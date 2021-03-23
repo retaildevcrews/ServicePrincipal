@@ -18,7 +18,7 @@ namespace CSE.Automation.Tests.IntegrationTests.TestCaseValidators.ServicePrinci
             Dictionary<string,string> ownersList = GraphHelper.GetOwnersDisplayNameAndUserPrincipalNameKeyValuePair(ServicePrincipalObject);
             if (ownersList.Count > 0 && !string.IsNullOrEmpty(ServicePrincipalObject.Notes))
             {
-                // Emails in Notes must be Invalid
+                // Emails in BusinessOwners must be Invalid
                 List<string> invalidEmails = ServicePrincipalObject.Notes.Split(";").ToList();
 
                 string tenantDomainName = GraphHelper.GetDomainName();

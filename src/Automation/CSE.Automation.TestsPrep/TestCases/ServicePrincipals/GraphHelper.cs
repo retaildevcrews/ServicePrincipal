@@ -293,7 +293,7 @@ namespace CSE.Automation.TestsPrep.TestCases.ServicePrincipals
                         Notes = validFormattedEmails
                     };
 
-                    // Update Notes for target Service Principal object to keep it in sync and save a couple API calls
+                    // Update BusinessOwners for target Service Principal object to keep it in sync and save a couple API calls
                     spObject.Notes = validFormattedEmails;
 
                     Task<ServicePrincipal> thisTask = _graphClient.ServicePrincipals[spObject.Id].Request().UpdateAsync(servicePrincipal);
@@ -352,7 +352,7 @@ namespace CSE.Automation.TestsPrep.TestCases.ServicePrincipals
                         Notes = semicolonSeparatedOwnersEmail
                     };
 
-                    // Update Notes for target Service Principal object to keep it in sync and save a couple API calls
+                    // Update BusinessOwners for target Service Principal object to keep it in sync and save a couple API calls
                     spObject.Notes = semicolonSeparatedOwnersEmail;
 
                     Task<ServicePrincipal> thisTask = _graphClient.ServicePrincipals[spObject.Id].Request().UpdateAsync(servicePrincipal);

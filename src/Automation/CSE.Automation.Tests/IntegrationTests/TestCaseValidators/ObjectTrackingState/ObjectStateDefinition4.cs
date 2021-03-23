@@ -30,7 +30,7 @@ namespace CSE.Automation.Tests.IntegrationTests.TestCaseValidators.ObjectTrackin
 
                 SPModel.Owners = assignedOwnersList;
 
-                SPModel.Notes = string.Join(';', assignedOwnersList);
+                SPModel.BusinessOwners = string.Join(';', assignedOwnersList);
 
                 var objectModel = new TrackingModel<ServicePrincipalModel>
                 {

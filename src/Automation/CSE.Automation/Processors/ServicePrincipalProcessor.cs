@@ -12,6 +12,7 @@ using CSE.Automation.Graph;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
 using CSE.Automation.Model.Commands;
+using CSE.Automation.Model.Validators;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Newtonsoft.Json.Converters;
@@ -30,6 +31,20 @@ namespace CSE.Automation.Processors
         /// AAD Update logic only reports a requested change but does not attempt to write to AAD
         /// </summary>
         ReportOnly,
+    }
+
+    [JsonConverter(typeof(StringEnumConverter))]
+    internal enum UpdateField
+    {
+        /// <summary>
+        /// AAD Update logic updates Notes field
+        /// </summary>
+        Notes,
+
+        /// <summary>
+        /// AAD Update logic updates Tags field
+        /// </summary>
+        Tags,
     }
 
     internal class ServicePrincipalProcessor : DeltaProcessorBase, IServicePrincipalProcessor
@@ -201,12 +216,14 @@ namespace CSE.Automation.Processors
                     }
                 }
 
+                var businessOwners = sp.Notes.Split(ServicePrincipalModelValidator.NotesSeparators); // sp.Tags.ToList();
                 var model = new ServicePrincipalModel()
                 {
                     Id = sp.Id,
                     AppId = sp.AppId,
                     DisplayName = sp.DisplayName,
                     Notes = sp.Notes,
+                    Tags = sp.Tags,
                     Created = createdDateTime,
                     Deleted = sp.DeletedDateTime,
                     Owners = ownerNames,
@@ -342,15 +359,30 @@ namespace CSE.Automation.Processors
                 try
                 {
                     logger.LogInformation($"{command.Entity.Id} ({command.Entity.DisplayName}) {command.Action.Description()}");
-
-                    await graphHelper.PatchGraphObject(new ServicePrincipal
+                    if (settings.UpdateField == UpdateField.Notes)
                     {
-                        Id = command.Entity.Id,
-                        Notes = command.Notes.Changed,
-                    }).ConfigureAwait(true);
+                        await graphHelper.PatchGraphObject(new ServicePrincipal
+                        {
+                            Id = command.Entity.Id,
+                            Notes = command.BusinessOwners.Changed,
+                        }).ConfigureAwait(true);
 
-                    // once AAD is updated, we can update LKG
-                    command.Entity.Notes = command.Notes.Changed;
+                        // once AAD is updated, we can update LKG
+                        command.Entity.Notes = command.BusinessOwners.Changed;
+                    }
+
+                    else
+                    {
+                        await graphHelper.PatchGraphObject(new ServicePrincipal
+                        {
+                            Id = command.Entity.Id,
+                            Tags = command.BusinessOwners.Changed,  // TODO - string model to list model
+                        }).ConfigureAwait(true);
+
+                        // once AAD is updated, we can update LKG
+                        command.Entity.Tags = command.BusinessOwners.Changed;  // TODO - string model to list model
+                    }
+
 
                     TrackingModel trackingModel = await objectService.Get<ServicePrincipalModel>(command.Entity.Id).ConfigureAwait(false);
 
@@ -361,7 +393,7 @@ namespace CSE.Automation.Processors
                     logger.LogError(exSvc, $"Failed to update AAD Service Principal {command.Entity.Id} ({command.Entity.ServicePrincipalType})");
                     try
                     {
-                        await auditService.PutFail(auditEntryDescriptor, AuditCode.AADUpdate, "Notes", command.Notes.Current, exSvc.Message).ConfigureAwait(false);
+                        await auditService.PutFail(auditEntryDescriptor, AuditCode.AADUpdate, settings.UpdateField.ToString(), command.BusinessOwners.Current, exSvc.Message).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {
@@ -374,7 +406,7 @@ namespace CSE.Automation.Processors
 
                 try
                 {
-                    await auditService.PutChange(auditEntryDescriptor, AuditCode.Updated, "Notes", command.Notes.Current, command.Notes.Changed, command.Action.Description()).ConfigureAwait(false);
+                    await auditService.PutChange(auditEntryDescriptor, AuditCode.Updated, settings.UpdateField.ToString(), command.BusinessOwners.Current, command.BusinessOwners.Changed, command.Action.Description()).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -421,7 +453,7 @@ namespace CSE.Automation.Processors
             {
                 Entity = lastKnownGoodEntity,
                 LastKnownGoodTime = lastKnownGood.LastUpdated,
-                Notes = (entity.Notes, lastKnownGoodEntity.Notes),
+                BusinessOwners = (entity.BusinessOwners, lastKnownGoodEntity.BusinessOwners),  // TODO - correct model (string or ienumerable)
                 Action = ServicePrincipalUpdateAction.Revert, // "Revert to Last Known Good",
             };
 
@@ -429,7 +461,7 @@ namespace CSE.Automation.Processors
         }
 
         /// <summary>
-        /// Update the ServicePrincipal Notes from the Owners List
+        /// Update the ServicePrincipal BusinessOwners from the Owners List
         /// </summary>
         /// <param name="context">Context of the activity.</param>
         /// <param name="entity">Entity of type <see cref="ServicePrincipalModel"/>.</param>
@@ -437,7 +469,7 @@ namespace CSE.Automation.Processors
         /// <returns>A Task that returns nothing.</returns>
         private static async Task RemediateFromOwners(ActivityContext context, ServicePrincipalModel entity, IAzureQueueService queueService)
         {
-            // get new value for Notes (from the list of Owners)
+            // get new value for BusinessOwners (from the list of Owners)
             // var owners = sp.Owners.Select(x => (x as User)?.UserPrincipalName);
             var ownersList = string.Join(';', entity.Owners);
 
@@ -445,8 +477,8 @@ namespace CSE.Automation.Processors
             var updateCommand = new ServicePrincipalUpdateCommand()
             {
                 Entity = entity,
-                Notes = (entity.Notes, ownersList),
-                Action = ServicePrincipalUpdateAction.Update, // "Update Notes from Owners",
+                BusinessOwners = (entity.Notes, ownersList),
+                Action = ServicePrincipalUpdateAction.Update, // "Update BusinessOwners from Owners",
             };
             await CommandAADUpdate(context, updateCommand, queueService).ConfigureAwait(true);
         }
@@ -508,7 +540,7 @@ namespace CSE.Automation.Processors
                     AppId = entity.AppId,
                     DisplayName = entity.DisplayName,
                 };
-                await auditService.PutFail(auditEntryDescriptor, AuditCode.MissingOwners, "Notes", null).ConfigureAwait(true);
+                await auditService.PutFail(auditEntryDescriptor, AuditCode.MissingOwners, settings.UpdateField.ToString(), null).ConfigureAwait(true);
                 logger.LogWarning(failMessage);
             }
             catch (Exception)

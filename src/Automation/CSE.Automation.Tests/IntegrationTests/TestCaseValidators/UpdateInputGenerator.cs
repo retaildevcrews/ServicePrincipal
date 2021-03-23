@@ -63,8 +63,8 @@ namespace CSE.Automation.Tests.IntegrationTests.TestCaseValidators
             {
                 CorrelationId = activityContext.CorrelationId,
                 Entity = new ServicePrincipalModel { Id = _validatedServicePrincipalWraper.AADServicePrincipal.Id, },
-                Notes = (_validatedServicePrincipalWraper.AADServicePrincipal.Notes, ownersListAsString),
-                Action = ServicePrincipalUpdateAction.Update, // "Update Notes from Owners",
+                BusinessOwners = (_validatedServicePrincipalWraper.AADServicePrincipal.Notes, ownersListAsString),
+                Action = ServicePrincipalUpdateAction.Update, // "Update BusinessOwners from Owners",
             };
 
             var myMessage = new QueueMessage<ServicePrincipalUpdateCommand>()

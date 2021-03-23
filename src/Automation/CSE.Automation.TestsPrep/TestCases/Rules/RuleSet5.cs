@@ -16,7 +16,7 @@ namespace CSE.Automation.TestsPrep.TestCases.Rules
         {
             base.Execute();
             // DO NOT set owners 
-            // populated Notes field with valid emails other tht AAD emails
+            // populated BusinessOwners field with valid emails other tht AAD emails
 
             GraphHelper.UpdateNotesFieldWithValidEmail(ServicePrincipals);
 

@@ -52,7 +52,7 @@ namespace CSE.Automation.Tests.UnitTests.ModelValidation
             output.WriteLine(JsonConvert.SerializeObject(results, Formatting.Indented));
 
             Assert.False(results.IsValid);
-            Assert.Contains(results.Errors, x => x.PropertyName == "Notes");
+            Assert.Contains(results.Errors, x => x.PropertyName == "BusinessOwners");
         }
 
         [Fact]
@@ -64,7 +64,7 @@ namespace CSE.Automation.Tests.UnitTests.ModelValidation
                 AppId = "fake app id",
                 AppDisplayName = "fake app display name",
                 DisplayName = "fake display name",
-                Notes = "email@domain.com",
+                BusinessOwners = "email@domain.com",
                 Id = "fake id",
                 Created = new DateTime(2000, 1, 1),
                 Deleted = new DateTime(2001, 1, 1),

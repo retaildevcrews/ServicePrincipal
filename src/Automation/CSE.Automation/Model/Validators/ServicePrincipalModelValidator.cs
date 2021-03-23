@@ -19,7 +19,7 @@ namespace CSE.Automation.Model.Validators
         {
             Include(new GraphModelValidator());
 
-            RuleFor(m => m.Notes)
+            RuleFor(m => m.BusinessOwners)
                 .NotEmpty()
                 .HasOnlyEmailAddresses()
                 .Custom((field, context) =>
@@ -29,7 +29,7 @@ namespace CSE.Automation.Model.Validators
                         var (sp, _) = graphHelper.GetEntityWithOwners(token).Result;
                         if (sp is null)
                         {
-                            var failure = new ValidationFailure("Notes", string.Format(CultureInfo.CurrentCulture, AuditCode.InvalidDirectoryUPN.Description(), token), field) { ErrorCode = AuditCode.InvalidDirectoryUPN.ToString() };
+                            var failure = new ValidationFailure("BusinessOwners", string.Format(CultureInfo.CurrentCulture, AuditCode.InvalidDirectoryUPN.Description(), token), field) { ErrorCode = AuditCode.InvalidDirectoryUPN.ToString() };
                             context.AddFailure(failure);
                         }
                     });

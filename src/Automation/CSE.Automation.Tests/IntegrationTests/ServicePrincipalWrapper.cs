@@ -30,7 +30,7 @@ namespace CSE.Automation.Tests.IntegrationTests
                 Id = AADServicePrincipal.Id,
                 AppId = AADServicePrincipal.AppId,
                 DisplayName = AADServicePrincipal.DisplayName,
-                Notes = AADServicePrincipal.Notes,
+                BusinessOwners = AADServicePrincipal.Notes,
                 Created = DateTimeOffset.Parse(AADServicePrincipal.AdditionalData["createdDateTime"].ToString(), CultureInfo.CurrentCulture),
                 Deleted = AADServicePrincipal.DeletedDateTime,
                 Owners = HasOwners ? AADUsers : null

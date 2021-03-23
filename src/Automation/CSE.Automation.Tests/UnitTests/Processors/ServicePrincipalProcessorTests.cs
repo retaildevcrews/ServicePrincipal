@@ -243,7 +243,7 @@ namespace CSE.Automation.Tests.UnitTests.Processors
 
                 Assert.Equal(command.CorrelationId, context.CorrelationId);
                 Assert.Equal(testData.ExpectedUpdateMessage.Action, command.Action);
-                Assert.Equal(testData.ExpectedUpdateMessage.Notes, command.Notes);
+                Assert.Equal(testData.ExpectedUpdateMessage.BusinessOwners, command.BusinessOwners);
             }
         }
 

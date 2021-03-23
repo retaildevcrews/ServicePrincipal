@@ -4,6 +4,7 @@
 using System.Configuration;
 using CSE.Automation.Interfaces;
 using CSE.Automation.Model;
+using Microsoft.Azure.Storage.Queue;
 
 namespace CSE.Automation.Processors
 {
@@ -45,6 +46,8 @@ namespace CSE.Automation.Processors
         }
 
         public UpdateMode AADUpdateMode { get; set; }
+
+        public UpdateField UpdateField { get; set; } = UpdateField.Notes;
 
         public override void Validate()
         {

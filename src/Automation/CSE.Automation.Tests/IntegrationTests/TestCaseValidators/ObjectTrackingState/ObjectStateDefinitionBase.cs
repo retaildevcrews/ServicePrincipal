@@ -57,7 +57,7 @@ namespace CSE.Automation.Tests.IntegrationTests.TestCaseValidators.ObjectTrackin
             {
                 ServicePrincipalModel spModel = TrackingModel.Unwrap<ServicePrincipalModel>(getObjectTrackingItem.Result);
 
-                if (!string.IsNullOrEmpty(spModel.Notes))
+                if (!string.IsNullOrEmpty(spModel.BusinessOwners))
                 {
                     Dictionary<string,string> ownersInfoList = GraphHelper.GetOwnersDisplayNameAndUserPrincipalNameKeyValuePair(ServicePrincipalObject);
                     
@@ -68,7 +68,7 @@ namespace CSE.Automation.Tests.IntegrationTests.TestCaseValidators.ObjectTrackin
                         ownersList.AddRange(assignedOwnersList);
                     }
 
-                    var currentNotes = spModel.Notes.Split(";").ToList();
+                    var currentNotes = spModel.BusinessOwners.Split(";").ToList();
 
                     result = ownersList.Count() == currentNotes.Count() && ownersList.Except(currentNotes).Count() == 0;
                 }
