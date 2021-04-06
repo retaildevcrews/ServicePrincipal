@@ -1,23 +1,40 @@
 [CmdletBinding()]
 param (
+  [Parameter()]
+  # Path of the file for output
   [string]$OutputFile = $null,
 
   [ValidateSet("csv", "tsv", "json")]
+  # Format for the output: csv, tsv, json
   [string]$OutputType = "csv", 
 
+  # Switch to perform AppOwner enrichment from Application Object
+  [switch]$Enrich, 
+
+  # Switch to pass output through pipeline
   [switch]$PassThru
 )
 
 function ValidateArguments
 {
   if ([string]::IsNullOrWhiteSpace($OutputFile) -and -not $PassThru) {
-    Write-Host "File Path Not Set, Only Printing Summary"
+    Write-Host -ForegroundColor Yellow "`nOutput file path not set, only printing summary`n"
   }
 }
 
-$ClassificationMapping = Get-Content './resources/classification_mapping.json' | ConvertFrom-Json
+function Classify
+{
+  param(
+    [object]$obj,
+    [string]$Classification,
+    [string]$Category,
+    [string]$OwningDomain
+  )
 
-$CategoryOobeList = Get-Content './resources/category_oobe_list.json' | ConvertFrom-Json
+  $obj | Add-Member -NotePropertyName Classification -NotePropertyValue $Classification
+  $obj | Add-Member -NotePropertyName Category -NotePropertyValue $Category
+  $obj | Add-Member -NotePropertyName OwningDomain -NotePropertyValue $OwningDomain
+}
 
 function ClassifyMicrosoft
 {
@@ -27,14 +44,17 @@ function ClassifyMicrosoft
   )
   $group.Group |
     ForEach-Object {
-      $_.Tags += "Microsoft"
-      if ($CategoryOobeList -contains $_.AppId){
-        $_.Tags += "OOBE"
+      
+      if ($CategoryOobeList -contains $_.AppId)
+      {
+        $category = "OOBE"
       }
-      else {
-        $_.Tags += "Addition"
+      else 
+      {
+        $category = "Addition"
       }
-      $_.Tags += ""
+
+      Classify $_ "Microsoft" $category ""
     }
 }
 
@@ -46,9 +66,7 @@ function ClassifyTenant
   )
   $group.Group |
     ForEach-Object {
-      $_.Tags += "Tenant"
-      $_.Tags += $_.ServicePrincipalType
-      $_.Tags += ""
+      Classify $_ "Tenant" $_.ServicePrincipalType ""
     }
 }
 
@@ -60,13 +78,7 @@ function ClassifyThirdParty
   )
   $group.Group |
     ForEach-Object {
-      $_.Tags += "ThirdParty"
-      $_.Tags += $_.ServicePrincipalType
-      $_.Tags += (($_.ServicePrincipalNames.split(", ") |
-                   ForEach-Object {[System.Uri]$_} |
-                   Where-Object {$null -ne $_.Host} |
-                   ForEach-Object {$_.Host} |
-                   Get-Unique ) -join ", ")
+      Classify $_ "ThirdParty" $_.ServicePrincipalType (($_.ServicePrincipalNames.split(", ") | ? { -not($_.ToLower().Contains("*"))  } | % {[System.Uri]$_} | ? {$null -ne $_.Host} | % {$_.Host} | Get-Unique ) -join ", ")
     }
 }
 
@@ -93,16 +105,55 @@ function ClassifyGroup
   }
 }
 
+function EnrichAppOwners
+{
+  param ($sp)
+  #$appId = $sp.AppId
+  #$app = Get-MgApplication -Filter "appId eq '$appId'" -ExpandProperty Owners
+  $app = $appList | ? { $_.AppId -eq $sp.AppId }
+  if ($null -ne $app)
+  {
+    $sp.AppOwners = ,(($app.Owners | % { 
+        $UPNs = @()
+        if ($_.AdditionalProperties['@odata.type'] -eq "#microsoft.graph.servicePrincipal") {
+          $UPNs = (Get-MgServicePrincipal -ServicePrincipalId $_.Id -ExpandProperty Owners).Owners | % { $_.AdditionalProperties['userPrincipalName'] } 
+        }
+        elseif ($_.AdditionalProperties['@odata.type'] -eq "#microsoft.graph.user")
+        {
+          $UPNs = ,($_.AdditionalProperties['userPrincipalName'])
+        }
+        $UPNs
+      }) -join ',')
+  }
+
+}
+
+# Validate arguments
 ValidateArguments
 
-connect-graph -Scopes "Directory.read.all" | Out-Null
-$spList = Get-MgServicePrincipal -All
+# Load mappings
+Write-Host -ForegroundColor Green "`tLoading maps"
+$ClassificationMapping = Get-Content './resources/classification_mapping.json' | ConvertFrom-Json
+$CategoryOobeList = Get-Content './resources/category_oobe_list.json' | ConvertFrom-Json
 
+
+# Connect to the Graph API and get all the service principals
+Write-Host -ForegroundColor Green "`tConnecting to Graph"
+connect-graph -Scopes "Directory.read.all" | Out-Null
+
+Write-Host -ForegroundColor Green "`tQuerying Applications"
+$appList = Get-MgApplication -ExpandProperty Owners -All
+Write-Host "`t`t$($appList.Count) Applications retrieved"
+
+Write-Host -ForegroundColor Green "`tQuerying ServicePrincipals"
+$spList = Get-MgServicePrincipal -All -ExpandProperty Owners
+Write-Host "`t`t$($spList.Count) ServicePrincipals retrieved"
+
+# Group the list by type and owner org
+Write-Host -ForegroundColor Green "`tSorting and Grouping"
 $groups = $spList | Group-Object -Property ServicePrincipalType,AppOwnerOrganizationId | Sort-Object Count -D
 
-Write-Host "`nSummary of Service Principals Retrieved:"
-$groups | Select-Object -Property Count, @{N='AppOwnerOrganizationId';E={$_.Group[0].AppOwnerOrganizationId}}, @{N='ServicePrincipalType';E={$_.Group[0].ServicePrincipalType}} | Out-String | Write-Host
-
+Write-Host -ForegroundColor Green "`tClassifying"
 $groups | 
   ForEach-Object {
     $groupClass = ClassifyGroup $_.Name
@@ -117,13 +168,41 @@ $groups |
     }
   }
 
+  $spList | Add-member -NotePropertyName AppOwners -NotePropertyValue ""
+  if ($Enrich)
+  {
+    $filteredList = $spList | ? { ($_.ServicePrincipalType -eq "Application") -and ($_.Classification -eq "Tenant") }
+    Write-Host -ForegroundColor Green "`tEnriching AppOwners ($($filteredList.Count))"
+
+    # this is a long process and we want to see some status, use a for loop instead of a pipe
+    for ($i = 0; $i -lt $filteredList.Count; $i++) {
+      $item = $filteredList[$i]
+      EnrichAppOwners $item
+
+      if (($i -gt 0) -and ($i % 200) -eq 0)
+      {
+        Write-Host "$($i)/$($filteredList.Length).." -NoNewline
+      }
+    }
+    Write-Host ""
+    #$filteredList | % { EnrichAppOwners $_ }
+  }
+  
+
+  Write-Host "`nServicePrincipals by AppOwnerOrganizationId, Type:"
+  $groups | Select-Object -Property Count, @{N='AppOwnerOrganizationId';E={$_.Group[0].AppOwnerOrganizationId}}, @{N='ServicePrincipalType';E={$_.Group[0].ServicePrincipalType}} | Out-String | Write-Host
+
+
   $results = $spList |
-      Select-Object -Property @{N='Classification';E={$_.Tags[-3]}}, @{N='Category';E={$_.Tags[-2]}}, @{N='OwningDomain';E={$_.Tags[-1]}}, Id, AppOwnerOrganizationId, AppId, DisplayName, @{N='ServicePrincipalNames';E={$_.ServicePrincipalNames -join ", "}}, ServicePrincipalType
+      Select-Object -Property Classification, Category, OwningDomain, Id, AppOwnerOrganizationId, DisplayName, AppId, AppOwners, @{N='ServicePrincipalNames';E={$_.ServicePrincipalNames -join ", "}}, ServicePrincipalType
 
-  Write-Host "Summary of Results:"
-      $results | Group-Object -Property Classification, Category | Sort-Object Count -D | Select-Object -Property Count, @{N='Classification';E={$_.Group[0].Classification}}, @{N='Category';E={$_.Group[0].Category}} | Out-String | Write-Host
+  Write-Host "Summary of Classified ServicePrincipals:"
+  $results | Group-Object -Property Classification, Category | Sort-Object Count -D | Select-Object -Property Count, @{N='Classification';E={$_.Group[0].Classification}}, @{N='Category';E={$_.Group[0].Category}} | Out-String | Write-Host
 
-  if (-not ([string]::IsNullOrWhiteSpace($OutputFile))) {
+    # Emit output file if we have a filename
+  if (-not ([string]::IsNullOrWhiteSpace($OutputFile))) 
+  {
+    Write-Host -ForegroundColor Green "`tEmitting $OutputType file"
 
     if ($OutputType -eq "csv") {
       $results | ConvertTo-Csv | Out-File -FilePath $OutputFile
@@ -132,8 +211,15 @@ $groups |
     } elseif ($OutputType -eq "json") {
       $results | ConvertTo-Json | Out-File -FilePath $OutputFile
     } 
-
   }
+
+  Write-Host -ForegroundColor Green "`tDisconnecting from graph"
+  disconnect-graph 
+
   if ($PassThru) {
     return $results
   }
+
+
+
+  Write-Host -ForegroundColor Green "Done."
