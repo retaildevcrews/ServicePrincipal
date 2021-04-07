@@ -226,11 +226,11 @@ $groups |
     Write-Host -ForegroundColor Green "`tEmitting $OutputType file"
 
     if ($OutputType -eq "csv") {
-      $results | ConvertTo-Csv | Out-File -FilePath $OutputFile
+      $results | ConvertTo-Csv -NoTypeInformation | Out-File -FilePath $OutputFile
     } elseif ($OutputType -eq "tsv") {
-      $results | ConvertTo-Csv -Delimiter "`t" | Out-File -FilePath $OutputFile
+      $results | ConvertTo-Csv -NoTypeInformation -Delimiter "`t" | Out-File -FilePath $OutputFile
     } elseif ($OutputType -eq "json") {
-      $results | ConvertTo-Json | Out-File -FilePath $OutputFile
+      $results | ConvertTo-Json  | Out-File -FilePath $OutputFile
     } 
   }
 
