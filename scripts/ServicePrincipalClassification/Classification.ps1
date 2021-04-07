@@ -160,9 +160,9 @@ Write-Host "`t`t$($appList.Count) Applications retrieved"
 
 Write-Host -ForegroundColor Green "`tQuerying ServicePrincipals"
 
-if ($null -ne $Top)
+if ($Top -gt 0)
 {
-  $spList = Get-MgServicePrincipal -All -ExpandProperty Owners | select -first $Top
+  $spList = Get-MgServicePrincipal -Top $Top -ExpandProperty Owners
 } 
 else 
 {
