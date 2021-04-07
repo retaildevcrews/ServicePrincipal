@@ -1,19 +1,32 @@
+<#
+    .SYNOPSIS
+    Pulls ServicePrincipals from AAD through the Graph API and classifies them.
+#>
+
 [CmdletBinding()]
 param (
-  [Parameter()]
+  [string]
   # Path of the file for output
-  [string]$OutputFile = $null,
+  $OutputFile = $null,
 
   [ValidateSet("csv", "tsv", "json")]
+  [string]
   # Format for the output: csv, tsv, json
-  [string]$OutputType = "csv", 
+  $OutputType = "csv", 
 
+  [int]
+  # Limit results to the first N 
+  $Top = $null,
+
+  [switch]
   # Switch to perform AppOwner enrichment from Application Object
-  [switch]$Enrich, 
+  $Enrich, 
 
+  [switch]
   # Switch to pass output through pipeline
-  [switch]$PassThru
+  $PassThru
 )
+
 
 function ValidateArguments
 {
@@ -113,14 +126,14 @@ function EnrichAppOwners
   $app = $appList | ? { $_.AppId -eq $sp.AppId }
   if ($null -ne $app)
   {
-    $sp.AppOwners = ,(($app.Owners | % { 
-        $UPNs = @()
+    $sp.AppOwners = (($app.Owners | % { 
+        $UPNs = ""
         if ($_.AdditionalProperties['@odata.type'] -eq "#microsoft.graph.servicePrincipal") {
-          $UPNs = (Get-MgServicePrincipal -ServicePrincipalId $_.Id -ExpandProperty Owners).Owners | % { $_.AdditionalProperties['userPrincipalName'] } 
+          $UPNs = ((Get-MgServicePrincipal -ServicePrincipalId $_.Id -ExpandProperty Owners).Owners | % { $_.AdditionalProperties['userPrincipalName'] }) -join ','
         }
         elseif ($_.AdditionalProperties['@odata.type'] -eq "#microsoft.graph.user")
         {
-          $UPNs = ,($_.AdditionalProperties['userPrincipalName'])
+          $UPNs = $_.AdditionalProperties['userPrincipalName']
         }
         $UPNs
       }) -join ',')
@@ -146,7 +159,15 @@ $appList = Get-MgApplication -ExpandProperty Owners -All
 Write-Host "`t`t$($appList.Count) Applications retrieved"
 
 Write-Host -ForegroundColor Green "`tQuerying ServicePrincipals"
-$spList = Get-MgServicePrincipal -All -ExpandProperty Owners
+
+if ($null -ne $Top)
+{
+  $spList = Get-MgServicePrincipal -All -ExpandProperty Owners | select -first $Top
+} 
+else 
+{
+  $spList = Get-MgServicePrincipal -All -ExpandProperty Owners
+}
 Write-Host "`t`t$($spList.Count) ServicePrincipals retrieved"
 
 # Group the list by type and owner org
@@ -194,7 +215,7 @@ $groups |
 
 
   $results = $spList |
-      Select-Object -Property Classification, Category, OwningDomain, Id, AppOwnerOrganizationId, DisplayName, AppId, AppOwners, @{N='ServicePrincipalNames';E={$_.ServicePrincipalNames -join ", "}}, ServicePrincipalType
+      Select-Object -Property Classification, Category, OwningDomain, Id, AppOwnerOrganizationId, DisplayName, AppId, Notes, AppOwners, @{N='ServicePrincipalNames';E={$_.ServicePrincipalNames -join ", "}}, ServicePrincipalType
 
   Write-Host "Summary of Classified ServicePrincipals:"
   $results | Group-Object -Property Classification, Category | Sort-Object Count -D | Select-Object -Property Count, @{N='Classification';E={$_.Group[0].Classification}}, @{N='Category';E={$_.Group[0].Category}} | Out-String | Write-Host
