@@ -77,7 +77,7 @@
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
     <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.1.0" />
     <PackageReference Include="Microsoft.Graph" Version="3.18.0" />
-    <PackageReference Include="Azure.Storage.Queues" Version="12.4.2" />
+    <PackageReference Include="Azure.Storage.Queues" Version="12.11.0" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\serviceprincipalprocessorconfiguration.json" />
